@@ -1,0 +1,85 @@
+asyncapi: 3.0.0
+info:
+  title: RecipeShared Event (v2 — domain-model-aligned)
+  version: 2.0.0
+  description: |
+    Corrected version of the RecipeShared event schema from Chapter 12.
+    Change: `steps` field added to the payload — it was present in the domain model
+    but missing from the Chapter 12 schema. The inconsistency was detected by the AI
+    during the cross-review in Chapter 14.
+
+channels:
+  cookwithus/sharing/recipe-shared:
+    address: cookwithus/sharing/recipe-shared
+    messages:
+      RecipeShared:
+        $ref: '#/components/messages/RecipeShared'
+
+operations:
+  publishRecipeShared:
+    action: send
+    channel:
+      $ref: '#/channels/cookwithus~1sharing~1recipe-shared'
+    messages:
+      - $ref: '#/channels/cookwithus~1sharing~1recipe-shared/messages/RecipeShared'
+
+components:
+  messages:
+    RecipeShared:
+      name: RecipeShared
+      title: Recipe Shared
+      summary: A Cook has published a Recipe to the community feed.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RecipeSharedPayload'
+
+  schemas:
+    RecipeSharedPayload:
+      type: object
+      required:
+        - eventId
+        - occurredAt
+        - recipeId
+        - authorId
+        - title
+        - ingredients
+        - steps
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        recipeId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        category:
+          type: string
+        ingredients:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - name
+              - quantity
+              - unit
+            properties:
+              name:
+                type: string
+              quantity:
+                type: number
+              unit:
+                type: string
+        steps:
+          type: array
+          minItems: 1
+          description: Added in v2 — was missing from the Chapter 12 schema
+          items:
+            type: string

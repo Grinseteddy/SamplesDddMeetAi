@@ -1,0 +1,291 @@
+openapi: 3.1.0
+info:
+  title: CookWithUs — Sharing API
+  description: |
+    Manages recipe authorship, publication, and revision.
+    A Cook authors a Recipe and publishes it to the community feed.
+    All terms are taken from the CookWithUs Ubiquitous Language.
+  version: 0.1.0
+  contact:
+    name: CookWithUs Team
+
+servers:
+  - url: https://api.cookwithus.example/sharing/v1
+
+tags:
+  - name: Recipes
+    description: Recipe authoring and publication
+
+paths:
+  /recipes:
+    post:
+      operationId: publishRecipe
+      summary: Publish a new Recipe
+      tags:
+        - Recipes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipePublicationRequest'
+      responses:
+        '201':
+          description: Recipe published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '400':
+          description: Invalid recipe data (e.g. missing title or ingredients)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Recipe violates a domain invariant
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+    get:
+      operationId: listRecipes
+      summary: List published Recipes (community feed)
+      tags:
+        - Recipes
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated list of Recipes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipePage'
+
+  /recipes/{recipeId}:
+    get:
+      operationId: getRecipe
+      summary: Retrieve a published Recipe
+      tags:
+        - Recipes
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '200':
+          description: Recipe found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404':
+          description: Recipe not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+    put:
+      operationId: reviseRecipe
+      summary: Revise a published Recipe
+      description: |
+        A Cook may revise their own Recipe.
+        Invariant: a Recipe must have at least one Ingredient after revision.
+      tags:
+        - Recipes
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeRevisionRequest'
+      responses:
+        '200':
+          description: Recipe revised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '400':
+          description: Invalid revision data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Only the authoring Cook may revise this Recipe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Recipe not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Revision violates a domain invariant
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  parameters:
+    RecipeId:
+      name: recipeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    RecipePublicationRequest:
+      type: object
+      required:
+        - title
+        - ingredients
+        - steps
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1000
+        category:
+          type: string
+        ingredients:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Ingredient'
+        steps:
+          type: array
+          minItems: 1
+          items:
+            type: string
+
+    RecipeRevisionRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1000
+        ingredients:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Ingredient'
+        steps:
+          type: array
+          minItems: 1
+          items:
+            type: string
+
+    Ingredient:
+      type: object
+      required:
+        - name
+        - quantity
+        - unit
+      properties:
+        name:
+          type: string
+          description: Ingredient name from the Ubiquitous Language glossary
+        quantity:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        unit:
+          type: string
+          description: Unit of measurement (e.g. g, ml, tbsp)
+
+    Recipe:
+      type: object
+      required:
+        - recipeId
+        - title
+        - authorId
+        - ingredients
+        - steps
+        - publishedAt
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        authorId:
+          type: string
+          format: uuid
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ingredient'
+        steps:
+          type: array
+          items:
+            type: string
+        publishedAt:
+          type: string
+          format: date-time
+        revisedAt:
+          type: string
+          format: date-time
+
+    RecipePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipe'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+
+    Problem:
+      type: object
+      description: RFC 9457 Problem Details
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string

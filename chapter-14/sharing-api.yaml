@@ -1,0 +1,325 @@
+openapi: 3.1.0
+info:
+  title: CookWithUs — Sharing API (domain-model-aligned)
+  description: |
+    Refined OpenAPI specification for the Sharing bounded context.
+    Derived directly from the Recipe Aggregate and confirmed domain invariants (Chapter 13).
+
+    Changes from the Chapter 9 stub:
+    - `authorId` removed from the publication request body; the author is determined from
+      the authenticated Cook's identity, not passed by the caller.
+    - `422 Unprocessable Content` added to revision endpoint to surface invariant violations.
+    - Ingredient validation constraints aligned with the domain model.
+  version: 1.0.0
+  contact:
+    name: CookWithUs Team
+
+servers:
+  - url: https://api.cookwithus.example/sharing/v1
+
+security:
+  - cookAuthentication: []
+
+tags:
+  - name: Recipes
+    description: Recipe authoring and publication
+
+paths:
+  /recipes:
+    post:
+      operationId: publishRecipe
+      summary: Publish a new Recipe
+      description: |
+        The authenticated Cook becomes the author.
+        Invariant: a Recipe must have at least one Ingredient and at least one step.
+        Invariant: the Recipe title must not exceed 120 characters.
+      tags:
+        - Recipes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipePublicationRequest'
+      responses:
+        '201':
+          description: Recipe published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '400':
+          description: Request data is syntactically invalid
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Cook not authenticated
+        '422':
+          description: Request violates a domain invariant
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+    get:
+      operationId: listRecipes
+      summary: List published Recipes
+      tags:
+        - Recipes
+      security: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated Recipe list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipePage'
+
+  /recipes/{recipeId}:
+    get:
+      operationId: getRecipe
+      summary: Retrieve a published Recipe
+      tags:
+        - Recipes
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '200':
+          description: Recipe found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404':
+          description: Recipe not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+    put:
+      operationId: reviseRecipe
+      summary: Revise a Recipe
+      description: |
+        The authenticated Cook must be the author of the Recipe.
+        Invariant: a revised Recipe must still have at least one Ingredient and one step.
+      tags:
+        - Recipes
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeRevisionRequest'
+      responses:
+        '200':
+          description: Recipe revised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '400':
+          description: Request data is syntactically invalid
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: Cook not authenticated
+        '403':
+          description: Authenticated Cook is not the author of this Recipe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Recipe not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Revision violates a domain invariant
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  securitySchemes:
+    cookAuthentication:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT issued by the Registration context upon successful login
+
+  parameters:
+    RecipeId:
+      name: recipeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    RecipePublicationRequest:
+      type: object
+      required:
+        - title
+        - ingredients
+        - steps
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+          description: Domain invariant — max 120 characters
+        description:
+          type: string
+          maxLength: 1000
+        category:
+          type: string
+        ingredients:
+          type: array
+          minItems: 1
+          description: Domain invariant — at least one Ingredient required
+          items:
+            $ref: '#/components/schemas/Ingredient'
+        steps:
+          type: array
+          minItems: 1
+          description: Domain invariant — at least one preparation step required
+          items:
+            type: string
+
+    RecipeRevisionRequest:
+      type: object
+      required:
+        - title
+        - ingredients
+        - steps
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1000
+        ingredients:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Ingredient'
+        steps:
+          type: array
+          minItems: 1
+          items:
+            type: string
+
+    Ingredient:
+      type: object
+      required:
+        - name
+        - quantity
+        - unit
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Ingredient name from the Ubiquitous Language glossary
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+          description: Domain invariant — must be positive
+        unit:
+          type: string
+          minLength: 1
+
+    Recipe:
+      type: object
+      required:
+        - recipeId
+        - authorId
+        - title
+        - ingredients
+        - steps
+        - publishedAt
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+          description: CookId of the authoring Cook (set by the server)
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ingredient'
+        steps:
+          type: array
+          items:
+            type: string
+        publishedAt:
+          type: string
+          format: date-time
+        revisedAt:
+          type: string
+          format: date-time
+
+    RecipePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipe'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+
+    Problem:
+      type: object
+      description: RFC 9457 Problem Details
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string

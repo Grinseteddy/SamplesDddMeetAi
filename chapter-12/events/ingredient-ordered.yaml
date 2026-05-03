@@ -1,0 +1,77 @@
+asyncapi: 3.0.0
+info:
+  title: IngredientOrdered Event
+  version: 1.0.0
+  description: |
+    Published by the Ordering bounded context whenever a Cook adds Ingredients
+    from a Recipe to their shopping list and the order is confirmed.
+    Consumed by supplier integration adapters.
+
+channels:
+  cookwithus/ordering/ingredient-ordered:
+    address: cookwithus/ordering/ingredient-ordered
+    messages:
+      IngredientOrdered:
+        $ref: '#/components/messages/IngredientOrdered'
+
+operations:
+  publishIngredientOrdered:
+    action: send
+    channel:
+      $ref: '#/channels/cookwithus~1ordering~1ingredient-ordered'
+    messages:
+      - $ref: '#/channels/cookwithus~1ordering~1ingredient-ordered/messages/IngredientOrdered'
+
+components:
+  messages:
+    IngredientOrdered:
+      name: IngredientOrdered
+      title: Ingredient Ordered
+      summary: A Cook has confirmed a shopping-list order for a Recipe's Ingredients.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/IngredientOrderedPayload'
+
+  schemas:
+    IngredientOrderedPayload:
+      type: object
+      required:
+        - eventId
+        - occurredAt
+        - orderId
+        - cookId
+        - recipeId
+        - items
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        orderId:
+          type: string
+          format: uuid
+        cookId:
+          type: string
+          format: uuid
+        recipeId:
+          type: string
+          format: uuid
+          description: Recipe from which the shopping list was generated
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - ingredientName
+              - quantity
+              - unit
+            properties:
+              ingredientName:
+                type: string
+              quantity:
+                type: number
+              unit:
+                type: string

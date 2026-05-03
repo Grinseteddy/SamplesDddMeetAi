@@ -1,0 +1,66 @@
+asyncapi: 3.0.0
+info:
+  title: RecipeRated Event
+  version: 1.0.0
+  description: |
+    Published by the Rating bounded context whenever a Cook submits a Rating for a Recipe.
+    May be consumed by the Sharing context to update a Recipe's aggregate rating display.
+
+channels:
+  cookwithus/rating/recipe-rated:
+    address: cookwithus/rating/recipe-rated
+    messages:
+      RecipeRated:
+        $ref: '#/components/messages/RecipeRated'
+
+operations:
+  publishRecipeRated:
+    action: send
+    channel:
+      $ref: '#/channels/cookwithus~1rating~1recipe-rated'
+    messages:
+      - $ref: '#/channels/cookwithus~1rating~1recipe-rated/messages/RecipeRated'
+
+components:
+  messages:
+    RecipeRated:
+      name: RecipeRated
+      title: Recipe Rated
+      summary: A Cook has submitted a Rating for a published Recipe.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RecipeRatedPayload'
+
+  schemas:
+    RecipeRatedPayload:
+      type: object
+      required:
+        - eventId
+        - occurredAt
+        - ratingId
+        - recipeId
+        - cookId
+        - score
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        ratingId:
+          type: string
+          format: uuid
+        recipeId:
+          type: string
+          format: uuid
+        cookId:
+          type: string
+          format: uuid
+          description: Cook who submitted the Rating
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string

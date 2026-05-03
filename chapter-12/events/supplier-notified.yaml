@@ -1,0 +1,79 @@
+asyncapi: 3.0.0
+info:
+  title: SupplierNotified Event
+  version: 1.0.0
+  description: |
+    Published by the Ordering bounded context when a supplier has been notified
+    of a confirmed ingredient order.
+    This event marks the boundary between the CookWithUs platform and the
+    external supplier domain (Anti-Corruption Layer).
+
+channels:
+  cookwithus/ordering/supplier-notified:
+    address: cookwithus/ordering/supplier-notified
+    messages:
+      SupplierNotified:
+        $ref: '#/components/messages/SupplierNotified'
+
+operations:
+  publishSupplierNotified:
+    action: send
+    channel:
+      $ref: '#/channels/cookwithus~1ordering~1supplier-notified'
+    messages:
+      - $ref: '#/channels/cookwithus~1ordering~1supplier-notified/messages/SupplierNotified'
+
+components:
+  messages:
+    SupplierNotified:
+      name: SupplierNotified
+      title: Supplier Notified
+      summary: A supplier has been notified of an ingredient order.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SupplierNotifiedPayload'
+
+  schemas:
+    SupplierNotifiedPayload:
+      type: object
+      required:
+        - eventId
+        - occurredAt
+        - orderId
+        - supplierId
+        - notifiedAt
+        - items
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        orderId:
+          type: string
+          format: uuid
+          description: References the IngredientOrdered event's orderId
+        supplierId:
+          type: string
+          description: Supplier identifier in the supplier's own system (external reference)
+        notifiedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - supplierProductCode
+              - quantity
+              - unit
+            properties:
+              supplierProductCode:
+                type: string
+                description: Product code in the supplier's catalogue (translated by ACL)
+              quantity:
+                type: number
+              unit:
+                type: string

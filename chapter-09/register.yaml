@@ -1,0 +1,184 @@
+openapi: 3.1.0
+info:
+  title: CookWithUs — Registration API
+  description: |
+    Manages cook sign-up, identity verification, and profile maintenance.
+    All terms are taken from the CookWithUs Ubiquitous Language.
+  version: 0.1.0
+  contact:
+    name: CookWithUs Team
+
+servers:
+  - url: https://api.cookwithus.example/registration/v1
+
+tags:
+  - name: Cooks
+    description: Cook registration and profile management
+
+paths:
+  /cooks:
+    post:
+      operationId: registerCook
+      summary: Register a new Cook
+      tags:
+        - Cooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CookRegistrationRequest'
+      responses:
+        '201':
+          description: Cook registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CookProfile'
+        '400':
+          description: Invalid registration data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: A Cook with this e-mail address already exists
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /cooks/{cookId}:
+    get:
+      operationId: getCookProfile
+      summary: Retrieve a Cook's profile
+      tags:
+        - Cooks
+      parameters:
+        - $ref: '#/components/parameters/CookId'
+      responses:
+        '200':
+          description: Cook profile found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CookProfile'
+        '404':
+          description: Cook not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+    patch:
+      operationId: updateCookProfile
+      summary: Update a Cook's profile
+      tags:
+        - Cooks
+      parameters:
+        - $ref: '#/components/parameters/CookId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CookProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CookProfile'
+        '400':
+          description: Invalid update data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Cook not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  parameters:
+    CookId:
+      name: cookId
+      in: path
+      required: true
+      description: Unique identifier of the Cook
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CookRegistrationRequest:
+      type: object
+      required:
+        - emailAddress
+        - displayName
+        - password
+      properties:
+        emailAddress:
+          type: string
+          format: email
+          description: The Cook's e-mail address; used as login credential
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 60
+          description: The name shown on the Cook's public profile
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    CookProfileUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 60
+        bio:
+          type: string
+          maxLength: 500
+
+    CookProfile:
+      type: object
+      required:
+        - cookId
+        - emailAddress
+        - displayName
+        - registeredAt
+      properties:
+        cookId:
+          type: string
+          format: uuid
+        emailAddress:
+          type: string
+          format: email
+        displayName:
+          type: string
+        bio:
+          type: string
+        registeredAt:
+          type: string
+          format: date-time
+
+    Problem:
+      type: object
+      description: RFC 9457 Problem Details
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string

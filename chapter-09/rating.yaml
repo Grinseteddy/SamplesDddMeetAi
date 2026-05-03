@@ -1,0 +1,211 @@
+openapi: 3.1.0
+info:
+  title: CookWithUs — Rating API
+  description: |
+    Manages community ratings, comments, and media uploads for published Recipes.
+    All terms are taken from the CookWithUs Ubiquitous Language.
+  version: 0.1.0
+  contact:
+    name: CookWithUs Team
+
+servers:
+  - url: https://api.cookwithus.example/rating/v1
+
+tags:
+  - name: Ratings
+    description: Ratings and comments on published Recipes
+
+paths:
+  /recipes/{recipeId}/ratings:
+    post:
+      operationId: rateRecipe
+      summary: Submit a Rating for a Recipe
+      description: |
+        A Cook who has tried a Recipe may submit a Rating.
+        Invariant: a Cook may rate a given Recipe at most once.
+      tags:
+        - Ratings
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingSubmission'
+      responses:
+        '201':
+          description: Rating submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '400':
+          description: Invalid rating data
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Recipe not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: This Cook has already rated the Recipe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+    get:
+      operationId: listRatings
+      summary: List Ratings for a Recipe
+      tags:
+        - Ratings
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: List of Ratings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingPage'
+        '404':
+          description: Recipe not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /recipes/{recipeId}/ratings/summary:
+    get:
+      operationId: getRatingSummary
+      summary: Get the aggregated Rating summary for a Recipe
+      tags:
+        - Ratings
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '200':
+          description: Rating summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingSummary'
+        '404':
+          description: Recipe not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  parameters:
+    RecipeId:
+      name: recipeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    RatingSubmission:
+      type: object
+      required:
+        - score
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Star rating from 1 (poor) to 5 (excellent)
+        comment:
+          type: string
+          maxLength: 1000
+
+    Rating:
+      type: object
+      required:
+        - ratingId
+        - recipeId
+        - cookId
+        - score
+        - ratedAt
+      properties:
+        ratingId:
+          type: string
+          format: uuid
+        recipeId:
+          type: string
+          format: uuid
+        cookId:
+          type: string
+          format: uuid
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        ratedAt:
+          type: string
+          format: date-time
+
+    RatingSummary:
+      type: object
+      required:
+        - recipeId
+        - averageScore
+        - ratingCount
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+        averageScore:
+          type: number
+          format: double
+        ratingCount:
+          type: integer
+
+    RatingPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+
+    Problem:
+      type: object
+      description: RFC 9457 Problem Details
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string

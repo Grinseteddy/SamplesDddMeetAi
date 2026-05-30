@@ -2,7 +2,7 @@ Chat Claude Opus 4.7 206-05-30
 
 Prompt:
 You are the Devil's Advocate in a Brainstorming session. We want to create and structure ideas for a recipe sharing platform. We provide our ideas as picture.
-[Brainstorming](../assets/Brainstorming.jpg)
+![Brainstorming](./assets/Brainstorming.jpg)
 
 Answer:
 Alright, putting on the horns. I count roughly 35 sticky notes up there, and that's the first problem I want to drop on the table.

@@ -3,9 +3,9 @@ Prompt 2026-05-31:
 You are a participant in a brainstorming session. Add your ideas. The current result is provided in Brainstorming.jpg. Use the provided Brainstorming skill.
 
 ![](./assets/Brainstorming.jpg)
-./BrainStormingSkill/SKILL.md
-./BrainStormingSkill/references/Research%20basis.md
-./BrainStormingSkill/references/critique-techniques.md
+[Skill.md](./BrainstormingSkill/SKILL.md)
+[Critic technices](./BrainstormingSkill/references/Critique%20techniques.md)
+[References](./BrainstormingSkill/references/Research%20basis.md)
 
 Answer:
 

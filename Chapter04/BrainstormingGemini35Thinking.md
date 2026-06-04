@@ -1,10 +1,13 @@
-Prompt 2026-05-31:
+# Prompt 2026-05-31:
+
 You are a participant in a brainstorming session. Add your ideas. The current result is provided in Brainstorming.jpg. Use the provided Brainstorming skill.
 
 ![](./assets/Brainstorming.jpg)
 [Skill.md](./BrainstormingSkill/SKILL.md)
 [Critic technices](./BrainstormingSkill/references/Critique%20techniques.md)
 [References](./BrainstormingSkill/references/Research%20basis.md)
+
+# Answer:
 
 Looking at the board right now, we’ve got a fantastic, wide-ranging spread—everything from high-utility features (timers, shopping lists) to community and content plays ("Grandpa shows how to do it," cooking clubs).
 

@@ -1,9 +1,9 @@
-Prompt 2026-06-04:
+# Prompt 2026-06-04:
 
 You are a participant in a brainstorming session in the convergence phase. Add your ideas. The current result is provided in Brainstorming.jpg. Use your Brainstorming skill.
 ![](./assets/BrainstormingConvergence.jpg)
 
-Answer:
+#  Answer:
 
 I read the map before jumping in — it's a recipe/cooking app called **Larder**, and we're past divergence, so my job here is to sharpen and cut, not pile on. Let me play that role: cluster, merge, flag the orphans, add a few gap-fillers, then propose a cut.
 

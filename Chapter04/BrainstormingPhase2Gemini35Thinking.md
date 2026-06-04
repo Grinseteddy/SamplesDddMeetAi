@@ -1,10 +1,12 @@
-Prompt 2026-06-04:
+# Prompt 2026-06-04:
 
 You are a participant in a brainstorming session in the convergence phase. Add your ideas. The current result is provided in Brainstorming.jpg. Use the provided Brainstorming skill.
 ![](./assets/BrainstormingConvergence.jpg)
 [Skill.md](./BrainstormingSkill/SKILL.md)
 [Critic technices](./BrainstormingSkill/references/Critique%20techniques.md)
 [References](./BrainstormingSkill/references/Research%20basis.md)
+
+# Answer:
 
 Looking at the current map in **BrainstormingConvergence.jpg**, we’ve done a brilliant job of mapping out an incredibly rich ecosystem around the concept of a "Larder." But since we are in the **convergence phase**, it’s time to switch gears from generating to stress-testing so we can figure out what actually survives the cut.
 

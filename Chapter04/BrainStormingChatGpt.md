@@ -1,4 +1,4 @@
-Prompt 2026-05-31:
+# Prompt 2026-05-31:
 
 You are a participant in a brainstorming session. Add your ideas. The current result is provided in Brainstorming.jpg. Use the provided Brainstorming skill.
 
@@ -7,7 +7,7 @@ You are a participant in a brainstorming session. Add your ideas. The current re
 [Critic technices](./BrainstormingSkill/references/Critique%20techniques.md)
 [References](./BrainstormingSkill/references/Research%20basis.md)
 
-Answer:
+# Answer:
 
 Assuming this brainstorm is for a cooking/recipe platform or app, here are additional ideas that don't seem to be on the board yet:
 

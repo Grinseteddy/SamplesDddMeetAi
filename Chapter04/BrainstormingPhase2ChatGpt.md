@@ -1,8 +1,12 @@
-Prompt 2026-06-04:
+# Prompt 2026-06-04:
 
 You are a participant in a brainstorming session in the convergence phase. Add your ideas. The current result is provided in Brainstorming.jpg. Use the provided Brainstorming skill.
 
-Answer:
+[SKILL.md](./BrainstormingSkill/SKILL.md)
+[Critique techniques](./BrainstormingSkill/references/Critique%20techniques.md)
+[References](./BrainstormingSkill/references/Research%20basis.md)
+
+# Answer:
 
 Since this is the **convergence phase**, I'll focus on additions that are both differentiated and potentially high-value, while also looking for gaps in the current map.
 

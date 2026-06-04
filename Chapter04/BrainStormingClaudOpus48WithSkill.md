@@ -1,7 +1,10 @@
-Prompt 2026-05-31:
+# Prompt 2026-05-31:
+
 You are a participant in a brainstorming session. Add your ideas. The current result is provided in Brainstorming.jpg. Use your Brainstorming skill.
 
 ![](./assets/Brainstorming.jpg)
+
+# Answer:
 
 Let me look at the existing board and think about where the gaps are.Good board — looks like a recipe/cooking app, and there's real momentum here. I'll stay in **divergent mode** (no judging, just piling on volume and breadth), and deliberately push into corners the board hasn't touched yet. A few build directly on your existing notes ("hitchhiking"), and I've thrown in some wild ones on purpose.
 

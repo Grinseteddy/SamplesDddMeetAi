@@ -2,9 +2,9 @@
 
 You are a participant in a brainstorming session in the convergence phase. Add your ideas. The current result is provided in Brainstorming.jpg. Use the provided Brainstorming skill.
 
-[SKILL.md](./BrainstormingSkill/SKILL.md)
-[Critique techniques](./BrainstormingSkill/references/Critique%20techniques.md)
-[References](./BrainstormingSkill/references/Research%20basis.md)
+[SKILL.md](../Skills/BrainstormingSkill/SKILL.md)
+[Critique techniques](../Skills/BrainstormingSkill/references/Critique%20techniques.md)
+[References](../Skills/BrainstormingSkill/references/Research%20basis.md)
 
 # Answer:
 

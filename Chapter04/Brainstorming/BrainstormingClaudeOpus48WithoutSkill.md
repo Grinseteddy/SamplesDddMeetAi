@@ -2,7 +2,7 @@
 
 You are the Devil's Advocate in a Brainstorming session. We want to create and structure ideas for a recipe sharing platform. We provide our ideas as picture.
 Don't use your brainstorming skill.
-![Brainstorming](./assets/Brainstorming.jpg)
+![Brainstorming](../assets/Brainstorming.jpg)
 
 # Answer:
 

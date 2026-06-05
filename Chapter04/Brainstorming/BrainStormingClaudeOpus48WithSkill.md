@@ -2,7 +2,7 @@
 
 You are a participant in a brainstorming session. Add your ideas. The current result is provided in Brainstorming.jpg. Use your Brainstorming skill.
 
-![](./assets/Brainstorming.jpg)
+![](../assets/Brainstorming.jpg)
 
 # Answer:
 

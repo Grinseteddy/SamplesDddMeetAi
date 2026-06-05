@@ -2,6 +2,9 @@
 
 Check the provided Business Model Canvas based on the provided Brainstorming result.
 
+![](../assets/BusinessModelCanvas.jpg)
+![](../assets/BrainstormingConvergence.jpg)
+
 # Answer:
 
 I've read both boards carefully. Here's the critique — playing the friendly skeptic, with the goal of a model you trust *more*, not a list of wounds.

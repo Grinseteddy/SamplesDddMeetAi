@@ -1,7 +1,7 @@
 # Prompt 2026-06-04:
 
 You are a participant in a brainstorming session in the convergence phase. Add your ideas. The current result is provided in Brainstorming.jpg. Use your Brainstorming skill.
-![](./assets/BrainstormingConvergence.jpg)
+![](../assets/BrainstormingConvergence.jpg)
 
 #  Answer:
 
@@ -31,7 +31,7 @@ Now the convergence work.
 
 Here's how I'd cut it — react to the placements, they're a proposal, not a verdict:
 
-![](./assets/larder_features_impact_effort_quadrant.svg)
+![](../assets/larder_features_impact_effort_quadrant.svg)
 
 **My proposed cut:**
 

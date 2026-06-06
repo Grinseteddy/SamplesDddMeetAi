@@ -1,10 +1,15 @@
 # Prompt 2026-06-05:
 
 Check the provided Business Model Canvas based on the provided Brainstorming result. Use the provided skill.
+
 [SKILL.md](../Skills/BusinessModelCanvasSkill/SKILL.md)
+
 [Brainstorming cross check](../Skills/BusinessModelCanvasSkill/references/brainstorm-cross-check.md)
+
 [Fit and coherence check](../Skills/BusinessModelCanvasSkill/references/fit-and-coherence.md)
+
 [Nine-block checklist](../Skills/BusinessModelCanvasSkill/references/nine-blocks-checklist.md)
+
 
 ![](../assets/BusinessModelCanvas.jpg)
 ![](../assets/BrainstormingConvergence.jpg)

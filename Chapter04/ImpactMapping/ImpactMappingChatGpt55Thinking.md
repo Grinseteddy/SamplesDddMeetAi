@@ -1,10 +1,10 @@
 # Prompt 2026-06-06:
 
 Criticize the Impact Map based on the Brainstorming result and Business Model Canvas.
-Use the providded skill.
+Use the provided skill.
 ![](../assets/ImpactMapping.jpg)
 ![](../assets/BrainstormingConvergence.jpg)
-![](../assets/BusinessModelCanvas.jpg)
+![](../assets/BusinessModelCanvasEnhanced.jpg)
 [SKILL.md](../Skills/ImpactMappingSkill/SKILL.md)
 [Canvas cross check](../Skills/ImpactMappingSkill/references/canvas-cross-check.md)
 [Collaboration cross check](../Skills/ImpactMappingSkill/references/collaboration-cross-check.md)
@@ -13,230 +13,215 @@ Use the providded skill.
 
 # Answer:
 
-I used the uploaded **Impact Mapping Critic** skill and its cross-check guidance against the brainstorming board and Business Model Canvas.
-
 ## One-line read
 
-Right now the map reads roughly as:
+Right now the map reads roughly as: **“In order to build Larder, singles, young families, cooks, retailers, chefs, grocery stores and photo-book services will create shopping/community/recipe/cooking-support behaviours, and we will support that with features such as ordering, AI proposals, timers, planners and cookbook publishing.”**
 
-> “In order to make **Larder** successful, **singles, young families, cooks, chefs, grocery stores, kitchenware retailers and photo-book services** will do things like **shop, join community, find recipes, get cooking support, manage budgets and publish cookbooks**, and we will support that with **ordering, meal chooser, AI proposals, timer, planner, famous-chef partner, cookbook publishing**, etc.”
-
-That chain is recognizable, but it does **not fully hold together yet** because the **goal is not a measurable business outcome**, many “impacts” are actually **solution areas**, and several deliverables feel like they were pulled from brainstorming without enough proof that they move the business model.
+That **does not yet hold together as an impact map**, mainly because the **goal is a product name, not a measurable business outcome**, and several “impacts” are actually value areas or feature clusters rather than observable actor behaviour. The skill’s key test is that every branch should read as: “In order to [goal], [actor] will [impact], and we will support that by [deliverable].”
 
 ## Biggest risks first
 
-### 1. The goal is not a goal yet
+### 1. “Larder” is not a goal; it is the solution
 
-The center of the impact map is simply **“Larder.”** That is the product name, not the reason for doing the product.
+The map’s centre says **Larder**. That tells us what you intend to build, but not **why**. From the Business Model Canvas, plausible goals could be things like: increase paid memberships, increase partner ad revenue, improve recipe discovery for nutrition needs, or reduce meal-planning effort for singles and young families. But the impact map does not choose one.
 
-A stronger goal would say what business outcome Larder must create, for example:
+Why this worries me: without a measurable goal, every branch can look equally valid. “Shopping,” “community,” “recipe search,” “planner,” and “cookbook publishing” all seem useful, but they may serve different business outcomes. The provided checklist explicitly treats an unmeasured goal as a major failure because there is no metric, target, or deadline to decide whether the map worked.
 
-> “Acquire 5,000 paying monthly members among singles and young families within 6 months.”
+Cheap test: rewrite the centre as one measurable outcome, for example: **“Increase monthly paying members among singles and young families from X to Y by Q4.”**
 
-or:
-
-> “Increase weekly active cooking sessions to X and convert Y% of users to paid membership by Q4.”
-
-Without a metric, target, and deadline, the map cannot decide whether **Meal Chooser**, **AI proposals**, **Planner**, **Timer**, or **Grandma/Grandpa AI** are good bets or just interesting features.
-
-**Cheap test:** pick one primary metric: paid subscriptions, weekly recipe usage, completed cooking sessions, partner ad revenue, or grocery-order conversion.
-
-**What would resolve it:** rewrite the WHY level as a measurable outcome before judging any branch.
+What would resolve it: a single metric, current baseline, target, and date. Until then, this is more of a solution map than an impact map.
 
 ---
 
-### 2. Most “impacts” are not actor behaviour changes
+### 2. The map appears to converge on almost the whole brainstorm, not the shortest path
 
-The impact level contains items like:
+The brainstorming result is very broad: shopping, helper, creator support, cooking support, recipe search, planner, community, content creation, content rating, authentication, special recipes, smart kitchen, allergens, food pairing, fridge-photo recipe generation, cookbook publishing, and more.
 
-* Shopping
-* Community
-* Easy-to-find recipes
-* Cooking support
-* Budget
-* Cooking skill learning
-* Cookbook publishing
+The final impact map still keeps many of those areas: **Shopping, Community, Easy-to-find recipes, Cooking support, Budget, Cooking skill learning, Cookbook publishing.** That suggests the team may have summarized the brainstorm rather than made a hard strategic cut.
 
-These are closer to **themes, value propositions, or product areas** than observable behaviours.
+Why this worries me: impact mapping is not meant to justify building everything. It is meant to find the shortest path to the goal and validate one high-leverage behaviour change first.
+
+Cheap test: force-rank the branches against the chosen metric. Ask: **Which one actor-impact pair could move the goal fastest with the smallest experiment?**
+
+What would resolve it: mark one first bet, two backup bets, and explicitly park the rest.
+
+---
+
+### 3. Several “impacts” are not actor behaviour changes
+
+The impact layer contains items like **Shopping**, **Community**, **Easy-to-find recipes**, **Cooking support**, **Budget**, **Cooking skill learning**, and **Cookbook publishing**. These are mostly themes, outcomes, or product areas. They do not yet say what the actor will do differently.
 
 For example:
 
-* “Easy-to-find recipes” is not what an actor does.
-* “Cooking support” is not what an actor does.
-* “Budget” is not what an actor does.
+| Current impact       | Better impact phrasing                                        |
+| -------------------- | ------------------------------------------------------------- |
+| Shopping             | Singles reorder missing ingredients directly from a recipe    |
+| Community            | Young families share weekly meal plans or rate cooked recipes |
+| Easy-to-find recipes | Users find a suitable recipe within two minutes using filters |
+| Cooking support      | Novice cooks complete a recipe without abandoning midway      |
+| Budget               | Households choose recipes based on available budget           |
+| Cookbook publishing  | Power users publish curated recipe collections                |
 
-Better impact wording would be:
+Why this worries me: the checklist says impacts should be observable behaviour changes, not features, vague outcomes, or value labels.
 
-* Singles **choose a meal within 2 minutes instead of abandoning search**.
-* Young families **reuse leftovers twice per week instead of buying extra ingredients**.
-* Beginner cooks **complete a recipe without outside help**.
-* Grocery stores **pay for promoted ingredient placement**.
-* Cooks **publish reusable recipe content weekly**.
+Cheap test: for each impact, complete the sentence: **“Actor will…”** If it does not produce a visible behaviour, rewrite it.
 
-**Cheap test:** for every impact, ask: “Can I watch a real person do this differently?” If not, it is probably not an impact yet.
+What would resolve it: convert every impact into a verb phrase tied to a specific actor.
 
-**What would resolve it:** rewrite the HOW level as verbs attached to actors.
+## Level-by-level notes
 
----
+### WHY / Goal
 
-### 3. The map is trying to cover the whole brainstorm instead of finding the shortest path
+The goal is the weakest part. **“Larder”** is a product concept, not a business objective. The Business Model Canvas includes revenue streams of **monthly member fee** and **ads by partners**, so the impact map should probably choose whether it is primarily optimizing for paid retention, acquisition, partner revenue, or engagement that later monetizes.
 
-The brainstorming result is huge: shopping, larder tracking, cooking support, recipe search, planner, content creation, rating, community, authentication, smart kitchen, voice control, allergens, dietary requirements, fridge-photo recipe generation, grandma support, famous chefs, cookbook publishing, and more.
+A stronger centre might be:
 
-The impact map carries many of these forward, but it does not show **priority**. It looks like a synthesis into many feature streams, not a decision about the smallest route to business impact.
+**“Increase monthly paid subscriptions from singles and young families by X% within six months.”**
 
-This is dangerous because Larder could become a feature factory: grocery ordering, community, AI cooking helper, recipe search, partner ads, cookbook publishing, planner, ratings, and photo-book services all at once.
+or
 
-**Cheap test:** force the team to choose one first branch:
+**“Increase weekly active recipe-to-shopping conversions by X% by Q4.”**
 
-> Which single actor behaviour, if changed in the next 4 weeks, would most prove Larder’s business model?
+The right one depends on whether the business model prioritizes subscription revenue or partner commerce.
 
-**What would resolve it:** mark one branch as the first validation path and explicitly park the others.
+### WHO / Actors
 
----
+The actors in the impact map are mostly faithful to the brainstorm, but not to the canvas strongly enough.
 
-## Level-by-level critique
+The canvas names **Customer Segments: Singles and Young families**. Those do appear in the map. It also names **Key Partners: kitchenware retailers, grocery stores, photo book services, chefs**. Those appear too. That is good.
 
-### WHY — Goal
+But the map adds **Cook** as a central actor, while the canvas does not clearly define “cooks” as a customer segment. That may be fine, but it needs clarification: is “Cook” a content creator, a normal user, a professional chef, or a hobbyist? If it is a different monetizable segment, it should be reflected in the business model too.
 
-**Current:** “Larder”
+Missing possible actors:
 
-This is the weakest level. It names the product, not the outcome. The Business Model Canvas suggests possible goals around **monthly membership fees** and **partner ads**, but the impact map does not choose one.
+| Missing or vague actor           | Why it matters                                                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Paying subscriber / member       | The canvas has monthly fees, but the map does not distinguish free users from paying members                               |
+| Advertiser / partner marketer    | “Ads by partners” is a revenue stream, but no actor is responsible for buying or renewing ads                              |
+| Nutrition-sensitive user         | The canvas emphasizes specialized nutrition requirements; the map only weakly captures this through “easy-to-find recipes” |
+| Internal content/moderation team | Community, rating, and content creation create trust and quality risks                                                     |
+| Data/privacy gatekeeper          | Fridge photos, allergens, AI proposals, and profiles imply sensitive data                                                  |
 
-A goal such as “make recipe search easy” would still be too weak because it mirrors a value proposition. The business goal should probably connect to either:
+### HOW / Impacts
 
-* paid monthly membership,
-* recurring active use,
-* grocery / kitchenware partner revenue,
-* or successful entry into singles and young-family segments.
+The impact layer is too abstract. It reads like a set of product modules rather than behaviour changes.
 
-### WHO — Actors
+The strongest candidate impacts are:
 
-The actor list is stronger than the goal. It includes customer segments from the canvas: **Single**, **Young family**, and **Cook**. It also includes partners: **Kitchenware retailer**, **Chefs**, **Grocery store**, and **Photo book service**.
+**Easy-to-find recipes** — closely tied to the canvas value proposition.
 
-But a few important actors from the brainstorming and canvas logic are missing or underdeveloped:
+**Cooking support** — also tied to the canvas.
 
-* **Grandma / Grandpa / family expert** appears as a deliverable concept, but could be an actor or persona if the value is trusted human-like cooking guidance.
-* **People with allergies or dietary requirements** are prominent in the brainstorm and canvas value proposition, but not explicit actors.
-* **Content creators / recipe publishers** are present indirectly as “Cook” and “Chefs,” but the map does not distinguish amateur cooks, professional chefs, and community contributors.
-* **Internal AI/content moderation/operations** are absent, even though AI search support, media, recipes, and content rating are key resources or activities in the canvas.
+**Shopping** — tied to possible partner revenue and direct ordering.
 
-Also missing are obstructing actors: people who could block success, such as users who distrust AI recipes, grocery partners who do not integrate, cooks who will not contribute content, or families who find the subscription not worth paying for.
+The weaker or more questionable impacts are:
 
-### HOW — Impacts
+**Cookbook publishing** — present in the brainstorm and deliverables, but not clearly tied to the Business Model Canvas except through photo book services. It may be a niche monetization path, but it should not compete with the core subscription/ad model unless evidence shows demand.
 
-This is the second weakest level after the goal.
+**Budget** — strong user need, but it is absent from the Business Model Canvas value proposition. Either the canvas missed it, or the impact map is drifting.
 
-Several impacts should be rewritten from nouns into behaviours:
+**Cooking skill learning** — appears in the brainstorm, but the canvas emphasizes recipe finding, cooking support, and nutrition requirements more than education. This could be a valuable branch, but it needs evidence.
 
-| Current impact         | Better behavioural version                                            |
-| ---------------------- | --------------------------------------------------------------------- |
-| Shopping               | Users order missing ingredients from a recipe without leaving the app |
-| Community              | Cooks share recipes/comments weekly                                   |
-| Easy-to-find recipes   | Users find a suitable recipe in under X minutes                       |
-| Cooking support        | Beginners complete recipes without getting stuck                      |
-| Budget                 | Families choose meals within a weekly budget                          |
-| Cooking skill learning | Beginners repeat guided lessons and improve confidence                |
-| Cookbook publishing    | Cooks convert saved/shared recipes into paid or printed collections   |
+### WHAT / Deliverables
 
-The map also lacks negative impacts: behaviours you want to prevent. For example:
+Some deliverables are promising, but many look like scope before validation.
 
-* users blindly follow bad AI recipe suggestions,
-* users abandon because results ignore allergies,
-* partner ads make recommendations feel untrustworthy,
-* community content becomes low-quality without moderation.
+Strongest deliverable candidates:
 
-### WHAT — Deliverables
+| Deliverable                       | Why it is promising                                     |
+| --------------------------------- | ------------------------------------------------------- |
+| Meal chooser                      | Supports easy recipe selection                          |
+| AI proposals                      | Ties to recipe discovery, planning, and personalization |
+| Planner                           | Fits weekly creation/planning from the canvas           |
+| Search with things I already have | Strongly supports recipe search and shopping            |
+| Direct ordering                   | Connects user value to partner revenue                  |
+| Dietary requirements / allergens  | Directly supports the nutrition value proposition       |
 
-The deliverables are rich, but many feel premature.
+Riskier or overextended deliverables:
 
-Some are plausible MVP candidates:
+| Deliverable          | Concern                                                                    |
+| -------------------- | -------------------------------------------------------------------------- |
+| Grandma / Grandpa AI | Interesting, but it appears more like novelty than core value              |
+| Famous chefs partner | Partnership-heavy and expensive; not clearly required for first validation |
+| Cooking club         | Community feature with moderation and cold-start risk                      |
+| Cookbook publishing  | Operationally and partner-heavy for a likely secondary use case            |
+| Smart kitchen        | Potentially costly and dependent on hardware/integration partners          |
 
-* **Meal Chooser**
-* **Search with cooking time**
-* **Search with things I already have**
-* **Leftover optimization**
-* **Allergens / dietary requirements**
-* **Timer**
-* **Planner**
+The skill warns against treating deliverables as committed scope rather than prunable options.
 
-Some are strategically riskier and need stronger justification before building:
+## Map vs. Brainstorming result
 
-* **Grandma / Grandpa AI**
-* **Famous chefs partner**
-* **Cookbook publishing**
-* **Kitchen tool ordering**
-* **Photo book service**
-* **Cooking club**
+The impact map is broadly traceable to the brainstorm, but it loses some useful distinctions.
 
-These might be good later, but they are expensive distractions if the first business goal is subscription adoption or weekly cooking usage.
+### Dropped or underrepresented ideas worth reconsidering
 
-## Map vs. brainstorming result
+**Allergens / dietary requirements / fridge-photo recipe generation / food pairing** are visible in the brainstorm but not clearly represented in the impact map’s deliverables, even though the canvas explicitly mentions **recipes for specialized nutrition requirements**. That looks like a dropped strategic thread.
 
-The impact map captures the big clusters from the brainstorm: **Shopping**, **Community**, **Recipe Search**, **Cooking Support**, **Planner**, **Budget**, **Cooking skill learning**, and **Cookbook publishing**.
+**Authentication / login with social account** appears in the brainstorm but not the impact map. That is probably fine as a technical enabler, but if community, rating, followers, and content creation are important, identity becomes more central than the map admits.
 
-But it drops or flattens some valuable detail:
+**Content creation and content rating** are in the canvas as key activities and in the brainstorm, but the impact map mostly shifts them into community/content deliverables. It should clarify who creates, who rates, and what behaviour change is expected.
 
-* **Larder tracker** is prominent in the brainstorm but disappears from the impact map. If “Larder” means knowing what is already in the pantry, this is a serious omission.
-* **Fridge-photo recipe generation** appears in the brainstorm but is absent from the map. That could be a distinctive differentiator.
-* **Allergens** and **dietary requirements** appear as deliverables, but the canvas has “recipes for specialized nutrition requirements” as a core value proposition. This may deserve a stronger actor/impact branch, not just leaves under recipe search.
-* **Authentication / login with social account** disappears. That is fine if intentionally cut, but if community, followers, comments, ratings, and sharing matter, identity is a hidden dependency.
-* **Content creation** and **content rating** are central brainstorm clusters, yet the impact map only partially reflects them through “Community,” “Cook,” and “Rating.” The behaviour of contributors is under-specified.
-* **Smart kitchen / voice control / helper** appears in the brainstorm but is not meaningfully carried into the map except indirectly through timer and cooking support.
+### Unsupported or weakly supported branches
 
-My concern is not that every brainstorm note must survive. It should not. The concern is that the map does not explain **why these ideas were chosen and others were cut**.
+**Budget** appears in the impact map and brainstorm, but not strongly in the Business Model Canvas. It may be a good idea, but it looks less strategically grounded than nutrition, recipe search, cooking support, and planning.
+
+**Cookbook publishing** appears in the brainstorm and map, and photo book service exists in the canvas. Still, the branch feels disproportionately prominent compared with its likely contribution to monthly member fees or partner ads.
+
+### Possible false convergence
+
+The brainstorm contains many competing product directions: smart kitchen, social community, recipe search, AI helper, shopping integration, creator platform, cookbook publishing, nutrition support. The impact map tidies these into a coherent-looking tree, but it does not show which branch won and why. That is a warning sign for premature convergence, one of the cross-check risks in collaborative synthesis.
 
 ## Map vs. Business Model Canvas
 
-The map aligns reasonably with the canvas in several places:
+The impact map reflects the canvas in broad strokes, but the strategy is not sharp enough.
 
-* Customer segments: **Singles** and **Young families** appear as actors.
-* Partners: **Chefs**, **grocery stores**, **kitchenware retailers**, and **photo-book service** appear.
-* Value propositions: **easy recipe discovery**, **cooking support**, and **specialized nutrition** are visible.
-* Revenue hints: partner deliverables such as grocery/kitchenware ordering could support ads or affiliate-style revenue.
+### Good alignment
 
-But there are mismatches:
+The map includes the canvas’s two customer segments: **singles** and **young families**.
 
-### Specialized nutrition is underweighted
+It includes the key partners: **kitchenware retailer, grocery store, chefs, photo book service**.
 
-The canvas gives “Recipes for specialized nutrition requirements” a large place in the value proposition. In the impact map, this becomes mostly **Allergens** and **Dietary requirements** as deliverables under Recipe Search.
+It includes deliverables that match value propositions: **easy recipe discovery, cooking support, AI proposals, planner, ordering, rating, content**.
 
-That weakens the strategic focus. If specialized nutrition is central to why people pay, then the actor might be “people with allergies / dietary restrictions,” and the impact might be “they trust Larder enough to choose safe meals repeatedly.”
+### Gaps and mismatches
 
-### Revenue streams are not traced clearly
+The canvas’s value proposition **“recipes for specialized nutrition requirements”** is much more central than it is in the impact map. In the map, nutrition seems folded vaguely into “easy-to-find recipes,” while the brainstorm has clearer deliverable ideas: allergens, dietary requirements, fridge-photo recipe generation, food pairing. This is probably the most important fidelity gap.
 
-The canvas has **monthly member fee** and **ads by partners**. The impact map does not show which actor behaviour produces those revenues.
+The canvas revenue streams are **monthly member fee** and **partner ads**, but the impact map does not show the actor behaviours that cause those revenues. For example:
 
-Examples of missing impact links:
+| Revenue stream     | Missing behaviour change                                                         |
+| ------------------ | -------------------------------------------------------------------------------- |
+| Monthly member fee | Users subscribe, renew, or upgrade because Larder solves recurring meal planning |
+| Ads by partners    | Partners buy ads because users show purchase intent or order ingredients/tools   |
 
-* Singles / young families **subscribe after repeated successful meals**.
-* Grocery stores **pay for promoted ingredient placement**.
-* Kitchenware retailers **pay for contextual tool recommendations**.
-* Cooks / chefs **publish content that attracts paying users**.
+The map includes partner actors, but not enough partner impacts. Grocery stores and retailers are shown as actors, yet the impacts mostly focus on user-side shopping. What do partners need to do differently? Provide catalog data? Sponsor recipes? Fulfil orders? Pay for placements?
 
-Without these links, the map optimizes product usefulness but not necessarily the business model.
-
-### Cost and resource assumptions are hidden
-
-The canvas lists **software development, maintenance, cloud service, licenses**, plus resources like **AI search support, media, recipes, cooks**.
-
-The impact map contains deliverables that could be expensive: AI proposals, Grandma/Grandpa AI, famous-chef partner, fridge-photo generation, smart recipe search, community, content rating, cookbook publishing. The map does not reflect the operational cost, moderation cost, licensing cost, or AI reliability risk.
-
-That is a hidden bet: the right-hand value side is exciting, but the left-hand cost/resource side is not visible in the map.
+The canvas cost side includes **software development, maintenance, cloud service, licenses, marketing**. The map proposes AI, smart kitchen, community, content, ordering, rating, and cookbook publishing, all of which increase cost and operational complexity. The canvas-cross-check warns that deliverables should be checked against key resources, activities, partners, and costs.
 
 ## What is strong
 
-The map does a good job of preserving the breadth of the concept. It clearly sees Larder as more than a recipe database: it combines recipes, pantry awareness, cooking help, planning, community, shopping, and partner ecosystems.
+The raw material is strong. The map did not ignore the canvas: the main customer segments and key partners survived. The brainstorm-to-map synthesis also preserves several promising clusters: recipe search, shopping, cooking support, planning, community, and publishing.
 
-The Business Model Canvas and the impact map also agree on the broad strategic shape: an app for singles and young families, supported by cooks/media/AI, monetized through subscriptions and partners.
+The best product spine seems to be:
 
-## Path forward
+**Singles and young families struggle to decide what to cook, find suitable recipes, and turn those recipes into shopping actions. Larder helps them find suitable recipes, plan meals, and order what they need.**
 
-I would fix the map in this order:
+That is a coherent product. It just needs a sharper impact map.
 
-1. Replace **“Larder”** with one measurable business goal.
-2. Choose one primary customer segment first: probably **singles** or **young families**, not both.
-3. Rewrite impacts as observable behaviours.
-4. Pick one shortest validation branch, for example:
-   **Young families → choose meals within budget using existing ingredients → meal chooser + “things I already have” + leftover optimization.**
-5. Move everything else into a parking lot until the first branch proves it can move the goal.
+## Suggested next revision
+
+Make the next version much narrower:
+
+**Goal:** increase paid subscription conversion or weekly active meal-planning usage.
+
+**Primary actors:** singles and young families.
+
+**Primary impacts:**
+Users find suitable recipes faster.
+Users plan meals weekly.
+Users order missing ingredients from recipes.
+Users return because recipes match dietary needs and available ingredients.
+
+**First deliverables to test:** meal chooser, dietary/allergen filters, “cook with what I have,” simple weekly planner, and direct grocery ordering.
+
+I would park **grandparent AI, famous chef partnerships, smart kitchen, cookbook publishing, and cooking club** until the core recipe-to-plan-to-shop loop proves it can move the chosen metric.

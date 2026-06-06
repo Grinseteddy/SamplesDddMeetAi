@@ -1,10 +1,10 @@
 # Prompt 2026-06-06:
 
 Criticize the Impact Map based on the Brainstorming result and Business Model Canvas.
-Use the providded skill.
+Use the provided skill.
 ![](../assets/ImpactMapping.jpg)
 ![](../assets/BrainstormingConvergence.jpg)
-![](../assets/BusinessModelCanvas.jpg)
+![](../assets/BusinessModelCanvasEnhanced.jpg)
 [SKILL.md](../Skills/ImpactMappingSkill/SKILL.md)
 [Canvas cross check](../Skills/ImpactMappingSkill/references/canvas-cross-check.md)
 [Collaboration cross check](../Skills/ImpactMappingSkill/references/collaboration-cross-check.md)
@@ -13,83 +13,93 @@ Use the providded skill.
 
 # Answer:
 
-Here is a strategic critique of the Impact Map presented in **ImpactMapping.jpg**, analyzed through the lens of your upstream inputs: the brainstorming session in **BrainstormingConvergence.jpg** and the strategic framework in **BusinessModelCanvas.jpg**.
+## One-Line Read
+
+The current internal logic of `ImpactMapping.jpg` reads as: *"In order to **[Larder]**, the **[Single]** will **[Shopping]**, and we will support that with **[Direct ordering]**."* This sentence breaks down because the goal is a product name rather than a business outcome, and the impacts are phrased as high-level feature categories rather than actual user behavior changes.
 
 ---
 
-## The One-Line Read
+## Biggest Risks First
 
-If we read the map from left to right as a coherent story, it says:
+* **The Product-as-a-Goal Trap:** The center of `ImpactMapping.jpg` is anchored to "Larder" (the product name). Because it lacks a true, measurable business metric (e.g., *"Achieve €10k MRR by Q4"* or *"Increase weekly active cooks by 30%"*), the map cannot function as a strategic filter. Without a clear target, it is impossible to evaluate which deliverables are successful experiments and which are dead weight.
 
-> *"In order to build **Larder**, a **Single** will do some **Shopping**, which we will support by building **Direct ordering**."*
 
-**The Verdict:** Right now, this map functions more like a visual product backlog or a feature breakdown structure than an actual Impact Map. It tracks *what we want to build* rather than *the business value we want to create* and *the behavioral changes required to get there*.
+* **Dropping a Core Value Proposition (The Specialized Nutrition Blind Spot):** `BusinessModelCanvasEnhanced.jpg` explicitly highlights **"Recipes for specialized nutrition requirements"** as a key value proposition. In `BrainstormingConvergence.jpg`, this was backed by specific user needs like **"Allergens"** and **"Dietary requirements."** Shockingly, this entire domain has been completely deleted from `ImpactMapping.jpg`. By failing to map this to an actor or impact, you risk launching an app that misses its most clear market differentiator.
 
----
 
-## The Biggest Risks (Load-Bearing Assumptions)
+* **Features Masquerading as Impacts:** Many items in the "Impact" column—such as *Shopping*, *Budget*, and *Cookbook publishing*—are functional building blocks, not behavioral modifications. An impact must capture what an actor does differently (e.g., *"Singles buy ingredients directly through the app instead of navigating external grocery stores"* or *"Young families plan meals together to reduce grocery waste"*), otherwise the map is just a feature factory with extra steps.
 
-### 1. The Goal is a Product Name, Not a Business Outcome
 
-* **The Issue:** The central goal in **ImpactMapping.jpg** is simply listed as **"Larder"**. Larder is a noun—the name of the app. This is the classic "solution wearing a goal's hat" failure mode.
-* **Why it worries me:** Without a measurable business metric (e.g., *"Achieve $10k MRR by Q4"* or *"Reduce household food waste by 20% within 6 months"*), the team has no framework for saying "no." Every feature becomes a good idea, turning the project into a feature factory.
-* **How to test/resolve it cheaply:** Ask the stakeholders: *"If we ship every single deliverable on the right, but make $0 and change no one's habits, is Larder a success?"* Use their answer to extract a SMART metric (Metric + Target + Deadline) to anchor the center.
-
-### 2. Impacts are Functional Modules, Not Behavior Changes
-
-* **The Issue:** The "Impact" column lists terms like **Shopping**, **Community**, **Budget**, and **Cooking support**. These are software modules or abstract concepts, not human behaviors.
-* **Why it worries me:** Actors cannot "do" a *Cooking support*. An impact must be an observable behavior change (e.g., *Singles cook at home 3x more per week* or *Grocery stores push surplus inventory through our API*). Because these are written as feature categories, the deliverables map directly to them in a circular fashion.
-* **How to test/resolve it cheaply:** Force the "Sentence Test." Rephrase every impact using an active verb: *Start doing, stop doing, do more of,* or *do differently*.
 
 ---
 
-## Level-by-Level Breakdown
+## Level-by-Level Notes
 
-### 📊 Goal (WHY)
+### 1. WHY — The Goal
 
-* **Critical Flaw:** Completely unmeasured and anchored entirely to a product release rather than a business capability.
+* **Critique:** Unmeasured and product-centric. Putting the application name ("Larder") in the center turns the map into an execution checklist rather than an outcome-driven strategy.
 
-### 👥 Actors (WHO)
 
-* **The Good:** The map does a fantastic job of pulling in the **Key Partners** from **BusinessModelCanvas.jpg** (Kitchen ware retailer, Chefs, Grocery store, Photo book service) as actors. This correctly identifies that their behavior needs to change to make the business model work.
-* **The Weakness:** The actor **"Cook"** is highly generic and sits right next to specific personas like **"Single"** and **"Young family"**. Aren't the singles and young families the ones cooking? This causes redundant, messy line intersections in the middle of the map.
 
-### ⚡ Impacts (HOW)
+### 2. WHO — The Actors
 
-* **The Flaw:** In addition to being feature modules, there are zero **negative impacts or blockers** mapped. For example, what if *Grocery stores refuse to sync inventory data*? Mapping defensive behaviors is vital to de-risking the project.
+* **Critique:** While the customer segments (*Single*, *Young family*) and external ecosystem partners (*Kitchen ware retailer*, *Grocery store*) match the canvas well, the generic actor **"Cook"** is highly problematic. A "Cook" is too broad and overlaps completely with Singles and Young Families. If "Cook" represents an internal creator or an unsegmented user, it needs to be defined by their specific behavior or role.
 
-### 📦 Deliverables (WHAT)
 
-* **The Flaw (Circular Logic):** Look at the bottom branch. The Impact is **"Cookbook publishing"** and the Deliverable is... **"Cookbook publishing"**. This is a dead giveaway that the map skipped behavioral analysis and just reverse-engineered a feature list.
-* **Lack of Options:** Most impacts only branch out to one or two pre-determined solutions. True impact mapping lists multiple low-cost alternatives so you can prune the expensive ones.
 
----
+### 3. HOW — The Impacts
 
-## Cross-Check: Map vs. Strategic Sources
+* **Critique:** Extreme structural flattening. For instance, mapping **Photo book service** to the impact of **Cookbook publishing** and the deliverable of **Cookbook publishing** creates a completely circular line of reasoning. It skips the behavioral reality: *How do we get the photo book service to dynamically engage with our platform?*
 
-### 1. Fidelity to the Business Model Canvas (**BusinessModelCanvas.jpg**)
 
-* **The Dropped Value Proposition:** The canvas lists a crucial, highly monetizable Value Proposition: **"Recipes for specialized nutrition requirements."** This is a massive differentiator for "Singles" and "Young families" who have allergies or specific diets. **This is completely missing from the Impact Map.** It has been ironed out into the generic "Easy-to-find recipes."
-* **The Revenue Disconnect:** The canvas counts on **"Monthly member fees"** and **"Ads by partners."** The Impact Map does not show how any of the deliverables (like the *Timer* or *Grandma/Grandpa AI*) will actively convince a user to pay a subscription or interact with partner ads.
 
-### 2. Fidelity to the Brainstorming Session (**BrainstormingConvergence.jpg**)
+### 4. WHAT — The Deliverables
 
-* **Premature Convergence (The "HiPPO" Effect):** The brainstorming board contains several highly innovative, specific ideas marked in blue stickies, such as **Fridge-photo recipe generation**, **Voice control**, and a **Larder tracker**.
-* **The Flattening:** During synthesis, the team flattened these unique selling points into generic boxes. *Fridge-photo recipe generation* became the much less inspiring *AI proposals*, and *Voice control* was buried or dropped entirely under *Cooking support*. The team anchored on the safest, most obvious features (*Timer*, *Cooking club*) instead of the high-value differentiators.
-* **Structural Messiness:** The brainstorm split *Content Creation* and *Content Rating* logically. The Impact Map sloppily crams *Content* and *Rating* as deliverables underneath the *Community* impact branch, losing the clear operational distinction established in the brainstorm.
+* **Critique:** Over-indexing on boilerplate solutions. Deliverables like *Timer*, *Content*, and *Rating* are treated as definite scope items to build rather than minimal viable experiments to test whether an impact is achieved.
+
+
 
 ---
 
-## What is Strong About This Map
+## Map vs. Upstream Sources Cross-Check
 
-To be fair, the team successfully avoided an internal-only viewpoint. Including the **Photo book service** and mapping it directly to **Cookbook publishing** shows a great understanding of how a Key Partner creates an ecosystem. The lines also show an attempt to cross-utilize deliverables (e.g., *Meal Chooser* serving both *Easy-to-find recipes* and *Cooking support*), which points to a lean technical architecture.
+### Against the Business Model Canvas (`BusinessModelCanvasEnhanced.jpg`)
+
+* **Revenue Disconnect:** The canvas lists **"Monthly member fee"** and **"Ads by partners"** as key revenue streams. However, the map fails to prioritize behavior modifications that drive subscription conversions or partner ad impressions.
+
+
+* **Infrastructure Neglect:** The canvas maps out significant cost nodes such as **"Licenses"** and **"Cloud service."** The impact map completely ignores the internal operational actors or system constraints required to deploy these cost-heavy elements smoothly.
+
+
+
+### Against the Brainstorming Convergence (`BrainstormingConvergence.jpg`)
+
+* **Premature Convergence on Search Functionality:** The brainstorming session produced a rich, highly contextual vision for "Recipe Search," detailing deep user pain points like **"Left over optimizations,"** **"Search with things I already have,"** and **"Fridge-photo recipe generation."** On `ImpactMapping.jpg`, this has been stripped down to a generic **"Easy-to-find recipes"** impact with basic deliverables like **"Meal Chooser"** and **"Planner."** The map has effectively scrubbed away the team's most innovative product ideas in favor of generic app components.
+
+
+* **Lost Creator Context:** The brainstorming board recognized a distinct **"Creator Support"** cluster featuring a **"Smart kitchen"** link. This perspective, which would heavily incentivize the **Chefs** actor listed on your canvas, was entirely lost during synthesis.
+
+
+
+---
+
+## What's Strong
+
+The map does an excellent job of pulling the **Key Partners** from `BusinessModelCanvasEnhanced.jpg` (Chefs, Grocery stores, Kitchenware retailers, and Photo book services) into the **Actors** column. It correctly recognizes that the product's ultimate success depends on changing the behaviors of an entire multi-sided ecosystem, not just the end consumers.
 
 ---
 
 ## The Path Forward
 
-To turn this into an actionable, risk-reducing document:
+To prevent your delivery team from building an over-engineered, unverified feature list, consider executing these immediate revisions:
 
-1. **Redefine the center:** Replace "Larder" with a real business goal (e.g., *"Convert 5% of app downloads to premium monthly subscribers by Q3"*).
-2. **Fix the dropped value prop:** Pull **"Dietary & Allergen Requirements"** back out of the brainstorm graveyard and create an Impact branch for it. That is what will actually drive the business model forward.
-3. **Rewrite the Impacts as Actions:** Change "Shopping" to *"Grocery stores fulfill orders directly through our app interface."* Then ask: *What is the absolute simplest piece of software we can build to test if they will actually do that?*
+1. **Redefine the Center:** Replace "Larder" with a strict metric goal. For example: *"Convert 15% of active Singles into monthly paying members within 6 months of launch."*
+
+
+2. **Re-introduce Specialized Nutrition:** Create a dedicated branch for dietary and allergen support linking directly to your core value proposition.
+
+
+3. **Upgrade Nouns to Verbs:** Change the impacts from categories (*Budget*, *Shopping*) into explicit, trackable user behaviors (*"Singles actively cook with leftovers to save money"* or *"Grocery stores fulfill ingredient orders within 2 hours"*).
+
+
+4. **Swap the Deliverables for the Brainstormed Alternatives:** Prune generic deliverables like "Planner" and test the higher-leverage, high-engagement concepts from the brainstorming board, such as "Fridge-photo recipe generation".

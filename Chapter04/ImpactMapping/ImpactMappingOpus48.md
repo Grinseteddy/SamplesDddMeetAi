@@ -3,7 +3,7 @@
 Criticize the Impact Map based on the Brainstorming result and Business Model Canvas. 
 ![](../assets/ImpactMapping.jpg)
 ![](../assets/BrainstormingConvergence.jpg)
-![](../assets/BusinessModelCanvas.jpg)
+![](../assets/BusinessModelCanvasEnhanced.jpg)
 [SKILL.md](../Skills/ImpactMappingSkill/SKILL.md)
 
 [Canvas cross check](../Skills/ImpactMappingSkill/references/canvas-cross-check.md)
@@ -16,50 +16,43 @@ Criticize the Impact Map based on the Brainstorming result and Business Model Ca
 
 # Answer:
 
-I have both upstream sources here, so let me read the two cross-check reference files to do this properly.Read the impact-mapping-critic role notes and both upstream sources. Here's my critique of the impact map — attacking the map, not anyone's work, and every point is a hypothesis you should feel free to knock down.
+I read the impact map against both sources you gave me — the brainstorm mind-map and the Business Model Canvas. Here's where I think it will bite, held as hypotheses you're free to reject.
 
 ## One-line read
 
-Read from the inside out, the map currently says: *"In order to **Larder**, a **Single** will **Shopping**, and we will support that with **Direct ordering**."* That sentence doesn't hold together — and tracing why is the whole critique. The skeleton is a real impact map (clean four columns, actors that genuinely match the canvas), but the WHY and HOW levels aren't yet doing their job.
+As a sentence the map currently reads: *"In order to **Larder**, the **Single** will **Shopping**, and we will support that with **Direct ordering**."* It breaks at the first two words, and that break propagates down every branch. The bones are good — the actors are faithful and the deliverables are concrete — but the spine (goal → impact) isn't doing its job yet.
 
 ## Biggest risks first
 
-**1. The goal isn't a goal — it's the product's name.** "Larder" is the app. It names a thing you're building, not a change in the world, and it has no metric, target, or deadline. Every branch beneath it therefore points at nothing measurable: you can't tell whether "Shopping → Direct ordering" succeeded, because there's no outcome it's supposed to move. This is the load-bearing flaw; fix it and most of the others get easier.
-- *Test it cheaply:* ask "why are we building Larder?" until you hit a business outcome. Your own canvas answers it — the revenue streams are *monthly member fee* and *ads by partners*. A real goal looks like "X paying members within 12 months" or "Y% of weekly-active users on a paid plan."
-- *What resolves it:* a goal phrased as an outcome with a number and a date.
+**1. The goal is a product name, not an outcome.** "Larder" is the app, not a business objective. There's no metric, target, or deadline, so nothing below it can be judged "worked" or "didn't." More tellingly, the canvas tells you what the goal *should* serve — two revenue streams, *monthly member fee* and *ads by partners* — and the map's goal points at neither. Nothing on the map is about anyone *becoming or staying a paying member*, or a partner *buying ads*. *Why it worries me:* the whole monetization half of your strategy is invisible here, so you can't tell which branch earns its keep. *Cheap test:* restate the goal as a number ("X paying subscribers retained at 3 months by Qn") and re-walk each impact asking "does this move that?" Branches that don't are candidates for the cut list. *What resolves it:* a measured goal that traces to a revenue stream.
 
-**2. The impacts are feature buckets, not behaviour changes.** "Shopping," "Community," "Budget," "Cooking support" are areas of the product, not things an actor starts/stops/does-differently. Because of that, the map can't answer the only question impact mapping exists to answer: *did a person's behaviour change?* Compare to a real impact — "Singles cook at home more nights per week," "Cooks publish a recipe every week." The tell is that your **canvas already names the behaviours that matter** ("Daily for sharing, Weekly for creating") and *none of them appear as impacts here.*
-- *What resolves it:* rewrite each impact as "[actor] does [more/less/differently]," and check that the canvas's daily-sharing and weekly-creating behaviours each show up.
+**2. The "impacts" are feature themes, not behaviour changes.** Shopping, Community, Easy-to-find recipes, Cooking support, Budget — these are the *green cluster headings* from your brainstorm promoted one column to the right. None of them is something an actor *does differently*. "Shopping" isn't "the single buys ingredients in-app instead of a separate trip"; "Community" isn't "young families post a recipe weekly." *Why it worries me:* this is the signature of a map built outside-in from a feature list — the exact failure mapping exists to prevent — and it means you never named the behaviour change you're actually buying. *Test:* for each impact, finish "we'll know it worked when [actor] starts/stops/does-more-of ___." If you can't, the real impact is missing and the box is a feature.
 
-**3. The map was likely built outside-in.** Twelve fairly concrete deliverables, seven vague impacts, a non-goal at the centre — that's the signature of starting from a feature list (your brainstorm leaves) and reverse-justifying upward. The risk isn't that the features are bad; it's that nothing tells you which to *not* build. Deliverables in this technique are bets you prune, and right now almost the entire brainstorm survived intact.
+**3. The namesake feature isn't on the map.** Your goal is literally "Larder," and the brainstorm is full of pantry-aware ideas — *Larder tracker, Search with things I already have, Leftover optimizations, Fridge-photo recipe generation*. Almost none survived into the deliverables (the map's recipe branch collapses to Meal Chooser + AI proposals). If "larder" is the differentiator, the map currently doesn't deliver it.
 
-## Level-by-level
+## Level-by-level notes
 
-**Actors** — strongest level. Both canvas segments (Singles, Young families) and all the canvas partners (kitchenware retailer, grocery store, photo book service, cooks, chefs) made it across. Two soft spots: "Single," "Young family," "Cook" and "Chefs" overlap (is a "Single" not also a "Cook"?), and there's no actor who could *obstruct* the goal — e.g. a regulator, given that allergens/dietary claims carry food-safety liability.
+- **Goal** — covered above; this is the load-bearing fix.
+- **Actors** — strong on fidelity (all four canvas partners and both segments are present). Two gaps: no *obstructer* anywhere (app-store/review gatekeepers, content moderation, a regulator for the "specialized nutrition" claims), and the partner-actors each feed exactly one deliverable (retailer→kitchen-tool ordering, grocery→direct ordering, photo-book→cookbook). That pattern suggests they were reverse-derived to justify a deliverable rather than discovered from a behaviour you need to change.
+- **Impacts** — feature-as-impact throughout (above). Also entirely positive — no "impacts to avoid" (e.g. a single churning after one bad AI proposal).
+- **Deliverables** — concrete and mostly traceable, but one option per impact and held as scope, not bets. Which one branch is the *shortest path* to the goal, and which are you explicitly *not* building first? If you can't name the cut, prioritisation hasn't happened.
 
-**Impacts** — see risk #2. Also note "Cookbook publishing" is promoted to a full impact here, though in the brainstorm it was a single minor sticky near "Timer," not a cluster. Worth asking whether it earned that weight or just got swept up.
+## Map vs. the Business Model Canvas
 
-**Deliverables** — held as a fixed list, not options. For each, the useful question is "what's the *smallest* thing that would cause the impact?" — most of these are presented as must-builds.
+- **A value proposition vanished.** *"Recipes for specialized nutrition requirements"* is one of only ~five value props on the canvas, and the brainstorm backs it (Allergenes, Dietary requirements). It appears nowhere on the map — no impact, no deliverable. Either the map dropped a promised value, or the canvas is promising something you've decided not to build. Which?
+- **The "creating" relationship isn't driven.** The canvas bets users engage *"weekly for creating"*, but the map has no real content-creation impact — just a "Content" deliverable. The behaviour the relationship depends on has no branch.
+- **The whole cost/infrastructure side is unrepresented.** Cloud, licenses, AI, and *Marketing* sit on the canvas; the map's deliverables (AI proposals, Grandma/Grandpa AI, fridge-photo) are AI-heavy with hidden cost, and there's no acquisition impact even though growth (if that's the goal) needs Marketing. Feasibility and cost never entered the branch selection.
 
-## Map vs. its sources
+## Map vs. the brainstorm
 
-**Against the Business Model Canvas (the sharper of the two):**
-- **A whole value proposition vanished.** The canvas promises "Recipes for specialized nutrition requirements." The brainstorm backed it (Allergenes, Dietary requirements). Neither survives anywhere on the map — no impact, no deliverable. You're about to build a product that drops one of its three stated value props.
-- **Neither revenue stream has a line of sight.** Nothing on the map drives the *monthly member fee* (no impact about conversion, retention, or willingness to pay) and only loosely touches *ads by partners*. The map optimises feature breadth, not money.
-- **The cost/infrastructure side is invisible.** "AI proposals," "Grandma/Grandpa AI," and the canvas resource "AI search support" imply real cloud/AI cost (your whole Cost Structure block), but no branch acknowledges that this is the expensive bet. Classic: the map only shows the fun half of the business.
-- **A supply gap.** "Easy-to-find recipes" assumes a recipe corpus (canvas resource: "Recipes"), but the behaviour that *produces* recipes — Content Creation — was dropped as an impact and shrunk to one deliverable, "Content." Where do the recipes come from?
+Synthesis *should* drop detail, so the question is whether it dropped the *right* detail. A few I'd revive or at least decide on consciously: the **specialized-nutrition / allergens** thread (above), the **pantry-aware search** cluster (above), and **Content Creation** as its own theme (Cooking Videos, Making Photos, Remix, Store recipes) — it's a green cluster *and* a canvas Key Activity, yet it collapsed to one "Content" sticky.
 
-**Against the brainstorm:**
-- **Dropped clusters worth a second look:** Authentication, the rich Content Creation cluster (Cooking Videos, Making Photos, Remix, Store recipes), Content Rating's detail, Special/Historical recipes, and the Helper cluster (Voice control survived nowhere; only Timer did).
-- **Possible premature convergence on the obvious.** The brainstorm's blue stickies look like a flagged-as-distinctive set — Smart kitchen, Voice control, Food pairing, Fridge-photo recipe generation, Allergenes, Larder tracker, Dinner-party planner. *Almost all of them were dropped*, while generic buckets (Shopping, Community) were kept. If blue meant "our differentiators," the map kept the commodity and cut the edge. Worth confirming what blue signified before trusting that call.
-- **The product's own namesake feature is missing.** It's called *Larder*, yet the larder/pantry-tracking idea (brainstorm: "Larder tracker," "Search with things I already have," "Fridge-photo recipe generation") didn't reach the deliverables. The thing the app is named after isn't in the plan.
+One thing I genuinely can't read: the **blue stickies**. There's a consistent yellow/blue convention across all three artifacts (blue = Voice control, Smart kitchen, Larder tracker, Historical recipes, Allergenes, Food pairing, Fridge-photo on the brainstorm). Most of the *brainstorm's* blue notes — which look like your novel/differentiating bets — didn't make the map, while the obvious ones did. If blue marks "innovative" or "flagged," that's premature convergence on the safe ideas. **What does blue mean in your legend?** It changes whether that's a real finding or a non-issue.
 
-## What's strong
+## What's strong (protect this)
 
-The actor level is genuinely well-grounded — it reflects the canvas faithfully on both the demand and supply sides, which is the hard part many maps fumble. Two of three value props (easy-to-find recipes, cooking support) carry cleanly from canvas → impact → deliverable. And it *is* a proper impact-map shape, which means the fixes are reframing, not rebuilding.
+Actor fidelity to the canvas is genuinely good — every paying segment and key partner made it across, which is where many maps fail. The deliverables are concrete and mostly verifiable, and the four-level structure is clean enough that the fixes above are *re-labelling and re-centring*, not a rebuild.
 
-## Path forward
+The single highest-leverage move: replace "Larder" at the centre with a measured outcome tied to one of your two revenue streams, then re-ask each impact "what behaviour change moves *that*?" Most of your current impacts will resolve into real behaviours or fall away — and the specialized-nutrition and pantry threads will probably re-enter on their own, because they're where your differentiated value lives.
 
-The single highest-leverage move: replace "Larder" with a measured outcome tied to one revenue stream, then re-ask of every impact "is this a behaviour, and does it move that number?" That one change will tell you which of the twelve deliverables to keep and which to park — and will surface whether the specialized-nutrition value prop deserves a branch of its own.
-
-Push back on any of this — especially the premature-convergence read, which rests on my guess about what the blue stickies meant. If blue meant something else, I'll happily drop that point.
+Want me to take a pass at a reframed version — a measurable goal plus behaviour-shaped impacts — so you can compare it side by side with the current map?

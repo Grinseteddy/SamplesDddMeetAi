@@ -2,8 +2,8 @@
 
 Validate the provided Capability Map based on the NSM: "Larder is a new recipe-sharing platform.It covers cooking skills and the support for meal preparation.Skills and meal preparation are supported by chefs and experienced home cooks.Furthermore, it is a community platform, where members can share and rate recipes.From 100 friends and family in the beginning, the platform grows to more than 2,500 members in two years.The community is supported by different kinds of competitions." and the provided Impact Mapping. Use the provided skill.
 
-![](./assets/CapabilityMap.jpg)
-![](./assets/ImpactMap.jpg)
+![](../assets/CapabilityMap.jpg)
+![](../assets/ImpactMappingWithAiStep3.jpg)
 [SKILL.md](../Skills/CapabilityMapSkill/SKILL.md)
 [Capability Essentials](../Skills/CapabilityMapSkill/CapabilityEssentials.md)
 [Upstream Cross-Check](../Skills/CapabilityMapSkill/UpstreamCrossCheck.md)

@@ -1,0 +1,12 @@
+{
+  "axes": { "x": "Business differentiation", "y": "Model complexity" },
+  "regions": { "generic_max_x": 0.34, "core_min_x": 0.66, "core_min_y": 0.35 },
+  "capabilities": [
+    { "label": "Capability 2", "x": 0.17, "y": 0.66, "label_pos": "right" },
+    { "label": "Capability 3", "x": 0.46, "y": 0.70, "label_pos": "above" },
+    { "label": "Capability 3", "x": 0.76, "y": 0.60, "from": { "x": 0.47, "y": 0.60 }, "label_pos": "right" },
+    { "label": "Capability 1", "x": 0.45, "y": 0.45, "from": { "x": 0.60, "y": 0.52 }, "label_pos": "below" },
+    { "label": "Capability 3", "x": 0.64, "y": 0.45, "from": { "x": 0.52, "y": 0.30 }, "label_pos": "right" }
+  ],
+  "options": { "swap_marker_colors": false }
+}

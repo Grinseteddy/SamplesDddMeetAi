@@ -13,17 +13,17 @@ Create a Core Domain Chart as a critique of a Capability Map. Use the correspond
 
 [References to Capability Map Critique skill—Upstream check](../Skills/CapabilityMapSkill/references/upstream-cross-check.md)
 
-[Core Domain Chart Creation skill](../Skills/CoreDojmainChartCreationSkill/SKILL.md)
+[Core Domain Chart Creation skill](../Skills/CoreDomainChartCreationSkill/SKILL.md)
 
-[Core Domain Chart Creation skill—Assets example](../Skills/CoreDojmainChartCreationSkill/assets/example-core-domain-chart.svg)
+[Core Domain Chart Creation skill—Assets example](../Skills/CoreDomainChartCreationSkill/assets/example-core-domain-chart.svg)
 
-[Core Domain Chart Creation skill—Assets example spec](../Skills/CoreDojmainChartCreationSkill/assets/example-spec.json)
+[Core Domain Chart Creation skill—Assets example spec](../Skills/CoreDomainChartCreationSkill/assets/example-spec.json)
 
-[Core Domain Chart Creation skill—References critique-to-moves](../Skills/CoreDojmainChartCreationSkill/references/critique-to-moves.md)
+[Core Domain Chart Creation skill—References critique-to-moves](../Skills/CoreDomainChartCreationSkill/references/critique-to-moves.md)
 
-[Core Domain Chart Creation skill—References visual style](../Skills/CoreDojmainChartCreationSkill/references/visual-style.md)
+[Core Domain Chart Creation skill—References visual style](../Skills/CoreDomainChartCreationSkill/references/visual-style.md)
 
-[Core Domain Chart Creation skill—Generator script](../Skills/CoreDojmainChartCreationSkill/core_domain_chart_generator.py)
+[Core Domain Chart Creation skill—Generator script](../Skills/CoreDomainChartCreationSkill/core_domain_chart_generator.py)
 
 # Answer:
 

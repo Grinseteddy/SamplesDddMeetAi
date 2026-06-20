@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1404" height="1088" viewBox="0 0 1404 1088" font-family="'Noto Sans','Open Sans','Helvetica Neue',Arial,sans-serif">
+<rect x="0" y="0" width="1404" height="1088" fill="#f2f2f2"/>
+<defs><marker id="axis" markerWidth="14" markerHeight="14" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker><marker id="move" markerWidth="12" markerHeight="12" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#1a1a1a"/></marker></defs>
+<rect x="120" y="28" width="814" height="910" fill="#d1f09f"/>
+<rect x="120" y="28" width="276.8" height="910" fill="#fff8aa" stroke="#1a1a1a" stroke-width="2" stroke-dasharray="9 7"/>
+<rect x="657.2" y="28" width="276.8" height="591.5" fill="#90baf9" stroke="#1a1a1a" stroke-width="2" stroke-dasharray="9 7"/>
+<text x="258.4" y="76" text-anchor="middle" font-size="34" fill="#1a1a1a">Generic</text>
+<g fill="none" stroke="#232f3d" stroke-width="2.2"><circle cx="258.38" cy="120" r="15.0"/><ellipse cx="258.38" cy="120" rx="6.8" ry="15.0"/><line x1="243.38" y1="120" x2="273.38" y2="120"/><line x1="245.6" y1="112.5" x2="271.1" y2="112.5"/><line x1="245.6" y1="127.5" x2="271.1" y2="127.5"/></g>
+<text x="527.0" y="76" text-anchor="middle" font-size="34" fill="#1a1a1a">Supporting</text>
+<g fill="none" stroke="#232f3d" stroke-width="2.4" stroke-linecap="round"><circle cx="524.0" cy="117.0" r="10.5"/><line x1="531.4" y1="124.3" x2="542.0" y2="135.0"/></g>
+<text x="795.6" y="76" text-anchor="middle" font-size="34" fill="#1a1a1a">Core</text>
+<g fill="none" stroke="#232f3d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="795.62" cy="113.2" r="4.8"/><path d="M 785.1 135.0 q 10.5 -12.0 21.0 0"/><polyline points="799.4,120.8 803.9,125.2 811.4,114.8"/></g>
+<line x1="120" y1="938" x2="964" y2="938" stroke="#1a1a1a" stroke-width="3" marker-end="url(#axis)"/>
+<line x1="120" y1="938" x2="120" y2="16" stroke="#1a1a1a" stroke-width="3" marker-end="url(#axis)"/>
+<text x="120" y="976" text-anchor="middle" font-size="24" fill="#1a1a1a">Low</text>
+<text x="934" y="976" text-anchor="middle" font-size="24" fill="#1a1a1a">High</text>
+<text x="90" y="938" text-anchor="middle" font-size="24" fill="#1a1a1a">Low</text>
+<text x="90" y="34" text-anchor="middle" font-size="24" fill="#1a1a1a">High</text>
+<text x="527.0" y="1030" text-anchor="middle" font-size="30" font-weight="700" fill="#1a1a1a">Business differentiation</text>
+<text x="48" y="483.0" text-anchor="middle" font-size="30" font-weight="700" fill="#1a1a1a" transform="rotate(-90 48 483.0)">Model complexity</text>
+<line x1="516.3" y1="435.5" x2="759.6" y2="412.8" stroke="#1a1a1a" stroke-width="2" marker-end="url(#move)"/>
+<line x1="524.0" y1="568.8" x2="662.6" y2="535.1" stroke="#1a1a1a" stroke-width="2" marker-end="url(#move)"/>
+<line x1="732.9" y1="501.2" x2="489.9" y2="501.2" stroke="#1a1a1a" stroke-width="2" marker-end="url(#move)"/>
+<line x1="708.5" y1="373.8" x2="555.0" y2="373.8" stroke="#1a1a1a" stroke-width="2" marker-end="url(#move)"/>
+<line x1="733.0" y1="712.7" x2="514.2" y2="735.0" stroke="#1a1a1a" stroke-width="2" marker-end="url(#move)"/>
+<circle cx="494.4" cy="437.5" r="22" fill="#b0b0b0" stroke="#1a1a1a" stroke-width="3" stroke-dasharray="6 5"/>
+<circle cx="502.6" cy="574.0" r="22" fill="#b0b0b0" stroke="#1a1a1a" stroke-width="3" stroke-dasharray="6 5"/>
+<circle cx="754.9" cy="501.2" r="22" fill="#b0b0b0" stroke="#1a1a1a" stroke-width="3" stroke-dasharray="6 5"/>
+<circle cx="730.5" cy="373.8" r="22" fill="#b0b0b0" stroke="#1a1a1a" stroke-width="3" stroke-dasharray="6 5"/>
+<circle cx="754.9" cy="710.5" r="22" fill="#b0b0b0" stroke="#1a1a1a" stroke-width="3" stroke-dasharray="6 5"/>
+<circle cx="787.5" cy="410.2" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="689.8" cy="528.5" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="461.9" cy="501.2" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="527.0" cy="373.8" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="486.3" cy="737.8" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="771.2" cy="301.0" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="706.1" cy="592.2" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="461.9" cy="610.4" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="567.7" cy="692.3" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="722.4" cy="464.8" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="217.7" cy="574.0" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="250.2" cy="310.1" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="266.5" cy="237.3" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="282.8" cy="164.5" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="225.8" cy="801.5" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<circle cx="250.2" cy="874.3" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<text x="819.5" y="418.6" font-size="24" fill="#1a1a1a">Famous chefs partner</text>
+<text x="721.8" y="536.9" font-size="24" fill="#1a1a1a">Grandma / Grandpa AI</text>
+<text x="429.9" y="509.6" text-anchor="end" font-size="24" fill="#1a1a1a">AI proposals</text>
+<text x="527.0" y="339.8" text-anchor="middle" font-size="24" fill="#1a1a1a">Nutrition requirement management</text>
+<text x="486.3" y="787.8" text-anchor="middle" font-size="24" fill="#1a1a1a">Rating</text>
+<text x="771.2" y="267.0" text-anchor="middle" font-size="24" fill="#1a1a1a">Content Creation</text>
+<text x="738.1" y="600.6" font-size="24" fill="#1a1a1a">Meal Chooser</text>
+<text x="493.9" y="618.8" font-size="24" fill="#1a1a1a">Planner</text>
+<text x="599.7" y="700.7" font-size="24" fill="#1a1a1a">Cookbook publishing</text>
+<text x="754.4" y="473.2" font-size="24" fill="#1a1a1a">Community Engagement (new)</text>
+<text x="249.7" y="582.4" font-size="24" fill="#1a1a1a">Member management</text>
+<text x="282.2" y="318.5" font-size="24" fill="#1a1a1a">Direct ordering</text>
+<text x="298.5" y="245.7" font-size="24" fill="#1a1a1a">Kitchen tool ordering</text>
+<text x="314.8" y="172.9" font-size="24" fill="#1a1a1a">Paywall for premium content</text>
+<text x="257.8" y="809.9" font-size="24" fill="#1a1a1a">Timer</text>
+<text x="282.2" y="882.7" font-size="24" fill="#1a1a1a">Ads management</text>
+<circle cx="1004.0" cy="118.0" r="22" fill="#b0b0b0" stroke="#1a1a1a" stroke-width="3" stroke-dasharray="6 5"/>
+<text x="1044" y="114" font-size="23" fill="#1a1a1a">Capability Map</text><text x="1044" y="142" font-size="23" fill="#1a1a1a">position</text>
+<circle cx="1004.0" cy="218.0" r="22" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+<text x="1044" y="214" font-size="23" fill="#1a1a1a">New position</text><text x="1044" y="242" font-size="23" fill="#1a1a1a">based on critic</text>
+</svg>

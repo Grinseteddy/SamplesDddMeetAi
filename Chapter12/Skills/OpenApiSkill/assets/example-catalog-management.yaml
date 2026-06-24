@@ -1,0 +1,565 @@
+openapi: 3.1.0
+info:
+  title: Catalog Management API
+  description: API for managing catalog entries and allows members to search for books and select them. Librarians can manage catalog entries and tag books for recommendations.
+  version: 2.0.0
+  contact:
+    name: Annegret Junker
+  x-api-id: 2f8c1a3b-9d4e-4f12-bb23-947c7def3184
+  x-audience: external-public
+
+servers:
+  - url: 'https://apis.online-library.org/catalog-management'
+
+security:
+  - oAuth2:
+      - catalog:read
+      - catalog:write
+      - catalog:admin
+
+tags:
+  - name: Catalog Entries
+    description: Catalog entry management operations
+  - name: Books
+    description: Book information operations
+  - name: Authors
+    description: Author information operations
+  - name: Publishers
+    description: Publisher information operations
+  - name: Tags
+    description: Tag management for book recommendations
+  - name: Abstracts
+    description: Abstract management operations
+
+paths:
+  /catalog-entries:
+    post:
+      operationId: createCatalogEntry
+      tags:
+        - Catalog Entries
+      summary: Create a new catalog entry
+      description: |
+        Create a new catalog entry for a book.
+        The book information will be retrieved from an external book information service based on the provided ISBN.
+        If the book already exists in the catalog, no new catalog entry will be created for it.
+      security:
+        - oAuth2:
+            - catalog:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/BookCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CatalogEntryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /catalog-entries/{catalogEntryId}:
+    get:
+      operationId: getCatalogEntryById
+      tags:
+        - Catalog Entries
+      summary: Get catalog entry by ID
+      description: Retrieve a catalog entry by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/CatalogEntryIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/CatalogEntryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    put:
+      operationId: updateCatalogEntry
+      tags:
+        - Catalog Entries
+      summary: Update catalog entry
+      description: |
+        Update the details of an existing catalog entry. 
+        Only the title, subtitle, authors, and publisher information can be updated.
+        The ISBN cannot be changed once the catalog entry is created.
+      security:
+        - oAuth2:
+            - catalog:write
+      parameters:
+        - $ref: '#/components/parameters/CatalogEntryIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/CatalogEntryUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CatalogEntryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteCatalogEntry
+      tags:
+        - Catalog Entries
+      summary: Delete catalog entry
+      description: |
+        Delete a catalog entry by its unique identifier. This operation is irreversible and will remove the catalog entry from the system.
+      security:
+        - oAuth2:
+            - catalog:admin
+      parameters:
+        - $ref: '#/components/parameters/CatalogEntryIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Catalog entry deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /catalog-entries/{catalogEntryId}/abstract:
+    get:
+      operationId: getCatalogEntryAbstract
+      tags:
+        - Abstracts
+      summary: Get abstract for catalog entry
+      description: |
+        Retrieve the abstract for a specific catalog entry. 
+        The abstract provides a summary of the book's content and is intended to help users quickly understand what the book is about.
+      parameters:
+        - $ref: '#/components/parameters/CatalogEntryIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/AbstractResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    put:
+      operationId: updateCatalogEntryAbstract
+      tags:
+        - Abstracts
+      summary: Update abstract for catalog entry
+      description: |
+        Update the abstract for a specific catalog entry. 
+        The abstract should provide a concise summary of the book's content and can be updated to reflect changes in the book's information or to improve its clarity.
+      security:
+        - oAuth2:
+            - catalog:write
+      parameters:
+        - $ref: '#/components/parameters/CatalogEntryIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/AbstractUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AbstractLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /catalog-entries/{catalogEntryId}/tags:
+    get:
+      operationId: getCatalogEntryTags
+      tags:
+        - Tags
+      summary: Get tags for catalog entry
+      description: |
+        Retrieve the tags associated with a specific catalog entry. 
+        Tags are used to categorize books and provide recommendations to users based on their interests.
+      parameters:
+        - $ref: '#/components/parameters/CatalogEntryIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/TagsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    put:
+      operationId: updateCatalogEntryTags
+      tags:
+        - Tags
+      summary: Update tags for catalog entry
+      description: |
+          Update the tags associated with a specific catalog entry. 
+          Tags can be added, removed, or modified to better categorize the book and improve recommendations for users.
+      security:
+        - oAuth2:
+            - catalog:write
+      parameters:
+        - $ref: '#/components/parameters/CatalogEntryIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/TagsUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TagsLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+components:
+  parameters:
+    CatalogEntryIdParameter:
+      name: catalogEntryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      schema:
+        type: string
+        default: "2.0.0"
+        enum: ["2.0.0"]
+
+  schemas:
+    Book:
+      type: object
+      required:
+        - catalogEntryId
+        - isbn
+        - title
+      properties:
+        catalogEntryId:
+          type: string
+          format: uuid
+        isbn:
+          type: string
+          pattern: '^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        subtitle:
+          type: string
+          maxLength: 500
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+          minItems: 1
+          maxItems: 10
+        publisher:
+          $ref: '#/components/schemas/Publisher'
+        abstract:
+          $ref: '#/components/schemas/Abstract'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Author:
+      type: object
+      required:
+        - name
+        - surname
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        surname:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    Publisher:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    Abstract:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+
+    Tag:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 200
+
+    Tags:
+      type: array
+      items:
+        $ref: '#/components/schemas/Tag'
+      maxItems: 25
+
+    CatalogEntry:
+      type: object
+      required:
+        - catalogEntryId
+        - book
+      properties:
+        catalogEntryId:
+          type: string
+          format: uuid
+        book:
+          $ref: '#/components/schemas/Book'
+        tags:
+          $ref: '#/components/schemas/Tags'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BookCreate:
+      type: object
+      required:
+        - isbn
+        - title
+        - authors
+      properties:
+        isbn:
+          type: string
+          pattern: '^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 500
+        subtitle:
+          type: string
+          maxLength: 500
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+          minItems: 1
+          maxItems: 10
+        publisher:
+          $ref: '#/components/schemas/Publisher'
+        abstract:
+          $ref: '#/components/schemas/Abstract'
+
+    CatalogEntryUpdate:
+      type: object
+      properties:
+        book:
+          type: object
+          properties:
+            title:
+              type: string
+              minLength: 1
+              maxLength: 500
+            subtitle:
+              type: string
+              maxLength: 500
+            authors:
+              type: array
+              items:
+                $ref: '#/components/schemas/Author'
+              minItems: 1
+              maxItems: 10
+            publisher:
+              $ref: '#/components/schemas/Publisher'
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    CatalogEntryResponse:
+      description: Single catalog entry response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogEntry'
+
+    AbstractResponse:
+      description: Abstract content response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Abstract'
+
+    AbstractLinkResponse:
+      description: Link to abstract response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              abstractLink:
+                type: string
+                format: uri
+
+    TagsResponse:
+      description: Tags response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Tags'
+
+    TagsLinkResponse:
+      description: Link to tags response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              tagsLink:
+                type: string
+                format: uri
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    BookCreateRequest:
+      description: Book creation request for catalog entry
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BookCreate'
+
+    CatalogEntryUpdateRequest:
+      description: Catalog entry update request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogEntryUpdate'
+
+    AbstractUpdateRequest:
+      description: Abstract update request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Abstract'
+
+    TagsUpdateRequest:
+      description: Tags update request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Tags'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://online-library.com/auth
+          tokenUrl: https://online-library.com/tokens
+          refreshUrl: https://online-library.com/refresh
+          scopes:
+            catalog:read: Grants read access to resources
+            catalog:write: Grants write access to modify resources
+            catalog:admin: Grants administrative access to manage resources

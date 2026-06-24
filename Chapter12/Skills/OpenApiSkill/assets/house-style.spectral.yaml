@@ -1,0 +1,91 @@
+# Spectral ruleset for the OpenAPI 3.1.0 house style.
+# Extends the built-in OAS ruleset (full structural validation for 3.x incl. 3.1.0)
+# and layers on the house-style conventions.
+#
+# Usage:
+#   spectral lint <spec>.yaml --ruleset assets/house-style.spectral.yaml
+#
+# Tune severities to taste. Anything at `error` must be fixed; `warn` should be
+# reviewed and resolved unless deliberately waived.
+
+extends: ["spectral:oas"]
+
+rules:
+  # --- Tighten a few built-ins to errors ---
+  operation-operationId: error
+  operation-operationId-unique: error
+  operation-tag-defined: error
+  operation-tags: error
+  info-contact: error
+  oas3-api-servers: warn
+
+  # --- House-style rules ---
+
+  house-info-api-id:
+    description: "info object must declare a (UUID) x-api-id that is stable across versions."
+    severity: error
+    given: "$.info"
+    then:
+      field: x-api-id
+      function: truthy
+
+  house-info-audience:
+    description: "info object must declare x-audience (e.g. external-public, company-internal)."
+    severity: error
+    given: "$.info"
+    then:
+      field: x-audience
+      function: defined
+
+  house-operationId-camelCase:
+    description: "operationId must be camelCase (verb + noun, e.g. getCatalogEntryById)."
+    severity: error
+    given: "$.paths[*][*].operationId"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^[a-z][a-zA-Z0-9]*$"
+
+  house-tags-have-description:
+    description: "Every tag declared in the global tags list should have a description."
+    severity: warn
+    given: "$.tags[*]"
+    then:
+      field: description
+      function: truthy
+
+  house-operations-have-summary:
+    description: "Operations should have a short summary."
+    severity: warn
+    given: "$.paths[*][get,put,post,delete,patch]"
+    then:
+      field: summary
+      function: truthy
+
+  house-operations-have-description:
+    description: "Operations should have a description explaining behavior and side effects."
+    severity: warn
+    given: "$.paths[*][get,put,post,delete,patch]"
+    then:
+      field: description
+      function: truthy
+
+  house-schema-names-pascal-case:
+    description: "Component schema names should be PascalCase (e.g. CatalogEntry)."
+    severity: warn
+    given: "$.components.schemas"
+    then:
+      field: "@key"
+      function: pattern
+      functionOptions:
+        match: "^[A-Z][a-zA-Z0-9]*$"
+
+  house-paths-kebab-case:
+    description: "Path segments should be kebab-case or {camelCase} template params."
+    severity: warn
+    given: "$.paths"
+    then:
+      field: "@key"
+      function: pattern
+      functionOptions:
+        match: "^(/(([a-z][a-z0-9-]*)|(\\{[a-z][a-zA-Z0-9]*\\})))+$"

@@ -1,0 +1,215 @@
+openapi: 3.1.0
+info:
+  title: <API Name>
+  description: <One or two sentences describing what this API does and who uses it.>
+  version: 1.0.0
+  contact:
+    name: <Owning team or person>
+  x-api-id: <generate-a-stable-uuid>
+  x-audience: external-public   # external-public | external-partner | company-internal | component-internal
+
+servers:
+  - url: 'https://api.example.com/<base-path>'
+
+security:
+  - oAuth2:
+      - <resource>:read
+      - <resource>:write
+      - <resource>:admin
+
+tags:
+  - name: <Resource Area>
+    description: <What this group of operations covers>
+
+paths:
+  /<resources>:
+    get:
+      operationId: list<Resources>
+      tags:
+        - <Resource Area>
+      summary: List <resources>
+      description: |
+        Retrieve a collection of <resources>.
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/<Resource>Response'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    post:
+      operationId: create<Resource>
+      tags:
+        - <Resource Area>
+      summary: Create a new <resource>
+      description: |
+        Create a new <resource>.
+      security:
+        - oAuth2:
+            - <resource>:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/<Resource>CreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/<Resource>Response'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /<resources>/{<resource>Id}:
+    get:
+      operationId: get<Resource>ById
+      tags:
+        - <Resource Area>
+      summary: Get <resource> by ID
+      description: |
+        Retrieve a <resource> by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/<Resource>IdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/<Resource>Response'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+components:
+  parameters:
+    <Resource>IdParameter:
+      name: <resource>Id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    <Resource>:
+      type: object
+      required:
+        - <resource>Id
+      properties:
+        <resource>Id:
+          type: string
+          format: uuid
+        # ... domain fields ...
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    <Resource>Create:
+      type: object
+      required:
+        # required client-supplied fields (no server-generated ones)
+      properties:
+        # ... domain fields ...
+
+    <Resource>Update:
+      type: object
+      properties:
+        # mutable fields only, all optional
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    <Resource>Response:
+      description: Single <resource> response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/<Resource>'
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    <Resource>CreateRequest:
+      description: <Resource> creation request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/<Resource>Create'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/auth
+          tokenUrl: https://example.com/tokens
+          refreshUrl: https://example.com/refresh
+          scopes:
+            <resource>:read: Grants read access to resources
+            <resource>:write: Grants write access to modify resources
+            <resource>:admin: Grants administrative access

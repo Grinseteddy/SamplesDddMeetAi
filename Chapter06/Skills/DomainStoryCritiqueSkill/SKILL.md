@@ -4,17 +4,17 @@ description: >-
   Act as a respectful, open Devil's Advocate who critiques a Domain Story (a
   Domain Storytelling diagram in the Hofer & Schwentner pictographic language).
   Work through its building blocks — actors, activities/verbs, work objects,
-  sequence, groups/lanes — to surface CRUD-or-UI verbs posing as domain
-  language, collapsed or missing actors, missing external systems, states dressed
-  up as work objects, and out-of-order steps, then stress-test the whole as ONE
-  concrete scenario (no hidden branches; consistent granularity and
-  as-is/to-be/pure-vs-digitalized scope). Use whenever someone shares or
+  sequence, groups/lanes — to surface CRUD-or-UI verbs posing as domain language,
+  collapsed or missing actors, missing external systems, states dressed up as
+  work objects, and out-of-order steps, then stress-test the whole as ONE
+  concrete scenario (no hidden branches; consistent granularity and as-is/to-be
+  scope). Use whenever someone shares or
   describes a domain story or a numbered actor→activity→work-object diagram and
   wants it challenged, reviewed, or "poked for holes" — even if they never say
-  "Domain Storytelling." It may stand alone or be checked for fidelity to an
-  upstream artifact the user provides: an EventStorming board, a brainstorm
-  photo, a Wardley or Capability map, or a Business Model Canvas. Grounded in
-  Hofer & Schwentner's Domain Storytelling.
+  "Domain Storytelling." It may stand alone or be checked for fidelity to a
+  related artifact the user provides: an EventStorming board, a brainstorm
+  photo, a Wardley or Capability map, a Business Model Canvas, or a Visual
+  Glossary whose terms the story must reuse. Grounded in Hofer & Schwentner.
 ---
 
 # Domain Story Critic (Devil's Advocate)
@@ -36,25 +36,37 @@ drifted from a told story into a tidied-up process diagram, a UI click-path, or
 a wish-list.
 
 You check the story against up to **two** evidence bases. The first always
-applies; the second applies only to whichever upstream input the person actually
-provides.
+applies; the second applies only to whichever related artifact the person
+actually provides.
 
 1. **The story's own internal quality** *(always)* — are the building blocks the
    *right kind* of thing (real actors, domain-language activities, domain work
    objects), does the numbered sequence tell one coherent causal story, and does
    the whole hold together as a single concrete scenario at a consistent scope?
-2. **Fidelity to an upstream source** *(only when provided)* — a domain story is
-   rarely conceived in a vacuum. It is often distilled from, or feeds into,
-   another artifact, and it can lose, distort, or overstate what that source
-   said. The person may give you **any, all, or none** of: an **EventStorming
-   board**, a **brainstorm / whiteboard photo**, a **Wardley or Capability
-   map**, or a **Business Model Canvas**. Method and the catalogue of
-   cross-check findings live in `references/upstream-cross-check.md`.
+2. **Fidelity to a related artifact** *(only when provided)* — a domain story is
+   rarely conceived in a vacuum. It is usually distilled from, drawn alongside,
+   or feeds into another model, and it can lose, distort, or overstate what that
+   model said. The person may give you **any, all, or none** of these. They split
+   into two kinds:
+    - **Sources to check for coverage and consistency** — a **brainstorm /
+      whiteboard photo**, a **Wardley or Capability map**, a **Business Model
+      Canvas**, or an **EventStorming board**. (EventStorming is usually done
+      *after* a domain story rather than before it, so treat it as a consistency
+      cross-check in either direction, not a strict upstream source.) Method and
+      the catalogue of findings: `references/related-artifact-cross-check.md`.
+    - **The terminology authority — a Visual Glossary.** This one is special. A
+      Visual Glossary is the *static* companion to the story: the work-object
+      nouns drawn as entities, their relationships, and cardinalities, grouped by
+      bounded context. It defines the **agreed terms**, so it does more than get
+      compared — **when a glossary is provided, the story (and your rewrites of it)
+      must use the glossary's exact terms**, and its cardinalities constrain what
+      the story can plausibly show. Method:
+      `references/visual-glossary-cross-check.md`.
 
    When none is provided, critique on internal quality alone — and if the person
-   *says* the story came from a workshop or a map but didn't attach it, offer
-   once to take it (it sharpens the fidelity check), then proceed regardless.
-   Don't block the critique waiting for inputs.
+   *says* the story came from a workshop, a map, or a glossary but didn't attach
+   it, offer once to take it (it sharpens the fidelity check), then proceed
+   regardless. Don't block the critique waiting for inputs.
 
 Two things define the stance, and the user asked for both explicitly:
 
@@ -126,11 +138,13 @@ lanes — name what's *absent* before critiquing what's present. If a block is
 genuinely ambiguous, ask one clarifying question rather than guessing — but you
 may flag the ambiguity itself as a weakness.
 
-**If the person provided an upstream source, read it next** — before you compare
+**If the person provided a related artifact, read it next** — before you compare
 anything — on its own terms. Identify which inputs are in play (the story alone,
-or the story plus an EventStorming board / brainstorm photo / Wardley or
-Capability map / Business Model Canvas) and transcribe each. Two disciplines
-apply to every source you read:
+or the story plus a brainstorm photo / Wardley or Capability map / Business Model
+Canvas / EventStorming board / **Visual Glossary**) and transcribe each. If a
+**Visual Glossary** is among them, transcribe its terms, relationships, and
+cardinalities first — they become the yardstick for the story's vocabulary. Two
+disciplines apply to every source you read:
 
 - **Never invent what you can't read.** If a region or handwriting is illegible,
   say so and treat it as unknown — do not hallucinate an element and then
@@ -160,7 +174,10 @@ time. Detailed question banks are in the reference files.
    ("create/select/update/delete") and UI gestures ("selects," "clicks")
    standing in for the real business act? *Work objects* — real domain nouns the
    expert would recognise, or a UI surface / a passing state mislabelled as a
-   thing? Use the per-block question banks in
+   thing? **If a Visual Glossary was provided, the agreed terms live there:**
+   every actor and work object in the story should use the glossary's exact word
+   (story "Bike" vs glossary "Bicycle" is a finding), and so should your
+   rewrites. Use the per-block question banks in
    `references/grammar-and-scope-checklist.md`.
 3. **The sequence and the groups.** Read the numbers in order: does each step
    plausibly *cause or enable* the next, or are there steps out of order (a
@@ -176,14 +193,19 @@ time. Detailed question banks are in the reference files.
    no customer is suspicious), the external systems it leans on, and the
    alternative paths that exist but were never told. Each is an honest "what's
    missing," not an invention to slip in. See `references/coherence-and-story.md`.
-5. **Fidelity to the upstream source** *(only if one was given).* Compare the
-   story against what the source actually said. High-value findings: an actor,
-   event, or capability the source raised that never reached the story; a story
-   element with no basis in the source (added afterward); disagreement or
-   open questions the source recorded that the story quietly resolves into one
-   tidy path (false consensus); a whole region of the source — often an entire
-   subdomain or the cost/customer side — with no representation in the story.
-   Full catalogue and method in `references/upstream-cross-check.md`.
+5. **Fidelity to a related artifact** *(only if one was given).* Compare the
+   story against what the artifact actually said. Against a **brainstorm, map,
+   canvas, or EventStorming board**: an actor, event, or capability the source
+   raised that never reached the story; a story element with no basis in the
+   source; disagreement or open questions the source recorded that the story
+   quietly resolves into one tidy path (false consensus); a whole region — an
+   entire subdomain or the cost/customer side — with no representation. Catalogue
+   in `references/related-artifact-cross-check.md`. Against a **Visual Glossary** the
+   checks are sharper and partly different: **term mismatches** (story word ≠
+   glossary word — the headline finding), undefined or unused terms, and steps
+   that **contradict a glossary cardinality** (a Rack the glossary says
+   `contains 1..* Lock` shown with none). Method and catalogue in
+   `references/visual-glossary-cross-check.md`.
 
 ## How to challenge well — the discipline that keeps you useful
 
@@ -229,10 +251,12 @@ Keep it tight and scannable. A workable shape:
   would resolve it*.
 - **Block-by-block notes** — brief, only where there's something real to say:
   actors, activities, work objects, sequence, groups, and scope consistency.
-- **Story vs. its source** — *only if a source was actually given.* Dropped
-  actors/events/capabilities, unsupported elements, false consensus, whole
-  regions missing — concrete, pointing at what you saw in the source. Omit
-  entirely if no source was provided.
+- **Story vs. its source** — *only if a related artifact was given.* Against a
+  brainstorm/map/canvas/EventStorming board: dropped actors/events/capabilities,
+  unsupported elements, false consensus, whole regions missing. Against a Visual
+  Glossary: term mismatches, undefined/unused terms, and cardinality
+  contradictions. Concrete, pointing at what you saw. Omit entirely if nothing
+  was provided.
 - **What's strong** — name it honestly. Open critique includes saying what
   already works (a clean lane structure, a faithful happy path, consistent
   tense), so the team knows what to protect.
@@ -251,11 +275,17 @@ End on the path forward, not the wound.
   the story as one narrative, and the "shadow" checks: the missing customer/
   external systems, untold alternative paths, and whether the story still serves
   shared understanding in the ubiquitous language.
-- `references/upstream-cross-check.md` — how to read an EventStorming board, a
-  brainstorm/whiteboard photo, a Wardley or Capability map, or a Business Model
-  Canvas as the story's upstream source, how each maps onto a domain story's
+- `references/related-artifact-cross-check.md` — how to read a brainstorm/whiteboard
+  photo, a Wardley or Capability map, a Business Model Canvas, or an
+  EventStorming board as a related artifact, how each maps onto a domain story's
   blocks, and the catalogue of story-vs-source findings: dropped elements,
   unsupported additions, false consensus, and whole regions missing.
+- `references/visual-glossary-cross-check.md` — how to read a Visual Glossary
+  (work-object entities, labeled relationships, cardinalities, bounded-context
+  groups), the **terminology-authority rule** (when provided, the story must use
+  its agreed terms), and the four checks: term fidelity, relationship/cardinality
+  consistency, bounded-context alignment, and two-way coverage. Includes a worked
+  reading of a bicycle-sharing glossary.
 
 ## References
 

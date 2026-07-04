@@ -1,0 +1,103 @@
+{
+  "meta": {
+    "source": "ScreenshotBlogpostCodecentric.jpg",
+    "imageSize": { "width": 2688, "height": 1570 },
+    "scaleFactor": 2,
+    "scaleFactorBasis": "Search input outer height measured 94px and card-description line-height measured ~49px; both divide cleanly by 2 to give a 47px input and ~24px line-height, which are standard CSS values.",
+    "units": "css-px",
+    "notes": [
+      "Font families are visual guesses (a geometric grotesque sans for headings, a neutral sans for body). Verify against the real stack.",
+      "The design is flat: no drop shadows were visible on inputs, chips, or cards.",
+      "Border-radius values (input, chips) are visual estimates, not corner-curve measurements. Treat as approximate.",
+      "Input border read as ~2px soft in the pixels; it is likely a 1px border plus anti-aliasing. Reported as 1px.",
+      "The green shape at bottom-left is a decorative gradient blob, cut off by the frame. Sampled greens (#72BA96 / #A2F2CA) are a blend with white; the true brand green is more saturated.",
+      "Only default (resting) states are visible; no hover/focus/active states could be captured.",
+      "Some font sizes are inferred from measured cap/line height and snapped to common values."
+    ]
+  },
+  "colors": {
+    "roles": {
+      "background": "#FFFFFF",
+      "surface": "#F5F6F8",
+      "heading": "#000000",
+      "text": "#57585C",
+      "textMuted": "#A4A6AA",
+      "inputText": "#262626",
+      "border": "#DBE0E4",
+      "borderMuted": "#CFCFCC",
+      "accent": "#72BA96"
+    },
+    "palette": [
+      { "hex": "#FFFFFF", "coverage": 0.83, "role": "background" },
+      { "hex": "#F5F6F8", "coverage": 0.05, "role": "surface" },
+      { "hex": "#484647", "coverage": 0.038, "role": "text" },
+      { "hex": "#CFCFCC", "coverage": 0.03, "role": "borderMuted" },
+      { "hex": "#A2F2CA", "coverage": 0.01, "role": "accent" }
+    ]
+  },
+  "typography": {
+    "styles": {
+      "cardTitle": { "fontFamily": "'Space Grotesk', 'Helvetica Neue', system-ui, sans-serif", "fontSize": 28, "fontWeight": 700, "lineHeight": 34, "color": "#000000" },
+      "subtitle": { "fontFamily": "'Space Grotesk', 'Helvetica Neue', system-ui, sans-serif", "fontSize": 24, "fontWeight": 500, "lineHeight": 32, "color": "#57585C" },
+      "inputText": { "fontFamily": "system-ui, 'Helvetica Neue', sans-serif", "fontSize": 18, "fontWeight": 400, "lineHeight": 24, "color": "#262626" },
+      "body": { "fontFamily": "system-ui, 'Helvetica Neue', sans-serif", "fontSize": 16, "fontWeight": 400, "lineHeight": 24, "color": "#57585C" },
+      "chip": { "fontFamily": "system-ui, 'Helvetica Neue', sans-serif", "fontSize": 16, "fontWeight": 400, "lineHeight": 20, "color": "#57585C" },
+      "label": { "fontFamily": "system-ui, 'Helvetica Neue', sans-serif", "fontSize": 14, "fontWeight": 600, "lineHeight": 18, "color": "#58595D" },
+      "eyebrow": { "fontFamily": "system-ui, 'Helvetica Neue', sans-serif", "fontSize": 14, "fontWeight": 500, "lineHeight": 18, "letterSpacing": 1, "textTransform": "uppercase", "color": "#A4A6AA" }
+    }
+  },
+  "spacing": {
+    "baseUnit": 8,
+    "scale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "observed": [
+      { "context": "search input height", "px": 47 },
+      { "context": "chip paddingX (approx)", "px": 16 },
+      { "context": "chip paddingY (approx)", "px": 10 },
+      { "context": "blog column gutter (approx, ragged)", "px": 48 }
+    ]
+  },
+  "radii": {
+    "sm": 6,
+    "md": 8,
+    "note": "estimated visually, not measured from corner curves"
+  },
+  "effects": {
+    "shadows": [],
+    "borders": [
+      { "name": "input", "value": "1px solid #DBE0E4" },
+      { "name": "hairline", "value": "1px solid #CFCFCC" }
+    ]
+  },
+  "components": {
+    "input.search": {
+      "background": "#FFFFFF",
+      "color": "#262626",
+      "border": "1px solid #DBE0E4",
+      "borderRadius": 8,
+      "height": 47,
+      "fontSize": 18,
+      "leadingIcon": { "type": "search", "color": "#9DA0A4" },
+      "trailingIcon": { "type": "clear", "color": "#9DA0A4" }
+    },
+    "chip.filter": {
+      "background": "#F5F6F8",
+      "color": "#57585C",
+      "border": "none",
+      "borderRadius": 8,
+      "paddingX": 16,
+      "paddingY": 10,
+      "fontSize": 16,
+      "fontWeight": 400
+    },
+    "card.blog": {
+      "background": "#FFFFFF",
+      "border": "none",
+      "borderRadius": 0,
+      "shadow": "none",
+      "structure": ["eyebrow", "cardTitle", "body"],
+      "eyebrowColor": "#A4A6AA",
+      "titleColor": "#000000",
+      "bodyColor": "#57585C"
+    }
+  }
+}

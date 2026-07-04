@@ -1,0 +1,594 @@
+{
+  "meta": {
+    "source": "ScreenshotBlogpostCodecentric(1).jpg",
+    "imageSize": {
+      "width": 2048,
+      "height": 1196
+    },
+    "scaleFactor": 1,
+    "scaleFactorBasis": "Measured search input at 1969\u00d770 px, first topic chip at 140\u00d761 px, and card body line starts at 39\u201340 px intervals. These are consistent with a large desktop 1\u00d7 capture; a 2\u00d7 interpretation would make the body text ~12\u201313 px and the search field ~35 px tall, which does not match the screenshot's visual scale.",
+    "units": "css-px",
+    "notes": [
+      "Colors were sampled from pixels with the provided probe workflow; text colors use representative stroke pixels, not anti-aliased edge pixels.",
+      "Font family is a visual guess; verify the real CSS stack in the source site.",
+      "Font sizes are inferred from measured glyph boxes and line starts, then snapped to practical CSS values.",
+      "Only the default visible state is captured. Hover, focus, active, disabled, and responsive states are not visible.",
+      "Cards have no visible card container, border, or shadow in this screenshot; the blog card component describes a text-only grid item on a white page.",
+      "The bottom-left teal and right-edge pink floating widgets are cropped, so their full size and exact component styling are not fully recoverable from this screenshot."
+    ]
+  },
+  "colors": {
+    "roles": {
+      "background": "#FFFFFF",
+      "surfaceSubtle": "#F5F6F8",
+      "textStrong": "#000000",
+      "text": "#565759",
+      "textChip": "#57585C",
+      "textInput": "#282828",
+      "textMuted": "#9FA0A2",
+      "border": "#DBDEE3",
+      "iconMuted": "#A0A4A7",
+      "accentTealPartial": "#25F4AE",
+      "accentPinkPartial": "#EFD5D8"
+    },
+    "palette": [
+      {
+        "hex": "#FFFFFF",
+        "coverage": 0.7859,
+        "role": "background"
+      },
+      {
+        "hex": "#F5F6F8",
+        "coverage": 0.0448,
+        "role": "surfaceSubtle / topic chips"
+      },
+      {
+        "hex": "#7E7978",
+        "coverage": 0.025,
+        "role": "photo"
+      },
+      {
+        "hex": "#C2C6C1",
+        "coverage": 0.0206,
+        "role": "photo"
+      },
+      {
+        "hex": "#353333",
+        "coverage": 0.0168,
+        "role": "photo dark tones"
+      },
+      {
+        "hex": "#E8E8E8",
+        "coverage": 0.0159,
+        "role": "anti-aliased borders / light pixels"
+      },
+      {
+        "hex": "#F7F8FA",
+        "coverage": 0.0067,
+        "role": "subtle surface variation"
+      },
+      {
+        "hex": "#DBF8EF",
+        "coverage": 0.0001,
+        "role": "partial teal widget highlight"
+      }
+    ],
+    "samples": [
+      {
+        "role": "background",
+        "hex": "#FFFFFF",
+        "point": [
+          50,
+          50
+        ]
+      },
+      {
+        "role": "input border",
+        "hex": "#DBDEE3",
+        "point": [
+          80,
+          267
+        ]
+      },
+      {
+        "role": "input text",
+        "hex": "#282828",
+        "point": [
+          176,
+          294
+        ]
+      },
+      {
+        "role": "search icon",
+        "hex": "#A0A4A7",
+        "point": [
+          102,
+          302
+        ]
+      },
+      {
+        "role": "chip fill",
+        "hex": "#F5F6F8",
+        "point": [
+          80,
+          450
+        ]
+      },
+      {
+        "role": "chip text",
+        "hex": "#57585C",
+        "point": [
+          119,
+          452
+        ]
+      },
+      {
+        "role": "body text",
+        "hex": "#565759",
+        "point": [
+          314,
+          969
+        ]
+      },
+      {
+        "role": "blog label",
+        "hex": "#9FA0A2",
+        "point": [
+          130,
+          806
+        ]
+      },
+      {
+        "role": "card title",
+        "hex": "#000000",
+        "point": [
+          387,
+          865
+        ]
+      },
+      {
+        "role": "partial teal widget",
+        "hex": "#25F4AE",
+        "point": [
+          112,
+          1175
+        ]
+      },
+      {
+        "role": "partial pink widget",
+        "hex": "#EFD5D8",
+        "point": [
+          2023,
+          1128
+        ]
+      }
+    ]
+  },
+  "typography": {
+    "fontFamilyGuess": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "styles": {
+      "pageHeading": {
+        "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": 36,
+        "fontWeight": 600,
+        "lineHeight": 44,
+        "letterSpacing": -0.2,
+        "color": "#565759",
+        "observedGlyphBox": {
+          "height": 36,
+          "bbox": [
+            138,
+            30,
+            820,
+            66
+          ]
+        }
+      },
+      "searchInput": {
+        "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": 26,
+        "fontWeight": 400,
+        "lineHeight": 32,
+        "color": "#282828",
+        "observedGlyphBox": {
+          "height": 19,
+          "bbox": [
+            145,
+            289,
+            219,
+            308
+          ]
+        }
+      },
+      "sectionLabel": {
+        "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": 18,
+        "fontWeight": 700,
+        "lineHeight": 24,
+        "color": "#565759",
+        "observedGlyphBox": {
+          "height": 18,
+          "bbox": [
+            73,
+            400,
+            168,
+            418
+          ]
+        }
+      },
+      "topicChip": {
+        "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": 26,
+        "fontWeight": 400,
+        "lineHeight": 32,
+        "color": "#57585C",
+        "observedGlyphBox": {
+          "height": 25,
+          "bboxExample": [
+            113,
+            451,
+            173,
+            476
+          ]
+        }
+      },
+      "cardEyebrow": {
+        "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": 22,
+        "fontWeight": 500,
+        "lineHeight": 28,
+        "textTransform": "uppercase",
+        "color": "#9FA0A2",
+        "observedGlyphBox": {
+          "height": 19,
+          "bbox": [
+            99,
+            804,
+            157,
+            823
+          ]
+        }
+      },
+      "cardTitle": {
+        "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": 36,
+        "fontWeight": 700,
+        "lineHeight": 44,
+        "letterSpacing": -0.4,
+        "color": "#000000",
+        "observedGlyphRows": [
+          {
+            "from": 864,
+            "to": 899,
+            "height": 36
+          },
+          {
+            "from": 908,
+            "to": 943,
+            "height": 36
+          }
+        ]
+      },
+      "cardExcerpt": {
+        "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "fontSize": 26,
+        "fontWeight": 400,
+        "lineHeight": 40,
+        "color": "#565759",
+        "observedLineStarts": [
+          968,
+          1008,
+          1048,
+          1087,
+          1127,
+          1166
+        ]
+      }
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "scale": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32,
+      40,
+      44,
+      48,
+      56,
+      64,
+      72,
+      80,
+      96,
+      120,
+      160,
+      240
+    ],
+    "observed": [
+      {
+        "context": "search field left page margin",
+        "px": 73
+      },
+      {
+        "context": "hero title left offset",
+        "px": 138
+      },
+      {
+        "context": "hero title top offset",
+        "px": 30
+      },
+      {
+        "context": "search field top",
+        "px": 266
+      },
+      {
+        "context": "search field height",
+        "px": 70
+      },
+      {
+        "context": "search field width",
+        "px": 1969
+      },
+      {
+        "context": "search icon left inset",
+        "px": 28
+      },
+      {
+        "context": "search icon to text gap",
+        "px": 19
+      },
+      {
+        "context": "search bottom to topic label top",
+        "px": 63
+      },
+      {
+        "context": "topic label to first chip row",
+        "px": 12
+      },
+      {
+        "context": "topic chip height",
+        "px": 61
+      },
+      {
+        "context": "topic chip row gap",
+        "px": 12
+      },
+      {
+        "context": "topic chip horizontal gaps",
+        "px": 12
+      },
+      {
+        "context": "topic chip horizontal gaps",
+        "px": 16
+      },
+      {
+        "context": "short topic chip horizontal padding",
+        "px": 40
+      },
+      {
+        "context": "topic chip vertical padding top",
+        "px": 21
+      },
+      {
+        "context": "topic chip vertical padding bottom",
+        "px": 16
+      },
+      {
+        "context": "second chip row bottom to blog card label top",
+        "px": 245
+      },
+      {
+        "context": "blog card label to title",
+        "px": 41
+      },
+      {
+        "context": "blog card title to excerpt",
+        "px": 24
+      },
+      {
+        "context": "blog title line-height",
+        "px": 44
+      },
+      {
+        "context": "blog excerpt line-height",
+        "px": 40
+      },
+      {
+        "context": "blog grid approximate column width",
+        "px": 560
+      },
+      {
+        "context": "blog grid approximate column gap",
+        "px": 90
+      }
+    ]
+  },
+  "radii": {
+    "sm": 5,
+    "md": 12,
+    "pill": 9999
+  },
+  "effects": {
+    "shadows": [],
+    "borders": [
+      {
+        "name": "searchInput",
+        "value": "3px solid #DBDEE3"
+      }
+    ]
+  },
+  "components": {
+    "layout.page": {
+      "background": "#FFFFFF",
+      "viewport": {
+        "width": 2048,
+        "height": 1196
+      },
+      "primaryContentLeft": 73,
+      "blogContentLeft": 99,
+      "rightEdgeCrop": true
+    },
+    "hero.heading": {
+      "x": 138,
+      "y": 30,
+      "fontStyle": "pageHeading",
+      "color": "#565759"
+    },
+    "hero.mediaCutout": {
+      "x": 1782,
+      "y": 0,
+      "width": 266,
+      "height": 205,
+      "objectFit": "cover",
+      "clipPathApprox": "polygon(17% 0, 100% 0, 100% 100%, 0 100%, 0 24%)",
+      "border": "none",
+      "shadow": "none"
+    },
+    "searchInput.default": {
+      "x": 73,
+      "y": 266,
+      "width": 1969,
+      "height": 70,
+      "background": "#FFFFFF",
+      "color": "#282828",
+      "fontSize": 26,
+      "fontWeight": 400,
+      "lineHeight": 32,
+      "border": "3px solid #DBDEE3",
+      "borderRadius": 12,
+      "paddingLeft": 72,
+      "paddingRight": 55,
+      "paddingY": 19,
+      "iconColor": "#A0A4A7",
+      "searchIconSize": 26,
+      "searchIconInsetLeft": 28,
+      "searchIconToTextGap": 19,
+      "clearIconColor": "#A1A4A9",
+      "clearIconSize": 24,
+      "clearIconInsetRight": 23,
+      "shadow": "none"
+    },
+    "topicFilter.label": {
+      "x": 73,
+      "y": 400,
+      "fontStyle": "sectionLabel",
+      "color": "#565759"
+    },
+    "topicChip.default": {
+      "background": "#F5F6F8",
+      "color": "#57585C",
+      "fontSize": 26,
+      "fontWeight": 400,
+      "lineHeight": 32,
+      "height": 61,
+      "paddingX": 40,
+      "paddingY": 17,
+      "borderRadius": 5,
+      "border": "none",
+      "shadow": "none",
+      "layoutGapX": 12,
+      "layoutGapY": 12,
+      "exampleBox": {
+        "x": 73,
+        "y": 430,
+        "width": 140,
+        "height": 61
+      }
+    },
+    "blogGrid.threeColumn": {
+      "x": 99,
+      "y": 804,
+      "columns": 3,
+      "approxColumnWidth": 560,
+      "approxColumnGap": 90,
+      "background": "#FFFFFF"
+    },
+    "blogCard.default": {
+      "background": "transparent",
+      "border": "none",
+      "shadow": "none",
+      "borderRadius": 0,
+      "padding": 0,
+      "widthApprox": 560,
+      "eyebrow": {
+        "fontStyle": "cardEyebrow",
+        "marginBottom": 41,
+        "color": "#9FA0A2"
+      },
+      "title": {
+        "fontStyle": "cardTitle",
+        "fontSize": 36,
+        "fontWeight": 700,
+        "lineHeight": 44,
+        "color": "#000000",
+        "marginBottom": 24
+      },
+      "excerpt": {
+        "fontStyle": "cardExcerpt",
+        "fontSize": 26,
+        "fontWeight": 400,
+        "lineHeight": 40,
+        "color": "#565759"
+      },
+      "exampleBoxes": {
+        "firstCardLabel": [
+          99,
+          804,
+          157,
+          823
+        ],
+        "firstCardTitle": [
+          100,
+          864,
+          619,
+          940
+        ],
+        "firstCardExcerpt": [
+          100,
+          968,
+          634,
+          1195
+        ],
+        "secondCardTitle": [
+          749,
+          864,
+          1314,
+          940
+        ],
+        "thirdCardTitle": [
+          1398,
+          864,
+          1911,
+          940
+        ]
+      }
+    },
+    "floatingAction.teal.partial": {
+      "visibility": "partial / cropped at bottom edge",
+      "backgroundSample": "#25F4AE",
+      "borderRadius": 9999,
+      "visibleBox": {
+        "x": 61,
+        "y": 1169,
+        "width": 79,
+        "height": 27
+      },
+      "fullSize": "not recoverable from screenshot"
+    },
+    "floatingAction.pink.partial": {
+      "visibility": "partial / cropped at right edge",
+      "strokeSample": "#EFD5D8",
+      "borderRadius": 9999,
+      "visibleBoxApprox": {
+        "x": 2019,
+        "y": 1092,
+        "width": 29,
+        "height": 57
+      },
+      "fullSize": "not recoverable from screenshot"
+    }
+  }
+}

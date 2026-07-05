@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition Prototype</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Token Layer derived from Screenshot */
+        :root {
+            --color-bg: #FFFFFF;
+            --color-text-main: #1A1A1A;
+            --color-text-meta: #666666;
+            --color-pill-bg: #F4F5F7;
+            --color-border: #E5E7EB;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text-main);
+            font-family: var(--font-family);
+            -webkit-font-smoothing: antialiased;
+        }
+        .text-meta {
+            color: var(--color-text-meta);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        .pill {
+            background-color: var(--color-pill-bg);
+            color: var(--color-text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .pill:hover, .pill.active {
+            background-color: #E2E8F0;
+        }
+        .search-input {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            width: 100%;
+            outline: none;
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+        .action-link {
+            color: #000;
+            font-weight: 600;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+    const { useState } = React;
+
+    // Seed Data
+    const initialCompetitions = [
+        {
+            id: 1,
+            title: "Summer Grilling Championship",
+            recipe: "Pending",
+            state: "Planned",
+            description: "A new competition to determine the ultimate grill master. Recipe selection is pending.",
+            participants: [],
+            meals: [],
+            winner: null
+        },
+        {
+            id: 2,
+            title: "Vegan Dessert Challenge",
+            recipe: "Aquafaba Meringue",
+            state: "Registration",
+            description: "The recipe has been selected. Cooks can now register to participate and showcase their skills.",
+            participants: ["Cook A"],
+            meals: [],
+            winner: null
+        },
+        {
+            id: 3,
+            title: "Classic Italian Pasta",
+            recipe: "Handmade Tagliatelle",
+            state: "Preparation",
+            description: "Cooks are currently preparing the meal and sharing their results online.",
+            participants: ["Cook A", "Cook B"],
+            meals: [{ cook: "Cook A", status: "Submitted" }],
+            winner: null
+        },
+        {
+            id: 4,
+            title: "Winter Soups",
+            recipe: "French Onion Soup",
+            state: "Rating",
+            description: "Meals have been shared! Other cooks are now rating the submissions.",
+            participants: ["Cook A", "Cook B"],
+            meals: [{ cook: "Cook A", score: 0 }, { cook: "Cook B", score: 4 }],
+            winner: null
+        }
+    ];
+
+    const App = () => {
+        const [role, setRole] = useState("Community Administrator");
+        const [competitions, setCompetitions] = useState(initialCompetitions);
+        const [filter, setFilter] = useState("All");
+
+        const states = ["All", "Planned", "Registration", "Preparation", "Rating", "Concluded"];
+        const roles = ["Community Administrator", "Cook", "Other Cook (Judge)"];
+
+        // State Transitions
+        const handleAction = (id, action) => {
+            setCompetitions(competitions.map(comp => {
+                if (comp.id !== id) return comp;
+                let updated = { ...comp };
+
+                if (action === 'select_recipe') {
+                    updated.state = 'Registration';
+                    updated.recipe = 'Assigned Recipe';
+                }
+                if (action === 'register') {
+                    if (!updated.participants.includes("You")) updated.participants.push("You");
+                }
+                if (action === 'start_prep') updated.state = 'Preparation';
+                if (action === 'submit_meal') {
+                    updated.meals.push({ cook: "You", score: 0 });
+                }
+                if (action === 'start_rating') updated.state = 'Rating';
+                if (action === 'rate_meal') {
+                    // Mock rating action
+                    updated.meals[0].score = 5;
+                }
+                if (action === 'crown_winner') {
+                    updated.state = 'Concluded';
+                    updated.winner = updated.participants[0] || "Someone";
+                }
+                return updated;
+            }));
+        };
+
+        const filteredCompetitions = competitions.filter(c => filter === "All" || c.state === filter);
+
+        return (
+            <div className="max-w-6xl mx-auto px-6 py-12">
+                {/* Header & Role Switcher */}
+                <div className="flex justify-between items-center mb-12">
+                    <h1 className="text-2xl font-normal text-gray-800">Culinary expertise from cooks for cooks</h1>
+                    <div className="flex items-center space-x-3">
+                        <span className="text-sm text-gray-500 uppercase tracking-wide">Viewing as:</span>
+                        <select
+                            className="border border-gray-200 rounded p-2 text-sm bg-white"
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                        >
+                            {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative mb-8">
+                    <svg className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input
+                        type="text"
+                        placeholder="Search competitions or recipes..."
+                        className="search-input"
+                    />
+                </div>
+
+                {/* Filters */}
+                <div className="mb-12">
+                    <div className="text-xs text-gray-400 uppercase tracking-wide mb-3 font-semibold">Status filter</div>
+                    <div className="flex flex-wrap gap-2">
+                        {states.map(s => (
+                            <button
+                                key={s}
+                                className={`pill ${filter === s ? 'active' : ''}`}
+                                onClick={() => setFilter(s)}
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Competition Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    {filteredCompetitions.map(comp => (
+                        <div key={comp.id} className="flex flex-col">
+                            <div className="text-meta mb-2">{comp.state} • {comp.recipe}</div>
+                            <h2 className="card-title">{comp.title}</h2>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-4">{comp.description}</p>
+
+                            {/* State Machine Actions based on Role */}
+                            <div className="mt-auto">
+                                {role === "Community Administrator" && comp.state === "Planned" && (
+                                    <span className="action-link" onClick={() => handleAction(comp.id, 'select_recipe')}>Select Recipe & Open Reg</span>
+                                )}
+                                {role === "Community Administrator" && comp.state === "Registration" && (
+                                    <span className="action-link" onClick={() => handleAction(comp.id, 'start_prep')}>Start Preparation Phase</span>
+                                )}
+                                {role === "Community Administrator" && comp.state === "Preparation" && (
+                                    <span className="action-link" onClick={() => handleAction(comp.id, 'start_rating')}>Open for Rating</span>
+                                )}
+                                {role === "Community Administrator" && comp.state === "Rating" && (
+                                    <span className="action-link" onClick={() => handleAction(comp.id, 'crown_winner')}>Crown Winner</span>
+                                )}
+
+                                {role === "Cook" && comp.state === "Registration" && (
+                                    <span className="action-link" onClick={() => handleAction(comp.id, 'register')}>Register for Competition</span>
+                                )}
+                                {role === "Cook" && comp.state === "Preparation" && (
+                                    <span className="action-link" onClick={() => handleAction(comp.id, 'submit_meal')}>Prepare & Share Meal</span>
+                                )}
+
+                                {role === "Other Cook (Judge)" && comp.state === "Rating" && (
+                                    <span className="action-link" onClick={() => handleAction(comp.id, 'rate_meal')}>Rate Meals</span>
+                                )}
+
+                                {comp.state === "Concluded" && (
+                                    <div className="text-sm font-bold text-green-700 mt-2">Winner: {comp.winner}</div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+</body>
+</html>

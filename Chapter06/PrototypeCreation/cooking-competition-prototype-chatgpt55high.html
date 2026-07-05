@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cooking Competition Prototype</title>
+    <style>
+        :root {
+            --color-surface: #ffffff;
+            --color-surface-soft: #f5f6f8;
+            --color-surface-softer: #f9fafb;
+            --color-text: #0b0b0d;
+            --color-text-heading: #4d5056;
+            --color-text-muted: #5d6169;
+            --color-text-faint: #9fa3aa;
+            --color-border: #d9dee5;
+            --color-border-soft: #e7e9ee;
+            --color-accent: #27f4b1;
+            --color-accent-soft: #e7fff6;
+            --color-danger-soft: #fff1f3;
+            --color-warning-soft: #fff8e7;
+            --color-info-soft: #eef4ff;
+            --color-focus-ring: rgba(39, 244, 177, 0.28);
+            --font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+            --font-size-eyebrow: 15px;
+            --font-size-small: 14px;
+            --font-size-body: 18px;
+            --font-size-title: 26px;
+            --font-size-page-title: 29px;
+            --line-height-tight: 1.15;
+            --line-height-body: 1.5;
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-7: 32px;
+            --space-8: 40px;
+            --space-9: 56px;
+            --space-10: 72px;
+            --space-11: 96px;
+            --radius-input: 8px;
+            --radius-chip: 6px;
+            --radius-card: 6px;
+            --input-height: 64px;
+            --chip-height: 58px;
+            --content-max: 1860px;
+            --shadow-focus: 0 0 0 4px var(--color-focus-ring);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-family: var(--font-family);
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        .page {
+            width: min(100%, var(--content-max));
+            margin: 0 auto;
+            padding: var(--space-7) var(--space-10) var(--space-10);
+        }
+
+        .masthead {
+            min-height: 156px;
+            display: flex;
+            justify-content: space-between;
+            gap: var(--space-8);
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .brand-title {
+            margin: 0;
+            color: var(--color-text-heading);
+            font-size: var(--font-size-page-title);
+            line-height: var(--line-height-tight);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .brand-subtitle {
+            margin: var(--space-3) 0 0;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-body);
+            max-width: 680px;
+        }
+
+        .persona-box {
+            min-width: 320px;
+            display: grid;
+            gap: var(--space-2);
+            justify-items: start;
+        }
+
+        .persona-label,
+        .filter-label {
+            color: var(--color-text-muted);
+            font-size: var(--font-size-small);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .persona-select {
+            width: 100%;
+            height: 52px;
+            border: 1px solid var(--color-border-soft);
+            background: var(--color-surface-soft);
+            border-radius: var(--radius-chip);
+            padding: 0 var(--space-4);
+            color: var(--color-text-heading);
+            outline: none;
+        }
+
+        .persona-select:focus,
+        .search-input:focus,
+        .field:focus,
+        .textarea:focus {
+            border-color: var(--color-text);
+            box-shadow: var(--shadow-focus);
+        }
+
+        .search-wrap {
+            position: relative;
+            margin: var(--space-3) 0 var(--space-8);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: var(--space-6);
+            top: 50%;
+            width: 25px;
+            height: 25px;
+            transform: translateY(-50%);
+            color: var(--color-text-faint);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            height: var(--input-height);
+            border: 2px solid var(--color-border);
+            background: var(--color-surface);
+            border-radius: var(--radius-input);
+            color: var(--color-text);
+            font-size: var(--font-size-body);
+            padding: 0 var(--space-9) 0 66px;
+            outline: none;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: var(--space-5);
+            top: 50%;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: var(--color-text-faint);
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .filter-group {
+            margin-bottom: var(--space-11);
+        }
+
+        .filter-label {
+            margin-bottom: var(--space-3);
+        }
+
+        .nav-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .chip,
+        .button,
+        .badge {
+            min-height: 42px;
+            border-radius: var(--radius-chip);
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: 0 var(--space-5);
+            color: var(--color-text-heading);
+            background: var(--color-surface-soft);
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .chip {
+            min-width: 126px;
+            height: var(--chip-height);
+            font-size: var(--font-size-body);
+            cursor: pointer;
+        }
+
+        .chip.is-active {
+            border-color: var(--color-text);
+            color: var(--color-text);
+            background: var(--color-surface);
+        }
+
+        .chip:focus-visible,
+        .button:focus-visible,
+        .clear-search:focus-visible {
+            outline: none;
+            box-shadow: var(--shadow-focus);
+            border-color: var(--color-text);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-10) var(--space-11);
+            align-items: start;
+        }
+
+        .section-kicker {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: calc(-1 * var(--space-7));
+        }
+
+        .section-kicker h2 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--color-text-heading);
+            letter-spacing: -0.03em;
+            line-height: var(--line-height-tight);
+        }
+
+        .section-kicker p {
+            margin: var(--space-2) 0 0;
+            color: var(--color-text-muted);
+            font-size: 16px;
+            line-height: var(--line-height-body);
+            max-width: 780px;
+        }
+
+        .card {
+            background: var(--color-surface);
+            border-radius: var(--radius-card);
+            min-width: 0;
+        }
+
+        .card[data-locked="true"] {
+            opacity: 0.68;
+        }
+
+        .eyebrow {
+            color: var(--color-text-faint);
+            font-size: var(--font-size-eyebrow);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.01em;
+            margin: 0 0 var(--space-5);
+        }
+
+        .card-title {
+            color: var(--color-text);
+            font-size: var(--font-size-title);
+            line-height: var(--line-height-tight);
+            letter-spacing: -0.045em;
+            margin: 0 0 var(--space-4);
+            font-weight: 750;
+        }
+
+        .card-text,
+        .detail-text {
+            color: var(--color-text-muted);
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-body);
+            margin: 0;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin: var(--space-5) 0 0;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+        }
+
+        .button {
+            min-height: 46px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .button.primary {
+            background: var(--color-accent);
+            color: var(--color-text);
+        }
+
+        .button.secondary {
+            background: var(--color-surface-soft);
+            color: var(--color-text-heading);
+        }
+
+        .button.ghost {
+            background: var(--color-surface);
+            border-color: var(--color-border-soft);
+            color: var(--color-text-heading);
+        }
+
+        .button:disabled {
+            cursor: not-allowed;
+            color: var(--color-text-faint);
+            background: var(--color-surface-soft);
+            border-color: transparent;
+        }
+
+        .badge {
+            min-height: 34px;
+            padding: 0 var(--space-3);
+            font-size: 13px;
+            font-weight: 700;
+            background: var(--color-surface-soft);
+            color: var(--color-text-muted);
+        }
+
+        .badge.accent { background: var(--color-accent-soft); color: var(--color-text); }
+        .badge.info { background: var(--color-info-soft); }
+        .badge.warning { background: var(--color-warning-soft); }
+        .badge.danger { background: var(--color-danger-soft); }
+
+        .panel {
+            grid-column: span 2;
+            border: 1px solid var(--color-border-soft);
+            background: var(--color-surface);
+            border-radius: var(--radius-input);
+            padding: var(--space-7);
+        }
+
+        .side-panel {
+            border: 1px solid var(--color-border-soft);
+            background: var(--color-surface-softer);
+            border-radius: var(--radius-input);
+            padding: var(--space-6);
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-4);
+            margin-top: var(--space-5);
+        }
+
+        .field-block {
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .field-block.full { grid-column: 1 / -1; }
+
+        .field-label {
+            color: var(--color-text-muted);
+            font-size: var(--font-size-small);
+            font-weight: 700;
+        }
+
+        .field,
+        .textarea {
+            width: 100%;
+            border: 1px solid var(--color-border-soft);
+            border-radius: var(--radius-chip);
+            background: var(--color-surface-soft);
+            color: var(--color-text);
+            outline: none;
+        }
+
+        .field { height: 52px; padding: 0 var(--space-4); }
+        .textarea { min-height: 112px; padding: var(--space-4); resize: vertical; }
+
+        .timeline {
+            display: grid;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            gap: var(--space-4);
+            align-items: start;
+        }
+
+        .timeline-index {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--color-surface-soft);
+            color: var(--color-text-heading);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+        }
+
+        .timeline-item.is-done .timeline-index {
+            background: var(--color-accent);
+            color: var(--color-text);
+        }
+
+        .timeline-title {
+            margin: 0;
+            color: var(--color-text);
+            font-weight: 750;
+            letter-spacing: -0.02em;
+        }
+
+        .timeline-copy {
+            margin: var(--space-1) 0 0;
+            color: var(--color-text-muted);
+            line-height: var(--line-height-body);
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            padding: var(--space-8);
+            border-radius: var(--radius-input);
+            background: var(--color-surface-soft);
+            color: var(--color-text-muted);
+            text-align: center;
+            font-size: var(--font-size-body);
+        }
+
+        .list {
+            display: grid;
+            gap: var(--space-4);
+            margin-top: var(--space-5);
+        }
+
+        .list-item {
+            padding: var(--space-5);
+            border: 1px solid var(--color-border-soft);
+            border-radius: var(--radius-input);
+            background: var(--color-surface);
+        }
+
+        .list-head {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .list-title {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: -0.03em;
+            line-height: var(--line-height-tight);
+        }
+
+        .list-copy {
+            color: var(--color-text-muted);
+            line-height: var(--line-height-body);
+            margin: var(--space-3) 0 0;
+        }
+
+        .score-row {
+            display: grid;
+            grid-template-columns: 1fr 132px auto;
+            gap: var(--space-3);
+            align-items: end;
+            margin-top: var(--space-4);
+        }
+
+        .notice {
+            background: var(--color-surface-soft);
+            color: var(--color-text-muted);
+            border-radius: var(--radius-input);
+            padding: var(--space-4);
+            line-height: var(--line-height-body);
+            margin-top: var(--space-5);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 1180px) {
+            .page { padding: var(--space-6) var(--space-7) var(--space-8); }
+            .content-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); }
+            .panel { grid-column: 1 / -1; }
+            .masthead { min-height: auto; flex-direction: column; }
+            .persona-box { width: 100%; }
+            .filter-group { margin-bottom: var(--space-9); }
+        }
+
+        @media (max-width: 760px) {
+            .page { padding: var(--space-5) var(--space-4) var(--space-8); }
+            .content-grid { grid-template-columns: 1fr; gap: var(--space-7); }
+            .search-wrap { margin-top: var(--space-6); }
+            .chip { flex: 1 1 150px; }
+            .field-grid { grid-template-columns: 1fr; }
+            .score-row { grid-template-columns: 1fr; }
+            .brand-title { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="masthead">
+        <div>
+            <h1 class="brand-title">Cooking Competition Prototype</h1>
+            <p class="brand-subtitle">Compare meal preparation skills with other cooks through a planned recipe challenge, online sharing, peer ratings, and a crowned winner.</p>
+        </div>
+        <div class="persona-box" aria-label="Prototype role controls">
+            <label class="persona-label" for="roleSelect">Prototype persona</label>
+            <select class="persona-select" id="roleSelect" aria-describedby="personaHelp">
+                <option>Cook</option>
+                <option>Community Administrator</option>
+                <option>Other cooks</option>
+            </select>
+            <span id="personaHelp" class="persona-label">Role switcher only; no real authentication.</span>
+        </div>
+    </header>
+
+    <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.5 18a7.5 7.5 0 1 1 5.3-12.8A7.5 7.5 0 0 1 10.5 18Zm0-2a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm5.9.1 4.2 4.2-1.4 1.4-4.2-4.2 1.4-1.4Z" fill="currentColor"></path>
+        </svg>
+        <label class="sr-only" for="searchInput">Search prototype cards</label>
+        <input id="searchInput" class="search-input" value="Junker" autocomplete="off" />
+        <button class="clear-search" id="clearSearch" type="button" aria-label="Clear search">×</button>
+    </div>
+
+    <nav class="filter-group" aria-label="Prototype navigation">
+        <div class="filter-label">Topic filter</div>
+        <div class="nav-chips" id="navChips"></div>
+    </nav>
+
+    <section class="content-grid" id="appContent" aria-live="polite"></section>
+</main>
+
+<script>
+    const App = (() => {
+        const roles = ["Cook", "Community Administrator", "Other cooks"];
+        const nav = [
+            { id: "overview", label: "Overview" },
+            { id: "competitions", label: "Competitions" },
+            { id: "plan", label: "Plan" },
+            { id: "recipe", label: "Recipe" },
+            { id: "register", label: "Register" },
+            { id: "prepare", label: "Prepare" },
+            { id: "rate", label: "Rate" },
+            { id: "winner", label: "Winner" }
+        ];
+
+        const recipes = [
+            { id: "dumplings", title: "Junker herb dumplings", preparation: "Prepare a plated meal from the selected recipe and publish a photo link before rating starts.", skill: "Knife work, timing, seasoning" },
+            { id: "soup", title: "Sunday root vegetable soup", preparation: "Cook, plate, photograph, and share the meal online for peer comparison.", skill: "Texture, balance, presentation" },
+            { id: "pasta", title: "Hand-cut pasta with garden pesto", preparation: "Make the pasta, prepare the sauce, share evidence online, and invite peer ratings.", skill: "Dough handling, sauce, plating" }
+        ];
+
+        const state = {
+            role: "Cook",
+            route: "overview",
+            query: "Junker",
+            selectedCompetitionId: "junker-cup",
+            currentCook: "Mara Cook",
+            peerRater: "Peer Reviewer",
+            competitions: [
+                {
+                    id: "junker-cup",
+                    title: "Junker Community Cook-off",
+                    status: "rating-active",
+                    recipeId: "dumplings",
+                    date: "Prototype date",
+                    participants: ["Mara Cook", "Noah Cook"],
+                    raters: ["Peer Reviewer", "Dana Taster"],
+                    winner: null
+                },
+                {
+                    id: "soup-skill-match",
+                    title: "Sunday Soup Skill Match",
+                    status: "registration-open",
+                    recipeId: "soup",
+                    date: "Prototype date",
+                    participants: [],
+                    raters: [],
+                    winner: null
+                },
+                {
+                    id: "pasta-prep-cup",
+                    title: "Pasta Preparation Skill Cup",
+                    status: "planned",
+                    recipeId: null,
+                    date: "Prototype date",
+                    participants: [],
+                    raters: [],
+                    winner: null
+                }
+            ],
+            meals: [
+                { id: "meal-mara", competitionId: "junker-cup", cook: "Mara Cook", title: "Herb dumplings with autumn vegetables", onlineLink: "https://example.test/mara-dumplings", shared: true, ratings: [{ by: "Dana Taster", value: 4.6 }] },
+                { id: "meal-noah", competitionId: "junker-cup", cook: "Noah Cook", title: "Crisp dumplings with herb butter", onlineLink: "https://example.test/noah-dumplings", shared: true, ratings: [{ by: "Dana Taster", value: 4.3 }, { by: "Peer Reviewer", value: 4.8 }] }
+            ]
+        };
+
+        const statusLabels = {
+            "planned": "Planned",
+            "recipe-selected": "Recipe selected",
+            "registration-open": "Registration open",
+            "raters-found": "Raters found",
+            "rating-active": "Rating active",
+            "winner-crowned": "Winner crowned"
+        };
+
+        const journey = [
+            { id: 1, title: "Compare meal preparation skill", copy: "Cook wants to compare meal preparation skill with other cooks.", status: ["planned", "recipe-selected", "registration-open", "raters-found", "rating-active", "winner-crowned"] },
+            { id: 2, title: "Plan competition", copy: "Community Administrator plans the competition.", status: ["planned", "recipe-selected", "registration-open", "raters-found", "rating-active", "winner-crowned"] },
+            { id: 3, title: "Select recipe and register", copy: "Administrator selects a recipe for preparation; Cook registers for the competition.", status: ["recipe-selected", "registration-open", "raters-found", "rating-active", "winner-crowned"] },
+            { id: 4, title: "Find raters and share meal", copy: "Administrator finds other cooks for rating; Cook prepares a meal and shares it online.", status: ["raters-found", "rating-active", "winner-crowned"] },
+            { id: 5, title: "Rate and share", copy: "Other cooks rate the meal and share the rating online.", status: ["rating-active", "winner-crowned"] },
+            { id: 6, title: "Crown winner", copy: "Community Administrator crowns the winner with the highest rate.", status: ["winner-crowned"] }
+        ];
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+        }
+
+        function getRecipe(id) {
+            return recipes.find(recipe => recipe.id === id);
+        }
+
+        function currentCompetition() {
+            return state.competitions.find(comp => comp.id === state.selectedCompetitionId) || state.competitions[0];
+        }
+
+        function competitionMeals(compId = currentCompetition().id) {
+            return state.meals.filter(meal => meal.competitionId === compId && meal.shared);
+        }
+
+        function averageRating(meal) {
+            if (!meal.ratings.length) return 0;
+            return meal.ratings.reduce((sum, rating) => sum + rating.value, 0) / meal.ratings.length;
+        }
+
+        function badge(label, type = "") {
+            return `<span class="badge ${type}">${escapeHtml(label)}</span>`;
+        }
+
+        function button(label, action, variant = "secondary", disabled = false) {
+            return `<button class="button ${variant}" type="button" onclick="${action}" ${disabled ? "disabled" : ""}>${escapeHtml(label)}</button>`;
+        }
+
+        function card({ label, title, text, meta = [], actions = [], locked = false, searchText = "" }) {
+            const haystack = [label, title, text, searchText, meta.join(" ")].join(" ").toLowerCase();
+            if (state.query && !haystack.includes(state.query.toLowerCase())) return "";
+            return `
+          <article class="card" data-locked="${locked}">
+            <p class="eyebrow">${escapeHtml(label)}</p>
+            <h3 class="card-title">${escapeHtml(title)}</h3>
+            <p class="card-text">${escapeHtml(text)}</p>
+            ${meta.length ? `<div class="card-meta">${meta.join("")}</div>` : ""}
+            ${actions.length ? `<div class="card-actions">${actions.join("")}</div>` : ""}
+          </article>
+        `;
+        }
+
+        function renderShell(heading, copy, aside = "") {
+            return `
+          <div class="section-kicker">
+            <div>
+              <h2>${escapeHtml(heading)}</h2>
+              <p>${escapeHtml(copy)}</p>
+            </div>
+            ${aside}
+          </div>
+        `;
+        }
+
+        function roleNotice(requiredRole) {
+            if (state.role === requiredRole) return "";
+            return `<div class="notice">Switch the prototype persona to <strong>${escapeHtml(requiredRole)}</strong> to use this role-gated control.</div>`;
+        }
+
+        function selectCompetition(id) {
+            state.selectedCompetitionId = id;
+            render();
+        }
+
+        function renderOverview() {
+            const comp = currentCompetition();
+            const cards = [
+                card({
+                    label: "Step 1",
+                    title: "Compare meal preparation skill",
+                    text: "A cook starts from the wish to compare meal preparation skill with other cooks.",
+                    meta: [badge("Cook"), badge("Skill comparison", "info")],
+                    actions: [button("View competitions", "App.setRoute('competitions')", "secondary")],
+                    searchText: "Junker meal preparation skill compare cooks"
+                }),
+                card({
+                    label: "Step 2",
+                    title: "Plan a competition",
+                    text: "The community administrator plans a competition as the shared container for the challenge.",
+                    meta: [badge("Community Administrator"), badge(statusLabels[comp.status], "accent")],
+                    actions: [button("Plan competition", "App.setRoute('plan')", state.role === "Community Administrator" ? "primary" : "secondary")],
+                    searchText: "Junker competition planning administrator"
+                }),
+                card({
+                    label: "Step 3",
+                    title: "Select recipe and register",
+                    text: "The administrator selects the recipe for preparation; cooks register for the selected competition.",
+                    meta: [badge("Recipe"), badge("Registration")],
+                    actions: [button("Recipe", "App.setRoute('recipe')", "secondary"), button("Register", "App.setRoute('register')", "secondary")],
+                    searchText: "Junker recipe preparation registration"
+                }),
+                card({
+                    label: "Step 4",
+                    title: "Find raters and share online",
+                    text: "Other cooks are found for rating while the cook prepares a meal and shares it online.",
+                    meta: [badge("Other cooks"), badge("Online sharing")],
+                    actions: [button("Prepare meal", "App.setRoute('prepare')", "secondary"), button("Find raters", "App.setRoute('rate')", "secondary")],
+                    searchText: "Junker raters meal online share"
+                }),
+                card({
+                    label: "Step 5",
+                    title: "Rate the meal",
+                    text: "Other cooks rate the shared meal and make the rating visible online.",
+                    meta: [badge("Rating", "warning"), badge(`${competitionMeals(comp.id).length} shared meals`)],
+                    actions: [button("Rate meals", "App.setRoute('rate')", state.role === "Other cooks" ? "primary" : "secondary")],
+                    searchText: "Junker rating meals other cooks"
+                }),
+                card({
+                    label: "Step 6",
+                    title: "Crown the winner",
+                    text: "The community administrator crowns the winner with the highest rate.",
+                    meta: [badge("Winner"), badge("Highest rate", "accent")],
+                    actions: [button("Winner view", "App.setRoute('winner')", "secondary")],
+                    searchText: "Junker winner highest rate crown"
+                })
+            ].join("");
+            return renderShell("Domain story journey", "Screens and controls follow the numbered story from comparison through crowned winner.") + (cards || empty());
+        }
+
+        function renderCompetitions() {
+            const cards = state.competitions.map(comp => {
+                const recipe = getRecipe(comp.recipeId);
+                const meals = competitionMeals(comp.id);
+                const meta = [badge(statusLabels[comp.status], badgeType(comp.status)), badge(`${comp.participants.length} registered`), badge(`${meals.length} shared meals`)];
+                if (recipe) meta.push(badge(recipe.title, "info"));
+                const actions = [button("Select", `App.selectCompetition('${comp.id}')`, comp.id === state.selectedCompetitionId ? "primary" : "secondary")];
+                actions.push(button("Details", "App.setRoute('recipe')", "ghost"));
+                return card({
+                    label: "Competition",
+                    title: comp.title,
+                    text: recipe ? `${recipe.skill}. ${recipe.preparation}` : "Planned competition awaiting a selected recipe for preparation.",
+                    meta,
+                    actions,
+                    searchText: `${comp.title} Junker ${statusLabels[comp.status]} ${recipe ? recipe.title : ""}`
+                });
+            }).join("");
+            return renderShell("Competitions", "The planned competition is the central work object for registration, preparation, ratings, and winner selection.") + (cards || empty());
+        }
+
+        function renderPlan() {
+            const isAdmin = state.role === "Community Administrator";
+            const comp = currentCompetition();
+            const panel = `
+          <article class="panel">
+            <p class="eyebrow">Community Administrator</p>
+            <h3 class="card-title">Plan competition</h3>
+            <p class="detail-text">Create a planned competition. It stays in memory for this prototype session.</p>
+            <div class="field-grid">
+              <label class="field-block">
+                <span class="field-label">Competition name</span>
+                <input class="field" id="newCompetitionTitle" value="Junker Preparation Skill Challenge" ${!isAdmin ? "disabled" : ""}>
+              </label>
+              <label class="field-block">
+                <span class="field-label">Date</span>
+                <input class="field" id="newCompetitionDate" value="Prototype date" ${!isAdmin ? "disabled" : ""}>
+              </label>
+              <label class="field-block full">
+                <span class="field-label">Skill focus</span>
+                <textarea class="textarea" id="newCompetitionFocus" ${!isAdmin ? "disabled" : ""}>Compare meal preparation skill with other cooks.</textarea>
+              </label>
+            </div>
+            ${roleNotice("Community Administrator")}
+            <div class="card-actions">
+              ${button("Plan competition", "App.planCompetition()", "primary", !isAdmin)}
+            </div>
+          </article>
+          <aside class="side-panel">
+            <p class="eyebrow">Selected competition</p>
+            <h3 class="list-title">${escapeHtml(comp.title)}</h3>
+            <p class="list-copy">Current status: ${escapeHtml(statusLabels[comp.status])}</p>
+            <div class="card-meta">${badge(statusLabels[comp.status], badgeType(comp.status))}</div>
+          </aside>
+        `;
+            return renderShell("Plan", "This screen implements story step 2: the community administrator plans a competition.") + panel;
+        }
+
+        function renderRecipe() {
+            const comp = currentCompetition();
+            const recipe = getRecipe(comp.recipeId);
+            const isAdmin = state.role === "Community Administrator";
+            const canSelect = isAdmin && (comp.status === "planned" || comp.status === "recipe-selected");
+            const canOpenRegistration = isAdmin && comp.recipeId && comp.status === "recipe-selected";
+            const recipeOptions = recipes.map(r => `<option value="${r.id}" ${comp.recipeId === r.id ? "selected" : ""}>${escapeHtml(r.title)}</option>`).join("");
+            const panel = `
+          <article class="panel">
+            <p class="eyebrow">Recipe for preparation</p>
+            <h3 class="card-title">${escapeHtml(comp.title)}</h3>
+            <p class="detail-text">${recipe ? escapeHtml(recipe.preparation) : "No recipe has been selected yet."}</p>
+            <div class="field-grid">
+              <label class="field-block full">
+                <span class="field-label">Recipe</span>
+                <select class="field" id="recipeSelect" ${!canSelect ? "disabled" : ""}>${recipeOptions}</select>
+              </label>
+              <label class="field-block full">
+                <span class="field-label">Preparation brief</span>
+                <textarea class="textarea" disabled>${escapeHtml(recipe ? recipe.preparation : "Select a recipe to define the preparation work.")}</textarea>
+              </label>
+            </div>
+            ${roleNotice("Community Administrator")}
+            <div class="card-actions">
+              ${button("Select recipe", "App.selectRecipe()", "primary", !canSelect)}
+              ${button("Open registration", "App.openRegistration()", "secondary", !canOpenRegistration)}
+            </div>
+          </article>
+          <aside class="side-panel">
+            <p class="eyebrow">Story mapping</p>
+            <h3 class="list-title">Step 3</h3>
+            <p class="list-copy">Community Administrator selects a recipe for preparation. Cooks register only after the recipe is available.</p>
+          </aside>
+        `;
+            return renderShell("Recipe", "Recipe selection defines what cooks will prepare for comparison.") + panel;
+        }
+
+        function renderRegister() {
+            const comp = currentCompetition();
+            const recipe = getRecipe(comp.recipeId);
+            const isCook = state.role === "Cook";
+            const already = comp.participants.includes(state.currentCook);
+            const canRegister = isCook && comp.status === "registration-open" && !already;
+            const participantList = comp.participants.length ? comp.participants.map(name => `<span class="badge">${escapeHtml(name)}</span>`).join("") : badge("No cooks registered yet", "warning");
+            const panel = `
+          <article class="panel">
+            <p class="eyebrow">Cook registration</p>
+            <h3 class="card-title">Register for ${escapeHtml(comp.title)}</h3>
+            <p class="detail-text">${recipe ? `Selected recipe: ${escapeHtml(recipe.title)}.` : "Registration is blocked until a recipe is selected and registration opens."}</p>
+            <div class="card-meta">${participantList}</div>
+            ${roleNotice("Cook")}
+            <div class="card-actions">
+              ${button(already ? "Already registered" : "Register as Mara Cook", "App.registerCook()", "primary", !canRegister)}
+            </div>
+          </article>
+          <aside class="side-panel">
+            <p class="eyebrow">State</p>
+            <h3 class="list-title">${escapeHtml(statusLabels[comp.status])}</h3>
+            <p class="list-copy">Registration is available only when the selected competition is in the registration-open state.</p>
+          </aside>
+        `;
+            return renderShell("Register", "This screen implements the Cook → registers for → Competition part of story step 3.") + panel;
+        }
+
+        function renderPrepare() {
+            const comp = currentCompetition();
+            const recipe = getRecipe(comp.recipeId);
+            const isCook = state.role === "Cook";
+            const registered = comp.participants.includes(state.currentCook);
+            const existing = state.meals.find(meal => meal.competitionId === comp.id && meal.cook === state.currentCook);
+            const canShare = isCook && registered && comp.recipeId && comp.status !== "winner-crowned";
+            const panel = `
+          <article class="panel">
+            <p class="eyebrow">Meal preparation</p>
+            <h3 class="card-title">Prepare and share online</h3>
+            <p class="detail-text">${recipe ? `Prepare ${escapeHtml(recipe.title)} and share the meal online so other cooks can rate it.` : "A recipe must be selected before a meal can be prepared."}</p>
+            <div class="field-grid">
+              <label class="field-block full">
+                <span class="field-label">Meal title</span>
+                <input class="field" id="mealTitle" value="${escapeHtml(existing ? existing.title : "My Junker competition meal")}" ${!canShare ? "disabled" : ""}>
+              </label>
+              <label class="field-block full">
+                <span class="field-label">Online share link</span>
+                <input class="field" id="mealLink" value="${escapeHtml(existing ? existing.onlineLink : "https://example.test/my-meal")}" ${!canShare ? "disabled" : ""}>
+              </label>
+            </div>
+            ${roleNotice("Cook")}
+            <div class="card-actions">
+              ${button(existing ? "Update shared meal" : "Share meal online", "App.shareMeal()", "primary", !canShare)}
+            </div>
+          </article>
+          <aside class="side-panel">
+            <p class="eyebrow">Prepared meals</p>
+            <h3 class="list-title">${competitionMeals(comp.id).length} shared online</h3>
+            <p class="list-copy">The meal remains in memory and becomes visible on the rating screen.</p>
+          </aside>
+        `;
+            return renderShell("Prepare", "This screen implements Cook → prepares → Meal → shares online from story step 4.") + panel;
+        }
+
+        function renderRate() {
+            const comp = currentCompetition();
+            const meals = competitionMeals(comp.id);
+            const isAdmin = state.role === "Community Administrator";
+            const isRater = state.role === "Other cooks";
+            const canFindRaters = isAdmin && comp.participants.length > 0 && ["registration-open", "recipe-selected", "raters-found", "rating-active"].includes(comp.status);
+            const canRate = isRater && ["raters-found", "rating-active"].includes(comp.status);
+            const items = meals.map(meal => {
+                const avg = averageRating(meal);
+                return `
+            <div class="list-item">
+              <div class="list-head">
+                <div>
+                  <h3 class="list-title">${escapeHtml(meal.title)}</h3>
+                  <p class="list-copy">Cook: ${escapeHtml(meal.cook)} · Shared online: ${escapeHtml(meal.onlineLink)}</p>
+                </div>
+                <div class="card-meta">${badge(avg ? `${avg.toFixed(1)} average` : "No rating yet", avg ? "accent" : "warning")}${badge(`${meal.ratings.length} ratings`)}</div>
+              </div>
+              <div class="score-row">
+                <label class="field-block">
+                  <span class="field-label">Rate this meal</span>
+                  <input class="field" id="rating-${meal.id}" type="number" min="1" max="5" step="0.1" value="4.5" ${!canRate ? "disabled" : ""}>
+                </label>
+                ${button("Rate and share", `App.rateMeal('${meal.id}')`, "primary", !canRate)}
+              </div>
+            </div>
+          `;
+            }).join("");
+            const panel = `
+          <article class="panel">
+            <p class="eyebrow">Other cooks for rating</p>
+            <h3 class="card-title">Find raters and rate meals</h3>
+            <p class="detail-text">The administrator finds other cooks for rating. Other cooks rate shared meals and make the result visible online.</p>
+            ${roleNotice(isAdmin ? "Community Administrator" : "Other cooks")}
+            <div class="card-actions">
+              ${button("Find other cooks", "App.findRaters()", "secondary", !canFindRaters)}
+            </div>
+            <div class="list">${items || `<div class="notice">No shared meals are available yet. Switch to Cook and share a meal online first.</div>`}</div>
+          </article>
+          <aside class="side-panel">
+            <p class="eyebrow">Raters</p>
+            <h3 class="list-title">${comp.raters.length} other cooks</h3>
+            <p class="list-copy">${comp.raters.length ? escapeHtml(comp.raters.join(", ")) : "No raters found yet."}</p>
+          </aside>
+        `;
+            return renderShell("Rate", "This screen implements story steps 4 and 5: finding other cooks, rating meals, and sharing ratings online.") + panel;
+        }
+
+        function renderWinner() {
+            const comp = currentCompetition();
+            const meals = competitionMeals(comp.id);
+            const ranked = meals.slice().sort((a, b) => averageRating(b) - averageRating(a));
+            const best = ranked[0];
+            const hasRatings = best && averageRating(best) > 0;
+            const canCrown = state.role === "Community Administrator" && hasRatings && comp.status !== "winner-crowned";
+            const ranking = ranked.map((meal, index) => `
+          <div class="list-item">
+            <div class="list-head">
+              <div>
+                <h3 class="list-title">${index + 1}. ${escapeHtml(meal.cook)}</h3>
+                <p class="list-copy">${escapeHtml(meal.title)}</p>
+              </div>
+              <div class="card-meta">${badge(averageRating(meal) ? `${averageRating(meal).toFixed(1)} rate` : "No rate", index === 0 && hasRatings ? "accent" : "")}</div>
+            </div>
+          </div>
+        `).join("");
+            const panel = `
+          <article class="panel">
+            <p class="eyebrow">Highest rate</p>
+            <h3 class="card-title">${comp.winner ? `${escapeHtml(comp.winner)} is crowned winner` : "Crown the winner"}</h3>
+            <p class="detail-text">The winner is selected from the meal with the highest average rate.</p>
+            ${roleNotice("Community Administrator")}
+            <div class="card-actions">
+              ${button("Crown winner", "App.crownWinner()", "primary", !canCrown)}
+            </div>
+            <div class="list">${ranking || `<div class="notice">No shared meals with ratings are available yet.</div>`}</div>
+          </article>
+          <aside class="side-panel">
+            <p class="eyebrow">Competition state</p>
+            <h3 class="list-title">${escapeHtml(statusLabels[comp.status])}</h3>
+            <p class="list-copy">${comp.winner ? `Winner: ${escapeHtml(comp.winner)}.` : "Crowning becomes available after ratings exist."}</p>
+          </aside>
+        `;
+            return renderShell("Winner", "This screen implements Community Administrator → crowns → Winner with Highest rate from story step 6.") + panel;
+        }
+
+        function badgeType(status) {
+            if (status === "winner-crowned") return "accent";
+            if (status === "rating-active") return "warning";
+            if (status === "raters-found") return "info";
+            if (status === "registration-open") return "info";
+            return "";
+        }
+
+        function empty() {
+            return `<div class="empty-state">No cards match the current search.</div>`;
+        }
+
+        function renderTimeline() {
+            const comp = currentCompetition();
+            return journey.map(item => `
+          <div class="timeline-item ${item.status.includes(comp.status) ? "is-done" : ""}">
+            <div class="timeline-index">${item.id}</div>
+            <div>
+              <p class="timeline-title">${escapeHtml(item.title)}</p>
+              <p class="timeline-copy">${escapeHtml(item.copy)}</p>
+            </div>
+          </div>
+        `).join("");
+        }
+
+        function renderNav() {
+            const chips = nav.map(item => `<button class="chip ${state.route === item.id ? "is-active" : ""}" type="button" onclick="App.setRoute('${item.id}')">${escapeHtml(item.label)}</button>`).join("");
+            document.getElementById("navChips").innerHTML = chips;
+        }
+
+        function render() {
+            renderNav();
+            const content = document.getElementById("appContent");
+            const route = state.route;
+            let html = "";
+            if (route === "overview") html = renderOverview();
+            if (route === "competitions") html = renderCompetitions();
+            if (route === "plan") html = renderPlan();
+            if (route === "recipe") html = renderRecipe();
+            if (route === "register") html = renderRegister();
+            if (route === "prepare") html = renderPrepare();
+            if (route === "rate") html = renderRate();
+            if (route === "winner") html = renderWinner();
+            const timeline = `
+          <aside class="side-panel">
+            <p class="eyebrow">Live story state</p>
+            <h3 class="list-title">${escapeHtml(currentCompetition().title)}</h3>
+            <p class="list-copy">${escapeHtml(statusLabels[currentCompetition().status])}</p>
+            <div class="timeline">${renderTimeline()}</div>
+          </aside>
+        `;
+            if (!["overview", "competitions"].includes(route)) {
+                content.innerHTML = html + timeline;
+            } else {
+                content.innerHTML = html;
+            }
+        }
+
+        function setRoute(route) {
+            state.route = route;
+            render();
+        }
+
+        function planCompetition() {
+            if (state.role !== "Community Administrator") return;
+            const title = document.getElementById("newCompetitionTitle").value.trim() || "Untitled cooking competition";
+            const date = document.getElementById("newCompetitionDate").value.trim() || "Prototype date";
+            const id = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
+            state.competitions.unshift({ id, title, date, status: "planned", recipeId: null, participants: [], raters: [], winner: null });
+            state.selectedCompetitionId = id;
+            state.route = "recipe";
+            render();
+        }
+
+        function selectRecipe() {
+            const comp = currentCompetition();
+            if (state.role !== "Community Administrator") return;
+            const select = document.getElementById("recipeSelect");
+            comp.recipeId = select.value;
+            if (comp.status === "planned") comp.status = "recipe-selected";
+            render();
+        }
+
+        function openRegistration() {
+            const comp = currentCompetition();
+            if (state.role !== "Community Administrator" || !comp.recipeId) return;
+            if (comp.status === "recipe-selected") comp.status = "registration-open";
+            render();
+        }
+
+        function registerCook() {
+            const comp = currentCompetition();
+            if (state.role !== "Cook" || comp.status !== "registration-open") return;
+            if (!comp.participants.includes(state.currentCook)) comp.participants.push(state.currentCook);
+            render();
+        }
+
+        function findRaters() {
+            const comp = currentCompetition();
+            if (state.role !== "Community Administrator" || comp.participants.length === 0) return;
+            comp.raters = Array.from(new Set([...comp.raters, "Peer Reviewer", "Dana Taster"]));
+            if (["registration-open", "recipe-selected"].includes(comp.status)) comp.status = "raters-found";
+            render();
+        }
+
+        function shareMeal() {
+            const comp = currentCompetition();
+            if (state.role !== "Cook" || !comp.participants.includes(state.currentCook) || !comp.recipeId) return;
+            const title = document.getElementById("mealTitle").value.trim() || "Shared competition meal";
+            const onlineLink = document.getElementById("mealLink").value.trim() || "https://example.test/shared-meal";
+            let meal = state.meals.find(item => item.competitionId === comp.id && item.cook === state.currentCook);
+            if (!meal) {
+                meal = { id: `meal-${comp.id}-${Date.now()}`, competitionId: comp.id, cook: state.currentCook, title, onlineLink, shared: true, ratings: [] };
+                state.meals.push(meal);
+            } else {
+                meal.title = title;
+                meal.onlineLink = onlineLink;
+                meal.shared = true;
+            }
+            if (["raters-found", "registration-open"].includes(comp.status) && comp.raters.length > 0) comp.status = "rating-active";
+            render();
+        }
+
+        function rateMeal(mealId) {
+            if (state.role !== "Other cooks") return;
+            const comp = currentCompetition();
+            const meal = state.meals.find(item => item.id === mealId);
+            const input = document.getElementById(`rating-${mealId}`);
+            const value = Math.max(1, Math.min(5, Number(input.value || 0)));
+            if (!meal || !value || !["raters-found", "rating-active"].includes(comp.status)) return;
+            const existing = meal.ratings.find(rating => rating.by === state.peerRater);
+            if (existing) existing.value = value;
+            else meal.ratings.push({ by: state.peerRater, value });
+            comp.status = "rating-active";
+            render();
+        }
+
+        function crownWinner() {
+            const comp = currentCompetition();
+            if (state.role !== "Community Administrator") return;
+            const ranked = competitionMeals(comp.id).filter(meal => averageRating(meal) > 0).sort((a, b) => averageRating(b) - averageRating(a));
+            if (!ranked.length) return;
+            comp.winner = ranked[0].cook;
+            comp.status = "winner-crowned";
+            render();
+        }
+
+        function init() {
+            document.getElementById("roleSelect").addEventListener("change", event => {
+                state.role = event.target.value;
+                render();
+            });
+            document.getElementById("searchInput").addEventListener("input", event => {
+                state.query = event.target.value.trim();
+                render();
+            });
+            document.getElementById("clearSearch").addEventListener("click", () => {
+                state.query = "";
+                document.getElementById("searchInput").value = "";
+                render();
+            });
+            render();
+        }
+
+        return { init, setRoute, selectCompetition, planCompetition, selectRecipe, openRegistration, registerCook, findRaters, shareMeal, rateMeal, crownWinner };
+    })();
+
+    window.App = App;
+    App.init();
+</script>
+</body>
+</html>

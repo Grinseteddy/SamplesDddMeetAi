@@ -1,4 +1,4 @@
-# Prompt:
+# Prompt 2026-07-05:
 
 Create a prototype from the provided domain story and the provided screenshot.
 

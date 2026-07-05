@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "source": "ScreenshotBlogpostCodecentric(2).jpg",
+    "notes": [
+      "Font family is inferred as a clean geometric/system sans-serif because the screenshot does not expose font metadata.",
+      "The screenshot shows a search input, filter chips, text cards, and a minimal white page; primary buttons and badges were extrapolated from those components and the visible turquoise floating accent.",
+      "The screenshot does not show modal dialogs, tables, or heavy shadows, so the prototype uses flat cards, subtle borders, and no modal UI."
+    ]
+  },
+  "colors": {
+    "surface": "#ffffff",
+    "surfaceSoft": "#f5f6f8",
+    "surfaceSofter": "#f9fafb",
+    "text": "#0b0b0d",
+    "heading": "#4d5056",
+    "muted": "#5d6169",
+    "faint": "#9fa3aa",
+    "border": "#d9dee5",
+    "borderSoft": "#e7e9ee",
+    "accent": "#27f4b1"
+  },
+  "typography": {
+    "family": "Inter, Helvetica Neue, Arial, sans-serif",
+    "pageTitle": { "size": 29, "weight": 700, "lineHeight": 1.15, "letterSpacing": "-0.03em" },
+    "cardTitle": { "size": 26, "weight": 750, "lineHeight": 1.15, "letterSpacing": "-0.045em" },
+    "body": { "size": 18, "weight": 400, "lineHeight": 1.5 },
+    "eyebrow": { "size": 15, "weight": 700, "case": "uppercase" }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "scale": [4, 8, 12, 16, 20, 24, 32, 40, 56, 72, 96]
+  },
+  "components": {
+    "input": { "height": 64, "radius": 8, "border": "2px solid #d9dee5", "paddingLeft": 66 },
+    "chip": { "height": 58, "radius": 6, "fill": "#f5f6f8", "paddingX": 20 },
+    "card": { "fill": "#ffffff", "border": "none", "shadow": "none", "titleSize": 26 },
+    "badge": { "fill": "#f5f6f8", "radius": 6, "height": 34 },
+    "button": { "base": "derived from chip", "primary": "derived from visible turquoise accent" }
+  }
+}

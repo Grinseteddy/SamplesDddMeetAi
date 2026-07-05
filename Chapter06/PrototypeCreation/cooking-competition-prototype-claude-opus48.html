@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cooking Competition — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     TOKEN LAYER — every value traces to style-spec.json
+     (extracted from ScreenshotBlogpostCodecentric.jpg)
+     ============================================================ */
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F6F7F9;
+    --surface-alt: #F5F6F8;
+    --primary: #72D2A2;          /* codecentric green accent */
+    --primary-hover: #5FC593;
+    --primary-text: #0A0A0A;
+    --text-strong: #000000;
+    --text: #111111;
+    --text-body: #3A3A3C;
+    --text-muted: #9D9EA2;
+    --border: #DCE0E3;
+    --border-strong: #BDB7B3;
+    --chip-bg: #F6F7F9;
+    --chip-border: #ECEEF1;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-pill: 9999px;
+
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px;
+
+    --focus-ring: 0 0 0 3px rgba(114,210,162,0.35);
+
+    --font-display: 'Poppins', 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text-body);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  /* ---------- Top bar (prototype affordance: role switcher) ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-4) var(--sp-8);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg); z-index: 20;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: var(--sp-3); }
+  .brand-dot {
+    width: 22px; height: 22px; border-radius: var(--radius-pill);
+    background: var(--primary); flex: 0 0 auto;
+  }
+  .brand-name {
+    font-family: var(--font-display); font-weight: 700; font-size: 17px;
+    color: var(--text-strong); letter-spacing: -0.2px;
+  }
+  .role-switch { display: flex; align-items: center; gap: var(--sp-3); }
+  .role-switch .label {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.6px;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--chip-border); border-radius: var(--radius-pill); padding: 3px; }
+  .seg button {
+    border: none; background: transparent; color: var(--text-body);
+    font-size: 14px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-pill);
+    transition: background .15s, color .15s;
+  }
+  .seg button[aria-pressed="true"] { background: var(--text-strong); color: #fff; }
+  .seg button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  /* ---------- Page shell ---------- */
+  .page { max-width: 1180px; margin: 0 auto; padding: var(--sp-12) var(--sp-8) var(--sp-16); }
+  .hero-h1 {
+    font-family: var(--font-display); font-weight: 600; font-size: 34px; line-height: 1.2;
+    color: var(--text-muted); margin: 0 0 var(--sp-8);
+  }
+  @media (max-width: 640px){ .hero-h1{ font-size: 26px; } .page{ padding: var(--sp-8) var(--sp-4) var(--sp-12);} .topbar{padding: var(--sp-3) var(--sp-4);} }
+
+  /* ---------- Search input ---------- */
+  .search {
+    display: flex; align-items: center; gap: var(--sp-3);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 20px; margin-bottom: var(--sp-8);
+  }
+  .search:focus-within { box-shadow: var(--focus-ring); border-color: var(--primary); }
+  .search svg { flex: 0 0 auto; color: #6B7280; }
+  .search input {
+    border: none; outline: none; flex: 1; font-size: 16px; color: #252525;
+    font-family: var(--font-body); background: transparent;
+  }
+  .search input::placeholder { color: #6B7280; }
+  .search .clear {
+    border: none; background: transparent; color: #6B7280; font-size: 20px; line-height: 1;
+    padding: 2px 6px; border-radius: var(--radius-sm);
+  }
+  .search .clear:hover { background: var(--surface); }
+
+  /* ---------- Filter chips ---------- */
+  .filter-label { font-size: 14px; font-weight: 600; color: #2A2A2C; margin-bottom: var(--sp-4); }
+  .chips { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-bottom: var(--sp-12); }
+  .chip {
+    background: var(--chip-bg); color: var(--text-body); border: 1px solid var(--chip-border);
+    border-radius: 8px; padding: 12px 20px; font-size: 15px; font-weight: 400;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .chip:hover { background: #ECEEF1; }
+  .chip[aria-pressed="true"] { background: var(--text-strong); color: #fff; border-color: var(--text-strong); }
+  .chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  /* ---------- Blog-style card grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-12) var(--sp-12); }
+  @media (max-width: 900px){ .grid{ grid-template-columns: repeat(2,1fr);} }
+  @media (max-width: 620px){ .grid{ grid-template-columns: 1fr;} }
+  .card { text-align: left; background: none; border: none; padding: 0; display: block; width: 100%; }
+  .eyebrow {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: var(--sp-3);
+    display: flex; align-items: center; gap: var(--sp-2);
+  }
+  .card-title {
+    font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.22;
+    letter-spacing: -0.3px; color: var(--text-strong); margin: 0 0 var(--sp-3);
+    transition: color .15s;
+  }
+  .card:hover .card-title { color: #2f8f66; }
+  .card-body { font-size: 16px; line-height: 1.62; color: var(--text-body); margin: 0; }
+  .card-meta { margin-top: var(--sp-4); font-size: 14px; color: var(--text-muted); }
+
+  /* ---------- Status badge (state machine surface) ---------- */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface); color: var(--text-body); border: 1px solid var(--border);
+    border-radius: var(--radius-pill); padding: 4px 12px; font-size: 13px; font-weight: 600;
+    letter-spacing: 0; text-transform: none;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+  .badge.st-planned .dot { background: #BDB7B3; }
+  .badge.st-recipe .dot { background: #9D9EA2; }
+  .badge.st-registration .dot { background: #E0A458; }
+  .badge.st-cooking .dot { background: #E07A5F; }
+  .badge.st-rating .dot { background: #6C8CD5; }
+  .badge.st-completed { background: rgba(114,210,162,0.16); border-color: rgba(114,210,162,0.5); color: #1f7a52; }
+  .badge.st-completed .dot { background: var(--primary); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+    font-size: 15px; font-weight: 600; border-radius: var(--radius-md);
+    padding: 12px 22px; border: none; transition: background .15s, box-shadow .15s;
+  }
+  .btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .btn-primary { background: var(--primary); color: var(--primary-text); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-secondary { background: var(--bg); color: var(--text-strong); border: 1px solid var(--border-strong); }
+  .btn-secondary:hover { background: var(--surface); }
+  .btn-ghost { background: transparent; color: var(--text-body); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; }
+  .btn-sm { padding: 8px 14px; font-size: 14px; }
+
+  /* ---------- Detail view ---------- */
+  .back {
+    background: none; border: none; color: var(--text-muted); font-size: 14px; font-weight: 600;
+    padding: 6px 0; display: inline-flex; align-items: center; gap: 6px; margin-bottom: var(--sp-6);
+  }
+  .back:hover { color: var(--text-strong); }
+  .detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-6); flex-wrap: wrap; margin-bottom: var(--sp-2); }
+  .detail-title { font-family: var(--font-display); font-weight: 700; font-size: 32px; line-height: 1.15; letter-spacing: -0.4px; color: var(--text-strong); margin: 0 0 var(--sp-3); }
+  .detail-sub { color: var(--text-body); font-size: 16px; margin: 0 0 var(--sp-6); max-width: 60ch; }
+
+  .lifecycle { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; margin: var(--sp-6) 0 var(--sp-8); padding: var(--sp-4); background: var(--surface-alt); border: 1px solid var(--chip-border); border-radius: var(--radius-lg); }
+  .step { font-size: 13px; font-weight: 600; color: var(--text-muted); padding: 4px 10px; border-radius: var(--radius-pill); }
+  .step.done { color: var(--text-body); }
+  .step.current { background: var(--text-strong); color: #fff; }
+  .step-arrow { color: var(--border-strong); font-size: 13px; }
+
+  .actionbar { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin: var(--sp-6) 0 var(--sp-8); padding: var(--sp-6); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); }
+  .actionbar .hint { flex-basis: 100%; font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-1); }
+
+  .section-h { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--text-strong); margin: var(--sp-8) 0 var(--sp-4); letter-spacing: -0.2px; }
+
+  .meal-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-4) 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .meal-row:last-child { border-bottom: none; }
+  .meal-left { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
+  .meal-thumb { width: 52px; height: 52px; border-radius: var(--radius-md); background: var(--surface); border: 1px solid var(--chip-border); display: grid; place-items: center; font-size: 24px; flex: 0 0 auto; }
+  .meal-name { font-weight: 600; color: var(--text-strong); font-size: 16px; }
+  .meal-cook { font-size: 14px; color: var(--text-muted); }
+  .meal-right { display: flex; align-items: center; gap: var(--sp-4); }
+  .winner-tag { display: inline-flex; align-items: center; gap:6px; background: rgba(114,210,162,0.16); border: 1px solid rgba(114,210,162,0.5); color: #1f7a52; font-weight: 700; font-size: 13px; padding: 4px 12px; border-radius: var(--radius-pill); }
+
+  /* ---------- Stars ---------- */
+  .stars { display: inline-flex; gap: 2px; }
+  .stars .star { font-size: 18px; color: var(--border-strong); line-height: 1; }
+  .stars .star.on { color: #E8B84B; }
+  .rate-stars button { background: none; border: none; font-size: 26px; color: var(--border-strong); padding: 2px; line-height: 1; transition: color .1s, transform .1s; }
+  .rate-stars button:hover, .rate-stars button.hot { color: #E8B84B; transform: scale(1.12); }
+  .avg { font-weight: 700; color: var(--text-strong); font-size: 15px; }
+  .avg .n { color: var(--text-muted); font-weight: 500; font-size: 13px; }
+
+  /* ---------- Forms & modal ---------- */
+  .field { margin-bottom: var(--sp-4); }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: #2A2A2C; margin-bottom: 6px; }
+  .field input, .field textarea, .field select {
+    width: 100%; font-family: var(--font-body); font-size: 16px; color: #252525;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 12px 14px; outline: none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus { box-shadow: var(--focus-ring); border-color: var(--primary); }
+  .field textarea { min-height: 88px; resize: vertical; }
+
+  .modal-scrim { position: fixed; inset: 0; background: rgba(10,10,10,.35); display: grid; place-items: center; padding: var(--sp-4); z-index: 50; }
+  .modal { background: var(--bg); border-radius: var(--radius-lg); border: 1px solid var(--border); max-width: 440px; width: 100%; padding: var(--sp-8); box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+  .modal h3 { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--text-strong); margin: 0 0 var(--sp-2); }
+  .modal p { margin: 0 0 var(--sp-6); color: var(--text-body); font-size: 15px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: var(--sp-3); margin-top: var(--sp-6); }
+
+  .empty { padding: var(--sp-12) var(--sp-4); text-align: center; color: var(--text-muted); }
+  .empty .big { font-size: 40px; margin-bottom: var(--sp-3); }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text-strong); color: #fff; padding: 12px 20px; border-radius: var(--radius-pill); font-size: 14px; font-weight: 600; z-index: 60; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+  .role-note { font-size: 13px; color: var(--text-muted); background: var(--surface-alt); border: 1px solid var(--chip-border); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: var(--sp-6); }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-dot" aria-hidden="true"></div>
+      <div class="brand-name">CookOff Community</div>
+    </div>
+    <div class="role-switch">
+      <span class="label">View as</span>
+      <div class="seg" id="roleSeg" role="group" aria-label="Prototype role switcher"></div>
+    </div>
+  </div>
+
+  <main id="app" class="page" aria-live="polite"></main>
+
+  <div id="modalRoot"></div>
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   IN-MEMORY STATE  (no localStorage — claude.ai artifact constraint)
+   Structure derived ONLY from the domain story.
+   ================================================================ */
+
+const ROLES = {
+  admin: "Community Administrator",
+  cook:  "Cook",
+  rater: "Other cook",
+};
+
+// Competition lifecycle (state machine from the story's verbs):
+// planned -(select recipe)-> recipe -(open registration)-> registration
+//   -(start cooking)-> cooking -(open rating)-> rating -(crown winner)-> completed
+const COMP_STATES = ["planned","recipe","registration","cooking","rating","completed"];
+const STATE_LABEL = {
+  planned: "Planned", recipe: "Recipe selected", registration: "Registration open",
+  cooking: "Cooking", rating: "Rating", completed: "Completed"
+};
+const STATE_ORDER = COMP_STATES;
+
+const RECIPES = [
+  { id:"r1", name:"Wild Mushroom Risotto", emoji:"🍚", note:"Creamy arborio, porcini, parmesan." },
+  { id:"r2", name:"Rustic Apple Galette", emoji:"🥧", note:"Free-form pastry, spiced apples." },
+  { id:"r3", name:"Thai Green Curry", emoji:"🍛", note:"Coconut, lemongrass, seasonal veg." },
+  { id:"r4", name:"Garden Panzanella", emoji:"🥗", note:"Charred bread, tomato, basil." },
+  { id:"r5", name:"Dark Chocolate Tart", emoji:"🍫", note:"Ganache, sea salt, short crust." },
+];
+
+// "You" identities per participant role, plus other community cooks.
+const ME_COOK = "Chef Mia (you)";
+const ME_RATER = "Sam the taster (you)";
+
+let state = {
+  role: "admin",
+  view: { name: "list" },   // {name:'list'} | {name:'detail', id} | {name:'plan'}
+  filter: "all",
+  query: "",
+  competitions: [
+    {
+      id: "c1",
+      title: "Summer Risotto Showdown",
+      blurb: "Cooks compare their risotto skills head to head. Prepare the set recipe, share your plate, and let the community rate it.",
+      status: "rating",
+      recipeId: "r1",
+      entries: [
+        { cook: ME_COOK, meal:"Truffle & pea risotto", emoji:"🍚", shared:true, ratings:[5,4,5,4] },
+        { cook: "Diego Fuentes", meal:"Saffron seafood risotto", emoji:"🍤", shared:true, ratings:[5,5,4,5] },
+        { cook: "Priya Anand", meal:"Beetroot risotto", emoji:"🥬", shared:true, ratings:[4,3,4] },
+      ],
+      raters: ["Sam the taster (you)","Lena Brooks","Omar Haddad"],
+      winnerCook: null,
+    },
+    {
+      id: "c2",
+      title: "Autumn Galette Bake-off",
+      blurb: "Registration is open. Sign up, then bring your best rustic galette when cooking begins.",
+      status: "registration",
+      recipeId: "r2",
+      entries: [
+        { cook: "Diego Fuentes", meal:null, emoji:null, shared:false, ratings:[] },
+        { cook: "Priya Anand", meal:null, emoji:null, shared:false, ratings:[] },
+      ],
+      raters: [],
+      winnerCook: null,
+    },
+    {
+      id: "c3",
+      title: "Winter Curry Cup",
+      blurb: "A completed season. The community crowned its champion by highest average rating.",
+      status: "completed",
+      recipeId: "r3",
+      entries: [
+        { cook: "Lena Brooks", meal:"Aubergine green curry", emoji:"🍆", shared:true, ratings:[5,5,5,4,5] },
+        { cook: ME_COOK, meal:"Chicken green curry", emoji:"🍗", shared:true, ratings:[4,4,5,4] },
+      ],
+      raters: ["Sam the taster (you)","Omar Haddad"],
+      winnerCook: "Lena Brooks",
+    },
+    {
+      id: "c4",
+      title: "Spring Salad Sprint",
+      blurb: "Freshly planned. A recipe still needs to be chosen before registration can open.",
+      status: "planned",
+      recipeId: null,
+      entries: [],
+      raters: [],
+      winnerCook: null,
+    },
+  ],
+};
+
+/* ================= helpers ================= */
+const $ = (sel, el=document) => el.querySelector(sel);
+const recipeOf = (c) => RECIPES.find(r => r.id === c.recipeId) || null;
+const avg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+const submittedEntries = (c) => c.entries.filter(e => e.shared && e.meal);
+function esc(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1900);
+}
+
+/* ============ state machine transitions (wired to buttons) ============ */
+function advance(c, to){
+  c.status = to;
+  render();
+  toast("Competition → " + STATE_LABEL[to]);
+}
+function crownWinner(c){
+  const subs = submittedEntries(c);
+  if(!subs.length) return;
+  let best = subs[0];
+  for(const e of subs){ if(avg(e.ratings) > avg(best.ratings)) best = e; }
+  c.winnerCook = best.cook;
+  c.status = "completed";
+  render();
+  toast("🏆 " + best.cook + " crowned winner!");
+}
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function render(){
+  renderRoleSeg();
+  const app = $("#app");
+  if(state.view.name === "list") app.innerHTML = viewList();
+  else if(state.view.name === "detail") app.innerHTML = viewDetail(state.view.id);
+  else if(state.view.name === "plan") app.innerHTML = viewPlan();
+  wire();
+}
+
+function renderRoleSeg(){
+  const seg = $("#roleSeg");
+  seg.innerHTML = Object.entries(ROLES).map(([k,label]) =>
+    `<button data-role="${k}" aria-pressed="${state.role===k}">${label}</button>`
+  ).join("");
+}
+
+/* ---------------- LIST (mirrors the screenshot: hero + search + chips + card grid) --------------- */
+function viewList(){
+  const chips = [["all","All"]].concat(COMP_STATES.map(s => [s, STATE_LABEL[s]]));
+  let comps = state.competitions.filter(c => state.filter==="all" || c.status===state.filter);
+  if(state.query.trim()){
+    const q = state.query.toLowerCase();
+    comps = comps.filter(c => c.title.toLowerCase().includes(q) || (recipeOf(c)?.name.toLowerCase().includes(q)));
+  }
+
+  const roleHint = {
+    admin: "As Community Administrator you plan competitions, select recipes, open each phase, and crown the winner.",
+    cook:  "As a Cook you register for open competitions, then prepare and share your meal.",
+    rater: "As an Other cook you rate the shared meals during the rating phase.",
+  }[state.role];
+
+  const cards = comps.map(c => {
+    const r = recipeOf(c);
+    const subs = submittedEntries(c);
+    const meta = c.status==="completed" && c.winnerCook
+        ? `🏆 Winner: ${esc(c.winnerCook)}`
+        : `${c.entries.length} registered · ${subs.length} meal${subs.length===1?"":"s"} shared`;
+    return `<button class="card" data-open="${c.id}">
+      <div class="eyebrow">${statusBadge(c,true)}</div>
+      <h2 class="card-title">${esc(c.title)}</h2>
+      <p class="card-body">${esc(c.blurb)}</p>
+      <div class="card-meta">${r ? "Recipe: "+esc(r.name)+" · " : "No recipe yet · "}${meta}</div>
+    </button>`;
+  }).join("");
+
+  const grid = comps.length ? `<div class="grid">${cards}</div>`
+    : `<div class="empty"><div class="big">🍽️</div>No competitions match your search or filter.</div>`;
+
+  const planBtn = state.role==="admin"
+    ? `<div style="margin-bottom:var(--sp-8)"><button class="btn btn-primary" data-plan>+ Plan a competition</button></div>` : "";
+
+  return `
+    <h1 class="hero-h1">Where cooks compare their craft</h1>
+    <div class="role-note">${roleHint}</div>
+    ${planBtn}
+    <div class="search">
+      ${iconSearch()}
+      <input id="searchInput" type="text" placeholder="Search competitions or recipes…" value="${esc(state.query)}" aria-label="Search competitions" />
+      ${state.query ? `<button class="clear" data-clear aria-label="Clear search">×</button>` : ""}
+    </div>
+    <div class="filter-label">Status filter</div>
+    <div class="chips" role="group" aria-label="Filter by status">
+      ${chips.map(([k,l]) => `<button class="chip" data-filter="${k}" aria-pressed="${state.filter===k}">${l}</button>`).join("")}
+    </div>
+    ${grid}
+  `;
+}
+
+/* ---------------- DETAIL ---------------- */
+function viewDetail(id){
+  const c = state.competitions.find(x=>x.id===id);
+  if(!c) return `<button class="back" data-back>← Back</button><div class="empty">Not found.</div>`;
+  const r = recipeOf(c);
+
+  // lifecycle strip
+  const curIdx = STATE_ORDER.indexOf(c.status);
+  const strip = STATE_ORDER.map((s,i) => {
+    const cls = i<curIdx ? "done" : (i===curIdx ? "current" : "");
+    return `<span class="step ${cls}">${STATE_LABEL[s]}</span>` + (i<STATE_ORDER.length-1 ? `<span class="step-arrow">→</span>` : "");
+  }).join("");
+
+  return `
+    <button class="back" data-back>← All competitions</button>
+    <div class="detail-head">
+      <div>
+        <div class="eyebrow">${statusBadge(c,true)}</div>
+        <h1 class="detail-title">${esc(c.title)}</h1>
+      </div>
+    </div>
+    <p class="detail-sub">${esc(c.blurb)}</p>
+
+    ${r ? `<div class="meal-row" style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-4) var(--sp-6);">
+        <div class="meal-left"><div class="meal-thumb">${r.emoji}</div>
+        <div><div class="meal-name">${esc(r.name)}</div><div class="meal-cook">Set recipe · ${esc(r.note)}</div></div></div>
+      </div>` : `<div class="role-note">No recipe selected yet.</div>`}
+
+    <div class="lifecycle">${strip}</div>
+
+    ${actionBar(c)}
+
+    <div class="section-h">Entries &amp; ratings</div>
+    ${entriesBlock(c)}
+  `;
+}
+
+function entriesBlock(c){
+  if(!c.entries.length) return `<div class="empty"><div class="big">🧑‍🍳</div>No cooks have registered yet.</div>`;
+  return c.entries.map((e,idx) => {
+    const isWinner = c.winnerCook && e.cook===c.winnerCook;
+    const a = avg(e.ratings);
+    const right = e.shared && e.meal
+      ? `<div class="meal-right">
+           ${starDisplay(a)}
+           <span class="avg">${a.toFixed(1)} <span class="n">(${e.ratings.length})</span></span>
+           ${canRate(c,e) ? `<button class="btn btn-secondary btn-sm" data-rate="${idx}">Rate</button>` : ""}
+           ${isWinner ? `<span class="winner-tag">🏆 Winner</span>` : ""}
+         </div>`
+      : `<div class="meal-right"><span class="badge"><span class="dot"></span>Not submitted</span></div>`;
+    return `<div class="meal-row">
+      <div class="meal-left">
+        <div class="meal-thumb">${e.emoji || "🍳"}</div>
+        <div>
+          <div class="meal-name">${e.meal ? esc(e.meal) : "Registered — awaiting meal"}</div>
+          <div class="meal-cook">by ${esc(e.cook)}</div>
+        </div>
+      </div>
+      ${right}
+    </div>`;
+  }).join("");
+}
+
+/* -------- role- & state-gated action bar (the interactive spine) -------- */
+function actionBar(c){
+  const role = state.role;
+  let actions = [];
+  let hint = "";
+
+  if(role==="admin"){
+    hint = "Community Administrator controls — move the competition through its lifecycle.";
+    if(c.status==="planned")      actions.push(btn("primary","Select recipe →","adv:recipe", !RECIPES.length));
+    if(c.status==="recipe")       actions.push(btn("primary","Open registration →","adv:registration"));
+    if(c.status==="registration") actions.push(btn("primary","Start cooking →","adv:cooking", c.entries.length===0));
+    if(c.status==="cooking")      actions.push(btn("primary","Open rating →","adv:rating", submittedEntries(c).length===0));
+    if(c.status==="rating")       actions.push(btn("primary","🏆 Crown winner","crown", submittedEntries(c).length===0));
+    if(c.status==="completed")    actions.push(`<span class="badge st-completed"><span class="dot"></span>Season complete</span>`);
+    if(c.status==="planned")      actions.unshift(`<span class="badge st-planned"><span class="dot"></span>Pick a recipe to begin</span>`);
+  }
+  else if(role==="cook"){
+    hint = "Cook controls — register, then prepare and share your meal.";
+    const mine = c.entries.find(e=>e.cook===ME_COOK);
+    if(c.status==="registration"){
+      actions.push(mine ? `<span class="badge st-registration"><span class="dot"></span>You're registered</span>`
+                        : btn("primary","Register for competition","register"));
+    } else if(c.status==="cooking"){
+      if(!mine) actions.push(`<span class="badge"><span class="dot"></span>Registration closed — you didn't join</span>`);
+      else if(mine.shared) actions.push(`<span class="badge st-cooking"><span class="dot"></span>Meal shared ✓</span>`);
+      else actions.push(btn("primary","Prepare & share meal","submit"));
+    } else if(c.status==="planned" || c.status==="recipe"){
+      actions.push(`<span class="badge"><span class="dot"></span>Registration not open yet</span>`);
+    } else {
+      actions.push(`<span class="badge"><span class="dot"></span>Nothing to do in this phase</span>`);
+    }
+  }
+  else { // rater
+    hint = "Other cook controls — rate shared meals while the competition is in its rating phase.";
+    if(c.status==="rating") actions.push(`<span class="badge st-rating"><span class="dot"></span>Rating open — use the Rate buttons below</span>`);
+    else if(c.status==="completed") actions.push(`<span class="badge st-completed"><span class="dot"></span>Rating closed — winner crowned</span>`);
+    else actions.push(`<span class="badge"><span class="dot"></span>Rating not open yet</span>`);
+  }
+
+  return `<div class="actionbar"><div class="hint">${hint}</div>${actions.join("")}</div>`;
+}
+function btn(kind,label,action,disabled){
+  return `<button class="btn btn-${kind}" data-action="${action}" ${disabled?"disabled":""}>${label}</button>`;
+}
+function canRate(c,e){
+  return state.role==="rater" && c.status==="rating" && e.shared && e.meal && e.cook!==ME_RATER;
+}
+
+/* ---------------- PLAN form (admin) ---------------- */
+function viewPlan(){
+  return `
+    <button class="back" data-back>← All competitions</button>
+    <h1 class="detail-title">Plan a competition</h1>
+    <p class="detail-sub">This mirrors “Community Administrator <em>plans</em> Competition”. The new competition starts in the <strong>Planned</strong> state; you then select a recipe to move it forward.</p>
+    <div class="field"><label for="pTitle">Competition name</label><input id="pTitle" type="text" placeholder="e.g. Midsummer Pasta Duel" /></div>
+    <div class="field"><label for="pBlurb">Short description</label><textarea id="pBlurb" placeholder="What are cooks competing on?"></textarea></div>
+    <div class="field"><label for="pRecipe">Recipe (optional now — can select later)</label>
+      <select id="pRecipe">
+        <option value="">— choose during setup —</option>
+        ${RECIPES.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("")}
+      </select>
+    </div>
+    <div style="display:flex;gap:var(--sp-3);margin-top:var(--sp-6)">
+      <button class="btn btn-primary" data-create>Create competition</button>
+      <button class="btn btn-ghost" data-back>Cancel</button>
+    </div>
+  `;
+}
+
+/* ---------------- small view helpers ---------------- */
+function statusBadge(c, asBadge){
+  const cls = { planned:"st-planned", recipe:"st-recipe", registration:"st-registration",
+                cooking:"st-cooking", rating:"st-rating", completed:"st-completed" }[c.status];
+  return `<span class="badge ${cls}"><span class="dot"></span>${STATE_LABEL[c.status]}</span>`;
+}
+function starDisplay(a){
+  const full = Math.round(a);
+  let s="";
+  for(let i=1;i<=5;i++) s += `<span class="star ${i<=full?"on":""}">★</span>`;
+  return `<span class="stars" aria-label="${a.toFixed(1)} of 5">${s}</span>`;
+}
+function iconSearch(){
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+}
+
+/* ================================================================
+   EVENT WIRING
+   ================================================================ */
+function wire(){
+  // role switch
+  $("#roleSeg").querySelectorAll("[data-role]").forEach(b=>{
+    b.onclick = () => { state.role = b.dataset.role; render(); };
+  });
+
+  const app = $("#app");
+
+  app.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { state.view={name:"detail",id:b.dataset.open}; render(); });
+  app.querySelectorAll("[data-back]").forEach(b => b.onclick = () => { state.view={name:"list"}; render(); });
+  const plan = app.querySelector("[data-plan]"); if(plan) plan.onclick = () => { state.view={name:"plan"}; render(); };
+
+  app.querySelectorAll("[data-filter]").forEach(b => b.onclick = () => { state.filter=b.dataset.filter; render(); });
+  const si = app.querySelector("#searchInput");
+  if(si){ si.oninput = () => { state.query = si.value; const c=app.querySelector("[data-clear]"); render(); const n=$("#searchInput"); if(n){n.focus(); n.setSelectionRange(n.value.length,n.value.length);} }; }
+  const clr = app.querySelector("[data-clear]"); if(clr) clr.onclick = () => { state.query=""; render(); };
+
+  // detail actions (state machine)
+  app.querySelectorAll("[data-action]").forEach(b => b.onclick = () => {
+    if(b.disabled) return;
+    const c = state.competitions.find(x=>x.id===state.view.id);
+    const a = b.dataset.action;
+    if(a.startsWith("adv:")) advance(c, a.slice(4));
+    else if(a==="crown") crownWinner(c);
+    else if(a==="register") registerMe(c);
+    else if(a==="submit") openSubmit(c);
+  });
+
+  // rate buttons
+  app.querySelectorAll("[data-rate]").forEach(b => b.onclick = () => {
+    const c = state.competitions.find(x=>x.id===state.view.id);
+    openRate(c, parseInt(b.dataset.rate,10));
+  });
+
+  // plan create
+  const create = app.querySelector("[data-create]");
+  if(create) create.onclick = () => {
+    const title = ($("#pTitle").value||"").trim() || "Untitled Competition";
+    const blurb = ($("#pBlurb").value||"").trim() || "A freshly planned competition.";
+    const recipeId = $("#pRecipe").value || null;
+    const id = "c"+(state.competitions.length+1)+Date.now().toString().slice(-3);
+    state.competitions.unshift({ id, title, blurb, status: recipeId?"recipe":"planned", recipeId, entries:[], raters:[], winnerCook:null });
+    state.view = { name:"detail", id };
+    render();
+    toast("Competition planned");
+  };
+}
+
+/* ---- Cook registers (story: Cook registers for Competition) ---- */
+function registerMe(c){
+  if(!c.entries.find(e=>e.cook===ME_COOK)){
+    c.entries.push({ cook: ME_COOK, meal:null, emoji:null, shared:false, ratings:[] });
+  }
+  render();
+  toast("Registered — see you in the kitchen!");
+}
+
+/* ---- Cook prepares & shares meal (story: Cook prepares Meal and shares online) ---- */
+function openSubmit(c){
+  const emojis = ["🍚","🥘","🍝","🥗","🍛","🥧","🍲","🌮"];
+  modal(`
+    <h3>Prepare &amp; share your meal</h3>
+    <p>Cook the set recipe your way, then share it online for the community to rate.</p>
+    <div class="field"><label for="mName">Your dish name</label><input id="mName" type="text" placeholder="e.g. Smoked paprika risotto"/></div>
+    <div class="field"><label for="mEmoji">Plate</label>
+      <select id="mEmoji">${emojis.map(e=>`<option>${e}</option>`).join("")}</select></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-primary" id="mShare">Share online</button>
+    </div>
+  `);
+  $("#mShare").onclick = () => {
+    const name = ($("#mName").value||"").trim() || "My dish";
+    const emoji = $("#mEmoji").value;
+    let mine = c.entries.find(e=>e.cook===ME_COOK);
+    if(!mine){ mine = { cook: ME_COOK, ratings:[] }; c.entries.push(mine); }
+    mine.meal = name; mine.emoji = emoji; mine.shared = true; if(!mine.ratings) mine.ratings=[];
+    closeModal(); render(); toast("Meal shared online ✓");
+  };
+}
+
+/* ---- Other cook rates a meal (story: Other cooks rate Meal and share online) ---- */
+function openRate(c, idx){
+  const e = c.entries[idx];
+  let picked = 0;
+  modal(`
+    <h3>Rate this meal</h3>
+    <p>${esc(e.meal)} — by ${esc(e.cook)}</p>
+    <div class="rate-stars" id="rateStars" style="display:flex;justify-content:center;gap:6px;margin:8px 0 4px">
+      ${[1,2,3,4,5].map(i=>`<button data-v="${i}" aria-label="${i} star">★</button>`).join("")}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close>Cancel</button>
+      <button class="btn btn-primary" id="rateSubmit" disabled>Submit rating</button>
+    </div>
+  `);
+  const btns = Array.from($("#rateStars").querySelectorAll("button"));
+  const paint = (v) => btns.forEach((b,i)=> b.classList.toggle("hot", i<v));
+  btns.forEach(b => {
+    b.onmouseenter = () => paint(parseInt(b.dataset.v,10));
+    b.onclick = () => { picked = parseInt(b.dataset.v,10); paint(picked); $("#rateSubmit").disabled=false; };
+  });
+  $("#rateStars").onmouseleave = () => paint(picked);
+  $("#rateSubmit").onclick = () => {
+    if(!picked) return;
+    e.ratings.push(picked);
+    closeModal(); render(); toast("Rating submitted ("+picked+"★)");
+  };
+}
+
+/* ---- modal plumbing ---- */
+function modal(html){
+  const root = $("#modalRoot");
+  root.innerHTML = `<div class="modal-scrim" id="scrim"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  root.querySelectorAll("[data-close]").forEach(b=> b.onclick = closeModal);
+  $("#scrim").addEventListener("mousedown", (ev)=>{ if(ev.target.id==="scrim") closeModal(); });
+}
+function closeModal(){ $("#modalRoot").innerHTML = ""; }
+
+/* boot */
+render();
+</script>
+</body>
+</html>

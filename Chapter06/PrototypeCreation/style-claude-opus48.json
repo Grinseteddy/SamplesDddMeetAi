@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "source": "ScreenshotBlogpostCodecentric.jpg",
+    "imageSize": { "width": 2688, "height": 1570 },
+    "scaleFactor": 1,
+    "scaleFactorBasis": "Title cap-height measured ~23px implies a ~34px font at 1x; the page simply uses large marketing-scale type, so no HiDPI division was applied.",
+    "units": "css-px",
+    "notes": [
+      "This is an enlarged marketing/blog page. Absolute font sizes are large; for the rebuild the visual CHARACTER (near-black bold geometric titles, muted-grey eyebrows, hairline-bordered light chips, generous whitespace, single green accent) is preserved at conventional web sizes rather than the literal pixel sizes. This scaling decision is intentional.",
+      "Font families are visual best-guesses. The title face reads as a geometric/grotesque sans with a distinct bold cut (codecentric uses a custom brand sans); a good substitute stack is used. Verify against the real font.",
+      "Body text glyph centers sample as near-black (#000000/#252525); the palette bucket averages edge anti-aliasing to #484647. Near-black is used for body.",
+      "The codecentric green (#72D2A2) appears only as a partial accent circle at the bottom-left of the crop; it is the brand accent and is used sparingly.",
+      "No hover/focus/disabled states were visible in the static screenshot; interactive states are synthesized from the established tokens and noted."
+    ]
+  },
+  "colors": {
+    "roles": {
+      "background": "#FFFFFF",
+      "surface": "#F6F7F9",
+      "surfaceAlt": "#F5F6F8",
+      "primary": "#72D2A2",
+      "primaryText": "#0A0A0A",
+      "text": "#111111",
+      "textStrong": "#000000",
+      "textMuted": "#9D9EA2",
+      "textBody": "#3A3A3C",
+      "border": "#DCE0E3",
+      "borderStrong": "#BDB7B3"
+    },
+    "palette": [
+      { "hex": "#FFFFFF", "coverage": 0.83, "role": "background" },
+      { "hex": "#F6F7F9", "coverage": 0.05, "role": "surface" },
+      { "hex": "#484647", "coverage": 0.036, "role": "textBody" },
+      { "hex": "#BDB7B3", "coverage": 0.019, "role": "borderStrong" },
+      { "hex": "#DCE0E3", "coverage": 0.01, "role": "border" },
+      { "hex": "#72D2A2", "coverage": 0.005, "role": "primary" },
+      { "hex": "#9D9EA2", "coverage": 0.01, "role": "textMuted" }
+    ]
+  },
+  "typography": {
+    "styles": {
+      "pageHeading": { "fontFamily": "'Poppins', 'Inter', system-ui, sans-serif", "fontSize": 34, "fontWeight": 600, "lineHeight": 42, "color": "#9D9EA2" },
+      "cardTitle": { "fontFamily": "'Poppins', 'Inter', system-ui, sans-serif", "fontSize": 26, "fontWeight": 700, "lineHeight": 32, "letterSpacing": -0.3, "color": "#0A0A0A" },
+      "eyebrow": { "fontFamily": "'Inter', system-ui, sans-serif", "fontSize": 13, "fontWeight": 600, "lineHeight": 18, "letterSpacing": 0.6, "textTransform": "uppercase", "color": "#9D9EA2" },
+      "body": { "fontFamily": "'Inter', system-ui, sans-serif", "fontSize": 16, "fontWeight": 400, "lineHeight": 26, "color": "#3A3A3C" },
+      "label": { "fontFamily": "'Inter', system-ui, sans-serif", "fontSize": 14, "fontWeight": 600, "lineHeight": 20, "color": "#2A2A2C" },
+      "chip": { "fontFamily": "'Inter', system-ui, sans-serif", "fontSize": 15, "fontWeight": 400, "lineHeight": 20, "color": "#3A3A3C" },
+      "input": { "fontFamily": "'Inter', system-ui, sans-serif", "fontSize": 16, "fontWeight": 400, "lineHeight": 24, "color": "#252525" }
+    }
+  },
+  "spacing": {
+    "baseUnit": 8,
+    "scale": [4, 8, 12, 16, 24, 32, 48, 64],
+    "observed": [
+      { "context": "chip paddingY", "px": 12 },
+      { "context": "chip paddingX", "px": 20 },
+      { "context": "search input paddingY", "px": 18 },
+      { "context": "gap between chips", "px": 16 },
+      { "context": "column gap (blog cards)", "px": 48 }
+    ]
+  },
+  "radii": { "sm": 6, "md": 10, "lg": 14, "pill": 9999 },
+  "effects": {
+    "shadows": [
+      { "name": "none", "value": "none" },
+      { "name": "focus", "value": "0 0 0 3px rgba(114,210,162,0.35)" }
+    ],
+    "borders": [
+      { "name": "hairline", "value": "1px solid #DCE0E3" },
+      { "name": "hairlineStrong", "value": "1px solid #BDB7B3" }
+    ]
+  },
+  "components": {
+    "input.search": {
+      "background": "#FFFFFF",
+      "color": "#252525",
+      "placeholderColor": "#6B7280",
+      "border": "1px solid #DCE0E3",
+      "borderRadius": 12,
+      "paddingX": 20,
+      "paddingY": 18,
+      "fontSize": 16,
+      "iconColor": "#6B7280"
+    },
+    "chip.filter": {
+      "background": "#F6F7F9",
+      "color": "#3A3A3C",
+      "border": "1px solid #ECEEF1",
+      "borderRadius": 8,
+      "paddingX": 20,
+      "paddingY": 12,
+      "fontSize": 15,
+      "fontWeight": 400,
+      "states": {
+        "active": { "background": "#0A0A0A", "color": "#FFFFFF", "border": "1px solid #0A0A0A" },
+        "hover": { "background": "#ECEEF1" }
+      }
+    },
+    "card.blog": {
+      "background": "#FFFFFF",
+      "border": "none",
+      "borderRadius": 0,
+      "padding": 0,
+      "shadow": "none"
+    },
+    "button.primary": {
+      "background": "#72D2A2",
+      "color": "#0A0A0A",
+      "fontSize": 15,
+      "fontWeight": 600,
+      "paddingX": 22,
+      "paddingY": 12,
+      "borderRadius": 10,
+      "border": "none",
+      "states": { "hover": { "background": "#5FC593" } }
+    },
+    "button.secondary": {
+      "background": "#FFFFFF",
+      "color": "#0A0A0A",
+      "fontSize": 15,
+      "fontWeight": 600,
+      "paddingX": 22,
+      "paddingY": 12,
+      "borderRadius": 10,
+      "border": "1px solid #BDB7B3",
+      "states": { "hover": { "background": "#F6F7F9" } }
+    },
+    "badge.status": {
+      "background": "#F6F7F9",
+      "color": "#3A3A3C",
+      "border": "1px solid #DCE0E3",
+      "borderRadius": 9999,
+      "paddingX": 12,
+      "paddingY": 4,
+      "fontSize": 13,
+      "fontWeight": 600
+    }
+  }
+}

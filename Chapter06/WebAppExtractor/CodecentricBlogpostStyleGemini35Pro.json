@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "source": "ScreenshotBlogpostCodecentric.jpg",
+    "imageSize": { "width": 1280, "height": 720 },
+    "scaleFactor": 1,
+    "scaleFactorBasis": "Body text visually maps to roughly 14px CSS size.",
+    "units": "css-px",
+    "notes": [
+      "As an AI, I cannot execute the probe.py script. All measurements and colors are high-fidelity visual estimates.",
+      "Font families are visual guesses; verify against the real stack."
+    ]
+  },
+  "colors": {
+    "roles": {
+      "background": "#FFFFFF",
+      "surface": "#F4F4F5",
+      "primaryText": "#18181B",
+      "text": "#3F3F46",
+      "textMuted": "#71717A",
+      "border": "#E4E4E7",
+      "accent": "#00E599"
+    },
+    "palette": [
+      { "hex": "#FFFFFF", "coverage": 0.85, "role": "background" },
+      { "hex": "#F4F4F5", "coverage": 0.05, "role": "surface" },
+      { "hex": "#18181B", "coverage": 0.05, "role": "primaryText" },
+      { "hex": "#00E599", "coverage": 0.01, "role": "accent" }
+    ]
+  },
+  "typography": {
+    "styles": {
+      "pageTitle": { "fontFamily": "Inter, system-ui, sans-serif", "fontSize": 28, "fontWeight": 500, "lineHeight": 36, "color": "#3F3F46" },
+      "cardTitle": { "fontFamily": "Inter, system-ui, sans-serif", "fontSize": 20, "fontWeight": 600, "lineHeight": 28, "color": "#18181B" },
+      "body": { "fontFamily": "Inter, system-ui, sans-serif", "fontSize": 14, "fontWeight": 400, "lineHeight": 20, "color": "#3F3F46" },
+      "label": { "fontFamily": "Inter, system-ui, sans-serif", "fontSize": 12, "fontWeight": 600, "lineHeight": 16, "color": "#A1A1AA" }
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "scale": [4, 8, 12, 16, 24, 32, 48],
+    "observed": [
+      { "context": "filter gap", "px": 8 },
+      { "context": "blog column gap", "px": 32 },
+      { "context": "search paddingX", "px": 16 }
+    ]
+  },
+  "radii": {
+    "sm": 4,
+    "md": 8
+  },
+  "effects": {
+    "borders": [
+      { "name": "inputBorder", "value": "1px solid #E4E4E7" }
+    ],
+    "shadows": []
+  },
+  "components": {
+    "input.search": {
+      "background": "#FFFFFF",
+      "color": "#18181B",
+      "placeholderColor": "#71717A",
+      "border": "1px solid #E4E4E7",
+      "borderRadius": 8,
+      "paddingX": 16,
+      "paddingY": 12,
+      "fontSize": 14
+    },
+    "button.filter": {
+      "background": "#F4F4F5",
+      "color": "#3F3F46",
+      "border": "none",
+      "borderRadius": 4,
+      "paddingX": 12,
+      "paddingY": 8,
+      "fontSize": 14
+    },
+    "card.blog": {
+      "background": "#FFFFFF",
+      "padding": 0,
+      "border": "none"
+    }
+  }
+}

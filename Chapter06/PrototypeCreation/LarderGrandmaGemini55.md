@@ -230,3 +230,294 @@ Following the standard output schema, here are the design tokens extracted from 
 }
 
 ```
+
+# Create the clickable prototype
+
+Here is the single-file, clickable HTML prototype that brings the Larder "Grandma Rescue" flow to life. It uses the visual styles extracted from the UI screenshot and implements the user journey derived from the domain story.
+
+You can save this code as an `.html` file (e.g., `larder-prototype.html`) and open it in any web browser to click through the entire flow.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Larder - Grandma Rescue Prototype</title>
+  <style>
+    /* Design Tokens from Extracted JSON[cite: 1, 2] */
+    :root {
+      --bg-color: #FDFBF7;
+      --primary: #FF6B4A;
+      --primary-hover: #E55A39;
+      --text-main: #222222;
+      --text-muted: #888888;
+      --card-bg-1: #FFE5E0;
+      --card-bg-2: #DDF3EE;
+      --card-bg-3: #FFF2DE;
+      --white: #FFFFFF;
+      --radius-md: 16px;
+      --radius-pill: 9999px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      
+      --font-heading: 'Poppins', system-ui, sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+
+    h1, h2, h3 { font-family: var(--font-heading); color: var(--text-main); }
+    h1 { font-size: 42px; font-weight: 800; margin-bottom: 24px; }
+    h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    p { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; }
+
+    /* Navigation */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 48px;
+      background: var(--white);
+      border-bottom: 1px solid #EAEAEA;
+    }
+    
+    .nav-left { display: flex; align-items: center; gap: 32px; }
+    .nav-left h2 { color: var(--primary); font-weight: 800; cursor: pointer; }
+    .nav-links { display: flex; gap: 24px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+    .nav-links .active { color: var(--text-main); border-bottom: 2px solid var(--primary); padding-bottom: 4px; }
+    
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    
+    /* Buttons */
+    button {
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: var(--primary-hover); }
+    button.secondary { background: var(--text-main); }
+    
+    /* Layout */
+    .container {
+      max-width: 1000px;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeIn 0.3s ease-in; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Discover Feed (Screen 1) */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 32px;
+    }
+    
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-4px); }
+    
+    .card-img { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+    .bg-1 { background-color: var(--card-bg-1); }
+    .bg-2 { background-color: var(--card-bg-2); }
+    .bg-3 { background-color: var(--card-bg-3); }
+    
+    .card-content { padding: 24px; }
+
+    /* Active / Chat Screens */
+    .focus-container {
+      background: var(--white);
+      padding: 48px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .chat-box {
+      text-align: left;
+      background: #F9F9F9;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      height: 300px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .msg { padding: 12px 16px; border-radius: 8px; max-width: 80%; }
+    .msg.grandma { background: var(--card-bg-2); align-self: flex-start; color: var(--text-main); }
+    .msg.cook { background: var(--primary); align-self: flex-end; color: var(--white); }
+    
+    .emoji-huge { font-size: 80px; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <h2 onclick="navTo('screen-discover')">L Larder</h2>
+      <div class="nav-links">
+        <span class="active">Discover</span>
+        <span>My Kitchen</span>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span>👤 Amara (you)</span>
+      <button>+ Share recipe</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    
+    <!-- Screen 1: Discover Feed -->
+    <div id="screen-discover" class="screen active">
+      <p>Fresh from the community</p>
+      <h1>What are we cooking tonight?</h1>
+      <p>Real recipes shared by home cooks — try one, then rate it so the next cook knows it's a keeper.</p>
+      
+      <div class="grid">
+        <div class="card" onclick="navTo('screen-cooking')">
+          <div class="card-img bg-1">🍋🍗</div>
+          <div class="card-content">
+            <h3>Charred Lemon Chicken</h3>
+            <p>5.0 • 1 rating</p>
+          </div>
+        </div>
+        <div class="card" onclick="navTo('screen-cooking')">
+          <div class="card-img bg-2">🍲</div>
+          <div class="card-content">
+            <h3>Weeknight Red Dhal</h3>
+            <p>4.0 • 1 rating</p>
+          </div>
+        </div>
+        <div class="card" onclick="navTo('screen-cooking')">
+          <div class="card-img bg-3">🍞</div>
+          <div class="card-content">
+            <h3>Grandma's Banana Bread</h3>
+            <p>4.5 • 2 ratings</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 2: Active Cooking (Step 1 & 2 of Domain Story)[cite: 3, 5] -->
+    <div id="screen-cooking" class="screen">
+      <div class="focus-container">
+        <div class="emoji-huge">👨‍🍳</div>
+        <h1>Cooking in Progress</h1>
+        <p>You are currently preparing: <strong>Grandma's Banana Bread</strong></p>
+        <p>Follow the steps and enjoy your meal!</p>
+        <br><br>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button onclick="navTo('screen-discover')" class="secondary">Cancel</button>
+          <button onclick="navTo('screen-burned')">Oh no, I burned it! 🔥</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Ask Grandma for Help (Step 3 of Domain Story)[cite: 3, 5] -->
+    <div id="screen-burned" class="screen">
+      <div class="focus-container">
+        <div class="emoji-huge">⬛🍞</div>
+        <h1>Oops! Things got a little crispy.</h1>
+        <p>You took a picture of the burned meal. Don't throw it away just yet!</p>
+        <br><br>
+        <button onclick="startRescueChat()">Ask Grandma Avatar for Help 👵</button>
+      </div>
+    </div>
+
+    <!-- Screen 4: Grandma Rescue Chat (Step 4 of Domain Story)[cite: 3, 5] -->
+    <div id="screen-chat" class="screen">
+      <div class="focus-container">
+        <h3>👵 Grandma Avatar</h3>
+        <p>Helping you rescue your dish...</p>
+        
+        <div class="chat-box" id="chatHistory">
+          <!-- Chat messages injected via JS -->
+        </div>
+
+        <button id="btn-rescued" style="display:none;" onclick="navTo('screen-rescued')">I followed the steps — It's Rescued! ✨</button>
+      </div>
+    </div>
+
+    <!-- Screen 5: Rescued & Share (Steps 5 & 6 of Domain Story)[cite: 3, 5] -->
+    <div id="screen-rescued" class="screen">
+      <div class="focus-container">
+        <div class="emoji-huge">📸🍞</div>
+        <h1>Meal Rescued!</h1>
+        <p>You saved it! You've taken the final pictures showing the before and after.</p>
+        <p>Share your rescue journey to help others in the community!</p>
+        <br><br>
+        <button onclick="shareToCommunity()">Share with Community 🌍</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Simple routing system to switch screens
+    function navTo(screenId) {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      window.scrollTo(0,0);
+    }
+
+    // Simulating the Avatar Chat Experience[cite: 3]
+    function startRescueChat() {
+      navTo('screen-chat');
+      const chat = document.getElementById('chatHistory');
+      const btn = document.getElementById('btn-rescued');
+      
+      chat.innerHTML = `<div class="msg cook">Here is a picture of my burned banana bread... can you help? 😭</div>`;
+      btn.style.display = "none";
+
+      setTimeout(() => {
+        chat.innerHTML += `<div class="msg grandma">Oh sweetie, don't worry! Let me look at the picture. I see the top is quite charred.</div>`;
+        chat.scrollTop = chat.scrollHeight;
+      }, 1500);
+
+      setTimeout(() => {
+        chat.innerHTML += `<div class="msg grandma">Here's how we rescue this: Carefully slice off the burned top crust. Then, make a simple lemon glaze to pour over the top to keep the exposed bread moist! 🍋</div>`;
+        chat.scrollTop = chat.scrollHeight;
+        btn.style.display = "inline-block";
+      }, 4000);
+    }
+
+    // Share back to the discover feed[cite: 3]
+    function shareToCommunity() {
+      alert("Success! You've thanked Grandma and shared your pictures with the community.");
+      navTo('screen-discover');
+    }
+  </script>
+</body>
+</html>
+
+```

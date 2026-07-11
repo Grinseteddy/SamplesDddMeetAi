@@ -123,7 +123,9 @@ card, badge, nav item, toggle…), assemble an entry keyed `component.variant` w
 its measured/sampled properties: background, text color, border, border-radius,
 padding (X/Y), font size/weight, shadow. Sample colors with `color-at`; get padding
 by scanning `edges` straight through the component; read border-radius by measuring
-how many pixels the corner curve spans. Only add a `states` entry (hover, focus,
+how many pixels the corner curve spans. Only add a `states` entry (hover, foc
+/
+us,
 disabled) for a state actually visible in the screenshot — don't invent states.
 
 ### 6. Assemble and validate

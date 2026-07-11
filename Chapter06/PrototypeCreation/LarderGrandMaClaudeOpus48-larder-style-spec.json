@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "source": "LarderStyleExample.jpg",
+    "imageSize": { "width": 3330, "height": 1202 },
+    "scaleFactor": 2,
+    "scaleFactorBasis": "White nav bar measures 120px physical (border at y=120) -> 60px CSS, a standard nav height; H1 cap-height ~70px physical -> ~48px font at 2x, consistent with a hero title.",
+    "units": "css-px",
+    "notes": [
+      "Font family is a visual guess: geometric/rounded friendly sans with rounded terminals and round dots on the i. Best-guess stack Poppins/Nunito-like; verify the real face.",
+      "Radii and card shadow are approximated from visual falloff, not exact pixel corner measurement; card shadow is very soft.",
+      "Card tint colors sampled from flat interior pixels of each card header (pink/mint/peach).",
+      "Subtitle vs eyebrow muted greys are close warm-greys; treated as one muted role with a darker body variant."
+    ]
+  },
+  "colors": {
+    "roles": {
+      "background": "#FBF6F0",
+      "surface": "#FFFFFF",
+      "surfaceAlt": "#F7F1E9",
+      "primary": "#FF6B4B",
+      "primaryText": "#FFFFFF",
+      "text": "#2C2924",
+      "textMuted": "#6F6862",
+      "textFaint": "#9A938C",
+      "border": "#EDE6DD",
+      "star": "#F5A625",
+      "teal": "#15A595",
+      "amber": "#F2A93C",
+      "tintPink": "#FFE6DF",
+      "tintMint": "#D9F2EE",
+      "tintPeach": "#FCEED4"
+    },
+    "palette": [
+      { "hex": "#FBF6F0", "coverage": 0.574, "role": "background" },
+      { "hex": "#FFFFFF", "coverage": 0.183, "role": "surface" },
+      { "hex": "#FBF1E2", "coverage": 0.125, "role": "tintPeach-ish" },
+      { "hex": "#E5F1EC", "coverage": 0.053, "role": "tintMint-ish" },
+      { "hex": "#FF6B4B", "coverage": 0.02, "role": "primary" },
+      { "hex": "#F5A625", "coverage": 0.01, "role": "star" }
+    ]
+  },
+  "typography": {
+    "styles": {
+      "h1":       { "fontFamily": "Poppins, 'Segoe UI', system-ui, sans-serif", "fontSize": 48, "fontWeight": 800, "lineHeight": 54, "letterSpacing": -1, "color": "#2C2924" },
+      "eyebrow":  { "fontFamily": "Poppins, system-ui, sans-serif", "fontSize": 15, "fontWeight": 600, "lineHeight": 20, "color": "#6F6862" },
+      "subtitle": { "fontFamily": "Poppins, system-ui, sans-serif", "fontSize": 18, "fontWeight": 400, "lineHeight": 28, "color": "#6F6862" },
+      "cardTitle":{ "fontFamily": "Poppins, system-ui, sans-serif", "fontSize": 20, "fontWeight": 700, "lineHeight": 26, "color": "#2C2924" },
+      "name":     { "fontFamily": "Poppins, system-ui, sans-serif", "fontSize": 16, "fontWeight": 500, "lineHeight": 20, "color": "#2C2924" },
+      "meta":     { "fontFamily": "Poppins, system-ui, sans-serif", "fontSize": 15, "fontWeight": 400, "lineHeight": 20, "color": "#6F6862" },
+      "nav":      { "fontFamily": "Poppins, system-ui, sans-serif", "fontSize": 16, "fontWeight": 600, "lineHeight": 20, "color": "#2C2924" },
+      "button":   { "fontFamily": "Poppins, system-ui, sans-serif", "fontSize": 16, "fontWeight": 600, "lineHeight": 20, "color": "#FFFFFF" }
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "scale": [4, 8, 12, 16, 20, 24, 32, 40, 48, 64],
+    "observed": [
+      { "context": "nav height", "px": 60 },
+      { "context": "card gap", "px": 32 },
+      { "context": "card inner padding", "px": 24 },
+      { "context": "avatar to name gap", "px": 12 }
+    ]
+  },
+  "radii": { "sm": 8, "md": 14, "lg": 20, "xl": 24, "pill": 9999, "circle": 9999 },
+  "effects": {
+    "shadows": [
+      { "name": "card", "value": "0 6px 20px rgba(60,45,30,0.06)" },
+      { "name": "cardHover", "value": "0 12px 30px rgba(60,45,30,0.10)" }
+    ],
+    "borders": [ { "name": "hairline", "value": "1px solid #EDE6DD" } ]
+  },
+  "components": {
+    "button.primary": {
+      "background": "#FF6B4B", "color": "#FFFFFF", "fontSize": 16, "fontWeight": 600,
+      "paddingX": 22, "paddingY": 12, "borderRadius": 9999, "border": "none",
+      "shadow": "0 4px 12px rgba(255,107,75,0.28)"
+    },
+    "button.secondary": {
+      "background": "#FFFFFF", "color": "#2C2924", "fontSize": 16, "fontWeight": 600,
+      "paddingX": 18, "paddingY": 10, "borderRadius": 9999, "border": "1px solid #EDE6DD"
+    },
+    "card": {
+      "background": "#FFFFFF", "border": "none", "borderRadius": 20, "padding": 0,
+      "shadow": "0 6px 20px rgba(60,45,30,0.06)"
+    },
+    "cardHeaderTint": {
+      "height": 150, "borderRadius": "20px 20px 0 0", "display": "grid", "placeItems": "center", "fontSize": 56
+    },
+    "avatar": {
+      "size": 34, "borderRadius": 9999, "color": "#FFFFFF", "fontSize": 14, "fontWeight": 700
+    },
+    "navItem.active": {
+      "color": "#2C2924", "fontWeight": 600, "underline": "2px solid #FF6B4B", "underlineOffset": 8
+    },
+    "navItem.inactive": { "color": "#6F6862", "fontWeight": 600 },
+    "input.default": {
+      "background": "#FFFFFF", "color": "#2C2924", "placeholderColor": "#9A938C",
+      "border": "1px solid #EDE6DD", "borderRadius": 14, "paddingX": 16, "paddingY": 12, "fontSize": 16
+    },
+    "badge.rating": { "color": "#F5A625", "fontSize": 15 }
+  }
+}

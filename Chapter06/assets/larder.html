@@ -1,0 +1,452 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Larder — share what you cook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== TOKEN LAYER — Saffron light theme (exact) ===== */
+:root{
+  --bg:#FBF6EF; --surface:#FFFFFF; --ink:#2B2724; --muted:#8A817A; --border:#ECE3D8;
+  --coral:#FF6B4A; --coral-d:#C4442A; --coral-t:#FFE7E0;
+  --teal:#12A594; --teal-d:#0B6B60; --teal-t:#DAF2EE;
+  --amber:#F6A623; --amber-d:#9A6410; --amber-t:#FCEED4;
+  --field:#F7F1E9; --track:#F0EAE2;
+  --font:'Poppins',system-ui,sans-serif;
+  --r-pill:999px; --r-card:20px; --r-md:16px; --r-sm:12px;
+  --shadow:0 10px 30px rgba(43,39,36,.07);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;font-weight:700;line-height:1.15}
+button{font-family:var(--font);cursor:pointer}
+:focus-visible{outline:3px solid var(--coral);outline-offset:2px;border-radius:8px}
+
+/* nav */
+.nav{display:flex;align-items:center;gap:26px;padding:14px clamp(16px,4vw,48px);background:var(--surface);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none}
+.brand .mk{width:38px;height:38px;border-radius:12px;background:var(--coral);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px}
+.brand .nm{font-weight:700;font-size:24px}
+.nlinks{display:flex;gap:22px;margin-left:8px}
+.nlinks button{background:none;border:none;color:var(--muted);font-weight:500;font-size:16px;padding:6px 2px;position:relative}
+.nlinks button:hover{color:var(--ink)}
+.nlinks button.active{color:var(--ink)}
+.nlinks button.active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:3px;border-radius:2px;background:var(--coral)}
+.spacer{margin-left:auto}
+.persona{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.persona select{background:var(--field);color:var(--ink);border:1px solid var(--border);border-radius:var(--r-pill);padding:8px 12px;font-family:var(--font);font-size:13px;font-weight:500}
+
+/* buttons */
+.btn{border:none;border-radius:var(--r-pill);padding:11px 24px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:8px;transition:filter .15s,transform .08s}
+.btn:hover{filter:brightness(1.06)} .btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--coral);color:#fff}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--border)}
+.btn-ghost:hover{filter:none;border-color:var(--muted)}
+.btn-sm{padding:8px 16px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none;transform:none}
+
+/* layout */
+.page{max-width:1120px;margin:0 auto;padding:clamp(20px,3.5vw,40px) clamp(16px,4vw,48px) 90px}
+.row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px}
+.kicker{color:var(--muted);font-weight:500;font-size:16px}
+.h-title{font-size:clamp(28px,4.5vw,40px);margin:2px 0 6px}
+.h-sub{color:var(--muted);font-size:17px;max-width:60ch;margin-bottom:28px}
+.section-title{font-size:22px;margin:6px 0 18px}
+
+/* card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.card.pad{padding:22px}
+.card.click{cursor:pointer;transition:transform .1s,box-shadow .15s}
+.card.click:hover{transform:translateY(-3px);box-shadow:0 16px 38px rgba(43,39,36,.12)}
+.cover{height:150px;display:flex;align-items:center;justify-content:center;font-size:56px;background:var(--amber-t)}
+.cover.c1{background:var(--coral-t)} .cover.c2{background:var(--teal-t)} .cover.c3{background:var(--amber-t)}
+.card-body{padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+
+/* avatar + cook */
+.ava{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:#fff;flex:0 0 30px}
+.cook-line{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:14px}
+
+/* badges */
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-pill);padding:5px 12px;font-size:12.5px;font-weight:600;width:max-content}
+.badge.prepared{background:var(--amber-t);color:var(--amber-d)}
+.badge.shared{background:var(--teal-t);color:var(--teal-d)}
+.badge.cooked{background:var(--teal-t);color:var(--teal-d)}
+.badge.mine{background:var(--coral-t);color:var(--coral-d)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* stars */
+.stars{display:inline-flex;gap:2px;font-size:16px;color:var(--amber)}
+.stars .off{color:#DFD6C9}
+.stars.big{font-size:26px}
+.stars.rate span{cursor:pointer;transition:transform .08s}
+.stars.rate span:hover{transform:scale(1.15)}
+.rate-count{color:var(--muted);font-size:13px}
+
+/* ingredients / steps */
+.ing{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:15px}
+.ing:last-child{border-bottom:none}
+.ing .amt{color:var(--muted);white-space:nowrap}
+.step{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step .no{width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:var(--coral-t);color:var(--coral-d);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.step .t{font-weight:600} .step .d{color:var(--muted);font-size:14px}
+
+/* photos */
+.photos{display:flex;gap:10px;flex-wrap:wrap}
+.photo{width:76px;height:76px;border-radius:var(--r-md);background:var(--field);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:34px}
+
+/* forms */
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
+input,textarea{width:100%;background:var(--field);border:1px solid var(--border);border-radius:var(--r-md);color:var(--ink);font-family:var(--font);font-size:15px;padding:11px 14px;resize:vertical}
+input::placeholder,textarea::placeholder{color:#A99F95}
+.field{margin-bottom:16px}
+.ing-row,.step-row{display:grid;gap:8px;margin-bottom:8px}
+.ing-row{grid-template-columns:1fr 90px 90px 34px}
+.step-row{grid-template-columns:1fr 34px}
+.mini-x{background:var(--field);border:1px solid var(--border);border-radius:var(--r-md);color:var(--muted);font-size:18px;display:flex;align-items:center;justify-content:center}
+.mini-x:hover{color:var(--coral-d);border-color:var(--coral)}
+.addline{background:none;border:1.5px dashed var(--border);border-radius:var(--r-md);color:var(--muted);font-weight:600;font-size:14px;padding:10px;width:100%}
+.addline:hover{border-color:var(--coral);color:var(--coral-d)}
+
+.two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:26px;align-items:start}
+@media(max-width:760px){.two-col{grid-template-columns:1fr}}
+
+.empty{text-align:center;color:var(--muted);padding:46px 20px;border:1px dashed var(--border);border-radius:var(--r-card)}
+.back{background:none;border:none;color:var(--muted);font-weight:600;font-size:14px;padding:4px 0;margin-bottom:14px;display:inline-flex;gap:6px}
+.back:hover{color:var(--ink)}
+.hint{font-size:12.5px;color:var(--muted)}
+.note{background:var(--amber-t);color:var(--amber-d);border-radius:var(--r-md);padding:12px 16px;font-size:14px}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(43,39,36,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60}
+.modal{background:var(--surface);border-radius:var(--r-card);padding:30px;width:min(440px,100%);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+</style>
+
+<div class="nav">
+  <div class="brand" onclick="go('discover')"><span class="mk">L</span><span class="nm">Larder</span></div>
+  <div class="nlinks" id="nlinks"></div>
+  <div class="spacer"></div>
+  <div id="authArea" class="row" style="gap:12px"></div>
+  <div class="persona">
+    <span>Viewing as</span>
+    <select id="persona" onchange="setPersona(this.value)"></select>
+  </div>
+</div>
+<div id="app" class="page"></div>
+<div id="modalRoot"></div>
+
+<script>
+/* ============================================================
+   STATE (in-memory).  Structure from the Larder domain story:
+   register+become Cook -> prepare Meal -> share Recipe -> try -> rate.
+   Glossary: Cook(email); Recipe(ingredients name/number/unit, steps
+   order/title/description); Rating(stars, pictures); pictures optional.
+   ============================================================ */
+const COOK_COLORS=['#FF6B4A','#12A594','#F6A623','#7A5Cd6','#E0568A'];
+let state={
+  view:'discover', currentCookId:'amara', currentRecipe:null, shareFromMeal:null,
+  cooks:{
+    amara:{id:'amara',name:'Amara',email:'amara@larder.app',color:'#FF6B4A'},
+    ben:{id:'ben',name:'Ben',email:'ben@larder.app',color:'#12A594'},
+    chen:{id:'chen',name:'Chen',email:'chen@larder.app',color:'#F6A623'},
+  },
+  meals:[
+    {id:'m1',cook:'amara',name:'Sunday Roast',emoji:'🍗',photos:['🍗'],status:'prepared'},
+  ],
+  recipes:[
+    {id:'r1',cook:'ben',title:'Charred Lemon Chicken',emoji:'🍋',status:'shared',
+      photos:['🍗','🍋'],
+      ingredients:[{name:'Chicken thighs',number:'6',unit:'pcs'},{name:'Lemon',number:'2',unit:'pcs'},{name:'Olive oil',number:'3',unit:'tbsp'},{name:'Smoked paprika',number:'1',unit:'tsp'}],
+      steps:[{orderNo:1,title:'Marinate',description:'Coat thighs in oil, lemon juice and paprika. Rest 30 min.'},{orderNo:2,title:'Sear',description:'Skin-side down in a hot pan until deeply golden.'},{orderNo:3,title:'Roast',description:'Finish in the oven at 200°C for 20 minutes.'}],
+      tried:['chen'], ratings:[{cook:'chen',stars:5,photo:'🍗'}]},
+    {id:'r2',cook:'chen',title:'Weeknight Red Dhal',emoji:'🍲',status:'shared',
+      photos:['🍲'],
+      ingredients:[{name:'Red lentils',number:'250',unit:'g'},{name:'Coconut milk',number:'400',unit:'ml'},{name:'Ginger',number:'1',unit:'thumb'},{name:'Cumin',number:'1',unit:'tsp'}],
+      steps:[{orderNo:1,title:'Soften aromatics',description:'Fry ginger and cumin until fragrant.'},{orderNo:2,title:'Simmer',description:'Add lentils and coconut milk, simmer 20 min until creamy.'}],
+      tried:['ben'], ratings:[{cook:'ben',stars:4,photo:null}]},
+    {id:'r3',cook:'amara',title:"Grandma's Banana Bread",emoji:'🍞',status:'shared',
+      photos:['🍞','✨'],
+      ingredients:[{name:'Ripe bananas',number:'3',unit:'pcs'},{name:'Flour',number:'250',unit:'g'},{name:'Butter',number:'100',unit:'g'},{name:'Brown sugar',number:'150',unit:'g'}],
+      steps:[{orderNo:1,title:'Mash & mix',description:'Mash bananas, cream with butter and sugar.'},{orderNo:2,title:'Fold',description:'Fold in flour until just combined.'},{orderNo:3,title:'Bake',description:'45 min at 170°C. Cover the top if it darkens early.'}],
+      tried:['ben','chen'], ratings:[{cook:'ben',stars:5,photo:'🍞'},{cook:'chen',stars:4,photo:null}]},
+  ],
+};
+
+/* helpers */
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cook=id=>state.cooks[id];
+const me=()=>state.currentCookId?state.cooks[state.currentCookId]:null;
+const isAnon=()=>!state.currentCookId;
+function avg(r){ if(!r.ratings.length) return 0; return r.ratings.reduce((a,b)=>a+b.stars,0)/r.ratings.length; }
+function avatar(id){const c=cook(id);return `<span class="ava" style="background:${c.color}">${c.name[0]}</span>`;}
+function starsHTML(val,big){const n=Math.round(val);let h='';for(let i=1;i<=5;i++)h+=`<span class="${i<=n?'':'off'}">★</span>`;return `<span class="stars ${big?'big':''}">${h}</span>`;}
+function badge(kind,txt){return `<span class="badge ${kind}"><span class="dot"></span>${txt}</span>`;}
+function coverClass(r){return r.emoji==='🍋'||r.emoji==='🍗'?'c1':(r.emoji==='🍲'?'c2':'c3');}
+
+/* ============================================================
+   TRANSITIONS  (each maps to a domain-story step)
+   ============================================================ */
+function joinAsCook(name,email){                 // steps 1-2: register + becomes Cook
+  const id=name.trim().toLowerCase().replace(/[^a-z]/g,'').slice(0,12)||('cook'+Date.now());
+  if(!state.cooks[id]) state.cooks[id]={id,name:name.trim(),email:email.trim(),color:COOK_COLORS[Object.keys(state.cooks).length%COOK_COLORS.length]};
+  state.currentCookId=id; closeModal(); go('kitchen');
+}
+function prepareMeal(name){                        // step 3: Cook prepares Meal
+  const emojis=['🍝','🥘','🍲','🥧','🧁','🍳','🥞','🍰','🫕','🍜'];
+  state.meals.unshift({id:'m'+Date.now(),cook:me().id,name:name.trim(),emoji:emojis[Math.floor(Math.random()*emojis.length)],photos:[],status:'prepared'});
+  closeModal(); go('kitchen');
+}
+function shareRecipe(draft){                       // step 4: Cook shares Recipe
+  const r={id:'r'+Date.now(),cook:me().id,title:draft.title,emoji:draft.emoji||'🍽️',status:'shared',
+           photos:draft.photos||[],ingredients:draft.ingredients,steps:draft.steps.map((s,i)=>({orderNo:i+1,title:s.title,description:s.description})),
+           tried:[],ratings:[]};
+  state.recipes.unshift(r);
+  if(state.shareFromMeal){ const m=state.meals.find(x=>x.id===state.shareFromMeal); if(m) m.status='shared'; state.shareFromMeal=null; }
+  go('recipe',r.id);
+}
+function tryRecipe(id){                             // step 5: another Cook tries Recipe
+  const r=state.recipes.find(x=>x.id===id); if(!r.tried.includes(me().id)) r.tried.push(me().id); render();
+}
+function rateRecipe(id,stars){                      // step 6: Cook rates Recipe -> Rated Recipe
+  const r=state.recipes.find(x=>x.id===id); const ex=r.ratings.find(x=>x.cook===me().id);
+  if(ex) ex.stars=stars; else r.ratings.push({cook:me().id,stars,photo:null});
+  if(!r.tried.includes(me().id)) r.tried.push(me().id);
+  render();
+}
+
+/* ============================================================
+   NAV + AUTH + PERSONA
+   ============================================================ */
+const NAV=[{id:'discover',label:'Discover'},{id:'kitchen',label:'My Kitchen',cookOnly:true}];
+function go(v,rid){state.view=v; if(rid!==undefined)state.currentRecipe=rid; render();}
+function setPersona(v){ state.currentCookId=(v==='anon'?null:v); if(state.view==='kitchen'&&isAnon())state.view='discover'; render(); }
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+function view_discover(){
+  const rs=state.recipes;
+  return `
+  <div class="kicker">Fresh from the community</div>
+  <h1 class="h-title">What are we cooking tonight?</h1>
+  <p class="h-sub">Real recipes shared by home cooks — try one, then rate it so the next cook knows it's a keeper.</p>
+  <div class="grid">${rs.map(recipeCard).join('')}</div>`;
+}
+function recipeCard(r){
+  const a=avg(r), c=cook(r.cook);
+  const youTried=me()&&r.tried.includes(me().id);
+  return `
+  <div class="card click" onclick="go('recipe','${r.id}')">
+    <div class="cover ${coverClass(r)}">${r.emoji}</div>
+    <div class="card-body">
+      <div class="row between" style="gap:8px">
+        <h3 style="font-size:19px">${esc(r.title)}</h3>
+        ${youTried?badge('cooked','Cooked'):''}
+      </div>
+      <div class="cook-line">${avatar(r.cook)} ${esc(c.name)}</div>
+      <div class="row" style="gap:8px">${starsHTML(a)}
+        <span class="rate-count">${a?a.toFixed(1):'—'} · ${r.ratings.length} rating${r.ratings.length===1?'':'s'}</span></div>
+    </div>
+  </div>`;
+}
+
+function view_recipe(){
+  const r=state.recipes.find(x=>x.id===state.currentRecipe);
+  if(!r) return `<div class="empty">Recipe not found. <button class="btn btn-ghost btn-sm" onclick="go('discover')">Back</button></div>`;
+  const c=cook(r.cook), a=avg(r);
+  const mine=me()&&r.cook===me().id;
+  const youTried=me()&&r.tried.includes(me().id);
+  const myRating=me()&&r.ratings.find(x=>x.cook===me().id);
+  return `
+  <button class="back" onclick="go('discover')">← Discover</button>
+  <div class="two-col">
+    <div>
+      <div class="card" style="margin-bottom:22px">
+        <div class="cover ${coverClass(r)}" style="height:200px;font-size:76px">${r.emoji}</div>
+      </div>
+      <h1 class="h-title" style="font-size:32px">${esc(r.title)}</h1>
+      <div class="row" style="gap:16px;margin:6px 0 20px">
+        <div class="cook-line">${avatar(r.cook)} ${esc(c.name)}</div>
+        <div class="row" style="gap:8px">${starsHTML(a)}<span class="rate-count">${a?a.toFixed(1):'no ratings yet'}${r.ratings.length?` · ${r.ratings.length}`:''}</span></div>
+      </div>
+
+      <div class="card pad" style="margin-bottom:20px">
+        <h3 style="font-size:18px;margin-bottom:6px">Ingredients</h3>
+        ${r.ingredients.map(i=>`<div class="ing"><span>${esc(i.name)}</span><span class="amt">${esc(i.number)} ${esc(i.unit)}</span></div>`).join('')}
+      </div>
+      <div class="card pad">
+        <h3 style="font-size:18px;margin-bottom:6px">Method</h3>
+        ${r.steps.map(s=>`<div class="step"><span class="no">${s.orderNo}</span><div><div class="t">${esc(s.title)}</div><div class="d">${esc(s.description)}</div></div></div>`).join('')}
+      </div>
+    </div>
+
+    <div>
+      <div class="card pad" style="position:sticky;top:96px">
+        <h3 style="font-size:18px;margin-bottom:4px">${mine?'Your recipe':'Cook this recipe'}</h3>
+        ${r.photos&&r.photos.length?`<div class="photos" style="margin:6px 0 14px">${r.photos.map(p=>`<div class="photo">${p}</div>`).join('')}</div>`:''}
+        ${actionPanel(r,{mine,youTried,myRating})}
+      </div>
+    </div>
+  </div>`;
+}
+
+function actionPanel(r,{mine,youTried,myRating}){
+  if(isAnon()) return `<div class="note">Join Larder as a cook to try and rate this recipe.</div>
+    <div style="margin-top:12px"><button class="btn btn-primary" onclick="openJoin()">Join as a cook</button></div>`;
+  if(mine) return `<p class="hint">You shared this recipe, so you can't rate your own cooking 😊<br>It's been tried by ${r.tried.length} cook${r.tried.length===1?'':'s'} and rated ${r.ratings.length} time${r.ratings.length===1?'':'s'}.</p>`;
+  let h='';
+  if(!youTried){
+    h+=`<p class="hint" style="margin-bottom:12px">Give it a go, then let ${esc(cook(r.cook).name)} know how it turned out.</p>
+        <button class="btn btn-teal" onclick="tryRecipe('${r.id}')">🍳 I cooked this</button>`;
+  }else{
+    h+=`<div class="row" style="gap:8px;margin-bottom:14px">${badge('cooked','You cooked this')}</div>
+        <label>${myRating?'Your rating':'Rate this recipe'}</label>
+        <div class="stars rate big" style="margin-bottom:6px">${[1,2,3,4,5].map(n=>`<span onclick="rateRecipe('${r.id}',${n})" class="${myRating&&n<=myRating.stars?'':'off'}">★</span>`).join('')}</div>
+        ${myRating?`<p class="hint">Thanks! You rated this ${myRating.stars}★. Tap a star to change it.</p>`:`<p class="hint">Tap a star from 1 to 5.</p>`}`;
+  }
+  return h;
+}
+
+function view_kitchen(){
+  const m=me();
+  const myMeals=state.meals.filter(x=>x.cook===m.id&&x.status==='prepared');
+  const myRecipes=state.recipes.filter(x=>x.cook===m.id);
+  return `
+  <div class="row between" style="margin-bottom:6px">
+    <div><div class="kicker">${esc(m.name)}'s kitchen</div><h1 class="h-title" style="margin-top:2px">My Kitchen</h1></div>
+    <div class="row" style="gap:10px">
+      <button class="btn btn-ghost" onclick="openPrepare()">＋ Prepare a meal</button>
+      <button class="btn btn-primary" onclick="startShare(null)">Share a recipe</button>
+    </div>
+  </div>
+
+  <h2 class="section-title" style="margin-top:22px">Meals ready to share</h2>
+  ${myMeals.length?`<div class="grid">${myMeals.map(mealCard).join('')}</div>`
+    :`<div class="empty">No meals waiting. Hit <b>Prepare a meal</b> after you cook something.</div>`}
+
+  <h2 class="section-title" style="margin-top:34px">Recipes I've shared</h2>
+  ${myRecipes.length?`<div class="grid">${myRecipes.map(myRecipeCard).join('')}</div>`
+    :`<div class="empty">You haven't shared a recipe yet. Turn a meal into one!</div>`}`;
+}
+function mealCard(m){
+  return `<div class="card pad">
+    <div class="row between"><span style="font-size:40px">${m.emoji}</span>${badge('prepared','Prepared')}</div>
+    <h3 style="font-size:19px;margin:10px 0 12px">${esc(m.name)}</h3>
+    <button class="btn btn-primary btn-sm" onclick="startShare('${m.id}')">Share as recipe →</button>
+  </div>`;
+}
+function myRecipeCard(r){
+  const a=avg(r);
+  return `<div class="card click" onclick="go('recipe','${r.id}')">
+    <div class="cover ${coverClass(r)}">${r.emoji}</div>
+    <div class="card-body">
+      <div class="row between"><h3 style="font-size:19px">${esc(r.title)}</h3>${badge('shared','Shared')}</div>
+      <div class="row" style="gap:8px">${starsHTML(a)}<span class="rate-count">${a?a.toFixed(1):'—'} · tried by ${r.tried.length}</span></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Share builder (step 4) ---------- */
+let draft=null;
+function startShare(mealId){
+  state.shareFromMeal=mealId;
+  const m=mealId?state.meals.find(x=>x.id===mealId):null;
+  draft={title:m?m.name:'',emoji:m?m.emoji:'🍽️',photos:m?m.photos.slice():[],
+    ingredients:[{name:'',number:'',unit:''}], steps:[{title:'',description:''}]};
+  go('share');
+}
+function view_share(){
+  if(!draft) startShare(null);
+  return `
+  <button class="back" onclick="go('kitchen')">← My Kitchen</button>
+  <h1 class="h-title">Share a recipe</h1>
+  <p class="h-sub">Add the ingredients and the steps other cooks should follow. Pictures are optional.</p>
+  <div class="card pad" style="max-width:720px">
+    <div class="field"><label>Recipe title</label>
+      <input id="d_title" value="${esc(draft.title)}" placeholder="Charred lemon chicken" oninput="draft.title=this.value"></div>
+
+    <label>Ingredients <span class="hint">(name · amount · unit)</span></label>
+    <div id="ingWrap">${draft.ingredients.map(ingRow).join('')}</div>
+    <button class="addline" onclick="draft.ingredients.push({name:'',number:'',unit:''});rerenderShare()">＋ Add ingredient</button>
+
+    <label style="margin-top:20px">Method <span class="hint">(ordered steps)</span></label>
+    <div id="stepWrap">${draft.steps.map(stepRow).join('')}</div>
+    <button class="addline" onclick="draft.steps.push({title:'',description:''});rerenderShare()">＋ Add step</button>
+
+    <div style="margin-top:22px" class="row between">
+      <span class="hint">Shared as <b>${esc(me()?me().name:'')}</b></span>
+      <button class="btn btn-primary" onclick="submitShare()">Share recipe</button>
+    </div>
+  </div>`;
+}
+function ingRow(ing,i){return `<div class="ing-row">
+  <input placeholder="Ingredient" value="${esc(ing.name)}" oninput="draft.ingredients[${i}].name=this.value">
+  <input placeholder="Amt" value="${esc(ing.number)}" oninput="draft.ingredients[${i}].number=this.value">
+  <input placeholder="Unit" value="${esc(ing.unit)}" oninput="draft.ingredients[${i}].unit=this.value">
+  <button class="mini-x" onclick="draft.ingredients.splice(${i},1);rerenderShare()" aria-label="Remove">×</button></div>`;}
+function stepRow(s,i){return `<div class="step-row">
+  <div>
+    <input placeholder="Step ${i+1} title" value="${esc(s.title)}" oninput="draft.steps[${i}].title=this.value" style="margin-bottom:8px">
+    <textarea placeholder="What to do" rows="2" oninput="draft.steps[${i}].description=this.value">${esc(s.description)}</textarea>
+  </div>
+  <button class="mini-x" onclick="draft.steps.splice(${i},1);rerenderShare()" aria-label="Remove">×</button></div>`;}
+function rerenderShare(){ if(!draft.ingredients.length)draft.ingredients.push({name:'',number:'',unit:''}); if(!draft.steps.length)draft.steps.push({title:'',description:''}); render(); }
+function submitShare(){
+  draft.ingredients=draft.ingredients.filter(i=>i.name.trim());
+  draft.steps=draft.steps.filter(s=>s.title.trim());
+  if(!draft.title.trim()||!draft.ingredients.length||!draft.steps.length){ alert('Add a title, at least one ingredient and one step.'); return; }
+  shareRecipe(draft); draft=null;
+}
+
+/* ---------- modals ---------- */
+function openJoin(){
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <h2 style="font-size:24px">Join Larder</h2>
+    <p class="hint" style="margin-bottom:6px">Register with your e-mail and you become a Cook — ready to share, try and rate.</p>
+    <div class="field"><label>Name</label><input id="j_name" placeholder="Sam"></div>
+    <div class="field"><label>E-mail</label><input id="j_email" placeholder="sam@larder.app"></div>
+    <div class="row between"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doJoin()">Become a cook</button></div>
+  </div></div>`;
+  setTimeout(()=>document.getElementById('j_name')?.focus(),30);
+}
+function doJoin(){const n=document.getElementById('j_name').value,e=document.getElementById('j_email').value;
+  if(!n.trim()||!e.trim()){document.getElementById('j_name').focus();return;} joinAsCook(n,e);}
+function openPrepare(){
+  document.getElementById('modalRoot').innerHTML=`
+  <div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <h2 style="font-size:24px">Prepare a meal</h2>
+    <p class="hint" style="margin-bottom:6px">Just cooked something? Log the meal — you can turn it into a shareable recipe next.</p>
+    <div class="field"><label>What did you make?</label><input id="p_name" placeholder="Sunday roast"></div>
+    <div class="row between"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doPrepare()">Add meal</button></div>
+  </div></div>`;
+  setTimeout(()=>document.getElementById('p_name')?.focus(),30);
+}
+function doPrepare(){const n=document.getElementById('p_name').value; if(!n.trim()){document.getElementById('p_name').focus();return;} prepareMeal(n);}
+function closeModal(){document.getElementById('modalRoot').innerHTML='';}
+
+/* ---------- render ---------- */
+const VIEWS={discover:view_discover,recipe:view_recipe,kitchen:view_kitchen,share:view_share};
+function render(){
+  document.getElementById('nlinks').innerHTML=NAV.filter(n=>!n.cookOnly||!isAnon())
+    .map(n=>`<button class="${state.view===n.id||(state.view==='recipe'&&n.id==='discover')||(state.view==='share'&&n.id==='kitchen')?'active':''}" onclick="go('${n.id}')">${n.label}</button>`).join('');
+  const auth=document.getElementById('authArea');
+  if(isAnon()) auth.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openJoin()">Join as a cook</button>`;
+  else auth.innerHTML=`<div class="cook-line" style="color:var(--ink);font-weight:600">${avatar(me().id)} ${esc(me().name)}</div>
+    <button class="btn btn-primary btn-sm" onclick="startShare(null)">＋ Share recipe</button>`;
+  const sel=document.getElementById('persona');
+  sel.innerHTML=`<option value="anon">Anonymous</option>`+Object.values(state.cooks).map(c=>`<option value="${c.id}">${esc(c.name)}${c.id==='amara'?' (you)':''}</option>`).join('');
+  sel.value=state.currentCookId||'anon';
+  let v=state.view; if((v==='kitchen'||v==='share')&&isAnon())v='discover';
+  document.getElementById('app').innerHTML=(VIEWS[v]||view_discover)();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+render();
+</script>

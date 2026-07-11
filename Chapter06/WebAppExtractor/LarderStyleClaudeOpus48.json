@@ -1,0 +1,192 @@
+{
+  "meta": {
+    "source": "LarderStyleExample.jpg",
+    "imageSize": { "width": 3330, "height": 1202 },
+    "scaleFactor": 2,
+    "scaleFactorBasis": "Measured body-paragraph line box at 48px physical (baseline-to-baseline). At a 16px body / 1.5 line-height that is 24px CSS, giving 2x. Cross-checked against card avatars (~59px->30px) and the logo mark (~75px->38px).",
+    "units": "css-px",
+    "notes": [
+      "All hex values are pixel-sampled with probe.py (color-at / palette); sizes are measured then divided by the 2x scale factor.",
+      "Font families are visual guesses only. The type is a friendly rounded grotesque/geometric sans (heading is very heavy, almost 'black' weight). Verify the real stack — candidates: General Sans, Poppins, Cabinet Grotesk.",
+      "Card header tint colors (pink/mint/peach) rotate per card; they are decorative image backgrounds, not a single theme token.",
+      "Cards have no visible border — separation is a soft drop shadow on the cream background. Shadow offset/blur/opacity are approximated from the visible falloff and should be treated as best-effort.",
+      "Only the resting/default state is visible for every component; hover/focus/active states are not in the screenshot (except the active nav tab, which shows an orange underline).",
+      "h1 font-size (40px) is inferred from a ~20px x-height; it may be 40-44px.",
+      "Avatar diameter (~30px) and card gap (~30px) were measured within a pixel or two and snapped."
+    ]
+  },
+  "colors": {
+    "roles": {
+      "background": "#FBF6F0",
+      "surface": "#FFFFFF",
+      "primary": "#FF6B4B",
+      "primaryText": "#FFFFFF",
+      "text": "#22211D",
+      "textMuted": "#807B75",
+      "accentGold": "#F5A625"
+    },
+    "accentTints": {
+      "pink": "#FFE6DF",
+      "mint": "#D9F2EE",
+      "peach": "#FCEED4"
+    },
+    "avatarColors": {
+      "teal": "#13A593",
+      "amber": "#F6A624",
+      "coral": "#FB6C4E"
+    },
+    "palette": [
+      { "hex": "#FBF6F0", "coverage": 0.574, "role": "background" },
+      { "hex": "#FFFFFF", "coverage": 0.183, "role": "surface" },
+      { "hex": "#FCEED4", "coverage": 0.06, "role": "accentTint (peach header)" },
+      { "hex": "#D9F2EE", "coverage": 0.053, "role": "accentTint (mint header)" },
+      { "hex": "#FFE6DF", "coverage": 0.05, "role": "accentTint (pink header)" },
+      { "hex": "#FF6B4B", "coverage": 0.01, "role": "primary" },
+      { "hex": "#22211D", "coverage": 0.01, "role": "text" },
+      { "hex": "#807B75", "coverage": 0.01, "role": "textMuted" },
+      { "hex": "#F5A625", "coverage": 0.005, "role": "accentGold (stars)" }
+    ]
+  },
+  "typography": {
+    "styles": {
+      "h1": {
+        "fontFamily": "General Sans, Poppins, system-ui, sans-serif",
+        "fontSize": 40,
+        "fontWeight": 800,
+        "lineHeight": 48,
+        "letterSpacing": -0.5,
+        "color": "#22211D"
+      },
+      "eyebrow": {
+        "fontFamily": "General Sans, Poppins, system-ui, sans-serif",
+        "fontSize": 16,
+        "fontWeight": 600,
+        "lineHeight": 20,
+        "color": "#807B75"
+      },
+      "body": {
+        "fontFamily": "General Sans, Poppins, system-ui, sans-serif",
+        "fontSize": 16,
+        "fontWeight": 400,
+        "lineHeight": 24,
+        "color": "#807B75"
+      },
+      "cardTitle": {
+        "fontFamily": "General Sans, Poppins, system-ui, sans-serif",
+        "fontSize": 20,
+        "fontWeight": 700,
+        "lineHeight": 26,
+        "color": "#22211D"
+      },
+      "meta": {
+        "fontFamily": "General Sans, Poppins, system-ui, sans-serif",
+        "fontSize": 15,
+        "fontWeight": 500,
+        "lineHeight": 20,
+        "color": "#7E7A77"
+      },
+      "navBrand": {
+        "fontFamily": "General Sans, Poppins, system-ui, sans-serif",
+        "fontSize": 22,
+        "fontWeight": 700,
+        "color": "#22211D"
+      },
+      "button": {
+        "fontFamily": "General Sans, Poppins, system-ui, sans-serif",
+        "fontSize": 16,
+        "fontWeight": 600,
+        "color": "#FFFFFF"
+      }
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "scale": [4, 8, 12, 16, 20, 24, 32, 48],
+    "observed": [
+      { "context": "gap between cards", "px": 30 },
+      { "context": "card body horizontal padding", "px": 20 },
+      { "context": "card body top padding (above title)", "px": 22 },
+      { "context": "card header height", "px": 151 },
+      { "context": "card body height", "px": 132 },
+      { "context": "content container left margin", "px": 325 }
+    ]
+  },
+  "radii": {
+    "logo": 12,
+    "card": 16,
+    "avatar": 9999,
+    "pill": 9999
+  },
+  "effects": {
+    "shadows": [
+      { "name": "card", "value": "0 4px 16px rgba(30,25,20,0.06)" }
+    ],
+    "borders": []
+  },
+  "components": {
+    "button.primary": {
+      "background": "#FF6B4B",
+      "color": "#FFFFFF",
+      "fontSize": 16,
+      "fontWeight": 600,
+      "height": 35,
+      "paddingX": 20,
+      "paddingY": 9,
+      "borderRadius": 9999,
+      "border": "none",
+      "note": "Leading '+' icon before the label."
+    },
+    "navTab.active": {
+      "color": "#22211D",
+      "fontSize": 16,
+      "fontWeight": 600,
+      "underline": "3px solid #FF6B4B",
+      "note": "Active 'Discover' tab has an orange underline flush under the label."
+    },
+    "navTab.inactive": {
+      "color": "#807B75",
+      "fontSize": 16,
+      "fontWeight": 500,
+      "underline": "none"
+    },
+    "card": {
+      "background": "#FFFFFF",
+      "borderRadius": 16,
+      "border": "none",
+      "shadow": "0 4px 16px rgba(30,25,20,0.06)",
+      "width": 319,
+      "note": "Composed of a tinted header block (image area) stacked above a white body block."
+    },
+    "card.header": {
+      "height": 151,
+      "borderRadius": "16px 16px 0 0",
+      "background": "rotating tint: #FFE6DF (pink) | #D9F2EE (mint) | #FCEED4 (peach)",
+      "note": "Emoji/illustration centered horizontally and vertically."
+    },
+    "card.body": {
+      "background": "#FFFFFF",
+      "paddingX": 20,
+      "paddingTop": 22,
+      "note": "Stacks title, then author row (avatar + name), then rating row (stars + text)."
+    },
+    "avatar": {
+      "diameter": 30,
+      "borderRadius": 9999,
+      "color": "#FFFFFF",
+      "fontWeight": 600,
+      "backgrounds": ["#13A593", "#F6A624", "#FB6C4E"],
+      "note": "Single-initial circle; background varies per author."
+    },
+    "rating.stars": {
+      "filledColor": "#F5A625",
+      "emptyColor": "#E7E1DA",
+      "note": "5-star row followed by muted meta text e.g. '5.0 · 1 rating'; empty-star color is approximate."
+    },
+    "dropdown.pill": {
+      "background": "#F7F0E8",
+      "color": "#22211D",
+      "borderRadius": 9999,
+      "note": "'Viewing as' control on the far right of the nav; soft cream pill with a chevron."
+    }
+  }
+}

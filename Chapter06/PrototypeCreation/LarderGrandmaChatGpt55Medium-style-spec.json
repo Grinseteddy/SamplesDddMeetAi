@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "source": "LarderStyleExample.jpg",
+    "imageSize": {
+      "width": 2048,
+      "height": 739
+    },
+    "scaleFactor": 1,
+    "scaleFactorBasis": "Screenshot proportions and common desktop control sizes indicate a 1\u00d7 capture.",
+    "units": "css-px",
+    "notes": [
+      "Font family is a visual approximation using Nunito/system sans-serif.",
+      "Shadows are approximated from the visible soft card falloff.",
+      "Modal, progress-step, upload, chat, and status components are extrapolated from the screenshot's palette, radii, spacing, cards, and buttons."
+    ]
+  },
+  "colors": {
+    "roles": {
+      "background": "#FBF6F0",
+      "surface": "#FFFFFF",
+      "primary": "#FF6A4D",
+      "primaryText": "#FFFFFF",
+      "text": "#2C2927",
+      "textMuted": "#8A8581",
+      "border": "#E9E2DA",
+      "peach": "#FFE6DF",
+      "mint": "#D9F2EE",
+      "cream": "#FCEED4",
+      "teal": "#1FA58F",
+      "amber": "#F5A623"
+    }
+  },
+  "typography": {
+    "styles": {
+      "h1": {
+        "fontFamily": "Nunito, system-ui, sans-serif",
+        "fontSize": 46,
+        "fontWeight": 800,
+        "lineHeight": 1.08,
+        "color": "#2C2927"
+      },
+      "h2": {
+        "fontFamily": "Nunito, system-ui, sans-serif",
+        "fontSize": 30,
+        "fontWeight": 800,
+        "lineHeight": 1.2,
+        "color": "#2C2927"
+      },
+      "body": {
+        "fontFamily": "Nunito, system-ui, sans-serif",
+        "fontSize": 16,
+        "fontWeight": 500,
+        "lineHeight": 1.55,
+        "color": "#2C2927"
+      },
+      "label": {
+        "fontFamily": "Nunito, system-ui, sans-serif",
+        "fontSize": 13,
+        "fontWeight": 700,
+        "lineHeight": 1.3,
+        "color": "#8A8581"
+      }
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "scale": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64
+    ]
+  },
+  "radii": {
+    "sm": 10,
+    "md": 16,
+    "lg": 24,
+    "pill": 999
+  },
+  "effects": {
+    "shadows": [
+      {
+        "name": "card",
+        "value": "0 16px 40px rgba(56, 42, 31, 0.08)"
+      }
+    ],
+    "borders": [
+      {
+        "name": "hairline",
+        "value": "1px solid #E9E2DA"
+      }
+    ]
+  }
+}

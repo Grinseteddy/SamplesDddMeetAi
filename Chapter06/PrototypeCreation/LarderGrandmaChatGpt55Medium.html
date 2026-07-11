@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Larder — Grandma Rescue Prototype</title>
+    <style>
+        :root{
+            --bg:#FBF6F0;--surface:#FFF;--primary:#FF6A4D;--primary-dark:#E9583C;
+            --text:#2C2927;--muted:#8A8581;--border:#E9E2DA;
+            --peach:#FFE6DF;--mint:#D9F2EE;--cream:#FCEED4;--teal:#1FA58F;--amber:#F5A623;
+            --danger:#D95745;--shadow:0 16px 40px rgba(56,42,31,.08);
+            --r-sm:10px;--r-md:16px;--r-lg:24px;--pill:999px;
+            --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s7:32px;--s8:40px;--s9:48px;
+            --font:"Nunito","Avenir Next",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        }
+        *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font)}
+        button,input,textarea{font:inherit}.topbar{height:74px;background:rgba(255,255,255,.94);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 48px;position:sticky;top:0;z-index:20;backdrop-filter:blur(12px)}
+        .brand{display:flex;align-items:center;gap:14px;font-size:29px;font-weight:900;letter-spacing:-1px;margin-right:38px}.logo{width:46px;height:46px;border-radius:14px;background:var(--primary);display:grid;place-items:center;color:white;font-size:24px;font-weight:900}
+        .nav{display:flex;height:100%;gap:28px}.nav button{border:0;background:none;color:var(--muted);font-size:17px;font-weight:700;position:relative;cursor:pointer}.nav button.active{color:var(--text)}.nav button.active:after{content:"";position:absolute;height:4px;border-radius:4px;background:var(--primary);left:0;right:0;bottom:14px}
+        .top-actions{margin-left:auto;display:flex;align-items:center;gap:18px}.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--primary);color:white;font-weight:900}.persona{border:1px solid var(--border);background:#F7F1EA;border-radius:var(--pill);padding:11px 16px;font-weight:700;color:var(--text)}
+        .btn{border:0;border-radius:var(--pill);padding:12px 20px;font-weight:800;cursor:pointer;transition:.18s transform,.18s box-shadow,.18s background}.btn:hover{transform:translateY(-1px)}.btn:focus-visible,.nav button:focus-visible,.card:focus-visible{outline:3px solid rgba(255,106,77,.28);outline-offset:2px}.btn.primary{background:var(--primary);color:#fff;box-shadow:0 8px 20px rgba(255,106,77,.22)}.btn.primary:hover{background:var(--primary-dark)}.btn.secondary{background:#fff;border:1px solid var(--border);color:var(--text)}.btn.ghost{background:transparent;color:var(--primary);padding-inline:8px}.btn.small{padding:9px 14px;font-size:14px}
+        main{max-width:1250px;margin:0 auto;padding:48px 32px 84px}.view{display:none}.view.active{display:block}
+        .hero{display:flex;align-items:flex-start;justify-content:space-between;gap:32px;margin-bottom:32px}.eyebrow{color:var(--muted);font-size:16px;font-weight:800;margin:0 0 8px}.hero h1{font-size:46px;line-height:1.08;letter-spacing:-1.5px;margin:0 0 14px;font-weight:900}.sub{font-size:18px;color:var(--muted);max-width:720px;line-height:1.55;margin:0}
+        .progress{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:28px 0 34px}.step{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;min-height:78px}.step b{display:block;font-size:13px}.step span{display:block;color:var(--muted);font-size:12px;margin-top:5px}.step.done{background:var(--mint);border-color:transparent}.step.current{background:var(--peach);border-color:var(--primary)}
+        .grid{display:grid;grid-template-columns:1.25fr .75fr;gap:24px}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}.card-pad{padding:28px}.card h2{font-size:28px;margin:0 0 10px}.card h3{font-size:20px;margin:0 0 8px}.muted{color:var(--muted)}.meal-art{height:250px;background:var(--peach);display:grid;place-items:center;font-size:78px;position:relative}.meal-art.burned{background:linear-gradient(135deg,var(--cream),var(--peach))}.status{position:absolute;top:18px;left:18px;background:#fff;border-radius:var(--pill);padding:8px 12px;font-size:13px;font-weight:900;box-shadow:0 5px 16px rgba(0,0,0,.08)}.status.warn{color:var(--danger)}.status.good{color:var(--teal)}
+        .meta-row{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}.tip{padding:16px;border-radius:14px;background:var(--mint);margin-top:16px}.tip strong{display:block;margin-bottom:5px}
+        .panel-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.badge{display:inline-flex;align-items:center;gap:7px;border-radius:var(--pill);padding:7px 11px;font-size:12px;font-weight:900}.badge.peach{background:var(--peach);color:var(--danger)}.badge.mint{background:var(--mint);color:#117C69}.badge.cream{background:var(--cream);color:#906413}
+        .upload{border:2px dashed #DCCFC2;border-radius:18px;padding:26px;text-align:center;background:#FFFDFC}.upload .icon{font-size:34px}.upload input{display:none}
+        .field{display:flex;flex-direction:column;gap:7px;margin-top:16px}.field label{font-size:13px;font-weight:900;color:var(--muted)}textarea,input[type=text]{width:100%;border:1px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;color:var(--text);outline:none}textarea:focus,input[type=text]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,106,77,.12)}
+        .chat{display:flex;flex-direction:column;gap:14px}.bubble{max-width:86%;padding:14px 16px;border-radius:18px;line-height:1.45}.bubble.cook{align-self:flex-end;background:var(--peach);border-bottom-right-radius:6px}.bubble.grandma{align-self:flex-start;background:var(--mint);border-bottom-left-radius:6px}.grandma-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}.grandma-face{width:48px;height:48px;border-radius:50%;background:var(--cream);display:grid;place-items:center;font-size:27px}
+        .community{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.recipe-card{cursor:pointer}.recipe-art{height:185px;display:grid;place-items:center;font-size:58px}.recipe-art.peach{background:var(--peach)}.recipe-art.mint{background:var(--mint)}.recipe-art.cream{background:var(--cream)}.recipe-body{padding:22px}.recipe-body h3{font-size:21px;margin:0 0 10px}.stars{color:var(--amber);letter-spacing:2px}
+        .timeline{display:flex;flex-direction:column;gap:14px}.event{display:grid;grid-template-columns:38px 1fr;gap:12px}.event-dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--cream)}.event p{margin:2px 0;color:var(--muted);font-size:14px}
+        .toast{position:fixed;right:24px;bottom:24px;background:var(--text);color:#fff;padding:14px 18px;border-radius:14px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
+        .prototype-note{font-size:12px;color:var(--muted);text-align:right}
+        @media(max-width:900px){.topbar{padding:0 18px}.brand{margin-right:12px}.nav{display:none}.top-actions .btn{display:none}main{padding:30px 18px 70px}.grid{grid-template-columns:1fr}.community{grid-template-columns:1fr}.progress{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:38px}.persona{max-width:160px}.prototype-note{display:none}}
+        @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand"><div class="logo">L</div>Larder</div>
+    <nav class="nav">
+        <button data-nav="discover">Discover</button>
+        <button class="active" data-nav="kitchen">My Kitchen</button>
+        <button data-nav="helpdesk">Grandma Desk</button>
+    </nav>
+    <div class="top-actions">
+        <div class="avatar" id="avatar">A</div><strong id="personName">Amara</strong>
+        <button class="btn primary" data-nav="kitchen">+ Start meal</button>
+        <select class="persona" id="persona" aria-label="Prototype persona">
+            <option value="cook">Viewing as Amara (Cook)</option>
+            <option value="grandma">Viewing as Grandma Avatar</option>
+        </select>
+    </div>
+</header>
+
+<main>
+    <section id="kitchen" class="view active">
+        <div class="hero">
+            <div><p class="eyebrow">Tonight in your kitchen</p><h1 id="kitchenTitle">Rescue dinner with Grandma</h1>
+                <p class="sub">A guided prototype of the cook → burned meal → help → rescue → community story.</p></div>
+            <div class="prototype-note">Prototype affordance: switch persona in the header.</div>
+        </div>
+        <div class="progress" id="progress"></div>
+        <div class="grid">
+            <article class="card">
+                <div class="meal-art burned" id="mealArt"><span id="mealEmoji">🍳💨</span><div class="status warn" id="mealStatus">Burned</div></div>
+                <div class="card-pad">
+                    <div class="meta-row"><span class="badge peach" id="stateBadge">Needs rescue</span><span>Spicy tomato pasta · serves 2</span></div>
+                    <h2 style="margin-top:14px" id="mealHeading">The sauce caught on the bottom</h2>
+                    <p class="muted" id="mealCopy">You caught it quickly. Take a picture and ask Grandma before stirring the scorched layer into the sauce.</p>
+                    <div id="contextTip" class="tip"><strong>Grandma’s first rule</strong>Do not scrape the bottom. Move the good sauce into a clean pan.</div>
+                    <div class="actions" id="mealActions"></div>
+                </div>
+            </article>
+
+            <aside class="card card-pad">
+                <div class="panel-title"><h3 id="sideTitle">Add pictures</h3><span class="badge cream" id="stepBadge">Step 2</span></div>
+                <div id="sideContent"></div>
+            </aside>
+        </div>
+    </section>
+
+    <section id="helpdesk" class="view">
+        <div class="hero"><div><p class="eyebrow">Grandma rescue desk</p><h1>Meals asking for a little wisdom</h1><p class="sub">Respond to picture-backed help requests and guide cooks toward a rescue.</p></div></div>
+        <div class="grid">
+            <div class="card card-pad">
+                <div class="panel-title"><div><span class="badge peach">Urgent</span><h2 style="margin-top:12px">Amara’s tomato pasta</h2></div><span class="muted">2 min ago</span></div>
+                <div class="upload"><div class="icon">🍳💨</div><strong>Burned sauce photo</strong><p class="muted">Dark patch on the bottom; upper sauce still bright.</p></div>
+                <div class="chat" style="margin-top:22px"><div class="bubble cook">I burned the sauce. Can this still be saved?</div><div class="bubble grandma" id="grandmaExisting">Yes. Pour the clean top layer into a fresh pan, add two tablespoons of water, then taste before seasoning.</div></div>
+                <div class="field"><label for="grandmaReply">Grandma’s guidance</label><textarea id="grandmaReply" rows="4">Move the clean sauce to a fresh pan. Add a splash of water and a little butter, simmer gently, and do not scrape the burned layer.</textarea></div>
+                <div class="actions"><button class="btn primary" id="sendHelp">Provide help</button><button class="btn secondary" data-nav="discover">View community rescues</button></div>
+            </div>
+            <aside class="card card-pad">
+                <div class="grandma-head"><div class="grandma-face">👵</div><div><h3>Grandma Avatar</h3><div class="muted">Kitchen rescue guide</div></div></div>
+                <div class="timeline">
+                    <div class="event"><div class="event-dot">1</div><div><strong>Inspect</strong><p>Use the cook’s pictures and description.</p></div></div>
+                    <div class="event"><div class="event-dot">2</div><div><strong>Give one safe next step</strong><p>Keep instructions short and actionable.</p></div></div>
+                    <div class="event"><div class="event-dot">3</div><div><strong>Wait for rescue proof</strong><p>The cook returns with an after picture.</p></div></div>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section id="discover" class="view">
+        <div class="hero"><div><p class="eyebrow">Fresh from the community</p><h1>What did we rescue tonight?</h1><p class="sub">Real kitchen saves shared by home cooks — mistakes, fixes, and the people who helped.</p></div></div>
+        <div class="community">
+            <article class="card recipe-card"><div class="recipe-art peach">🍋</div><div class="recipe-body"><h3>Charred Lemon Chicken</h3><div class="meta-row"><span class="avatar" style="width:34px;height:34px;background:var(--teal)">B</span>Ben</div><p class="stars">★★★★★ <span class="muted">5.0 · 1 rescue</span></p></div></article>
+            <article class="card recipe-card" id="amaraCommunity"><div class="recipe-art mint" id="communityEmoji">🍝✨</div><div class="recipe-body"><h3 id="communityTitle">Amara’s Saved Tomato Pasta</h3><div class="meta-row"><span class="avatar" style="width:34px;height:34px">A</span>Amara · helped by Grandma</div><p class="stars">★★★★★ <span class="muted">Shared just now</span></p></div></article>
+            <article class="card recipe-card"><div class="recipe-art cream">🍞</div><div class="recipe-body"><h3>Grandma’s Banana Bread</h3><div class="meta-row"><span class="avatar" style="width:34px;height:34px">A</span>Amara</div><p class="stars">★★★★☆ <span class="muted">4.5 · 2 ratings</span></p></div></article>
+        </div>
+    </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+    const states=[
+        {id:"preparing",label:"Preparing",short:"Prepare",emoji:"🍝",badge:"In progress"},
+        {id:"burned",label:"Burned meal",short:"Burn",emoji:"🍳💨",badge:"Needs rescue"},
+        {id:"requested",label:"Help requested",short:"Ask",emoji:"📸🙏",badge:"Waiting for Grandma"},
+        {id:"guided",label:"Guidance received",short:"Help",emoji:"👵💡",badge:"Follow the fix"},
+        {id:"rescued",label:"Meal rescued",short:"Rescue",emoji:"🍝✨",badge:"Rescued"},
+        {id:"shared",label:"Thanks shared",short:"Share",emoji:"💛📸",badge:"Shared"}
+    ];
+    let current=1;
+    const $=s=>document.querySelector(s);
+    function toast(t){const x=$("#toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
+    function renderProgress(){
+        $("#progress").innerHTML=states.map((s,i)=>`<div class="step ${i<current?"done":i===current?"current":""}"><b>${i+1}. ${s.short}</b><span>${s.label}</span></div>`).join("");
+    }
+    function uploadBlock(after=false){
+        return `<label class="upload" for="photoInput"><div class="icon">${after?"📸✨":"📷"}</div><strong>${after?"Add the rescue picture":"Add pictures of the meal"}</strong><p class="muted">${after?"Show the result Grandma helped create.":"A top view and a close-up help Grandma diagnose it."}</p><input id="photoInput" type="file" accept="image/*"></label>`;
+    }
+    function render(){
+        const s=states[current]; renderProgress();
+        $("#mealEmoji").textContent=s.emoji; $("#mealStatus").textContent=s.label;
+        $("#mealStatus").className="status "+(current>=4?"good":"warn");
+        $("#stateBadge").textContent=s.badge; $("#stateBadge").className="badge "+(current>=4?"mint":"peach");
+        const headings=[
+            "Dinner is underway","The sauce caught on the bottom","Your pictures are ready to send",
+            "Grandma has a rescue plan","You saved dinner","Your rescue is in the community"
+        ];
+        const copies=[
+            "Prepare the meal and keep a quick photo handy in case you need help.",
+            "You caught it quickly. Take a picture and ask Grandma before stirring the scorched layer into the sauce.",
+            "Tell Grandma what happened and send the pictures with your request.",
+            "Follow Grandma’s steps, then taste and adjust gently.",
+            "The clean sauce is smooth again. Take an after picture for Grandma.",
+            "You thanked Grandma and shared the before-and-after pictures with the Larder community."
+        ];
+        $("#mealHeading").textContent=headings[current]; $("#mealCopy").textContent=copies[current];
+        $("#contextTip").style.display=(current===1||current===3)?"block":"none";
+        const actions=$("#mealActions"); actions.innerHTML="";
+        function add(label,next,kind="primary"){let b=document.createElement("button");b.className="btn "+kind;b.textContent=label;b.onclick=()=>{current=next;render();toast(label+" ✓")};actions.appendChild(b)}
+        if(current===0)add("Oops — it burned",1);
+        if(current===1)add("Add pictures",2);
+        if(current===2)add("Ask Grandma for help",3);
+        if(current===3)add("Follow rescue steps",4);
+        if(current===4)add("Thank Grandma & share",5);
+        if(current===5){let b=document.createElement("button");b.className="btn primary";b.textContent="View community post";b.onclick=()=>navigate("discover");actions.appendChild(b)}
+        if(current>0){let b=document.createElement("button");b.className="btn ghost";b.textContent="Back";b.onclick=()=>{current--;render()};actions.appendChild(b)}
+        const side=$("#sideContent"), title=$("#sideTitle"), sb=$("#stepBadge");sb.textContent="Step "+(current+1);
+        if(current<=1){title.textContent="Add pictures";side.innerHTML=uploadBlock(false)+`<div class="field"><label>What happened?</label><textarea rows="4">The sauce caught on the bottom while I was chopping herbs.</textarea></div>`}
+        if(current===2){title.textContent="Ask Grandma";side.innerHTML=uploadBlock(false)+`<div class="field"><label>Your question</label><textarea rows="4">I burned the bottom of the sauce. The top still looks okay — can I save it?</textarea></div><div class="actions"><button class="btn primary small" onclick="current=3;render();toast('Help request sent')">Send request</button></div>`}
+        if(current===3){title.textContent="Grandma’s help";side.innerHTML=`<div class="grandma-head"><div class="grandma-face">👵</div><div><strong>Grandma Avatar</strong><div class="muted">Answered just now</div></div></div><div class="chat"><div class="bubble grandma">Pour the clean top layer into a fresh pan. Add two tablespoons of water and a little butter. Simmer gently. Do not scrape the bottom.</div></div>`}
+        if(current===4){title.textContent="Show the rescue";side.innerHTML=uploadBlock(true)+`<div class="field"><label>Thank-you note</label><textarea rows="3">Grandma, you saved dinner! The sauce is smooth again.</textarea></div>`}
+        if(current===5){title.textContent="Shared with community";side.innerHTML=`<div class="upload"><div class="icon">💛</div><strong>Thank you sent</strong><p class="muted">Before-and-after pictures are now part of Amara’s rescue story.</p></div><div class="actions"><button class="btn secondary small" onclick="navigate('discover')">Open Discover</button></div>`}
+    }
+    function navigate(id){
+        document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+        document.querySelectorAll("[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===id));
+        window.scrollTo({top:0,behavior:"smooth"});
+    }
+    document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.nav)));
+    $("#persona").addEventListener("change",e=>{
+        const grandma=e.target.value==="grandma";
+        $("#personName").textContent=grandma?"Grandma":"Amara";$("#avatar").textContent=grandma?"G":"A";
+        navigate(grandma?"helpdesk":"kitchen");toast("Persona switched");
+    });
+    $("#sendHelp").addEventListener("click",()=>{current=3;$("#grandmaExisting").textContent=$("#grandmaReply").value;navigate("kitchen");render();toast("Guidance provided to Amara")});
+    render();
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+// This library's own records about books, and the classification applied to
+// them.
+//
+// Derived from the library book-catalog Visual Glossary. Note that this file
+// imports nothing from `library.bibliographic.v1`: a reference across a
+// bounded-context boundary is carried by identifier, not by an embedded
+// message, so the two contexts stay independently deployable.
+package library.catalog.v1;
+
+option go_package = "github.com/example/library/gen/library/catalog/v1;catalogv1";
+option java_multiple_files = true;
+option java_outer_classname = "CatalogEntryProto";
+option java_package = "com.example.library.catalog.v1";
+
+// This library's record about a book.
+//
+// Aggregate root, deliberately separate from Book: a book is a fact about the
+// world, a catalog entry is this library's record of it. That separation is
+// the most interesting thing the glossary asserts, and it survives here as two
+// packages.
+message CatalogEntry {
+  // Identifier of the catalog entry, and the identity of this aggregate.
+  //
+  // Glossary: `1` — mandatory.
+  string catalog_entry_id = 1;
+
+  // The book this entry describes, referenced by its ISBN.
+  //
+  // The glossary draws this edge labeled `enhances` but with a generalisation
+  // (hollow triangle) arrowhead and no cardinality. Protobuf has no
+  // inheritance, so the subtype reading cannot be expressed here at all; this
+  // model takes the reading that a catalog entry is a separate record that
+  // references and decorates a Book, which is also what its own identifier
+  // suggests.
+  //
+  // TODO(glossary): confirm that reading, and settle the missing cardinality —
+  // is it one entry per book, or one per copy, per branch, or per edition?
+  // If it is one per copy, this field stays and a copy identifier joins it.
+  string book_isbn = 2;
+
+  // Classification labels on this entry.
+  //
+  // Glossary: `0..25` — none required, at most twenty-five. The upper bound is
+  // not expressible in proto3.
+  //
+  // TODO(glossary): is twenty-five a business rule, or a screen limit that got
+  // promoted to one?
+  repeated Tag tags = 3;
+}
+
+// A classification label applied to a catalog entry.
+//
+// Modelled as an embedded value object, because the glossary draws it as a
+// leaf owned by the entry.
+//
+// TODO(glossary): are tags shared vocabulary? If many entries are meant to
+// carry the *same* tag, Tag becomes an entity with a controlled name, and
+// `CatalogEntry.tags` becomes a repeated tag identifier instead.
+message Tag {
+  // The text of the tag.
+  //
+  // Glossary: `1` — mandatory.
+  string name = 1;
+}

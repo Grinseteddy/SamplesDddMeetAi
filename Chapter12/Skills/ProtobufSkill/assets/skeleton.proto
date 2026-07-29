@@ -1,0 +1,77 @@
+// Starting template. Copy it to the correct path first — the file must live at
+// <domain>/<context>/<version>/<file>.proto for the package to match the
+// directory, e.g. library/catalog/v1/catalog_entry.proto. Linting this file in
+// place will fail PACKAGE_DIRECTORY_MATCH, which is expected: it is a template,
+// not a module.
+
+syntax = "proto3";
+
+// One or two sentences: what this context covers and where the model came
+// from. Name the glossary, so the schema is traceable to the picture.
+    package <domain>.<context>.v1;
+
+option go_package = "github.com/<org>/<repo>/gen/<domain>/<context>/v1;<context>v1";
+option java_multiple_files = true;
+option java_outer_classname = "<File>Proto";
+option java_package = "com.<org>.<domain>.<context>.v1";
+
+// What this thing is, in the domain's own words.
+//
+// Aggregate root. Identity is <field>.
+    message <Entity> {
+// The identity of this aggregate. Always field 1.
+//
+// Glossary: `1` — mandatory. Not enforceable in proto3.
+    string <entity>_id = 1;
+
+// A single-leaf value object becomes a scalar field, not its own message.
+//
+// Glossary: `1` — mandatory.
+    string <name> = 2;
+
+// Glossary: `0..1` — optional. `optional` gives explicit presence.
+    optional string <other_name> = 3;
+
+// A closed set of values from the glossary.
+//
+// Glossary: `1` — mandatory.
+    <Entity>Status status = 4;
+
+// A multi-leaf value object owned by this aggregate, embedded by value.
+//
+// Glossary: `0..*`. `repeated` is never `optional` — an empty list is
+// absence.
+    repeated <Part> <parts> = 5;
+
+// A reference to a *different* aggregate or context: carry the identifier,
+// not the message, and do not import across the boundary.
+//
+// Glossary: `0..1`.
+    optional string <other_aggregate>_id = 6;
+
+// Numbers 7-15 encode in one byte — spend them on fields that are usually
+// present. Leave a gap before a block you expect to grow.
+    reserved 16 to 19;
+    }
+
+// A part owned by <Entity>. It has no independent life or identity.
+    message <Part> {
+// Glossary: `1` — mandatory.
+    string <name> = 1;
+    }
+
+// The lifecycle states of <Entity>.
+//
+// Enum values are prefixed with the enum name because they share the
+// enclosing scope in C++, and the zero value is always _UNSPECIFIED so an
+// unset field is distinguishable from a real state.
+    enum <Entity>Status {
+// Not set. Never a valid domain state.
+    <ENTITY>_STATUS_UNSPECIFIED = 0;
+
+// What this state means in the domain.
+    <ENTITY>_STATUS_<STATE_ONE> = 1;
+
+// What this state means in the domain.
+    <ENTITY>_STATUS_<STATE_TWO> = 2;
+    }

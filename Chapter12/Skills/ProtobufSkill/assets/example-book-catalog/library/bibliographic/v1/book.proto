@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+// Bibliographic facts about a published work — the terms this library shares
+// with the outside world.
+//
+// Derived from the library book-catalog Visual Glossary. Every field comment
+// records the cardinality the glossary asserted, because proto3 can express
+// almost none of them.
+package library.bibliographic.v1;
+
+option go_package = "github.com/example/library/gen/library/bibliographic/v1;bibliographicv1";
+option java_multiple_files = true;
+option java_outer_classname = "BookProto";
+option java_package = "com.example.library.bibliographic.v1";
+
+// A published work.
+//
+// Aggregate root. Identity is the ISBN; the glossary shows no other
+// identifier, which limits this model to works that have one.
+//
+// TODO(glossary): can the library catalogue items published before ISBNs
+// existed, or items without one? If so, this aggregate needs a surrogate
+// identifier and `isbn` becomes an ordinary optional field.
+message Book {
+  // The standard book identifier, and the identity of this aggregate.
+  //
+  // Glossary: `1` — mandatory. proto3 can enforce neither presence nor
+  // uniqueness; both are application-layer checks.
+  string isbn = 1;
+
+  // The book's main title.
+  //
+  // Glossary: `1` — mandatory.
+  string title = 2;
+
+  // Secondary title.
+  //
+  // Glossary: `0..1` — optional. `optional` gives explicit presence, so an
+  // absent subtitle is distinguishable from an empty one.
+  optional string subtitle = 3;
+
+  // The people who wrote the book.
+  //
+  // Glossary: `1..10` — at least one, at most ten. Neither bound is
+  // expressible in proto3; both must be checked in application code.
+  //
+  // TODO(glossary): is the maximum of ten a real business rule? A
+  // multi-author scientific volume breaks it immediately.
+  repeated Author authors = 4;
+
+  // Who published the book.
+  //
+  // Glossary: `0..1` — optional.
+  optional Publisher publisher = 5;
+
+  // Summary of the book.
+  //
+  // Glossary: `0..1` — optional.
+  optional string abstract = 6;
+}
+
+// A person who wrote a book.
+//
+// Modelled as an embedded value object because the glossary gives it no
+// identifier of its own.
+//
+// TODO(glossary): should Author be an entity? Authors are shared across books
+// and libraries generally want to browse by author. If so, Author moves to its
+// own aggregate and Book references it by ID rather than embedding it.
+message Author {
+  // The author's given name.
+  //
+  // Glossary: `1` — mandatory.
+  string name = 1;
+
+  // The author's family name.
+  //
+  // Glossary: `1` — mandatory.
+  //
+  // TODO(glossary): this two-part split breaks on mononymous authors and on
+  // naming conventions where given/family does not apply.
+  string surname = 2;
+}
+
+// The organisation that published a book.
+//
+// Modelled as a value object with a single field, because the glossary draws
+// no attributes on it beyond its name.
+//
+// TODO(glossary): is Publisher a company with its own record — imprints, an
+// address, a catalogue of its own? If so it becomes an entity in its own
+// aggregate, and Book references it by ID instead of embedding it.
+message Publisher {
+  // The publisher's name.
+  //
+  // Glossary: no cardinality drawn. Treated as mandatory whenever a publisher
+  // is present at all.
+  string name = 1;
+}

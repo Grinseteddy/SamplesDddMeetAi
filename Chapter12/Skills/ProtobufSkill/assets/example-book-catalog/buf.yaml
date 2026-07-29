@@ -1,0 +1,19 @@
+# House-style buf configuration.
+#
+# STANDARD is buf's recommended rule set: it enforces the package/directory
+# match, the version suffix, lower_snake_case files and fields, PascalCase
+# types, the enum value prefix, and the `_UNSPECIFIED = 0` zero value.
+#
+# COMMENTS is added on top because this house style documents every message,
+# field, and enum value — that is where the glossary's cardinalities and open
+# questions survive.
+version: v2
+modules:
+  - path: .
+lint:
+  use:
+    - STANDARD
+    - COMMENTS
+breaking:
+  use:
+    - FILE

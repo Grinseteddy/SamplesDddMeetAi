@@ -4,15 +4,33 @@ components:
       description: A help request sent by a cook to Grandma avatar or the community.
       type: object
       required:
+        - helpRequestType
         - cook
         - question
+      discriminator:
+        propertyName: helpRequestType
+        mapping:
+          CATASTROPHE: '#/components/schemas/HelpRequestCatastrophe'
+          INGREDIENTS: '#/components/schemas/HelpRequestIngredients'
+          STEP: '#/components/schemas/HelpRequestStep'
       properties:
-        helpRequestId:
+        helpRequestIdentifier:
           description: Identifier of the request
           type: string
           format: uuid
           examples:
             - d1f8409c-2f6d-4473-b51b-efc2aab9f202
+        helpRequestType:
+          description: Defines the type of the help request.
+          type: string
+          x-extensible-enum:
+            - CATASTROPHE
+            - INGREDIENTS
+            - STEP
+          examples:
+            - CATASTROPHE
+            - INGREDIENTS
+            - STEP
         cook:
           description: Cook identifier who creates the request
           type: string
@@ -39,39 +57,71 @@ components:
       description: A help request with a certain step to prepare a meal
       type: object
       required:
+        - helpRequestType
         - recipe
-        - step
+        - recipeStepNumber
       allOf:
         - $ref: '#/components/schemas/HelpRequest'
         - properties:
+            helpRequestType:
+              description: Type of the help request
+              type: string
+              x-extensible-enum:
+                - STEP
+              examples:
+                - STEP
             recipe:
               description: Identifier of the recipe for which help is needed
               type: string
               format: uuid
               examples:
                 - 977a7e9f-1e8c-405b-ab87-f077c8a30aea
-            step:
+            recipeStepNumber:
               description: Number of the step for which the help is needed.
               type: string
-              pattern: ^\d.$
+              pattern: ^\d+\.$
               examples:
                 - "2."
 
     HelpRequestCatastrophe:
       description: A help request to the avatar helping with a kitchen catastrophe
       type: object
+      required:
+        - helpRequestType
       allOf:
         - $ref: '#/components/schemas/HelpRequest'
+        - properties:
+            helpRequestType:
+              description: Type of the help request
+              type: string
+              x-extensible-enum:
+                - CATASTROPHE
+              examples:
+                - CATASTROPHE
+            recipe:
+              description: Identifier of the recipe for which help is needed
+              type: string
+              format: uuid
+              examples:
+                - 977a7e9f-1e8c-405b-ab87-f077c8a30aea
 
     HelpRequestIngredients:
       description: Help request to the community how to substitute certain ingredients
       type: object
       required:
+        - helpRequestType
         - recipe
         - ingredient
       allOf:
         - $ref: '#/components/schemas/HelpRequest'
         - properties:
+            helpRequestType:
+              description: Type of the help request
+              type: string
+              x-extensible-enum:
+                - INGREDIENTS
+              examples:
+                - INGREDIENTS
             recipe:
               description: Identifier of the recipe for which help is needed
               type: string
@@ -87,7 +137,14 @@ components:
       required:
         - helpIdentifier
         - helpRequestIdentifier
+        - helpType
         - helpDescription
+      discriminator:
+        propertyName: helpType
+        mapping:
+          CATASTROPHE: '#/components/schemas/HelpCatastrophe'
+          INGREDIENTS: '#/components/schemas/HelpIngredients'
+          STEP: '#/components/schemas/HelpStep'
       properties:
         helpIdentifier:
           description: Identifier of the help answer
@@ -101,6 +158,17 @@ components:
           format: uuid
           examples:
             - d1f8409c-2f6d-4473-b51b-efc2aab9f202
+        helpType:
+          description: Defines the type of the help.
+          type: string
+          x-extensible-enum:
+            - CATASTROPHE
+            - INGREDIENTS
+            - STEP
+          examples:
+            - CATASTROPHE
+            - INGREDIENTS
+            - STEP
         helpDescription:
           description: Description for the particular help
           type: string
@@ -109,7 +177,7 @@ components:
           examples:
             - "Don't panic. Try to cut off the burned parts. Make them smaller and add butter."
         helpProviderType:
-          description: Identifier who gives the help
+          description: Type of whom gives help - avatar or community cook
           type: string
           x-extensible-enum:
             - GRANDMA_AVATAR
@@ -134,12 +202,18 @@ components:
       description: Help with ingredients
       type: object
       required:
-        - recipe
-        - ingredient
+        - helpType
         - substitutes
       allOf:
         - $ref: '#/components/schemas/Help'
         - properties:
+            helpType:
+              description: Type of the help
+              type: string
+              x-extensible-enum:
+                - INGREDIENTS
+              examples:
+                - INGREDIENTS
             substitutes:
               description: One or more substitutes for one ingredient in a recipe
               type: array
@@ -152,19 +226,34 @@ components:
       description: Help with preparation step
       type: object
       required:
-        - recipe
-        - step
+        - helpType
       allOf:
         - $ref: '#/components/schemas/Help'
+        - properties:
+            helpType:
+              description: Type of the help
+              type: string
+              x-extensible-enum:
+                - STEP
+              examples:
+                - STEP
 
     HelpCatastrophe:
       description: Help to a catastrophe
       type: object
       required:
+        - helpType
         - mitigationSteps
       allOf:
         - $ref: '#/components/schemas/Help'
         - properties:
+            helpType:
+              description: Type of the help
+              type: string
+              x-extensible-enum:
+                - CATASTROPHE
+              examples:
+                - CATASTROPHE
             mitigationSteps:
               description: Steps to rescue the meal
               type: array
@@ -177,14 +266,14 @@ components:
       description: A mitigation step to rescue a kitchen catastrophe
       type: object
       required:
-        - step
+        - sequence
         - ingredient
         - stepDescription
       properties:
-        step:
+        sequence:
           description: Number of the step to be done to mitigate the catastrophe
           type: string
-          pattern: ^\d.$
+          pattern: ^\d+\.$
           examples:
             - "2."
         ingredient:
@@ -220,13 +309,21 @@ components:
             - 0.5
         unit:
           description: |
-              Unit in which the substitute is measured
-              CUP means a US cup with 240 ml
+            Unit in which the ingredient is measured.
+            Volumes follow the US nutrition-labeling convention:
+             TEASPOONS     1 tsp    =   5 ml
+             TABLESPOONS   1 tbsp   =  15 ml   (= 3 teaspoons)
+             CUPS          1 cup    = 240 ml   (= 16 tablespoons)
+             FLUID_OUNCES  1 fl oz  =  30 ml   (= 2 tablespoons)
+            Weights:
+             OUNCES        1 oz     =  28.35 g
+            Spoon and cup measures are approximate by nature; where precision
+            matters (baking, leavening, salt) prefer GRAMS or MILLILITERS.
           type: string
           x-extensible-enum:
             - GRAMS
             - KILOGRAMS
-            - CUPs
+            - CUPS
             - TABLESPOONS
             - TEASPOONS
             - LITERS
@@ -242,7 +339,7 @@ components:
       type: object
       required:
         - thanksIdentifier
-        - thanksGiver
+        - thankingCook
         - help
         - thankText
       properties:
@@ -252,7 +349,7 @@ components:
           format: uuid
           examples:
             - 995948dc-898b-4eb6-93dd-998c517b0c70
-        thanksGiver:
+        thankingCook:
           description: Identifier of the cook who thanks for help
           type: string
           format: uuid
@@ -272,22 +369,12 @@ components:
           examples:
             - "Thank you to Grandma for the tip. She rescued me and my scones."
         pictures:
-          description: Collection of pictures that show how the cook needs help
+          description: Collection of pictures that show how the cook could apply the provided help
           type: array
           minItems: 0
           maxItems: 10
           items:
             $ref: '#/components/schemas/Picture'
-
-    Pictures:
-      description: |
-        Collection of pictures to underline a request, an answer, or thanks.
-        For the moment we limit the number of pictures to 10.
-      type: array
-      minItems: 1
-      maxItems: 10
-      items:
-        $ref: '#/components/schemas/Picture'
 
     Picture:
       description: |

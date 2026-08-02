@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2040" height="1290" viewBox="0 0 2040 1290">
+<defs>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity="0.18"/></filter>
+      <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#333"/></marker>
+      <marker id="triangle" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M1,1 L11,5 L1,9 Z" fill="white" stroke="#333" stroke-width="1.5"/></marker>
+    </defs>
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="60" y="46" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#222">Visual Glossary — Help context</text>
+<text x="60" y="72" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#777">revised to match Help(4).yaml</text>
+<path d="M 260.0,320.0 L 365.0,320.0 L 365.0,319.0 L 470.0,319.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="260.9" y="308.0" width="103.1" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="312.5" y="324.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">posts  0..*</text>
+<path d="M 175.0,370.0 L 175.0,535.0 L 175.0,535.0 L 175.0,700.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="123.5" y="440.5" width="103.1" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="175.0" y="456.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">posts  0..*</text>
+<path d="M 1285.0,378.0 L 1285.0,445.0 L 175.0,445.0 L 175.0,370.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="666.3" y="433.0" width="127.4" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="730.0" y="449.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">given by  0..1</text>
+<path d="M 575.0,260.0 L 575.0,198.0 L 555.0,198.0 L 555.0,136.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="539.6" y="217.0" width="70.7" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="575.0" y="233.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">asks  1</text>
+<path d="M 680.0,319.0 L 755.0,319.0 L 755.0,98.0 L 830.0,98.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="687.2" y="196.5" width="135.5" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="755.0" y="212.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">contains  0..10</text>
+<path d="M 1180.0,319.0 L 1080.0,319.0 L 1080.0,98.0 L 980.0,98.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1012.2" y="196.5" width="135.5" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1080.0" y="212.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">contains  0..10</text>
+<path d="M 260.0,750.0 L 710.0,750.0 L 710.0,98.0 L 830.0,98.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="642.2" y="412.0" width="135.5" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="710.0" y="428.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">contains  0..10</text>
+<path d="M 1180.0,319.0 L 930.0,319.0 L 930.0,319.0 L 680.0,319.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1023.7" y="307.0" width="62.6" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1055.0" y="323.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">for  1</text>
+<path d="M 1285.0,260.0 L 1285.0,198.0 L 1265.0,198.0 L 1265.0,136.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1221.3" y="217.0" width="127.4" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1285.0" y="233.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">explains in  1</text>
+<path d="M 1390.0,319.0 L 1515.0,319.0 L 1515.0,105.0 L 1640.0,105.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1443.2" y="200.0" width="143.6" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1515.0" y="216.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">comes from  0..1</text>
+<path d="M 395.0,500.0 L 395.0,439.0 L 575.0,439.0 L 575.0,378.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#triangle)"/>
+<rect x="466.0" y="427.0" width="38.0" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="485.0" y="443.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">is</text>
+<path d="M 605.0,500.0 L 605.0,439.0 L 575.0,439.0 L 575.0,378.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#triangle)"/>
+<rect x="586.0" y="457.5" width="38.0" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="605.0" y="473.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">is</text>
+<path d="M 815.0,500.0 L 815.0,430.0 L 575.0,430.0 L 575.0,378.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#triangle)"/>
+<rect x="676.0" y="418.0" width="38.0" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="695.0" y="434.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">is</text>
+<path d="M 1105.0,500.0 L 1105.0,439.0 L 1285.0,439.0 L 1285.0,378.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#triangle)"/>
+<rect x="1176.0" y="427.0" width="38.0" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1195.0" y="443.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">is</text>
+<path d="M 1315.0,500.0 L 1315.0,439.0 L 1285.0,439.0 L 1285.0,378.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#triangle)"/>
+<rect x="1296.0" y="457.5" width="38.0" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1315.0" y="473.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">is</text>
+<path d="M 1525.0,500.0 L 1525.0,430.0 L 1285.0,430.0 L 1285.0,378.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#triangle)"/>
+<rect x="1386.0" y="418.0" width="38.0" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1405.0" y="434.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">is</text>
+<path d="M 395.0,604.0 L 395.0,747.0 L 380.0,747.0 L 380.0,890.0" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+<rect x="363.7" y="663.5" width="62.6" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="395.0" y="679.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">for  1</text>
+<path d="M 395.0,604.0 L 395.0,747.0 L 700.0,747.0 L 700.0,890.0" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+<rect x="491.9" y="735.0" width="111.2" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="547.5" y="751.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">refers to  1</text>
+<path d="M 815.0,604.0 L 815.0,820.0 L 380.0,820.0 L 380.0,890.0" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+<rect x="566.2" y="808.0" width="62.6" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="597.5" y="824.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">for  1</text>
+<path d="M 815.0,604.0 L 815.0,747.0 L 1280.0,747.0 L 1280.0,890.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1008.1" y="735.0" width="78.8" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1047.5" y="751.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">about  1</text>
+<path d="M 1315.0,604.0 L 1315.0,747.0 L 1280.0,747.0 L 1280.0,890.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1259.4" y="663.5" width="111.2" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1315.0" y="679.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">offers  1..3</text>
+<path d="M 1620.0,552.0 L 1660.0,552.0 L 1660.0,742.0 L 1700.0,742.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1592.2" y="635.0" width="135.5" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1660.0" y="651.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">contains  1..10</text>
+<path d="M 1795.0,794.0 L 1795.0,847.0 L 1775.0,847.0 L 1775.0,900.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1743.5" y="808.5" width="103.1" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1795.0" y="824.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">numbered  1</text>
+<path d="M 1795.0,794.0 L 1795.0,847.0 L 1955.0,847.0 L 1955.0,900.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1839.7" y="835.0" width="70.7" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1875.0" y="851.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">says  1</text>
+<path d="M 1700.0,742.0 L 1540.0,742.0 L 1540.0,942.0 L 1380.0,942.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1504.7" y="830.0" width="70.7" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1540.0" y="846.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">uses  1</text>
+<path d="M 1280.0,994.0 L 1280.0,1040.0 L 1070.0,1040.0 L 1070.0,1090.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1135.6" y="1028.0" width="78.8" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1175.0" y="1044.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">named  1</text>
+<path d="M 1280.0,994.0 L 1280.0,1042.0 L 1230.0,1042.0 L 1230.0,1090.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1203.5" y="1030.0" width="103.1" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1255.0" y="1046.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">measured  1</text>
+<path d="M 1280.0,994.0 L 1280.0,1042.0 L 1390.0,1042.0 L 1390.0,1090.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1307.8" y="1030.0" width="54.5" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="1335.0" y="1046.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">in  1</text>
+<path d="M 260.0,750.0 L 930.0,750.0 L 930.0,319.0 L 1180.0,319.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="563.7" y="738.0" width="62.6" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="595.0" y="754.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">for  1</text>
+<path d="M 175.0,800.0 L 175.0,845.0 L 175.0,845.0 L 175.0,890.0" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="139.7" y="810.5" width="70.7" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="175.0" y="826.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">says  1</text>
+<path d="M 460.0,938.0 L 540.0,938.0 L 540.0,938.0 L 620.0,938.0" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+<rect x="436.3" y="926.0" width="127.4" height="22" rx="4" fill="white" fill-opacity="0.94"/>
+<text x="500.0" y="942.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">contains  1..*</text>
+<rect x="470.0" y="60.0" width="170.0" height="76.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="555.0" y="105.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Question</text>
+<rect x="830.0" y="60.0" width="150.0" height="76.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="905.0" y="103.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#222">Picture</text>
+<rect x="1180.0" y="60.0" width="170.0" height="76.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1265.0" y="105.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help Text</text>
+<rect x="1640.0" y="60.0" width="210.0" height="90.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1745.0" y="101.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help Provider</text>
+<text x="1745.0" y="127.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#666">Grandma Avatar |</text>
+<text x="1745.0" y="144.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#666">Community</text>
+<rect x="90.0" y="270.0" width="170.0" height="100.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="175.0" y="327.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Cook</text>
+<rect x="470.0" y="260.0" width="210.0" height="118.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="575.0" y="326.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help Request</text>
+<rect x="1180.0" y="260.0" width="210.0" height="118.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1285.0" y="326.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help</text>
+<rect x="300.0" y="500.0" width="190.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="395.0" y="547.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Step Help</text>
+<text x="395.0" y="571.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Request</text>
+<rect x="510.0" y="500.0" width="190.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="605.0" y="547.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Catastrophe</text>
+<text x="605.0" y="571.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help Request</text>
+<rect x="720.0" y="500.0" width="190.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="815.0" y="547.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Ingredients</text>
+<text x="815.0" y="571.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help Request</text>
+<rect x="1010.0" y="500.0" width="190.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1105.0" y="559.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Step Help</text>
+<rect x="1220.0" y="500.0" width="190.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1315.0" y="547.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Ingredients</text>
+<text x="1315.0" y="571.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help</text>
+<rect x="1430.0" y="500.0" width="190.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1525.0" y="547.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Catastrophe</text>
+<text x="1525.0" y="571.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Help</text>
+<rect x="1700.0" y="690.0" width="190.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1795.0" y="749.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Mitigation Step</text>
+<rect x="1690.0" y="900.0" width="170.0" height="76.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1775.0" y="945.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Step Number</text>
+<rect x="1880.0" y="900.0" width="150.0" height="76.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1955.0" y="943.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#222">Step Text</text>
+<rect x="1180.0" y="890.0" width="200.0" height="104.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1280.0" y="949.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Ingredient</text>
+<rect x="1000.0" y="1090.0" width="140.0" height="72.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1070.0" y="1131.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#222">Name</text>
+<rect x="1160.0" y="1090.0" width="140.0" height="72.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1230.0" y="1131.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#222">Quantity</text>
+<rect x="1320.0" y="1090.0" width="140.0" height="72.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="1390.0" y="1131.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#222">Unit</text>
+<rect x="90.0" y="700.0" width="170.0" height="100.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="175.0" y="757.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Thanks</text>
+<rect x="90.0" y="890.0" width="170.0" height="76.0" rx="2" fill="#fff79e" filter="url(#shadow)"/>
+<text x="175.0" y="935.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#222">Thank Text</text>
+<rect x="300.0" y="890.0" width="160.0" height="96.0" rx="2" fill="#8ab4f8" filter="url(#shadow)"/>
+<text x="380.0" y="943.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#222">Recipe</text>
+<rect x="620.0" y="890.0" width="160.0" height="96.0" rx="2" fill="#8ab4f8" filter="url(#shadow)"/>
+<text x="700.0" y="943.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#222">Step</text>
+<rect x="60" y="1150" width="700" height="100" rx="8" fill="white" stroke="#bbb"/>
+<rect x="78" y="1168" width="24" height="24" fill="#fff79e" stroke="#999"/>
+<text x="112" y="1186" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">Help context — owned and described here</text>
+<rect x="401" y="1168" width="24" height="24" fill="#8ab4f8" stroke="#999"/>
+<text x="435" y="1186" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#333">Recipe context — referenced only, not modelled here</text>
+<line x1="82" y1="1222" x2="150" y2="1222" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="164" y="1227" font-family="Arial, Helvetica, sans-serif" font-size="13">association</text>
+<line x1="295" y1="1222" x2="363" y2="1222" stroke="#333" stroke-width="2" marker-end="url(#triangle)"/>
+<text x="377" y="1227" font-family="Arial, Helvetica, sans-serif" font-size="13">is-a</text>
+<line x1="460" y1="1222" x2="528" y2="1222" stroke="#333" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+<text x="542" y="1227" font-family="Arial, Helvetica, sans-serif" font-size="13">cross-context</text>
+</svg>

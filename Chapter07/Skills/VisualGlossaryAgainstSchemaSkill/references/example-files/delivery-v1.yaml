@@ -1,0 +1,211 @@
+components:
+  schemas:
+    Shipment:
+      description: A shipment booked by a sender.
+      type: object
+      required:
+        - sender
+        - deliveryAddress
+      properties:
+        shipmentId:
+          description: Identifier of the shipment
+          type: string
+          format: uuid
+          examples:
+            - 6b1f7f0e-6a1f-4a0e-9a2a-2b0a1d3c4e5f
+        trackingNumber:
+          description: Public tracking number shown to the customer
+          type: string
+          pattern: ^[A-Z]{2}\d{9}[A-Z]{2}$
+          examples:
+            - "DE123456789DE"
+        sender:
+          description: Identifier of the customer who booked the shipment
+          type: string
+          format: uuid
+          examples:
+            - 0bbb26b5-b807-45bd-8acf-138ac2a027a9
+        deliveryAddress:
+          $ref: '#/components/schemas/DeliveryAddress'
+        parcels:
+          description: The parcels making up this shipment
+          type: array
+          maxItems: 30
+          items:
+            $ref: '#/components/schemas/Parcel'
+
+    Parcel:
+      description: One physical parcel within a shipment.
+      type: object
+      required:
+        - weight
+      properties:
+        parcelId:
+          description: Identifier of the parcel
+          type: string
+          format: uuid
+          examples:
+            - 4a9c1d22-31b8-4f0e-9c3e-77a1b2c3d4e5
+        weight:
+          description: Weight of the parcel
+          type: number
+          format: int32
+          examples:
+            - 2400
+        weightUnit:
+          description: Unit the weight is expressed in
+          type: string
+          x-extenxible-enum:
+            - GRAMS
+            - KILOGRAMS
+            - POUNDS
+          examples:
+            - GRAMS
+
+    DeliveryAttempt:
+      description: An attempt by a driver to deliver a parcel.
+      type: object
+      required:
+        - parcel
+        - driver
+        - attemptedAt
+      properties:
+        attemptId:
+          description: Identifier of the delivery attempt
+          type: string
+          format: uuid
+          examples:
+            - 9f2c7b31-55aa-4c1e-8f2b-0d1e2f3a4b5c
+        parcel:
+          description: Number of the parcel within the shipment
+          type: string
+          pattern: ^\d$
+          examples:
+            - 001
+        driver:
+          description: Identifier of the driver who attempted the delivery
+          type: string
+          format: uuid
+          examples:
+            - 2e6afe1d-e315-476d-b162-41f3372b2ab4
+        attemptedAt:
+          description: When the attempt was made
+          type: string
+          format: date-time
+          examples:
+            - "2026-03-14T09:12:00Z"
+        note:
+          description: Free text describing the outcome of the attempt
+          type: string
+          minLength: 5
+          maxLength: 1024
+          examples:
+            - "Nobody home, no safe place, card left in letterbox"
+
+    SuccessfulDelivery:
+      description: A delivery attempt that succeeded.
+      type: object
+      required:
+      allOf:
+        - $ref: '#components/schemas/DeliveryAttempt'
+        - properties:
+            proofOfDelivery:
+              $ref: '#/components/schemas/ProofOfDelivery'
+
+    FailedDelivery:
+      description: A delivery attempt that failed.
+      type: object
+      required:
+        - parcel
+        - driver
+      properties:
+        parcel:
+          description: Number of the parcel within the shipment
+          type: string
+          pattern: ^\d$
+          examples:
+            - 001
+        driver:
+          description: Identifier of the driver who attempted the delivery
+          type: string
+          format: uuid
+          examples:
+            - 2e6afe1d-e315-476d-b162-41f3372b2ab4
+        retryScheduledFor:
+          description: Date the next attempt is planned for
+          type: string
+          pattern: ^\d\d.\d\d.\d\d\d\d$
+          examples:
+            - 15.03.2026
+
+    ProofOfDelivery:
+      description: Evidence that a parcel was handed over.
+      type: object
+      required:
+        - signedBy
+        - photo
+      properties:
+        signedBy:
+          description: Name of the person who accepted the parcel
+          type: string
+          minLength: 2
+          maxLength: 80
+          examples:
+            - "M. Schneider"
+        parcel:
+          $ref: '#/components/schemas/Parcel'
+        deliveryAddress:
+          $ref: '#/components/schemas/DeliveryAddress'
+        photos:
+          description: Photos taken at handover
+          type: array
+          minItems: 0
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Photo'
+
+    DeliveryAddress:
+      description: The address a shipment is delivered to.
+      type: object
+      required:
+        - street
+        - postcode
+        - city
+      properties:
+        street:
+          description: Street and house number
+          type: string
+          minLength: 2
+          maxLength: 120
+          examples:
+            - "Leopoldstrasse 12"
+        postcode:
+          description: Postal code
+          type: string
+          minLength: 3
+          maxLength: 10
+          examples:
+            - "80802"
+        city:
+          description: City
+          type: string
+          minLength: 2
+          maxLength: 80
+          examples:
+            - "Munich"
+
+    Photos:
+      description: Collection of photos taken at handover.
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/Photo'
+
+    Photo:
+      description: |
+        Relative reference to a photo in the media storage, resolved against the
+        media base URL published in `servers`.
+      type: string
+      format: uri-reference
+      examples:
+        - '/media/photos/f0b1919a-ef85-4c3c-bfac-dbb05a3ca52a'

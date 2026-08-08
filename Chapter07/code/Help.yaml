@@ -1,7 +1,7 @@
 components:
   schemas:
     HelpRequest:
-      description: A help request sent by a cook to Grandma avatar or the community.
+      description: A help request sent by a cook to Grandma Avatar or the community.
       type: object
       required:
         - helpRequestType
@@ -44,7 +44,7 @@ components:
           minLength: 5
           maxLength: 2048
           examples:
-            - "My scones are burned.What can I do?"
+            - "My scones are burned. What can I do?"
         pictures:
           description: Collection of pictures that show how the cook needs help
           type: array
@@ -84,7 +84,7 @@ components:
                 - "2."
 
     HelpRequestCatastrophe:
-      description: A help request to the avatar helping with a kitchen catastrophe
+      description: A help request to the Avatar helping with a kitchen catastrophe
       type: object
       required:
         - helpRequestType
@@ -177,7 +177,7 @@ components:
           examples:
             - "Don't panic. Try to cut off the burned parts. Make them smaller and add butter."
         helpProviderType:
-          description: Type of whom gives help - avatar or community cook
+          description: Type of whom gives help - Avatar or community cook
           type: string
           x-extensible-enum:
             - GRANDMA_AVATAR

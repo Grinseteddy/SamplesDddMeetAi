@@ -15,6 +15,7 @@ description: >-
   goal–strategy mismatch, premature convergence, false consensus). Grounded in
   Adzic (Impact Mapping, 2012), Heath (2020), and van Kelle, Verschatse &
   Baas-Schwegler (Collaborative Software Design, 2024).
+author: Annegret Junker
 ---
 
 # Impact Mapping Critic (Devil's Advocate)

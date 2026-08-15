@@ -1,6 +1,7 @@
 ---
 name: event-storming-interpreter
 description: Interpret an EventStorming board (Alberto Brandolini's notation) from a photo or screenshot and turn it into a buildable brief: bounded contexts as modules, a domain model with aggregate state machines, commands/policies/flows, actors, external systems, and open hotspots. Use this whenever the user shares or describes an EventStorming result -- a board of colored stickies where orange = domain events (past tense), blue = commands, large yellow = aggregates, small yellow = actors, green = read models, lilac/pink = policies or external systems, red = hotspots -- usually on a left-to-right timeline clustered into bounded contexts. Also trigger when they ask to interpret, read, analyze, or build an app / data model / services from such a board, even if they never say 'EventStorming' or name the flavour, or for any orange-events-on-a-timeline sticky board, a Miro/Mural/whiteboard DDD session photo, or a request to extract domain events, aggregates, or bounded contexts.
+author: Annegret Junker
 ---
 
 # Event Storming Interpreter

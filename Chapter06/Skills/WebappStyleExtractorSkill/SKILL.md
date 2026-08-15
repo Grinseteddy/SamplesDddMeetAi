@@ -12,6 +12,7 @@ description: >-
   screenshot" or "what colors and fonts is this using" — as long as the input is an
   image and they want structured formatting data back. Does NOT cover layout/DOM
   structure extraction, nor reading styles from live HTML/CSS (this is for images).
+author: Annegret Junker
 ---
 
 # Web-app style extractor

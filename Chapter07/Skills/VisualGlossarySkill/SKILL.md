@@ -1,6 +1,7 @@
 ---
 name: visual-glossary-interpreter
 description: Interpret a Visual Glossary — the static domain-model artifact that pins down a domain's nouns and their relationships, and that pairs with Domain Storytelling, EventStorming and Event Modeling alike — turning it into a Glossary Brief with an exact term catalogue, a relationship-and-cardinality table, a derived domain model (entities, value objects, aggregates, identity), and the open questions the picture leaves unanswered. Use whenever someone shares or describes a visual glossary, domain concept map, term or noun diagram, or any picture of concept boxes or stickies joined by verb-labeled arrows carrying multiplicities like 1, 0..1, 1..*, 1..10 or 0..25, and asks to interpret, read, explain, transcribe, review, or build a data model, schema, ERD, aggregate design, ubiquitous language or glossary document from it. Trigger even when nobody says "visual glossary", and whenever such a picture accompanies a domain story, an EventStorming board or an Event Modeling timeline.
+author: Annegret Junker
 ---
 
 # Visual Glossary Interpreter

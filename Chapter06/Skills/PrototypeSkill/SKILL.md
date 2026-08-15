@@ -14,6 +14,7 @@ description: >-
   "turn this domain story into a working prototype matching this design". Trigger even
   if only one input is named, as long as the goal is a styled clickable prototype from
   a domain story — then ask for the other.
+author: Annegret Junker
 ---
 
 # Styled Prototype from a Domain Story

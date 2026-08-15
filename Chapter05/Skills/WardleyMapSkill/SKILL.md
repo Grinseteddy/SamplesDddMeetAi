@@ -15,6 +15,7 @@ description: >-
   may stand alone or be checked against the strategy it serves — a North Star
   Metric (NSM), a Business Model Canvas, and/or an Impact Map; provide any, all,
   or none.
+author: Annegret Junker
 ---
 
 # Wardley Map Critic (Devil's Advocate)

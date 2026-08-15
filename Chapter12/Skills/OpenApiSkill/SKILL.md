@@ -11,6 +11,7 @@ description: >-
   so the additions match the house conventions, and when the user asks to
   validate or lint a spec. Produces a single YAML file that passes Spectral
   linting.
+author: Anengret Junker
 ---
 
 # OpenAPI 3.1.0 Spec Author

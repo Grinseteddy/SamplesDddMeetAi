@@ -15,6 +15,7 @@ description: >-
   the canvas checked for fidelity to that session: dropped ideas, unsupported
   blocks, premature convergence, or false consensus. Grounded in Osterwalder &
   Pigneur, Business Model Generation (2010).
+author: Annegret junker
 ---
 
 # Business Model Canvas Critic (Devil's Advocate)

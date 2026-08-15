@@ -19,6 +19,7 @@ compatibility: >-
   Pairs with visual-glossary-interpreter for reading the picture; degrades
   gracefully without it. scripts/inspect_schema.py needs Python 3 and PyYAML for
   YAML input (JSON needs nothing).
+author: Annegret Junker
 ---
 
 # Schema ↔ Visual Glossary Consistency

@@ -14,6 +14,7 @@ description: >-
   "Visual Glossary". Also use it when extending an existing `.proto` so
   additions match the conventions, and when the user asks to compile, validate
   or lint protobuf. Produces `.proto` files that compile and pass `buf lint`.
+author: Annegret Junker
 ---
 
 # Protobuf Model Author

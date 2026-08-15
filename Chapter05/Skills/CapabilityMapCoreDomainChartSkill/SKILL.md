@@ -17,6 +17,7 @@ description: >-
 compatibility: >-
   Depends on two installed skills (capability-map-critic and
   core-domain-chart-author) and Python 3 (standard library only).
+author: Annegret Junker
 ---
 
 # Capability Map Review — Critique + Core Domain Chart

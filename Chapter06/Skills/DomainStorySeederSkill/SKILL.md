@@ -14,6 +14,7 @@ description: >-
   actor-action-work-object story to put in front of a room — even if they don't
   say "Domain Storytelling." This is the complement of interpreting a domain
   story: here you PRODUCE the story rather than read one.
+author: Annegret Junker
 ---
 
 # Domain Story Seeder

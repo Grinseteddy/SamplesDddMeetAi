@@ -12,6 +12,7 @@ description: >-
   to an existing spec so the additions match the house conventions, and when the
   user asks to validate or lint an AsyncAPI document. Produces a single YAML file
   that validates against the AsyncAPI 3.1.0 spec and passes Spectral linting.
+author: Annegret Junker
 ---
 
 # AsyncAPI 3.1.0 Spec Author

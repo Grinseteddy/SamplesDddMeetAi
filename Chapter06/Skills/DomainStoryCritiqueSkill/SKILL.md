@@ -15,6 +15,7 @@ description: >-
   related artifact the user provides: an EventStorming board, a brainstorm
   photo, a Wardley or Capability map, a Business Model Canvas, or a Visual
   Glossary whose terms the story must reuse. Grounded in Hofer & Schwentner.
+author: Annegret Junker
 ---
 
 # Domain Story Critic (Devil's Advocate)

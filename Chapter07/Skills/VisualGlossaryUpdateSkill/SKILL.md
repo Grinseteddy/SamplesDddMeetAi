@@ -20,6 +20,7 @@ compatibility: >-
   visual-glossary-interpreter (reading the old picture) and
   schema-glossary-consistency (the diff); works without either. Rendering a PNG
   preview needs cairosvg, which is optional.
+author: Annegret Junker
 ---
 
 # Visual Glossary Updater

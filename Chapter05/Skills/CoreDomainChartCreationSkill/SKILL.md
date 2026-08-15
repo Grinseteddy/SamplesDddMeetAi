@@ -14,6 +14,7 @@ description: >-
   name the technique. Pairs with the core-domain-chart-critic (which supplies the
   critique). Produces a single .svg matching the bundled gold-standard example.
   Grounded in Millett & Tune, Patterns, Principles, and Practices of DDD.
+author: Annegret Junker
 ---
 
 # Core Domain Chart Author

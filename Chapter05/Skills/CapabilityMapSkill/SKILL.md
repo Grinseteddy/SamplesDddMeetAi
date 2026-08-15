@@ -15,6 +15,7 @@ description: >-
   Canvas; the user may provide any, all, or none, and any basic (incl. the
   map itself) may be missing. Grounded in The Open Group TOGAF guides
   Business Capabilities V2 (G211) and Capability-Based Planning (G193).
+author: Annegret Junker
 ---
 
 # Capability Map Critic (Devil's Advocate)

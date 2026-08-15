@@ -1,6 +1,7 @@
 ---
 name: domain-story-interpreter
 description: Interpret domain stories (Domain Storytelling diagrams in the Hofer & Schwentner pictographic language) and turn them into a structured prototype brief — domain model, entity state machines, actors/roles, bounded contexts, user flows, and screens. Use this skill whenever the user shares or describes a domain story, a pictographic process diagram (numbered verb-labeled arrows running between actor pictograms and work-object pictograms, often grouped into lanes or boxes), an egon.io / Domain Storyteller export, or asks to "interpret", "read", "analyze", or "build a prototype / app / data model / screens from" such a diagram — even if they never say the words "domain storytelling". Trigger it any time the input is a numbered actor→activity→work-object story that needs to be translated into something buildable.
+author: Annegret Junker
 ---
 
 # Domain Story Interpreter

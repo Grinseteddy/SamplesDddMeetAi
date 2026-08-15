@@ -15,6 +15,7 @@ description: >-
   scope-exclusion claims and finds contexts missing from the board. Trigger even
   when nobody says "pivotal event" or "bounded context". Grounded in Brandolini
   and Evans.
+author: Annegret Junker
 ---
 
 # Pivotal Event Boundary Finder

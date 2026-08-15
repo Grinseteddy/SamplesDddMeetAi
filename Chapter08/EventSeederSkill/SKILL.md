@@ -14,6 +14,7 @@ description: >-
   "EventStorming". This is the generative complement of the
   event-storming-interpreter: here you PRODUCE the events rather than read them
   off a board.
+author: Annegret Junker
 ---
 
 # Event Storming Seeder

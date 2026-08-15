@@ -15,6 +15,7 @@ description: >-
   does not get the final say. Grounded in Osborn's deferred-judgment principle
   and the group-creativity research on evaluation apprehension and fixation
   (Mullen et al.; Paulus et al.; Wilson).
+author: Annegret Junker
 ---
 
 # Devil's Advocate

@@ -12,6 +12,7 @@ description: >-
   when a visual glossary, term diagram, or ubiquitous language artifact is also in play,
   e.g. "build a prototype from this domain story and our glossary". Trigger even when
   only the domain story is given: then ask for the other two before building.
+author: Annegret Junker
 ---
 
 # Prototype from a Domain Story + Visual Glossary

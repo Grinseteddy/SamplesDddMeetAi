@@ -15,6 +15,7 @@ description: >-
   isn't used. Checked against whichever upstream artifacts are provided: a
   Business Model Canvas and a Capability Map (any or none). Grounded in Millett &
   Tune, Patterns, Principles, and Practices of DDD.
+author: Annegret Junker
 ---
 
 # Core Domain Chart Critic (Devil's Advocate)

@@ -19,6 +19,7 @@ compatibility: >-
   Reads best alongside two installed skills — visual-glossary-interpreter and
   domain-story-interpreter — but degrades gracefully without them. No scripts or
   dependencies.
+author: Annegret Junker
 ---
 
 # Domain Story ↔ Visual Glossary Consistency

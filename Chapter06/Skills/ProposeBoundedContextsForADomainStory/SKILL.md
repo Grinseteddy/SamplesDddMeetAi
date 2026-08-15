@@ -15,6 +15,7 @@ description: >-
   "subdomain", or "Domain Storytelling", and whether the story arrives with
   groups drawn (then validate and refine that cut) or with none (then propose
   one). Grounded in Hofer & Schwentner and Evans/Vernon.
+author: Annegret Junker
 ---
 
 # Domain Story Context Finder

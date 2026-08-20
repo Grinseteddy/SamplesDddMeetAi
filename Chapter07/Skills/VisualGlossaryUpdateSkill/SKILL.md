@@ -73,7 +73,7 @@ stops the output being a class diagram with rounded corners.
 Transcribe it to text first: terms with exact spelling and colour/pictogram
 group, then every edge as `Source —label→ cardinality Target`. Use
 `visual-glossary-interpreter` if installed
-(`/mnt/skills/user/visual-glossary-interpreter/SKILL.md`), minding its fan-out
+(`../VisualGlossarySkill/SKILL.md`), minding its fan-out
 rule.
 
 **Check the picture you were given is the current one.** An SVG export and a
@@ -88,8 +88,9 @@ and that distinction survives into the new drawing.
 ### Step 2 — Check the schema is coherent
 
 Parse it. If `schema-glossary-consistency` is installed, its
-`scripts/inspect_schema.py` does this in one call; otherwise load the file and
-check the essentials yourself: every `$ref` resolves, every `required` name is a
+`../VisualGlossaryAgainstSchemaSkill/scripts/inspect_schema.py` does this in one
+call; otherwise load the file and check the essentials yourself: every `$ref`
+resolves, every `required` name is a
 property that exists (following `allOf`), examples match their own patterns,
 subtypes add something.
 

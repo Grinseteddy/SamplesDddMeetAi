@@ -50,7 +50,7 @@ glossary does.
   or an off-language coinage).
 
 This cross-check already exists in the house as
-`domain-story-critic/references/visual-glossary-cross-check.md` — feed it the
+`../../../../Chapter06/Skills/DomainStoryCritiqueSkill/references/visual-glossary-cross-check.md` — feed it the
 Glossary Brief rather than duplicating the work.
 
 ---

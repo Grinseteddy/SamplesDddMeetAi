@@ -31,10 +31,10 @@ It does **not** re-implement either half. Read them rather than guessing their
 content:
 
 - **`domain-story-interpreter`** — reading the pictographic language.
-  `/mnt/skills/user/domain-story-interpreter/SKILL.md`
+  `../../../Chapter06/Skills/DomainStorytellingSkill/SKILL.md`
 - **`event-storming-seeder`** — what a good domain event is, and how to hunt the
   ones nobody wrote down.
-  `/mnt/skills/user/event-storming-seeder/SKILL.md`
+  `../EventSeederSkill/SKILL.md`
 
 What this skill owns, and neither sub-skill covers, is the **seam**: the
 translation from story sentences to stickies, and the handling of several stories
@@ -81,7 +81,7 @@ If none is there, **ask once**:
 > description of the process instead.
 
 If the answer is "none", a description, or a "just go ahead": **hand over
-cleanly.** Read and follow `event-storming-seeder/SKILL.md` from its Step 0 and
+cleanly.** Read and follow `../EventSeederSkill/SKILL.md` from its Step 0 and
 seed from whatever description exists. Do not run a hollow version of this
 pipeline on no input, and do not ask for stories a second time.
 

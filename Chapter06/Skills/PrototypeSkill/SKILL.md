@@ -65,7 +65,7 @@ reconcile and build.
 
 ### Track A — Extract the visual style
 
-Consult the **webapp-style-extractor** skill (`/mnt/skills/user/webapp-style-extractor/SKILL.md`)
+Consult the **webapp-style-extractor** skill (`../WebappStyleExtractorSkill/SKILL.md`)
 and run it against the screenshot. You want its JSON output: `colors` (roles +
 palette), `typography` (named text styles), `spacing` (base unit + scale), and
 `components` (button, input, card, badge, nav item… with measured fills, radii,
@@ -74,7 +74,7 @@ paddings, fonts, shadows). Sample values from pixels — never eyeball them. Kee
 
 ### Track B — Interpret the domain story
 
-Consult the **domain-story-interpreter** skill (`/mnt/skills/user/domain-story-interpreter/SKILL.md`)
+Consult the **domain-story-interpreter** skill (`../DomainStorytellingSkill/SKILL.md`)
 and run it against the story to produce the **Prototype Brief**. You specifically
 need: modules (§3), domain model (§4), **state machines (§5)**, use-cases &
 user-journey (§6), screens & navigation (§7), actors/roles (§2), and open questions

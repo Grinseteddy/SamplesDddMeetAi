@@ -102,7 +102,7 @@ every grammar check and still fail here:
 - **Hidden assumptions stated as fact.** A to-be step the team hasn't agreed to,
   drawn as if it's settled — a quiet "false consensus" the diagram launders into
   agreement. (When an upstream workshop artifact is available, this is also a
-  fidelity check — see `upstream-cross-check.md`.)
+  fidelity check — see `related-artifact-cross-check.md`.)
 - **A story optimised for the tool, not the domain.** If the steps mirror an
   existing app's screens rather than the domain's logic, the story will teach the
   team the software they already have, not the domain they're trying to

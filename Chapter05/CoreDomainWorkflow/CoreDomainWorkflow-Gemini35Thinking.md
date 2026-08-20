@@ -11,7 +11,7 @@ Create a Core Domain Chart as a critique of a Capability Map. Use the correspond
 
 [References to Capability Map Critique skill—Classification]( ../Skills/CapabilityMapSkill/references/classification-core-supporting-generic.md)
 
-[References to Capability Map Critique skill—Upstream check](../Skills/CapabilityMapSkill/references/upstream-cross-check.md)
+[References to Capability Map Critique skill—Upstream check](../Skills/CapabilityMapSkill/references/upstream-cross-checks.md)
 
 [Core Domain Chart Creation skill](../Skills/CoreDomainChartCreationSkill/SKILL.md)
 

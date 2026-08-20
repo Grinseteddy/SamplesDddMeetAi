@@ -103,7 +103,7 @@ Do not diff a picture. Transcribe first: a misread edge invents disagreements
 that were never there.
 
 Use `visual-glossary-interpreter` (its Steps 1–2 and the section 3 relationship
-table) — read `/mnt/skills/user/visual-glossary-interpreter/SKILL.md` and follow
+table) — read `../VisualGlossarySkill/SKILL.md` and follow
 it. Mind its **fan-out rule**: one line leaving a term and splitting into
 branches is several relationships, not one. That is the most common transcription
 error, and here it turns directly into false findings.

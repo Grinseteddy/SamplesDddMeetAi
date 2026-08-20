@@ -128,7 +128,7 @@ together). Steps 3, 5, 6, 7 depend on them.
 ### Step 1 — Interpret the domain story (always)
 
 Consult the **domain-story-interpreter** skill
-(`/mnt/skills/user/domain-story-interpreter/SKILL.md`) and produce the **Prototype
+(`../../../Chapter06/Skills/DomainStorytellingSkill/SKILL.md`) and produce the **Prototype
 Brief**. You need all of it, but especially: actors/roles (§2), modules (§3), domain
 model (§4), **state machines (§5)**, use cases & journey (§6), screens & navigation
 (§7), open questions (§8).
@@ -140,7 +140,7 @@ fix in code.
 ### Step 2 — Interpret the visual glossary (if provided)
 
 Consult the **visual-glossary-interpreter** skill
-(`/mnt/skills/user/visual-glossary-interpreter/SKILL.md`) and produce the **Glossary
+(`../VisualGlossarySkill/SKILL.md`) and produce the **Glossary
 Brief**. You need especially: the term catalogue (§2), the relationship table with
 cardinalities (§3), the derived domain model — entities, value objects, aggregates,
 identity (§4), bounded contexts (§6), and open questions (§7).
@@ -170,13 +170,13 @@ and produce a short reconciliation table before writing any code:
 
 If the disagreements are more than a handful, stop hand-rolling this and run the
 **domain-story-glossary-consistency** skill
-(`/mnt/skills/user/domain-story-glossary-consistency/SKILL.md`) properly, then build
+(`../DomainStoryVsVisualGlossaryConsistencySkill/SKILL.md`) properly, then build
 from its Consistency Report.
 
 ### Step 4 — Extract the visual style (if a screenshot was provided)
 
 Consult the **webapp-style-extractor** skill
-(`/mnt/skills/user/webapp-style-extractor/SKILL.md`) and run it against the
+(`../../../Chapter06/Skills/WebappStyleExtractorSkill/SKILL.md`) and run it against the
 screenshot. You want its JSON: `colors` (roles + palette), `typography` (named
 styles), `spacing` (base unit + scale), and `components` (button, input, card, badge,
 nav item… with sampled fills, radii, paddings, fonts, shadows). Sample from pixels —

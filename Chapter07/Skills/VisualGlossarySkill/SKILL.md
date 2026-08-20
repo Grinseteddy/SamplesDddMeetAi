@@ -156,7 +156,7 @@ Adapt depth to the ask. If the user only wants the data model, lead with section
 
 **Establish the pairing early.** Ask which dynamic artifact — if any — this glossary sits beside, because it changes what the brief is *for* and which cross-checks are worth running. `references/companion-techniques.md` has the specifics for each; the headlines:
 
-- **Domain Story** — the glossary supplies the work objects; the story supplies the verbs. Cross-checking a story against a glossary is `domain-story-critic`'s job (see its `references/visual-glossary-cross-check.md`); feed it this brief.
+- **Domain Story** — the glossary supplies the work objects; the story supplies the verbs. Cross-checking a story against a glossary is the domain-story critic's job (see `../../../Chapter06/Skills/DomainStoryCritiqueSkill/references/visual-glossary-cross-check.md`); feed it this brief.
 - **EventStorming board** — the glossary supplies the nouns behind the events and commands, and its cardinalities become **candidate aggregate invariants**. Your aggregate hypothesis and the board's yellow aggregates must agree. Red hotspots are very often unresolved glossary questions; check them against your open questions. Pair with `event-storming-interpreter`.
 - **Event Model** — the glossary is the **shared field vocabulary** the slices flow. It's what makes information-completeness checkable — every field on a read model has to be traceable back to a field on some earlier event, and it can only be traced if both call it the same thing.
 - **None** — perfectly legitimate. Say so, and note that the glossary asserts structure no behaviour has yet exercised.

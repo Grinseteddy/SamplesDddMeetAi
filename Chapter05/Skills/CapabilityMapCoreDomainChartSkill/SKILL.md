@@ -32,9 +32,9 @@ It does **not** re-implement the analysis or the renderer. It chains two existin
 skills, so read those rather than guessing their content:
 
 - **`capability-map-critic`** — the analysis.
-  `/mnt/skills/user/capability-map-critic/SKILL.md`
+  `../CapabilityMapSkill/SKILL.md`
 - **`core-domain-chart-author`** — the render.
-  `/mnt/skills/user/core-domain-chart-author/SKILL.md`
+  `../CoreDomainChartCreationSkill/SKILL.md`
 
 If either skill is not installed, say so and fall back: deliver whichever half is
 available (critique-only, or chart-only from positions the user supplies).
@@ -60,7 +60,7 @@ illegible or genuinely ambiguous (never invent a capability you can't read). Do
 **not** ask whether they want a chart — the chart is the default output.
 
 ### 2. Run the critique
-Read and follow `capability-map-critic/SKILL.md` in full: interpret the map
+Read and follow `../CapabilityMapSkill/SKILL.md` in full: interpret the map
 (reconstruct capabilities, infer levels, propose a core/supporting/generic
 marking), run its critique passes, and cross-check against each anchor that was
 provided. Produce the written critique in that skill's output shape (one-line read,
@@ -70,7 +70,7 @@ unvalidated — do not bluff a verdict.
 
 ### 3. Derive the moves
 Translate the critique's findings into chart positions using
-`core-domain-chart-author/references/critique-to-moves.md` (read it). The mapping:
+`../CoreDomainChartCreationSkill/references/critique-to-moves.md` (read it). The mapping:
 
 - A capability the critique says is **mis-placed** → a **grey origin** (its
   Capability-Map position), a **black target** (the recommendation), and an
@@ -85,10 +85,10 @@ Translate the critique's findings into chart positions using
 
 ### 4. Render the chart
 Author the JSON spec and run the generator exactly as
-`core-domain-chart-author/SKILL.md` describes:
+`../CoreDomainChartCreationSkill/SKILL.md` describes:
 
 ```bash
-python /mnt/skills/user/core-domain-chart-author/scripts/generate_chart.py SPEC.json -o chart.svg
+python ../CoreDomainChartCreationSkill/scripts/generate_chart.py SPEC.json -o chart.svg
 ```
 
 Then **check for collisions** (render to PNG, or reason about label boxes),

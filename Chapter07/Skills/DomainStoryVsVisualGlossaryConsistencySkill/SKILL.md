@@ -92,10 +92,10 @@ arrow invents disagreements that were never there.
 
 - **The glossary** → the transcription and relationship table from
   `visual-glossary-interpreter` (its Steps 1–2 and the section 3 table).
-  Read `/mnt/skills/user/visual-glossary-interpreter/SKILL.md` and follow it;
+  Read `../VisualGlossarySkill/SKILL.md` and follow it;
   mind its fan-out rule, which is the most common transcription error.
 - **Each story** → the numbered sentence list from `domain-story-interpreter`
-  (its Step 1). Read `/mnt/skills/user/domain-story-interpreter/SKILL.md`.
+  (its Step 1). Read `../../../Chapter06/Skills/DomainStorytellingSkill/SKILL.md`.
   Keep the stories **separate and labelled** (Story A, B, C…) with their
   sentence numbers intact — every finding you report later cites them as
   evidence, and a finding without a citation is unactionable.

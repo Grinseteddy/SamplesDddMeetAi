@@ -4,7 +4,7 @@ You are a participant in a brainstorming session. Add your ideas. The current re
 
 ![](../../../BookDddMeetsAi/chapters/part2/04-North-Star-and-Business-Planning-With-AI/assets/Brainstorming.jpg)
 [Skill.md](../Skills/BrainstormingSkill/SKILL.md)
-[Critic technices](../Skills/BrainstormingSkill/references/critique-techniques.md)
+[Critic techniques](../Skills/BrainstormingSkill/references/critique-techniques.md)
 [References](../Skills/BrainstormingSkill/references/research-basis.md)
 
 # Answer:

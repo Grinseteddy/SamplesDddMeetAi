@@ -1,247 +1,352 @@
 ---
-name: domain-story-event-seeder
+name: pivotal-event-boundary-finder
 description: >-
-  Seed an EventStorming board from Domain Stories: interprets one or several
-  uploaded domain stories (pictures, egon.io exports, or numbered
-  actor→activity→work-object sentences) and turns them into a past-tense list of
-  proposed domain events — the orange stickies — each traced back to the sentence
-  it came from. Use whenever someone has domain stories and wants events, an
-  event list, an event timeline, or an EventStorming board out of them: "turn
-  these domain stories into domain events", "seed an event storming session from
-  our stories", "what events happen in this story". Prefer over
-  event-storming-seeder whenever a domain story is provided, and over
-  domain-story-interpreter whenever the wanted output is events rather than a
-  prototype brief. If no story is supplied and the user has none, hands over to
-  event-storming-seeder and seeds from a rough description instead. Proposes
-  events ONLY — no commands, aggregates, policies, or bounded contexts.
-compatibility: >-
-  Depends on two installed skills (domain-story-interpreter and
-  event-storming-seeder). Degrades gracefully if either is missing — see
-  Fallbacks. No scripts or dependencies.
+  Propose pivotal events as the borders between bounded contexts — screening a
+  domain-event timeline for the events that change the state of the whole
+  process (phase change, irreversibility, handover of people, language shift,
+  commitment, change of clock), vetoing each candidate with the
+  narrow-interface test, then drawing the divider lines, naming the segments
+  between them as candidate contexts, and specifying what crosses each border.
+  Use whenever someone has an event timeline — an EventStorming board photo, a
+  Miro export, a past-tense event list, or a process description — and wants the
+  cut points: "which of these are pivotal events", "where do we draw the divider
+  lines", "mark the boundaries on our event flow", "review the contexts the team
+  drew", or "where does this process break into contexts or services". Tests
+  scope-exclusion claims and finds contexts missing from the board. Trigger even
+  when nobody says "pivotal event" or "bounded context". Grounded in Brandolini
+  and Evans.
 ---
 
-# Domain Story → Event Seeder
+# Pivotal Event Boundary Finder
 
-This skill is an **orchestrator**. It joins the two halves of a job that people
-keep doing by hand: *read the domain stories the team already drew*, then *put
-the resulting facts on a wall as orange stickies* so an EventStorming session
-doesn't start blank.
+A **pivotal event** is a domain event after which the business is doing
+something else. Not a big event, not a loud one — one that changes the state of
+the *whole process*, so that the people, the vocabulary, the pace and the rules
+on the far side are different from the near side. On an EventStorming board it
+is drawn as a vertical divider running down the wall through the timeline.
 
-It does **not** re-implement either half. Read them rather than guessing their
-content:
+Those dividers are the cheapest boundary evidence a domain gives you: the
+business has already decided that this is where one thing ends and another
+begins. This skill finds them, argues for each from the events actually on the
+wall, and turns the accepted ones into **candidate bounded-context borders**
+with a named interface at each crossing.
 
-- **`domain-story-interpreter`** — reading the pictographic language.
-  `/mnt/skills/user/domain-story-interpreter/SKILL.md`
-- **`event-storming-seeder`** — what a good domain event is, and how to hunt the
-  ones nobody wrote down.
-  `/mnt/skills/user/event-storming-seeder/SKILL.md`
+Two commitments make the output trustworthy:
 
-What this skill owns, and neither sub-skill covers, is the **seam**: the
-translation from story sentences to stickies, and the handling of several stories
-at once.
+- **Do not invent events.** A thin stretch of timeline is evidence about how
+  well the domain is understood, not a gap to fill. A divider drawn through
+  invented events hardens a fiction into an architecture.
+- **Say what this method cannot see.** A timeline cut finds borders that run
+  *across* the flow. Contexts that run *underneath* it — identity, pricing,
+  notification, catalogue — have no pivotal event and will be missed by
+  construction. Naming them as missing is part of the deliverable (§6).
 
-## The pipeline
+## What makes an event pivotal
 
-```
-one or more Domain Stories ─▶ 1. INTERPRET ─▶ 2. RELATE ─▶ 3. TRANSLATE ─▶ 4. SWEEP ─▶ 5. PRESENT
-                                (interpreter)   (this skill)  (this skill)   (seeder)    events only
+Six tests fire, one test vetoes. Full diagnostics, evidence rules and
+anti-signals: `references/pivotality-tests.md`.
 
-no story at all ────────────▶ hand over to `event-storming-seeder`
-```
+1. **Phase** — does the state of the *whole process* change? You should be able
+   to say "before this we are doing X; after this we are doing Y" without
+   mentioning any single record. A change in one aggregate's status is not a
+   phase change.
+2. **Irreversibility** — can you undo it, or does going back require a
+   *compensating business action* with its own name (cancellation, refund,
+   recall, withdrawal, return)? Compensation instead of undo is a strong signal.
+3. **Handover** — do the people change? A different department, a different
+   system of record, a different expert you would have to invite to the
+   workshop. The board's own actor stickies are the evidence.
+4. **Language** — does a noun get re-modelled on the far side? *Cart* becomes
+   *Order*, *Candidate* becomes *Employee*, *Order* becomes *Shipment*. A new
+   identifier being minted is the visible form of this and is worth hunting for
+   explicitly.
+5. **Commitment** — is a promise created that someone can be held to? Money
+   moves, an obligation starts, a clock someone can sue over begins running.
+6. **Clock** — does the tempo change? A queue, a batch, a wait for a human, a
+   nightly run. Where a wait is already normal, eventual consistency is already
+   accepted, so a boundary here costs the business nothing.
 
-## Stay in your lane: the output is events
+**The veto — the narrow-interface test.** After this event, how much of the
+upstream detail does the downstream work actually need? If a short payload
+suffices, the border is real. If downstream keeps reaching back for upstream
+detail — scorecards, line-item history, the full case file — the event is a
+milestone inside one context, however dramatic it looks. This test overrides the
+other six, because it is the one that predicts what the split will cost.
 
-The interpretation is **scaffolding, not deliverable**. You will derive a domain
-model, state machines, and probably some module boundaries along the way — none
-of that goes on the wall. The published output is domain events plus the honest
-bookkeeping around them, exactly as `event-storming-seeder` defines it: no
-commands, no aggregates, no actors, no policies, no bounded contexts, no
-groupings.
+A defensible divider: **phase fires, at least two of tests 2–6 fire, and the
+narrow-interface test does not veto.**
 
-This is a real constraint, not modesty. Those things are the *room's* work, and a
-seed that arrives with boundaries already drawn has skipped the conversation the
-session exists to have. If the user wants the rest, offer the full prototype
-brief from `domain-story-interpreter` as a separate deliverable — don't quietly
-extend the event list.
+## Mode: propose or review
+
+Check what arrived and say which mode you are in.
+
+- **No dividers marked** → *propose* them. Work the whole method.
+- **Dividers already drawn** (vertical lines, phase labels, swimlane breaks) →
+  *review* them. Same analysis, but the output argues with the wall: which
+  dividers the evidence supports, which is a milestone in costume, and which
+  unmarked event has a better claim than one that was marked. Keep their names;
+  argue for a rename only where the current one actively misleads.
+- **Context bubbles drawn but no dividers** → the bubbles are the claim; score
+  the timeline anyway and report where your dividers agree with their outlines
+  and where they cut through one. **Read repeated bubbles with the same name as
+  one context appearing several times, not as several contexts** — a team that
+  drew *Help* four times has already found a cross-cutting context, and counting
+  the repetitions as segments would bury their own finding.
+- **Several boards, or branches running in parallel** → screen each branch's own
+  line, then check whether the same pivotal event appears in more than one. An
+  event that is pivotal in two independent flows is the strongest border you
+  will find.
+
+### Reviewing a scope exclusion
+
+A board often arrives with a claim attached: *that stretch isn't in the system —
+it's manual / offline / happens in the kitchen / another team owns it.* Treat
+the claim as testable, not as given, because a stretch of events left outside
+every boundary looks identical whether it is genuinely out of scope or merely
+undiscovered.
+
+The claim usually confuses **the activity** with **the software that accompanies
+it**. Physical or manual work being outside the system does not put the context
+outside it: if the app shows the steps, tracks where someone is, or lets them
+ask for help about *this* step, there is a session-shaped context in scope even
+though nobody automates the frying.
+
+Test the exclusion with the diagnostics in Step 7 — a consumer reaching into the
+excluded stretch, an aggregate minted at its border with nothing to read it, and
+a total absence of aggregates within it. If those fire, say so and propose the
+missing context; if none fire, endorse the exclusion explicitly, since a
+confirmed scope edge is a useful result.
 
 ## Workflow
 
-### 0. Get the stories — or hand over
+### Step 1 — Establish the event line
 
-Look for stories in `/mnt/user-data/uploads/`, in pasted text, and in any
-interpretation already produced earlier in the conversation. Anything counts: a
-photo of a whiteboard, an egon.io export, or plain numbered sentences.
+Normalise whatever arrived into one ordered list of domain events, past tense,
+in business order. Record alongside each: the actor or system, the aggregate or
+record it touches, and any hotspot attached to it. Mark explicitly:
 
-If none is there, **ask once**:
+- **loops** — events that recur (*Interview held*, *Item added to cart*)
+- **branches** — alternative outcomes (*Application rejected*)
+- **parallel strands** — events that do not depend on the previous one
+- **events whose position in the sequence is a guess**
 
-> Do you have any **domain stories** for this process — numbered
-> `Actor · verb · work object` sentences, an egon.io export, or a photo of the
-> board? Send as many as you have; several stories covering different paths seed
-> a much better wall than one. If there aren't any, say so and I'll seed from a
-> description of the process instead.
+Loops and branches matter more here than in any other boundary method: **a
+divider must be crossed exactly once.** An event inside a loop cannot be one.
 
-If the answer is "none", a description, or a "just go ahead": **hand over
-cleanly.** Read and follow `event-storming-seeder/SKILL.md` from its Step 0 and
-seed from whatever description exists. Do not run a hollow version of this
-pipeline on no input, and do not ask for stories a second time.
+**Separate provenance markers from domain meaning.** Boards carry marks about
+*who put a sticky there* — AI-proposed, imported from another board, added after
+the session, written in a different hand or colour — and these share a visual
+channel with marks about *what the event means*. An icon you read as "raised
+automatically by the system" may mean "suggested by an assistant", which says
+nothing about the domain. Confirm any unusual marker before building an argument
+on it, and be suspicious when the same marker appears on events in otherwise
+unrelated parts of the board: provenance scatters, domain semantics cluster.
+Never let an unconfirmed marker carry a boundary — find a second, structural
+reason or drop the point.
 
-**A light sanity check, not a critique.** A shaky story still seeds fine. Flag
-only a *blocking* defect — sentences with no discernible actor or work object, or
-a "story" that is really a branching flowchart — and offer `domain-story-critic`
-as the user's off-ramp rather than critiquing it yourself. Default to seeding.
+For a busy or hard-to-read board, show the event line and ask for confirmation
+before scoring. Misreadings are cheap to fix here and expensive later.
 
-### 1. Interpret each story — but only the parts that feed a wall
+### Step 2 — Screen out the ineligible
 
-Follow `domain-story-interpreter` for the reading, and stop at the sections that
-produce facts. Label the stories `A`, `B`, `C` … as you go.
+Before scoring, drop candidates that cannot be dividers, and say why in one
+line each — the screening is itself a finding:
 
-| Interpreter section | Use it? | Why |
-|---|---|---|
-| §1 Story transcription | **yes** | the spine; everything downstream is traceable to it |
-| §2 Actors & roles | **yes, as context** | tells you *whether* a fact is business-meaningful — but actors never reach the sticky |
-| §3 Modules (groups) | read, don't publish | grouping is the room's work |
-| §4 Domain model | **yes** | entity vs UI channel vs physical object decides what can even be an event |
-| §5 State machines | **yes — the richest source** | every transition is a candidate event |
-| §6–7 Use cases, screens | **no** | prototype material, irrelevant to a wall |
-| §8 Open questions | **yes** | they flow straight into the seed's Questions |
+- technical or UI events (*Record saved*, *Email sent*, *Message published*)
+- events inside a loop or that recur later in the flow
+- the first and last events on the board — those are the edges of scope, not
+  internal borders (unless the board deliberately starts mid-process)
+- events that are consequences of another event with no work between them —
+  score the one the business names, not its echo
 
-The state machines earn special attention. A cluster like
-`New task → Assigned task → Task in progress → Task done / Task rejected` is one
-entity moving through states, and **each transition is a high-confidence event**
-(`Task assigned`, `Task started`, `Task finished`, `Task rejected`). These are the
-events you are least likely to be wrong about, because the team drew the state
-change themselves.
+### Step 3 — Score the survivors
 
-If the diagram is unreadable in places, name the specific sentence you couldn't
-read. Never invent the verb that was probably on the arrow.
+One row per surviving candidate. This table is the argument:
 
-### 2. Relate the stories to each other
+| # | Event | Phase | Irrev. | Handover | Language | Commit | Clock | Narrow interface | Verdict |
+|---|-------|-------|--------|----------|----------|--------|-------|------------------|---------|
 
-With more than one story, decide which case you're in, **say so out loud**, and
-put it in Questions if you had to guess:
+Fill cells with the *evidence*, not a tick — "recruiters → HR ops + IT", "Cart
+ceases to exist; Order minted", "compensation = withdrawal letter". A tick you
+cannot expand into evidence is a guess.
 
-| They are | You do |
-|---|---|
-| **Variants of one process** (happy path + a refusal or edge case) | one spine from the fullest story; the others' diverging steps become *Alternatives & failures*, marked with where they branch |
-| **Segments of one longer flow** (order taking → picking → delivery) | concatenate in business time; ask whether the seam is really seamless or hides steps nobody wrote down |
-| **Separate processes that merely share work objects** | keep separate event lists under separate headings. **Never invent a joining event** to make them one wall |
+### Step 4 — Choose the dividers
 
-Then, across the set:
+Rank by strength and apply the ratio: expect roughly **one divider per 5–12
+events**; a 30–60 event Big Picture board usually yields **3–6**. If more than
+about one event in four is coming out pivotal, you are marking milestones —
+re-run the narrow-interface test on the weakest half.
 
-- **Deduplicate by fact, not by wording.** Two stories naming one fact
-  differently (`Cost estimate sent` / `Quote sent`) is not a nuisance, it is the
-  find: pick one name, show the other beside it, and ask which word the business
-  actually uses.
-- **Normalise the altitude.** Stories written by different people rarely sit at
-  the same granularity. Pick one altitude (`event-storming-seeder` Step 1) and
-  re-cut to match, noting where you split or merged.
-- **Contradictions are gold.** A different order, an extra approval, an actor
-  present in one story and absent in another — never quietly reconcile. Pick a
-  reading, mark it, ask.
+Where two adjacent candidates both score well (*Offer accepted* and *Contract
+signed*), only one is the border. Pick the one the business treats as the point
+of no return, and record the other in §7 as the contested call.
 
-### 3. Translate sentences into stickies
+State the divider convention plainly, because it decides who owns the event:
+**the pivotal event is produced by the upstream context and consumed by the
+downstream one; the line is drawn immediately after it.**
 
-Sentence by sentence, but **never one-to-one**:
+### Step 5 — Name the segments
 
-| Story sentence | Sticky | Rule |
-|---|---|---|
-| `3 Dispatcher assigns Order to Driver` | `Order assigned to driver` | verb + work object, put in the past |
-| `1 Visitor selects Plan on Pricing page` | `Plan selected` | the screen is not part of the fact |
-| `5 System sends Welcome email to Customer` | `Customer welcomed` | name the business fact, not the transport |
-| `2 Visitor enters Payment details` + `3 Billing system charges Payment details` | `Payment authorised` | two sentences, one fact — collapse |
-| `4 Clerk opens Claim in Claims system` | *(nothing)* | navigation and lookup: nothing happened |
-| `6 Clerk handles Return` | `Return inspected` · `Refund issued` | a vague verb hides several facts — split, and ask |
+Each stretch between dividers is a candidate bounded context. Name it for the
+**business capability**, in the domain's own words. Two checks:
 
-Five habits that keep the translation honest:
+- Name it without *Pre-*, *Post-*, *Before*, *After*, or any word from the
+  divider event itself. If you cannot, you have named a phase, not a context.
+- If the honest name is *Miscellaneous* or *Processing*, the cut is wrong.
 
-- **The actor stays behind.** `Dispatcher` is a small yellow sticky the room adds
-  later; an event carrying its actor has smuggled in another colour. If *who did
-  it* seems to change the fact, that's a Question, not a longer name.
-- **Sentence count ≠ event count.** Expect to drop some, merge some, split
-  others. Say which you did.
-- **A story is one instance; events are types.** Keep the story's specific noun
-  when the business really treats that case differently (`Repeat customer's order
-  placed`); generalise when the specificity was just the example's flavour
-  (`Order placed`). Either way, name the choice.
-- **UI channels produce no events; physical objects do.** `App` and `Portal` are
-  where an activity happened. `Bicycle` and `Invoice` are things whose state
-  changes are facts.
-- **Tag provenance as you go** — `(A3)`, `(B1–B2)`, `(—)` for anything invented.
-  A seeded wall is trusted only if any sticky can be walked back to its sentence.
+Per segment write: a one-line responsibility, the events it holds, the
+aggregates it **owns**, the actors and systems in it, and the terms it owns.
 
-### 4. Sweep for the events no story could contain
+### Step 6 — Specify each border
 
-Run `event-storming-seeder` Step 3 in full — rejection, time passing, reversal,
-the outside world, human judgement, thresholds and bulk.
+A divider is only useful once you know what crosses it. For each one record:
 
-**This step matters more here, not less.** A domain story is a single happy path
-*by definition of the notation*: it cannot draw a refusal, a timeout, or an undo.
-So a tidy set of stories makes a process look like it never fails, and a seed
-that mirrors them faithfully inherits that lie. Expect to generate more
-alternatives than the stories contained.
+- **the contract** — the pivotal event's payload: exactly what downstream needs
+- **what deliberately does not cross** — the detail that stays upstream. This
+  list is the evidence that the narrow-interface test passed, so write it out.
+- **direction and relationship** — customer/supplier, published language,
+  conformist, anticorruption layer, separate ways
+- **consistency** — how long downstream may lag, in business terms
 
-Two extra hunting grounds the state machines hand you:
+### Step 7 — Say what the timeline cannot see
 
-- **Dead-end states.** A state with no outgoing transition (`Task rejected`) is
-  usually not really terminal. What happens next is an event nobody drew.
-- **Missing reversals.** Every transition invites its undo: assigned → unassigned,
-  approved → withdrawn. Ask whether the business has them.
+Non-negotiable section. A pivotal-event cut finds sequential borders and is
+blind to everything else:
 
-### 5. Present
+- **Missing consumers — run this test on every divider.** An aggregate minted at
+  a border must have a named consumer on the far side. If the artefact the
+  pivotal event produces is read by nobody — a settled plan, an approved
+  application, a signed contract that nothing downstream touches — then either
+  the divider is wrong, or **a context is missing from the board**. This is the
+  one detector here that finds a context nobody drew, so state the result
+  explicitly even when it passes.
+- **Stretches with no aggregate.** A run of events where no aggregate is ever
+  touched is under-explored, not empty. Absent and undiscovered look identical;
+  say which you think it is and what would tell them apart. Corroborate before
+  concluding: a context elsewhere reading a read model produced in that stretch
+  is good evidence that something in there is real.
+- **Cross-cutting contexts** — identity, pricing, notification, catalogue,
+  compliance. They serve every segment and have no pivotal event. List the ones
+  visible in the board's actors, systems and read models. A context the team has
+  already drawn several times over is one of these; name it once and say so.
+- **Recurring contexts** — a context that appears on both sides of a divider
+  (rejected candidates flowing back into sourcing). The divider is still a
+  phase border, but the context is a supplier to both sides, not two contexts.
+- **Straddling aggregates** — any aggregate whose lifecycle crosses a divider.
+  The most expensive mistake available here. Either move the events, or split
+  the model in two with the pivotal event between them, and say which.
 
-Use the `event-storming-seeder` output template, with two additions the story
-input earns:
+### Step 8 — Show what was contested
+
+- **Near misses** — every strong candidate you rejected, with the test that
+  killed it. In a 20-event board expect two or three.
+- **Coarser cut** — which divider to drop first, and what is lost.
+- **Finer cut** — where a segment would split if it grows, and what it costs.
+- **What would settle it** — the concrete question for a domain expert. "If a
+  signed contract is voided in week one, does recruiting reopen the requisition
+  or does HR handle it?" decides a border; the wording matters more than your
+  guess at the answer.
+- **Hotspots** — copy every red sticky through verbatim. They cluster on
+  dividers, because that is where the disagreements live.
+
+## Output: the Pivotal Event Cut
 
 ```
-# Seed domain events — <process>
+# Pivotal Event Cut — <board or process name>
 
-## Sources
-A — <story, one line on what it covers>
-B — <story …>
-How they relate: <variants / segments / separate processes>.
+## 1. Event line as read
+Ordered events with actor · aggregate · loop/branch marks · assumptions flagged.
 
-## What I understood
-The process, its trigger, its outcome, the altitude chosen. Four lines, no more.
+## 2. Screening
+Candidates removed before scoring, one line of reason each.
 
-## Events
-1. <Event, past tense>  (A3)
-2. …
+## 3. Scoring
+The six tests plus the narrow-interface veto, per surviving candidate, with
+evidence in the cells.
 
-## Alternatives & failures
-- <Event>  (branches from 4 — rejection) (B2)
-- …
+## 4. The dividers        (or: Review of the dividers drawn)
+Per accepted pivotal event: the evidence, and what changes on the far side.
 
-## Made up
-Which of the above I invented rather than read — everything tagged (—).
+## 5. Segments as candidate contexts
+Per segment: name · responsibility · events · aggregates owned · actors · terms.
+Plus the divider strip — the redraw spec:
+| # | Event | Segment | Divider after? |
 
-## Questions
-The uncertain spots, as questions for the room — including every disagreement
-between stories and every fact two stories named differently.
+## 6. Border contracts
+Per divider: what crosses · what stays · direction · relationship · consistency.
+
+## 7. What the timeline cannot see
+Missing consumers per divider, stretches with no aggregate, cross-cutting
+contexts, recurring contexts, straddling aggregates. Plus, when the board came
+with a scope-exclusion claim: whether the exclusion survives the tests.
+
+## 8. Contested calls & alternatives
+Near misses, coarser cut, finer cut, the questions that would settle them,
+hotspots verbatim.
 ```
 
-With **separate processes**, repeat `Events` and `Alternatives & failures` under
-one heading per process rather than merging them.
+Adapt depth to the request. "Just mark the pivotal events" gets §3, §4 and a
+short §8 — but never drop §7, because a cut that silently omits the cross-cutting
+contexts reads as complete when it is not.
 
-## Fallbacks
+## Traps worth checking before you publish
 
-- **No story supplied** → hand over to `event-storming-seeder` (Step 0 above).
-- **`domain-story-interpreter` not installed** → transcribe the stories yourself
-  from the numbers and arrows, say that you did so without the notation
-  reference, and continue. Sequence numbers sit at the arrow's origin;
-  unnumbered arrows continue the same sentence rather than starting a new one.
-- **`event-storming-seeder` not installed** → you still own the seam, but say
-  plainly that the event-quality rules and the six-source sweep are being applied
-  from memory rather than from the skill.
+- **The loud event** — everyone argues about it, nothing downstream changes.
+  Argument marks a hotspot, not a border.
+- **The reporting milestone** — it gets celebrated, escalated or dashboarded,
+  but the same people carry on with the same vocabulary.
+- **The gate** — an approval or check that blocks progress inside one phase
+  (*Background check cleared*). Gates are rules; dividers are transitions.
+- **The looped event** — cannot be a divider, however pivotal it feels.
+- **The orphaned artefact** — a divider that mints something nobody reads. Fix
+  the divider or find the missing context; do not publish the cut as it stands.
+- **Reading provenance as semantics** — an icon, colour or hand that records who
+  added the sticky, mistaken for what the event means.
+- **A divider per phase label** — the team's existing swimlane titles are prior
+  art, not evidence. Score them like everything else.
+- **Chopping every noteworthy event** — twelve events, seven dividers. That is a
+  timeline with extra lines.
+- **Dividers where the board is thin** — no actors, no aggregates. Say the board
+  is under-explored there rather than drawing a confident line through it.
+- **The aggregate straddle** — see §7. Check it last, always.
 
-## Handing off
+## Working with the neighbouring skills
 
-Offer the next step; don't take it unasked.
+- Boundaries from the *full* board grammar (commands, aggregates, read models,
+  policies) rather than the timeline alone → `event-storming-context-finder`.
+  That skill is the thorough cut; this one is the fast, timeline-first cut, and
+  the two should be reconciled when both are available. Agreement between them
+  is strong evidence; disagreement is worth a paragraph.
+- A buildable brief rather than boundaries → `event-storming-interpreter`.
+- Only a rough process description, no events yet → `event-storming-seeder`
+  first, then come back.
+- The team also has domain stories → `domain-story-context-finder`; treat
+  agreement across notations as the strongest evidence available.
+- A **Visual Glossary** exists → its bounded-context colouring is prior art.
+  Reuse its exact terms rather than competing with them.
+- Segments to be marked core/supporting/generic →
+  `core-domain-chart-author` renders them, `core-domain-chart-critic` challenges
+  the placements.
 
-- **They want the modules, entities, and screens too** → the full prototype brief
-  from `domain-story-interpreter`. This skill deliberately published only events.
-- **The stories look wrong, not just thin** → `domain-story-critic`.
-- **They have no stories yet and want some** → `domain-story-seeder` drafts
-  strawman ones, which feed straight back into this skill.
-- **Session run, wall photographed** → `event-storming-interpreter` turns the
-  corrected board into a buildable brief.
-- **Publish the events as a contract** → `asyncapi-spec-author`.
+## Reference files
+
+- `references/pivotality-tests.md` — the six tests and the veto in full: the
+  diagnostic question, what counts as evidence, strength alone, anti-signals and
+  worked micro-examples for each; the scoring rubric; granularity guidance by
+  board size; the divider-ownership convention; and the relationship patterns
+  available at a border.
+- `references/worked-example.md` — a 22-event recruiting board worked end to
+  end in propose mode: screening, scoring, two accepted dividers, three rejected
+  near-misses, border contracts, and the cross-cutting contexts the timeline
+  missed. Read this first when unsure how deep to go.
+
+## References
+
+A. Brandolini, *Introducing EventStorming: An Act of Deliberate Collective
+Learning.* Leanpub, 2021.
+
+E. Evans, *Domain-Driven Design: Tackling Complexity in the Heart of Software.*
+Boston, MA, USA: Addison-Wesley, 2003.
+
+V. Vernon, *Implementing Domain-Driven Design.* Boston, MA, USA:
+Addison-Wesley, 2013.

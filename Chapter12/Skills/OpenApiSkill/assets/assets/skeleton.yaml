@@ -1,0 +1,125 @@
+asyncapi: 3.1.0
+info:
+  title: <API Name>
+  version: 1.0.0
+  description: |
+    <One or more sentences describing what this event-driven API does and who uses it.>
+  contact:
+    name: <Owning team or person>
+    url: <https://example.org>
+    email: <team@example.org>
+
+servers:
+  production:
+    host: "<broker-host:port>"          # e.g. events.example.com:9092 — no protocol scheme here
+    protocol: "<kafka|mqtt|amqp|ws|...>"
+    description: "Production broker"
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
+
+defaultContentType: application/json
+
+channels:
+  <resourceEvents>:                      # camelCase channel key
+    address: "<resource-area/resources>" # kebab-case path segments
+    messages:
+      <resourceCreated>:
+        $ref: '#/components/messages/<resourceCreated>'
+      <resourceUpdated>:
+        $ref: '#/components/messages/<resourceUpdated>'
+
+operations:
+  # action is from THIS application's perspective:
+  #   send    = this app publishes the message
+  #   receive = this app consumes the message
+  publish<ResourceCreated>:
+    action: send
+    channel:
+      $ref: '#/channels/<resourceEvents>'
+    messages:
+      - $ref: '#/channels/<resourceEvents>/messages/<resourceCreated>'
+
+  publish<ResourceUpdated>:
+    action: send
+    channel:
+      $ref: '#/channels/<resourceEvents>'
+    messages:
+      - $ref: '#/channels/<resourceEvents>/messages/<resourceUpdated>'
+
+components:
+  messages:
+    <resourceCreated>:
+      name: <ResourceCreated>            # PascalCase
+      title: <Resource Created Event>    # human-readable
+      summary: Indicates that a new <resource> has been created
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/<ResourceCreated>Payload'
+
+    <resourceUpdated>:
+      name: <ResourceUpdated>
+      title: <Resource Updated Event>
+      summary: Indicates that a <resource> has been updated
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/<ResourceUpdated>Payload'
+
+  schemas:
+    # Shared by EVERY message — cross-cutting tracing/routing metadata.
+    MessageHeader:
+      type: object
+      required:
+        - correlationId
+        - messageId
+        - source
+      properties:
+        correlationId:
+          type: string
+          format: uuid
+          description: Identifier to trace the end-to-end journey
+        messageId:
+          type: string
+          format: uuid
+          description: Unique identifier for this message
+        source:
+          type: string
+          description: Source system generating the event
+          minLength: 2
+          maxLength: 20
+
+    <ResourceCreated>Payload:
+      type: object
+      required:
+        - <resource>Id
+        - status
+      properties:
+        <resource>Id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [CREATED]                # single-value enum models the state machine
+        # ... domain fields with constraints (minLength/maxLength, format, etc.) ...
+        createdAt:
+          type: string
+          format: date-time
+
+    <ResourceUpdated>Payload:
+      type: object
+      required:
+        - <resource>Id
+        - status
+      properties:
+        <resource>Id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [UPDATED]
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+      description: Basic authentication for event broker

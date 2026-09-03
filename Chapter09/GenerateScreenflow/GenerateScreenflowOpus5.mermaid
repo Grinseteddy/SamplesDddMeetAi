@@ -1,0 +1,58 @@
+flowchart TD
+    classDef screen fill:#f4f4f4,stroke:#999,color:#333
+    classDef auto fill:#BD93F9,stroke:#7C4DBD,color:#000
+    classDef ext fill:#F8C1D8,stroke:#C2185B,color:#000
+    classDef start fill:#fff,stroke:#333,color:#333
+
+    U0(("User"))
+    C0(("Cook"))
+    R0(("Community Cook / Chef"))
+
+    subgraph REG["Registration"]
+        S1(["Register"])
+    end
+
+    subgraph PLAN["Meal Planning"]
+        S2(["Plan dinner"])
+        S3(["Recipe search"])
+        S4(["Selected Recipes"])
+    end
+
+    subgraph PREP["Meal Preparation"]
+        S8(["Meal preparation steps"])
+    end
+
+    subgraph SHARE["Sharing"]
+        S9(["Take pictures"])
+        S10(["Give thanks"])
+    end
+
+    subgraph ASSIST["Cook Assistance"]
+        S5(["Request help"])
+        S6(["Provide help"])
+        S7(["Help"])
+    end
+
+    U0 --> S1
+    C0 --> S2
+    R0 --> S6
+
+    S1 -- "Register" --> S2
+    S2 -- "Plan dinner" --> S3
+    S3 -- "Select Recipes" --> S4
+    S4 -- "Start meal preparation" --> S8
+    S8 -- "Complete meal preparation" --> S9
+    S9 -- "Take pictures" --> S5
+    S9 -- "Take pictures" --> S10
+    S5 -- "Request help" --> S7
+    S6 -- "Provide help" --> S7
+
+    S4 -. "auto: Ingredients missing or Meal Planning stalled" .-> S5
+    S8 -. "auto: Step unclear or Catastrophe happened" .-> S9
+    S5 -. "auto: Community / Chef informed" .-> S6
+    S5 -. "auto: Avatar asked, avatar answers" .-> S7
+    S7 -. "auto: Meal rescued" .-> S8
+    S7 -. "auto: Ingredients substituted, Meal plan settled" .-> S4
+
+    class S1,S2,S3,S4,S5,S6,S7,S8,S9,S10 screen
+    class U0,C0,R0 start

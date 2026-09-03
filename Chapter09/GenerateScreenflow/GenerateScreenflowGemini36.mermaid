@@ -1,0 +1,31 @@
+flowchart TD
+    classDef screen fill:#f4f4f4,stroke:#999,color:#333
+    classDef auto fill:#BD93F9,stroke:#7C4DBD,color:#000
+    classDef ext fill:#F8C1D8,stroke:#C2185B,color:#000
+    classDef start fill:#fff,stroke:#333,color:#333
+
+    A0(("Cook")):::start
+    A1(("Chef / Community Cook")):::start
+    A2(("AI Avatar")):::start
+
+    S1(["S1: Registration"]):::screen
+    S2(["S2: Meal Planner"]):::screen
+    S3(["S3: Recipe Catalog"]):::screen
+    S4(["S4: Help Request"]):::screen
+    S5(["S5: Help Assist"]):::screen
+    S6(["S6: Cooking View"]):::screen
+    S7(["S7: Thanks & Feedback"]):::screen
+
+    A0 --> S1
+    S1 -- "Register" --> S2
+    S2 -- "Plan dinner" --> S3
+    S3 -- "Search / Select Recipes" --> S3
+    S3 -- "Start meal preparation" --> S6
+    S6 -- "Take pictures" --> S6
+    S6 -. "auto: Step unclear / Catastrophe" .-> S4
+    S4 -- "Request help" --> S5
+    A1 -- "Provide help" --> S5
+    A2 -. "auto: Avatar asked / Provide help" .-> S5
+    S5 -- "Provide help" --> S6
+    S6 -- "Complete meal preparation" --> S7
+    S7 -- "Give thanks" --> S7

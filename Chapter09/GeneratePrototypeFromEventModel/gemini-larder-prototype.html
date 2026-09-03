@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Larder - Prototype from Event Model & Visual Glossary</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --mint-primary: #00E699;
+      --mint-hover: #00C885;
+      --mint-light: #E6FBF4;
+      --text-dark: #111827;
+      --text-muted: #6B7280;
+      --border-color: #E5E7EB;
+    }
+    body {
+      background-color: #FAFAFA;
+      color: var(--text-dark);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mint-bg { background-color: var(--mint-primary); }
+    .mint-bg-light { background-color: var(--mint-light); }
+    .mint-text { color: #00A36C; }
+    .mint-border { border-color: var(--mint-primary); }
+    .pill-btn {
+      transition: all 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- INITIAL SEED DATA (Exercising Scenarios from Domain Stories) ---
+    const INITIAL_STATE = {
+      currentUser: { id: 'cook_1', name: 'Alex (Cook)', role: 'Cook' },
+      activeScenario: 'none',
+      mealPlan: {
+        dinnerName: 'Dinner with Parents-in-Law',
+        menu: '3-Course Spring Tasting',
+        courses: ['Soup', 'Main Course', 'Dessert'],
+        recipes: [
+          { id: 'r1', name: 'Roasted Herb Lamb', ingredients: ['Lamb Shoulder', 'Rosemary', 'Garlic', 'Butter'] },
+          { id: 'r2', name: 'Velvety Mushroom Soup', ingredients: ['Mushrooms', 'Heavy Cream', 'Thyme'] }
+        ],
+        selectedRecipe: 'r1',
+        status: 'Meal plan settled'
+      },
+      mealPrep: {
+        status: 'Not started', // 'Not started', 'In Progress', 'Catastrophe', 'Step Unclear', 'Rescued', 'Completed'
+        currentStep: 2,
+        totalSteps: 5,
+        logs: []
+      },
+      helpRequests: [
+        {
+          id: 'hr-101',
+          type: 'Help Meal plan', // Glossary exact term
+          cookId: 'cook_1',
+          title: 'Planning dinner for parents-in-law',
+          description: 'Need menu proposals for a 3-course dinner with dietary restrictions.',
+          targetProvider: 'Chef',
+          pictures: [],
+          status: 'Open',
+          timestamp: '10:15 AM'
+        }
+      ],
+      helpResponses: [
+        {
+          id: 'resp-201',
+          requestId: 'hr-101',
+          providerRole: 'Chef',
+          providerName: 'Chef Antoine',
+          type: 'Menu proposal', // Glossary exact term
+          details: 'Suggested Menu: 1. Truffle Mushroom Soup, 2. Herb Roasted Lamb with Root Vegetables, 3. Lemon Sorbet.',
+          pictures: []
+        }
+      ],
+      pictures: [],
+      thanksGiven: []
+    };
+
+    function App() {
+      const [state, setState] = useState(INITIAL_STATE);
+      const [activeTab, setActiveTab] = useState('meal-planning');
+      const [userRole, setUserRole] = useState('Cook');
+      const [notification, setNotification] = useState(null);
+
+      // Flash notification banner
+      const showToast = (msg) => {
+        setNotification(msg);
+        setTimeout(() => setNotification(null), 3500);
+      };
+
+      // Scenario Loader (Seed Data Walkthroughs)
+      const loadScenario = (scenarioKey) => {
+        if (scenarioKey === 'chef-menu') {
+          setState(prev => ({
+            ...prev,
+            activeScenario: 'Ask Chef for Meal Plan',
+            mealPlan: { ...prev.mealPlan, dinnerName: 'Dinner with Parents-in-Law', status: 'Meal Planning Stalled' },
+            helpRequests: [{
+              id: 'hr-chef-1',
+              type: 'Help Meal plan',
+              cookId: 'cook_1',
+              title: 'Need elevated 3-course menu for parents-in-law',
+              description: 'Looking for a classic yet impressive menu proposal.',
+              targetProvider: 'Chef',
+              pictures: [],
+              status: 'Open',
+              timestamp: 'Just now'
+            }],
+            helpResponses: []
+          }));
+          setActiveTab('cook-assistance');
+          showToast('Loaded Domain Story 1: Ask Chef for Meal Planning Help');
+        } else if (scenarioKey === 'community-substitute') {
+          setState(prev => ({
+            ...prev,
+            activeScenario: 'Ask Community for Substitutes',
+            mealPrep: { ...prev.mealPrep, status: 'In Progress', currentStep: 1 },
+            helpRequests: [{
+              id: 'hr-comm-1',
+              type: 'Help with Ingredients',
+              cookId: 'cook_1',
+              title: 'Out of Heavy Cream for Mushroom Soup',
+              description: 'Can I substitute Greek yogurt or Coconut milk?',
+              targetProvider: 'Community',
+              pictures: ['https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=300&q=80'],
+              status: 'Open',
+              timestamp: '2 mins ago'
+            }],
+            helpResponses: []
+          }));
+          setActiveTab('cook-assistance');
+          showToast('Loaded Domain Story 2: Ask Community for Ingredient Substitutes');
+        } else if (scenarioKey === 'grandma-catastrophe') {
+          setState(prev => ({
+            ...prev,
+            activeScenario: 'Ask Grandma for Catastrophe Rescue',
+            mealPrep: { ...prev.mealPrep, status: 'Catastrophe', currentStep: 3 },
+            helpRequests: [{
+              id: 'hr-gma-1',
+              type: 'Meal Preparation Catastrophe',
+              cookId: 'cook_1',
+              title: 'Burnt bottom of gravy pan!',
+              description: 'The roast gravy scorched on the bottom. How do I rescue it without bitter taste?',
+              targetProvider: 'Grandma Avatar',
+              pictures: ['https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=300&q=80'],
+              status: 'Open',
+              timestamp: 'Just now'
+            }],
+            helpResponses: []
+          }));
+          setActiveTab('cook-assistance');
+          showToast('Loaded Domain Story 3: Ask Grandma for Meal Catastrophe Rescue');
+        }
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* Header Bar styled after Codecentric design */}
+          <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between h-16 items-center">
+                {/* Brand Logo */}
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full mint-bg flex items-center justify-center font-bold text-black text-lg">
+                    @
+                  </div>
+                  <div>
+                    <span className="font-bold text-xl tracking-tight text-gray-900">codecentric</span>
+                    <span className="ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold mint-bg-light mint-text">Larder App</span>
+                  </div>
+                </div>
+
+                {/* Main Navigation Tabs */}
+                <nav className="flex space-x-1 sm:space-x-2">
+                  {[
+                    { id: 'meal-planning', label: 'Meal Planning' },
+                    { id: 'meal-prep', label: 'Meal Preparation' },
+                    { id: 'cook-assistance', label: 'Cook Assistance' },
+                    { id: 'sharing', label: 'Sharing & Thanks' },
+                    { id: 'automations', label: 'Automations & Logs' },
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-3 py-2 rounded-full text-sm font-medium pill-btn ${
+                        activeTab === tab.id
+                          ? 'mint-bg text-black font-semibold shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </nav>
+
+                {/* Persona / Role Switcher */}
+                <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 p-1.5 rounded-xl">
+                  <span className="text-xs text-gray-500 font-medium pl-1">Role:</span>
+                  <select
+                    value={userRole}
+                    onChange={(e) => {
+                      setUserRole(e.target.value);
+                      showToast(`Switched active persona to ${e.target.value}`);
+                    }}
+                    className="text-xs font-semibold bg-white border border-gray-300 rounded-lg px-2 py-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  >
+                    <option value="Cook">Cook (User)</option>
+                    <option value="Chef">Chef (Help Provider)</option>
+                    <option value="Community">Community Member</option>
+                    <option value="Grandma Avatar">Grandma Avatar (AI/Advisor)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Quick Scenario Pre-loader Bar */}
+          <div className="bg-emerald-950 text-emerald-100 text-xs py-2 px-4 shadow-inner">
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold uppercase tracking-wider text-emerald-400">⚡ Preset Domain Stories:</span>
+                <span className="text-emerald-300">Click to load walkthrough scenarios</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => loadScenario('chef-menu')}
+                  className="bg-emerald-800 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-md transition"
+                >
+                  Story 1: Chef Menu Help
+                </button>
+                <button
+                  onClick={() => loadScenario('community-substitute')}
+                  className="bg-emerald-800 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-md transition"
+                >
+                  Story 2: Community Substitutes
+                </button>
+                <button
+                  onClick={() => loadScenario('grandma-catastrophe')}
+                  className="bg-emerald-800 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-md transition"
+                >
+                  Story 3: Grandma Catastrophe Rescue
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Toast Notification Banner */}
+          {notification && (
+            <div className="bg-emerald-500 text-black px-4 py-2 text-center text-sm font-semibold transition-all">
+              🔔 {notification}
+            </div>
+          )}
+
+          {/* Main Application Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+            
+            {/* VIEW 1: MEAL PLANNING SWIMLANE */}
+            {activeTab === 'meal-planning' && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Meal Planning</h1>
+                  <p className="text-sm text-gray-500">Plan dinners, search recipes, and detect missing ingredients.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Form: Plan Dinner */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <h2 className="font-bold text-gray-900">Plan Dinner</h2>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Command</span>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Dinner Name</label>
+                      <input
+                        type="text"
+                        value={state.mealPlan.dinnerName}
+                        onChange={(e) => setState(p => ({ ...p, mealPlan: { ...p.mealPlan, dinnerName: e.target.value } }))}
+                        className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Menu Type</label>
+                      <input
+                        type="text"
+                        value={state.mealPlan.menu}
+                        onChange={(e) => setState(p => ({ ...p, mealPlan: { ...p.mealPlan, menu: e.target.value } }))}
+                        className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={() => showToast('Command "Plan Dinner" executed -> Dinner saved.')}
+                      className="w-full mint-bg hover:bg-emerald-400 text-black font-semibold py-2 rounded-xl text-sm transition"
+                    >
+                      Save Dinner Plan
+                    </button>
+                  </div>
+
+                  {/* Read Model: Search & Select Recipes */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4 md:col-span-2">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <h2 className="font-bold text-gray-900">Recipes & Ingredients Check</h2>
+                      <span className="text-xs mint-bg-light mint-text px-2 py-0.5 rounded-full font-semibold">State View</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {state.mealPlan.recipes.map((rec) => (
+                        <div
+                          key={rec.id}
+                          className={`p-4 rounded-xl border transition ${
+                            state.mealPlan.selectedRecipe === rec.id
+                              ? 'border-emerald-500 bg-emerald-50/30'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-bold text-gray-900">{rec.name}</h3>
+                            {state.mealPlan.selectedRecipe === rec.id && (
+                              <span className="text-xs mint-bg text-black font-bold px-2 py-0.5 rounded-full">Selected</span>
+                            )}
+                          </div>
+                          <div className="mt-2">
+                            <span className="text-xs text-gray-500 font-medium">Ingredients:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {rec.ingredients.map((ing, i) => (
+                                <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md">
+                                  {ing}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setState(p => ({ ...p, mealPlan: { ...p.mealPlan, selectedRecipe: rec.id } }))}
+                            className="mt-3 text-xs text-emerald-700 font-semibold hover:underline"
+                          >
+                            Select Recipe
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Trigger Help Request if stalled */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+                      <div>
+                        <h4 className="text-xs font-bold text-amber-900">Ingredients Missing or Recipe Help Needed?</h4>
+                        <p className="text-xs text-amber-700">Trigger command: Request Help for Meal Planning.</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newReq = {
+                            id: `hr-${Date.now()}`,
+                            type: 'Help Meal plan',
+                            cookId: state.currentUser.id,
+                            title: `Planning assistance for ${state.mealPlan.dinnerName}`,
+                            description: 'Need chef recommendations or menu ideas.',
+                            targetProvider: 'Chef',
+                            pictures: [],
+                            status: 'Open',
+                            timestamp: 'Just now'
+                          };
+                          setState(p => ({
+                            ...p,
+                            helpRequests: [newReq, ...p.helpRequests],
+                            mealPlan: { ...p.mealPlan, status: 'Meal Planning stalled' }
+                          }));
+                          setActiveTab('cook-assistance');
+                          showToast('Event "Meal Planning Stalled" fired -> Help Request Created!');
+                        }}
+                        className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition"
+                      >
+                        Request Help
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 2: MEAL PREPARATION SWIMLANE */}
+            {activeTab === 'meal-prep' && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Meal Preparation</h1>
+                  <p className="text-sm text-gray-500">Track active cooking steps, report unclear instructions, or flag catastrophes.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Meal Preparation Execution Box */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4 md:col-span-2">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <div>
+                        <h2 className="font-bold text-gray-900">Active Meal: Roasted Herb Lamb</h2>
+                        <p className="text-xs text-gray-500">Status: <span className="font-semibold text-emerald-600">{state.mealPrep.status}</span></p>
+                      </div>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-medium">
+                        Step {state.mealPrep.currentStep} of {state.mealPrep.totalSteps}
+                      </span>
+                    </div>
+
+                    {/* Interactive Step Timeline */}
+                    <div className="space-y-3">
+                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+                        <span className="text-xs font-bold text-gray-500 uppercase">Step 1: Prep & Season</span>
+                        <p className="text-sm text-gray-800 font-medium mt-0.5">Trim excess fat and coat lamb in rosemary, garlic, and sea salt.</p>
+                      </div>
+                      <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-300">
+                        <span className="text-xs font-bold mint-text uppercase">Step 2: Sear & Roast (Current)</span>
+                        <p className="text-sm text-gray-900 font-semibold mt-0.5">Sear in hot pan for 4 minutes per side, then transfer to 180°C oven.</p>
+                      </div>
+                    </div>
+
+                    {/* Step Action Buttons */}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <button
+                        onClick={() => {
+                          setState(p => ({ ...p, mealPrep: { ...p.mealPrep, currentStep: Math.min(5, p.mealPrep.currentStep + 1), status: 'In Progress' } }));
+                          showToast('Command "Complete step" executed -> Step Completed');
+                        }}
+                        className="mint-bg hover:bg-emerald-400 text-black font-semibold px-4 py-2 rounded-xl text-xs transition"
+                      >
+                        ✓ Complete Step
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const newReq = {
+                            id: `hr-${Date.now()}`,
+                            type: 'Help for Meal Preparation Step',
+                            cookId: state.currentUser.id,
+                            title: `Unclear instructions at Step ${state.mealPrep.currentStep}`,
+                            description: 'How long should the pan preheat before searing?',
+                            targetProvider: 'Grandma Avatar',
+                            pictures: [],
+                            status: 'Open',
+                            timestamp: 'Just now'
+                          };
+                          setState(p => ({
+                            ...p,
+                            mealPrep: { ...p.mealPrep, status: 'Step unclear' },
+                            helpRequests: [newReq, ...p.helpRequests]
+                          }));
+                          setActiveTab('cook-assistance');
+                          showToast('Event "Step unclear" fired -> Help Request Sent!');
+                        }}
+                        className="bg-sky-100 hover:bg-sky-200 text-sky-800 font-semibold px-4 py-2 rounded-xl text-xs transition"
+                      >
+                        ❓ Step Unclear (Ask Help)
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const newReq = {
+                            id: `hr-${Date.now()}`,
+                            type: 'Meal Preparation Catastrophe',
+                            cookId: state.currentUser.id,
+                            title: 'Meal Burnt or Scorched!',
+                            description: 'High heat burnt the pan juice. How to mitigate bitterness?',
+                            targetProvider: 'Grandma Avatar',
+                            pictures: ['https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=300&q=80'],
+                            status: 'Open',
+                            timestamp: 'Just now'
+                          };
+                          setState(p => ({
+                            ...p,
+                            mealPrep: { ...p.mealPrep, status: 'Catastrophe' },
+                            helpRequests: [newReq, ...p.helpRequests]
+                          }));
+                          setActiveTab('cook-assistance');
+                          showToast('Event "Catastrophe happened" fired -> Emergency Help Requested!');
+                        }}
+                        className="bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold px-4 py-2 rounded-xl text-xs transition"
+                      >
+                        🔥 Catastrophe Happened!
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rescued / Status Card */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3">
+                    <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-2">Preparation Summary</h3>
+                    <div className="text-xs space-y-2 text-gray-600">
+                      <div className="flex justify-between">
+                        <span>Current Status:</span>
+                        <span className="font-semibold text-gray-900">{state.mealPrep.status}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Active Cook:</span>
+                        <span className="font-semibold text-gray-900">{state.currentUser.name}</span>
+                      </div>
+                    </div>
+                    {state.mealPrep.status === 'Catastrophe' && (
+                      <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 font-medium">
+                        ⚠️ Catastrophe flagged! Check "Cook Assistance" tab for rescue responses.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 3: COOK ASSISTANCE SWIMLANE (Core Hub for Requests & Responses) */}
+            {activeTab === 'cook-assistance' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Cook Assistance Hub</h1>
+                    <p className="text-sm text-gray-500">
+                      Submit a Help Request or provide assistance (Chef, Community, Grandma Avatar).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Column 1: Help Requests List */}
+                  <div className="space-y-4">
+                    <h2 className="font-bold text-gray-900 text-base">Active Help Requests</h2>
+                    {state.helpRequests.length === 0 ? (
+                      <div className="p-6 bg-white border border-dashed border-gray-300 rounded-2xl text-center text-xs text-gray-400">
+                        No active help requests.
+                      </div>
+                    ) : (
+                      state.helpRequests.map((req) => (
+                        <div key={req.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
+                          <div className="flex justify-between items-start">
+                            <span className="text-xs font-bold mint-bg text-black px-2.5 py-0.5 rounded-full">
+                              {req.type}
+                            </span>
+                            <span className="text-xs text-gray-400">{req.timestamp}</span>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-sm text-gray-900">{req.title}</h3>
+                            <p className="text-xs text-gray-600 mt-1">{req.description}</p>
+                          </div>
+                          {req.pictures.length > 0 && (
+                            <div className="flex gap-2 mt-2">
+                              {req.pictures.map((pic, idx) => (
+                                <img key={idx} src={pic} className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+                              ))}
+                            </div>
+                          )}
+                          <div className="text-xs text-gray-500 flex justify-between items-center border-t border-gray-100 pt-2">
+                            <span>Target: <strong className="text-gray-800">{req.targetProvider}</strong></span>
+                            <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-semibold">
+                              {req.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Column 2: Provide Help (Responder Interface) */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4 lg:col-span-2">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <div>
+                        <h2 className="font-bold text-gray-900">Provide Assistance</h2>
+                        <p className="text-xs text-gray-500">Active role providing help: <strong>{userRole}</strong></p>
+                      </div>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">Command: Provide help</span>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.target);
+                        const targetReqId = state.helpRequests[0]?.id || 'hr-101';
+                        const helpType = formData.get('helpType');
+                        const details = formData.get('details');
+
+                        const newResp = {
+                          id: `resp-${Date.now()}`,
+                          requestId: targetReqId,
+                          providerRole: userRole,
+                          providerName: userRole === 'Cook' ? 'Helper' : userRole,
+                          type: helpType,
+                          details: details,
+                          pictures: []
+                        };
+
+                        setState(p => ({
+                          ...p,
+                          helpResponses: [newResp, ...p.helpResponses],
+                          mealPrep: { ...p.mealPrep, status: 'Rescued' }
+                        }));
+                        showToast(`Command "Provide help" executed as ${userRole}!`);
+                        e.target.reset();
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Help Type (Glossary Terms)</label>
+                        <select
+                          name="helpType"
+                          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+                        >
+                          <option value="Preparation Step Explanation">Preparation Step Explanation</option>
+                          <option value="Ingredient Substitute">Ingredient Substitute</option>
+                          <option value="Steps to Mitigate Catastrophe">Steps to Mitigate Catastrophe</option>
+                          <option value="Menu proposal">Menu proposal</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Assistance Details / Rescue Advice</label>
+                        <textarea
+                          name="details"
+                          rows="3"
+                          required
+                          placeholder="Provide clear steps, ingredient ratios, or rescue instructions..."
+                          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+                        ></textarea>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full mint-bg hover:bg-emerald-400 text-black font-semibold py-2 rounded-xl text-sm transition"
+                      >
+                        Submit Response (Provide Help)
+                      </button>
+                    </form>
+
+                    {/* Provided Help Feed */}
+                    <div className="mt-6 space-y-3">
+                      <h3 className="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2">Responses & Solutions</h3>
+                      {state.helpResponses.map((resp) => (
+                        <div key={resp.id} className="p-4 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-emerald-900">{resp.providerName} ({resp.providerRole})</span>
+                            <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-semibold">
+                              {resp.type}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-800 leading-relaxed">{resp.details}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 4: SHARING & THANKS SWIMLANE */}
+            {activeTab === 'sharing' && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Sharing & Thanks</h1>
+                  <p className="text-sm text-gray-500">Take and share meal pictures, and thank your help providers.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Take & Share Pictures */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <h2 className="font-bold text-gray-900">Take & Share Pictures</h2>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Command</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => {
+                          const sampleImgs = [
+                            'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80',
+                            'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80'
+                          ];
+                          const randomImg = sampleImgs[Math.floor(Math.random() * sampleImgs.length)];
+                          setState(p => ({ ...p, pictures: [randomImg, ...p.pictures] }));
+                          showToast('Command "Take pictures" executed -> Picture saved!');
+                        }}
+                        className="w-full bg-gray-900 hover:bg-black text-white font-semibold py-2 rounded-xl text-xs transition flex items-center justify-center gap-2"
+                      >
+                        📸 Capture Meal Picture
+                      </button>
+
+                      {/* Display Picture Stream */}
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        {state.pictures.map((img, i) => (
+                          <img key={i} src={img} className="w-full h-24 object-cover rounded-xl border border-gray-200 shadow-sm" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Give Thanks */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <h2 className="font-bold text-gray-900">Give Thanks</h2>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Command</span>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const note = e.target.elements.thanksNote.value;
+                        const recipient = e.target.elements.recipient.value;
+                        setState(p => ({
+                          ...p,
+                          thanksGiven: [{ id: Date.now(), recipient, note }, ...p.thanksGiven]
+                        }));
+                        showToast(`Event "Thanks given" fired to ${recipient}!`);
+                        e.target.reset();
+                      }}
+                      className="space-y-3"
+                    >
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Thank Recipient</label>
+                        <select name="recipient" className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none">
+                          <option value="Grandma Avatar">Grandma Avatar</option>
+                          <option value="Chef Antoine">Chef Antoine</option>
+                          <option value="Community">Community</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Thank You Note</label>
+                        <textarea
+                          name="thanksNote"
+                          rows="2"
+                          required
+                          placeholder="Thank you for saving my dinner!"
+                          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none"
+                        ></textarea>
+                      </div>
+                      <button
+                        type="submit"
+                        className="w-full mint-bg hover:bg-emerald-400 text-black font-semibold py-2 rounded-xl text-sm transition"
+                      >
+                        Send Thanks & Share Pictures
+                      </button>
+                    </form>
+
+                    {/* Shared Thanks List */}
+                    <div className="space-y-2 mt-3">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase">Shared Gratitude</h4>
+                      {state.thanksGiven.map((item) => (
+                        <div key={item.id} className="p-2.5 bg-gray-50 rounded-lg text-xs border border-gray-200">
+                          <span className="font-bold text-gray-900">To {item.recipient}:</span> "{item.note}"
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 5: AUTOMATIONS & LOGS (Automations & Translation Slices) */}
+            {activeTab === 'automations' && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Automations & Cross-Module Translations</h1>
+                  <p className="text-sm text-gray-500">System policies, AI Avatar response triggers, and notifications.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Automation Slice: AI Avatar Auto-Reply */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <h2 className="font-bold text-gray-900">AI Avatar Policy Automation</h2>
+                      <span className="text-xs bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full font-semibold">Policy Trigger</span>
+                    </div>
+
+                    <p className="text-xs text-gray-600">
+                      <strong>Policy Rule:</strong> Whenever a Cook requests help from Grandma Avatar, the system automatically dispatches the prompt to the AI Avatar to generate rescue steps.
+                    </p>
+
+                    <button
+                      onClick={() => {
+                        const newResp = {
+                          id: `resp-auto-${Date.now()}`,
+                          requestId: 'hr-auto',
+                          providerRole: 'Grandma Avatar',
+                          providerName: 'Grandma Avatar (AI)',
+                          type: 'Steps to Mitigate Catastrophe',
+                          details: '🤖 Auto-generated advice: Remove unburnt portion immediately into a clean pan. Add a pinch of sugar and potato starch to neutralize burnt odor.',
+                          pictures: []
+                        };
+                        setState(p => ({
+                          ...p,
+                          helpResponses: [newResp, ...p.helpResponses]
+                        }));
+                        showToast('Simulated Automation Policy: Grandma Avatar auto-responded!');
+                      }}
+                      className="w-full border-2 border-purple-500 text-purple-900 hover:bg-purple-50 font-semibold py-2 rounded-xl text-xs transition"
+                    >
+                      ⏱ Simulate Policy: Trigger Grandma Avatar Auto-Reply
+                    </button>
+                  </div>
+
+                  {/* Translation Slice: Crosses Module Event Notification */}
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                      <h2 className="font-bold text-gray-900">Translation Slice (Crosses Swimlanes)</h2>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-semibold">Translation</span>
+                    </div>
+
+                    <p className="text-xs text-gray-600">
+                      <strong>Cross-Module Flow:</strong> When a <code>Help Requested</code> event is published in <em>Cook Assistance</em>, a notification event crosses over to inform Community & Chef channels.
+                    </p>
+
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs space-y-1 text-blue-900">
+                      <div className="font-bold">Active Translation Payload:</div>
+                      <div>• Channel: Community / Chef Notification</div>
+                      <div>• Payload: <code>&#123; requestId: "hr-101", status: "Informed" &#125;</code></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </main>
+        </div>
+      );
+    }
+
+    // Render App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Community Cooking</title>
+<style>
+:root{
+  --accent:#22F5AE; --accent-deep:#0B583B; --accent-wash:#E4FEF5;
+  --ink:#000000; --muted:#54575C; --surface:#F5F6F8; --utility:#F2F4F5;
+  --border:#DEDFE3; --bg:#FFFFFF;
+  --warn:#B26A00; --warn-wash:#FFF4E0; --crit:#C2261B; --crit-wash:#FDECEA;
+  --nav-h:70px; --pill-h:48px; --input-h:64px; --radius:4px;
+  --t-display:48px; --t-lead:24px; --t-nav:18px; --t-body:16px; --t-small:14px; --t-micro:12px;
+  --f: Ubuntu, "Trebuchet MS", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--f);color:var(--ink);background:var(--bg);font-size:var(--t-body);line-height:1.5}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:inherit}
+h1,h2,h3,h4{margin:0;font-weight:400}
+
+.util{background:var(--utility);border-bottom:1px solid var(--border);padding:var(--s2) var(--s5);
+      display:flex;gap:var(--s4);align-items:center;flex-wrap:wrap;font-size:var(--t-small);color:var(--muted)}
+.util .brand{font-weight:700;color:var(--ink)}
+.util .brand .sl{color:var(--accent);margin-right:6px}
+.util .spacer{flex:1}
+
+nav.modules{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--border)}
+nav.modules .rail{height:var(--nav-h);display:flex;align-items:center;gap:var(--s1);padding:0 var(--s5);overflow-x:auto}
+.navpill{height:var(--pill-h);border-radius:999px;border:0;background:transparent;color:var(--ink);
+         padding:0 22px;white-space:nowrap;font-size:var(--t-nav);display:inline-flex;align-items:center;gap:10px}
+.navpill:hover{background:var(--surface)}
+.navpill[aria-current="true"]{background:var(--accent)}
+.navpill .cnt{background:var(--ink);color:#fff;border-radius:999px;font-size:var(--t-micro);
+              min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.navpill[aria-current="true"] .cnt{background:#fff;color:var(--ink)}
+
+main{max-width:1040px;margin:0 auto;padding:var(--s6) var(--s5) 96px}
+.crumb{font-size:var(--t-small);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:var(--s4)}
+.crumb .sep{color:var(--accent)}
+h1.display{font-size:var(--t-display);font-weight:300;letter-spacing:-.02em;line-height:1.05;margin-bottom:var(--s3)}
+h1.display .sl{color:var(--accent);font-weight:700;margin-right:14px}
+p.lead{font-size:var(--t-lead);color:var(--muted);font-weight:500;margin:0 0 var(--s6);max-width:66ch}
+
+.card{border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:var(--s5);overflow:hidden}
+.card > header{padding:var(--s4) var(--s5);border-bottom:1px solid var(--border);
+               display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap}
+.card > header h3{font-size:20px;font-weight:500;flex:1;min-width:180px}
+.card .body{padding:var(--s5)}
+
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-micro);letter-spacing:.06em;
+       text-transform:uppercase;padding:5px 10px;border-radius:var(--radius);font-weight:700;white-space:nowrap}
+.b-open{background:var(--warn-wash);color:var(--warn)}
+.b-ans{background:var(--accent-wash);color:var(--accent-deep)}
+.b-mut{background:var(--surface);color:var(--muted)}
+.b-crit{background:var(--crit-wash);color:var(--crit)}
+.b-ink{background:var(--ink);color:#fff}
+
+.btn{height:var(--pill-h);border-radius:999px;border:2px solid var(--ink);background:#fff;color:var(--ink);
+     padding:0 26px;font-weight:500;display:inline-flex;align-items:center;gap:var(--s2)}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--accent);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(.94)}
+.btn.quiet{border-color:var(--border);color:var(--muted)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{height:36px;padding:0 16px;font-size:var(--t-small)}
+
+label.field{display:block;margin-bottom:var(--s4)}
+label.field > span.lab{display:block;font-size:var(--t-small);font-weight:700;margin-bottom:6px}
+.inp{width:100%;height:var(--input-h);border:2px solid var(--border);border-radius:6px;padding:0 var(--s4);background:#fff;color:var(--ink)}
+textarea.inp{height:auto;min-height:92px;padding:var(--s3) var(--s4);resize:vertical}
+select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);
+           background-position:calc(100% - 22px) 28px,calc(100% - 15px) 28px;background-size:7px 7px,7px 7px;background-repeat:no-repeat}
+.inp:focus{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--ink)}
+.inp.slim{height:52px}
+
+.grid{display:grid;gap:var(--s4)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.tile{border:1px solid var(--border);border-radius:6px;padding:var(--s4);background:#fff}
+.tile.on{box-shadow:inset 0 0 0 3px var(--accent);border-color:var(--accent)}
+.tile h4{font-size:var(--t-body);font-weight:700;margin-bottom:6px}
+.meta{font-size:var(--t-small);color:var(--muted)}
+
+.pic{width:100%;aspect-ratio:4/3;border-radius:6px;display:flex;align-items:flex-end;padding:8px;
+     font-size:var(--t-micro);color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.55);border:1px solid var(--border)}
+.pic.evidence{background:linear-gradient(135deg,#6b3a1f,#2b1a12 70%)}
+.pic.result{background:linear-gradient(135deg,#3f8f6d,#1d4a38 70%)}
+.picgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--s2)}
+.picpick{border:0;padding:0;background:none;border-radius:6px}
+.picpick[aria-pressed="true"]{box-shadow:0 0 0 3px var(--accent)}
+
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px var(--s4);font-size:var(--t-small);margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+
+.empty{color:var(--muted);font-size:var(--t-small);margin:0}
+.refuse{border-left:4px solid var(--crit);background:var(--crit-wash);color:var(--crit);
+        padding:var(--s3) var(--s4);border-radius:0 6px 6px 0;font-size:var(--t-small);margin-top:var(--s4)}
+
+.step{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;border:1px solid var(--border);
+      border-radius:6px;padding:var(--s3) var(--s4);margin-bottom:8px;background:#fff}
+.step.on{box-shadow:inset 0 0 0 3px var(--accent);border-color:var(--accent)}
+.step.done{background:var(--surface);color:var(--muted)}
+.step .num{width:28px;height:28px;border-radius:50%;background:var(--surface);display:inline-flex;
+           align-items:center;justify-content:center;font-size:var(--t-small);font-weight:700;flex:none}
+.step.done .num{background:var(--accent);color:var(--ink)}
+.step .txt{flex:1;min-width:200px}
+
+.answer{margin-top:10px;padding-left:14px;border-left:3px solid var(--accent)}
+.answer ul{margin:6px 0 0;padding-left:18px}
+.answer li{margin-bottom:4px}
+
+.feed li{margin-bottom:10px}
+ul.plain{margin:0;padding-left:18px}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;max-width:620px;
+       padding:var(--s3) var(--s5);border-radius:999px;font-size:var(--t-small);font-weight:500;
+       box-shadow:0 6px 24px rgba(0,0,0,.18);display:none}
+.toast.show{display:block}
+.toast.ok{background:var(--accent);color:var(--ink)}
+.toast.bad{background:var(--crit);color:#fff}
+
+.footbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--ink);color:#fff;
+         padding:10px var(--s5);font-size:var(--t-micro);display:flex;gap:var(--s4);align-items:center;flex-wrap:wrap}
+.footbar select{height:28px;background:#fff;color:var(--ink);border:0;border-radius:var(--radius);padding:0 6px}
+.footbar .spacer{flex:1}
+.footbar button{background:transparent;border:1px solid #555;color:#fff;border-radius:var(--radius);padding:4px 10px;font-size:var(--t-micro)}
+.rowend{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;margin-top:var(--s4)}
+</style>
+</head>
+<body>
+
+<div class="util">
+  <span class="brand"><span class="sl">//</span>Community Cooking</span>
+  <span class="spacer"></span>
+  <span id="whoami"></span>
+</div>
+
+<nav class="modules"><div class="rail" id="modnav"></div></nav>
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+
+<div class="footbar">
+  <label>Signed in as <select id="roleSel"></select></label>
+  <span class="spacer"></span>
+  <button id="resetBtn">Start over</button>
+</div>
+
+<script>
+"use strict";
+
+const LANES = [
+  {id:"registration", name:"Registration"},
+  {id:"planning",     name:"Meal Planning"},
+  {id:"sharing",      name:"Sharing"},
+  {id:"assistance",   name:"Cook Assistance"},
+  {id:"preparation",  name:"Meal Preparation"},
+  {id:"notification", name:"Notification"},
+  {id:"avatar",       name:"Grandma Avatar"}
+];
+
+const HELP_SHAPE = {
+  "Help with Ingredients":         {term:"Ingredient substitute",         min:1, max:3},
+  "Help for Meal Preparation Step":{term:"Preparation step explanation",  min:1, max:1},
+  "Meal Preparation Catastrophe":  {term:"Step to mitigate catastrophe",  min:1, max:10},
+  "Help Meal plan":                {term:"Menu proposal",                 min:1, max:3}
+};
+const TROUBLE = {
+  "Ingredients missing":   {type:"Help with Ingredients",          lane:"planning",    label:"I'm missing an ingredient"},
+  "Meal Planning stalled": {type:"Help Meal plan",                 lane:"planning",    label:"I'm stuck on what to cook"},
+  "Step unclear":          {type:"Help for Meal Preparation Step", lane:"preparation", label:"A step isn't clear"},
+  "Catastrophe happened":  {type:"Meal Preparation Catastrophe",   lane:"preparation", label:"Something has gone wrong"}
+};
+const ROLES = ["Nina Weber (Cook)","Community","Chef"];
+const MAX_PICTURES = 10;
+
+const AVATAR_ANSWERS = {
+  "Meal Preparation Catastrophe":[
+    "Take the pan off the heat now — don't stir the bottom.",
+    "Tip the ribs and the loose sauce into a clean pot, leave the burnt crust behind.",
+    "Add a peeled potato and 200 ml of stock, simmer uncovered for 20 minutes.",
+    "Taste before you salt: burnt fond reads salty long before it is."
+  ],
+  "Help for Meal Preparation Step":["Covered, 150 °C, and leave it alone for three hours. Colour first, patience after."],
+  "Help with Ingredients":["Star anise → a broken cinnamon stick","Red wine → dark stock with a splash of vinegar","Beef stock → mushroom stock"],
+  "Help Meal plan":["A braise, because it waits for guests","Something raw and sharp before it"]
+};
+
+const RECIPES = [
+  {id:"R-1", name:"Beef Short Rib Braise", mins:210,
+   ingredients:["Short ribs","Red wine","Carrots","Onion","Star anise","Beef stock"],
+   steps:["Sear the ribs hard on every face","Sweat the carrots and onion in the fat",
+          "Deglaze with the red wine and reduce by half","Braise covered, 150 °C, three hours",
+          "Reduce the braising liquor to a sauce","Rest, carve, spoon over"]},
+  {id:"R-2", name:"Roast Fennel and Orange Salad", mins:35,
+   ingredients:["Fennel","Orange","Olive oil","Sea salt"],
+   steps:["Shave the fennel thin","Segment the orange over the bowl","Dress and let it sit ten minutes"]},
+  {id:"R-3", name:"Burnt Basque Cheesecake", mins:70,
+   ingredients:["Cream cheese","Eggs","Cream","Sugar","Flour"],
+   steps:["Beat the batter smooth","Line the tin with crumpled paper","Bake hot, 25 minutes, take it dark","Cool in the tin — it must wobble"]}
+];
+
+let S, uid = 0, picSel = new Set(), tpicSel = new Set(), timers = [];
+const nid = p => p + "-" + (++uid);
+const recipe = id => S.recipes.find(r=>r.id===id);
+const pic = id => S.pictures.find(p=>p.id===id);
+const isCook = () => S.role.indexOf("Cook") > -1;
+const roleName = () => isCook() ? "Nina Weber" : S.role;
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function toast(msg,kind){
+  const t=document.getElementById("toast");
+  t.className="toast show "+(kind||"ok"); t.textContent=msg;
+  const my=++S.toastSeq; setTimeout(()=>{ if(S.toastSeq===my) t.className="toast"; },4200);
+}
+
+/* ---------------- policies: nothing here is ever a button ---------------- */
+function routeRequest(hr){
+  S.notifications.push({id:nid("N"), kind:"Help request", ref:hr.id, about:hr.type});
+  hr.routed = true;
+  const t = setTimeout(()=>{
+    if(hr.state==="Open"){
+      addHelp(hr,"Grandma Avatar",(AVATAR_ANSWERS[hr.type]||[]).slice(0,HELP_SHAPE[hr.type].max),true);
+      toast("Grandma Avatar answered.","ok"); render();
+    }
+  }, 7000);
+  timers.push(t);
+}
+function rescueIfCatastrophe(hr){
+  if(hr.type!=="Meal Preparation Catastrophe") return;
+  if(!S.prep || S.prep.state!=="In catastrophe") return;
+  S.prep.state="Cooking"; S.prep.catastrophe=null;
+}
+function notifyThanks(th){ S.notifications.push({id:nid("N"), kind:"Thanks", ref:th.id, about:th.to}); }
+
+function addHelp(hr, provider, items, machine){
+  hr.helps.push({id:nid("H"), by:provider, items:items.slice(), machine:!!machine,
+                 at:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+  hr.state="Answered";
+  rescueIfCatastrophe(hr);
+}
+
+/* ---------------- seed: the four stories, up to where Story A turns ------ */
+function seed(){
+  timers.forEach(clearTimeout); timers=[];
+  uid=0; picSel.clear(); tpicSel.clear();
+  S = {role:ROLES[0], view:"preparation", toastSeq:0,
+       cook:{id:"C-1", name:"Nina Weber", kitchen:"Murnau am Staffelsee", since:"March 2026"},
+       recipes:RECIPES, searchTerm:"", searched:true,
+       dinner:{id:"D-1", name:"Sunday dinner", guests:"Parents in Law", when:"Sunday, 19:00",
+               menu:{courses:[
+                 {id:"CO-1", name:"Starter", meals:[{id:"ME-1", recipeId:"R-2"}]},
+                 {id:"CO-2", name:"Main",    meals:[{id:"ME-2", recipeId:"R-1"}]},
+                 {id:"CO-3", name:"Dessert", meals:[{id:"ME-3", recipeId:"R-3"}]}]}},
+       planState:"Settled", planPublished:true,
+       prep:null, helpRequests:[], pictures:[], thanks:[], notifications:[], openTrouble:[]};
+
+  const hr1={id:"HR-1", type:"Help Meal plan", about:"Sunday dinner",
+             words:"Parents in law on Sunday. Three hours and no nerve. What do I cook?",
+             pictures:[], helps:[], state:"Open", routed:true};
+  S.helpRequests.push(hr1);
+  S.notifications.push({id:nid("N"),kind:"Help request",ref:hr1.id,about:hr1.type});
+  addHelp(hr1,"Chef",AVATAR_ANSWERS["Help Meal plan"]);
+
+  const hr2={id:"HR-2", type:"Help with Ingredients", about:"Beef Short Rib Braise",
+             words:"No star anise and no red wine in the house. Sunday. Shops shut.",
+             pictures:[], helps:[], state:"Open", routed:true};
+  S.helpRequests.push(hr2);
+  S.notifications.push({id:nid("N"),kind:"Help request",ref:hr2.id,about:hr2.type});
+  addHelp(hr2,"Community",AVATAR_ANSWERS["Help with Ingredients"]);
+
+  S.prep={id:"P-1", recipeId:"R-1", state:"Cooking", current:3, done:[0,1,2], catastrophe:null};
+
+  const pics=[];
+  for(let i=1;i<=MAX_PICTURES;i++){
+    const p={id:nid("PIC"),kind:"evidence",cap:"Tray, angle "+i}; S.pictures.push(p); pics.push(p.id);
+  }
+  const hr3={id:"HR-3", type:"Help for Meal Preparation Step", about:"Step 4 — Braise covered",
+             words:"Covered or uncovered? And is 150 the oven or the meat?",
+             pictures:pics, helps:[], state:"Open", routed:true};
+  S.helpRequests.push(hr3);
+  S.notifications.push({id:nid("N"),kind:"Help request",ref:hr3.id,about:hr3.type});
+  addHelp(hr3,"Grandma Avatar",AVATAR_ANSWERS["Help for Meal Preparation Step"],true);
+  S.prep.done.push(3); S.prep.current=4;
+
+  const tp={id:nid("PIC"),kind:"result",cap:"The menu, written out"}; S.pictures.push(tp);
+  const t1={id:"T-1", to:"Chef", words:"You saved Sunday before it started.", pictures:[tp.id]};
+  S.thanks.push(t1); notifyThanks(t1);
+  const t2={id:"T-2", to:"Community", words:"Cinnamon for star anise — nobody noticed.", pictures:[]};
+  S.thanks.push(t2); notifyThanks(t2);
+
+  S.prep.state="In catastrophe";
+  S.prep.catastrophe={step:5, what:"The braise caught on the bottom of the pan."};
+  S.openTrouble=["Catastrophe happened"];
+}
+
+/* ============================== VIEWS ================================== */
+function shell(title, lead, body){
+  return '<div class="crumb">Community Cooking <span class="sep">▸</span> '+esc(title)+'</div>'+
+         '<h1 class="display"><span class="sl">//</span>'+esc(title)+'</h1>'+
+         '<p class="lead">'+lead+'</p>'+body;
+}
+const picHTML = p => '<div class="pic '+p.kind+'">'+esc(p.cap)+'</div>';
+
+function vRegistration(){
+  const c=S.cook;
+  return shell("Registration","Your cook profile.",
+    '<div class="card"><header><h3>'+esc(c.name)+'</h3><span class="badge b-ans">Registered</span></header>'+
+    '<div class="body"><dl class="kv">'+
+    '<dt>Cook id</dt><dd>'+esc(c.id)+'</dd>'+
+    '<dt>Kitchen</dt><dd>'+esc(c.kitchen)+'</dd>'+
+    '<dt>Cooking here since</dt><dd>'+esc(c.since)+'</dd>'+
+    '<dt>Community</dt><dd>1 of 4,182 cooks</dd>'+
+    '</dl></div></div>');
+}
+
+function vPlanning(){
+  const d=S.dinner;
+  const list=S.recipes.filter(r=>!S.searchTerm||r.name.toLowerCase().includes(S.searchTerm.toLowerCase()));
+  const blocked=S.openTrouble.filter(t=>TROUBLE[t].lane==="planning");
+  let out='';
+
+  out+='<div class="card"><header><h3>'+esc(d.name)+'</h3>'+
+    '<span class="badge '+(S.planState==="Settled"?"b-ans":"b-open")+'">'+esc(S.planState)+'</span></header>'+
+    '<div class="body"><dl class="kv" style="margin-bottom:var(--s5)">'+
+    '<dt>Guests</dt><dd>'+esc(d.guests)+'</dd><dt>When</dt><dd>'+esc(d.when)+'</dd></dl>'+
+    d.menu.courses.map(c=>{
+      return '<div class="tile" style="margin-bottom:var(--s3)"><h4>'+esc(c.name)+'</h4>'+
+        c.meals.map(m=>{const r=recipe(m.recipeId);
+          return '<div class="meta">'+esc(r.name)+' · '+r.mins+' min</div>';}).join("")+'</div>';
+    }).join("")+
+    '<div class="rowend"><button class="btn primary" data-act="settle" '+(S.planState==="Settled"?"disabled":"")+'>Settle the plan</button></div>'+
+    (blocked.length?'<div class="refuse">'+esc(TROUBLE[blocked[0]].label)+" — sort that out first.</div>":'')+
+    '</div></div>';
+
+  out+='<div class="card"><header><h3>Recipes</h3></header><div class="body">'+
+    '<label class="field"><span class="lab">Search</span>'+
+    '<input class="inp" id="q" value="'+esc(S.searchTerm)+'" placeholder="braise, fennel, cheesecake…"></label>'+
+    '<button class="btn" data-act="search">Search</button>'+
+    (S.searched?'<div class="grid g3" style="margin-top:var(--s5)">'+
+      (list.length?list.map(r=>'<div class="tile"><h4>'+esc(r.name)+'</h4>'+
+        '<div class="meta">'+r.ingredients.length+' ingredients · '+r.steps.length+' steps · '+r.mins+' min</div></div>').join("")
+        :'<p class="empty">Nothing matches.</p>')+'</div>':'')+
+    '</div></div>';
+
+  out+='<div class="card"><header><h3>Something not right?</h3></header><div class="body">'+
+    '<div class="rowend" style="margin-top:0">'+
+    '<button class="btn" data-trouble="Ingredients missing">'+esc(TROUBLE["Ingredients missing"].label)+'</button>'+
+    '<button class="btn" data-trouble="Meal Planning stalled">'+esc(TROUBLE["Meal Planning stalled"].label)+'</button>'+
+    '</div></div></div>';
+
+  return shell("Meal Planning","What you're cooking, and who for.",out);
+}
+
+function vPreparation(){
+  const p=S.prep;
+  if(!p){
+    return shell("Meal Preparation","Cooking it, step by step.",
+      '<div class="card"><header><h3>Nothing on the stove</h3></header><div class="body">'+
+      '<p class="empty" style="margin-bottom:var(--s4)">Start the main course when you\'re ready.</p>'+
+      '<button class="btn primary" data-act="startPrep" '+(S.planPublished?"":"disabled")+'>Start cooking</button>'+
+      '</div></div>');
+  }
+  const r=recipe(p.recipeId);
+  const left=r.steps.length-p.done.length;
+  const badge={Cooking:"b-ans",Stuck:"b-open","In catastrophe":"b-crit",Prepared:"b-ink"}[p.state];
+
+  let out='<div class="card"><header><h3>'+esc(r.name)+'</h3>'+
+    '<span class="badge '+badge+'">'+esc(p.state)+'</span></header><div class="body">'+
+    (p.catastrophe?'<div class="refuse" style="margin:0 0 var(--s5)">'+esc(p.catastrophe.what)+'</div>':'')+
+    r.steps.map((s,i)=>{
+      const done=p.done.includes(i), cur=i===p.current;
+      return '<div class="step'+(done?" done":cur?" on":"")+'">'+
+        '<span class="num">'+(done?"✓":i+1)+'</span><span class="txt">'+esc(s)+'</span>'+
+        (cur&&p.state==="Cooking"?
+          '<button class="btn sm primary" data-step="done">Done</button>'+
+          '<button class="btn sm" data-step="unclear">Not clear</button>'+
+          '<button class="btn sm" data-step="cat">Gone wrong</button>':'')+
+        (cur&&p.state==="Stuck"?'<button class="btn sm primary" data-step="done">Done</button>':'')+
+        '</div>';
+    }).join("")+
+    '<div class="rowend"><button class="btn primary" data-act="completePrep" '+(p.state==="Prepared"?"disabled":"")+'>Meal is ready</button>'+
+    '<span class="meta">'+(left?left+" step"+(left===1?"":"s")+" to go":"All steps done")+'</span></div>'+
+    (p.state==="Prepared"?'<p class="empty" style="margin-top:var(--s4)">Take a photo of it in Sharing.</p>':'')+
+    '</div></div>';
+
+  out+='<div class="card"><header><h3>Ingredients</h3></header><div class="body">'+
+    '<div class="grid g3">'+r.ingredients.map(i=>'<div class="tile"><h4>'+esc(i)+'</h4></div>').join("")+'</div></div></div>';
+
+  return shell("Meal Preparation","Cooking it, step by step.",out);
+}
+
+function vAssistance(){
+  const open=S.openTrouble;
+  const evidence=S.pictures.filter(p=>p.kind==="evidence");
+  let out='';
+
+  out+='<div class="card"><header><h3>Ask for help</h3></header><div class="body">'+
+    (open.length?
+      '<label class="field"><span class="lab">What\'s wrong</span><select class="inp" id="trouble">'+
+        open.map(t=>'<option value="'+esc(t)+'">'+esc(TROUBLE[t].label)+'</option>').join("")+'</select></label>'+
+      '<label class="field"><span class="lab">Tell them what happened</span>'+
+      '<textarea class="inp" id="words" placeholder="The braise caught on the bottom…"></textarea></label>'+
+      (evidence.length?'<div class="field"><span class="lab">Add photos</span>'+
+        '<div class="picgrid">'+evidence.slice(0,12).map(p=>
+          '<button class="picpick" type="button" data-pic="'+p.id+'" aria-pressed="false">'+picHTML(p)+'</button>').join("")+'</div></div>':'')+
+      '<button class="btn primary" data-act="requestHelp">Ask for help</button>'
+      :'<p class="empty">Everything\'s going fine. Ask for help from the kitchen or from your plan when it isn\'t.</p>')+
+    '</div></div>';
+
+  out+='<div class="card"><header><h3>Your requests</h3>'+
+    '<span class="badge b-mut">'+S.helpRequests.length+'</span></header><div class="body">'+
+    (S.helpRequests.length?S.helpRequests.slice().reverse().map(hr=>{
+      const sh=HELP_SHAPE[hr.type];
+      const canAnswer=!isCook()&&hr.state==="Open";
+      return '<div class="tile" style="margin-bottom:var(--s4)">'+
+        '<div style="display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;margin-bottom:6px">'+
+        '<h4 style="flex:1;min-width:180px">'+esc(hr.about)+'</h4>'+
+        '<span class="badge '+(hr.state==="Open"?"b-open":"b-ans")+'">'+esc(hr.state)+'</span></div>'+
+        '<p style="margin:0">“'+esc(hr.words)+'”</p>'+
+        (hr.pictures.length?'<div class="picgrid" style="margin-top:10px">'+
+          hr.pictures.slice(0,4).map(id=>{const p=pic(id);return p?picHTML(p):"";}).join("")+
+          (hr.pictures.length>4?'<div class="tile" style="display:flex;align-items:center;justify-content:center" class="meta">+'+(hr.pictures.length-4)+' more</div>':'')+
+          '</div>':'')+
+        hr.helps.map(h=>'<div class="answer"><div class="meta"><strong>'+esc(h.by)+'</strong> · '+esc(h.at)+
+          (h.machine?' <span class="badge b-mut">machine-generated</span>':'')+'</div>'+
+          '<ul>'+h.items.map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul></div>').join("")+
+        (canAnswer?'<div class="rowend"><button class="btn sm primary" data-answer="'+hr.id+'">Answer as '+esc(roleName())+'</button></div>':'')+
+        (hr.state==="Open"&&isCook()?'<p class="empty" style="margin-top:10px">Waiting for someone to answer.</p>':'')+
+        '</div>';
+    }).join(""):'<p class="empty">Nothing asked yet.</p>')+
+    '</div></div>';
+
+  if(S.compose){
+    const hr=S.helpRequests.find(h=>h.id===S.compose);
+    if(hr){
+      const sh=HELP_SHAPE[hr.type];
+      out+='<div class="card"><header><h3>Answer — '+esc(hr.about)+'</h3></header><div class="body">'+
+        Array.from({length:sh.max}).map((_,i)=>
+          '<label class="field"><span class="lab">'+esc(sh.term)+' '+(i+1)+'</span>'+
+          '<input class="inp slim helpitem" placeholder="'+(i<sh.min?"":"optional")+'"></label>').join("")+
+        '<div class="rowend"><button class="btn primary" data-act="submitHelp">Send</button>'+
+        '<button class="btn quiet" data-act="cancelHelp">Cancel</button></div></div></div>';
+    }
+  }
+  return shell("Cook Assistance","Somebody who knows, when you're stuck.",out);
+}
+
+function vSharing(){
+  const ev=S.pictures.filter(p=>p.kind==="evidence"), res=S.pictures.filter(p=>p.kind==="result");
+  const providers=[...new Set(S.helpRequests.flatMap(h=>h.helps.map(x=>x.by)))];
+  let out='';
+
+  out+='<div class="card"><header><h3>Take photos</h3></header><div class="body">'+
+    '<label class="field"><span class="lab">Caption</span>'+
+    '<input class="inp" id="piccap" placeholder="Carved, sauced, nobody knew…"></label>'+
+    '<button class="btn primary" data-act="takePic">Take photos</button></div></div>';
+
+  out+='<div class="card"><header><h3>Photos</h3><span class="badge b-mut">'+S.pictures.length+'</span></header><div class="body">'+
+    (res.length?'<h4 style="font-weight:700;margin-bottom:8px">Finished meals</h4>'+
+      '<div class="picgrid" style="margin-bottom:var(--s5)">'+res.map(picHTML).join("")+'</div>':'')+
+    (ev.length?'<h4 style="font-weight:700;margin-bottom:8px">From the kitchen</h4>'+
+      '<div class="picgrid">'+ev.slice(0,12).map(picHTML).join("")+'</div>':'')+
+    (!res.length&&!ev.length?'<p class="empty">No photos yet.</p>':'')+
+    '</div></div>';
+
+  out+='<div class="card"><header><h3>Say thank you</h3></header><div class="body">'+
+    (providers.length?
+      '<label class="field"><span class="lab">Who helped</span><select class="inp" id="thanksTo">'+
+        providers.map(p=>'<option>'+esc(p)+'</option>').join("")+'</select></label>'+
+      '<label class="field"><span class="lab">Message</span>'+
+      '<textarea class="inp" id="thanksWords" placeholder="You saved dinner."></textarea></label>'+
+      (res.length?'<div class="field"><span class="lab">Share photos with the community</span>'+
+        '<div class="picgrid">'+res.map(p=>'<button class="picpick" type="button" data-tpic="'+p.id+'" aria-pressed="false">'+picHTML(p)+'</button>').join("")+
+        '</div></div>':'')+
+      '<button class="btn primary" data-act="giveThanks">Send thanks</button>'
+      :'<p class="empty">Nobody has helped you yet.</p>')+
+    (S.thanks.length?'<div style="margin-top:var(--s5)">'+
+      S.thanks.slice().reverse().map(t=>'<div class="tile" style="margin-bottom:8px"><h4>'+esc(t.to)+'</h4>'+
+        '<p style="margin:6px 0 0">“'+esc(t.words)+'”</p>'+
+        '<div class="meta" style="margin-top:6px">'+(t.pictures.length?t.pictures.length+' photo'+(t.pictures.length===1?"":"s")+' shared':'No photos')+'</div>'+
+      '</div>').join("")+'</div>':'')+
+    '</div></div>';
+
+  return shell("Sharing","Photos, and the thank-you that keeps a stranger answering next time.",out);
+}
+
+function vNotification(){
+  const n=S.notifications.slice().reverse();
+  return shell("Notification","What the community was told.",
+    '<div class="card"><header><h3>Sent</h3><span class="badge b-mut">'+n.length+'</span></header><div class="body">'+
+    (n.length?'<ul class="plain feed">'+n.map(x=>'<li><strong>'+esc(x.kind)+'</strong> — '+esc(x.about)+'</li>').join("")+'</ul>'
+      :'<p class="empty">Nothing sent.</p>')+
+    '</div></div>');
+}
+
+function vAvatar(){
+  const asked=S.helpRequests.filter(h=>h.routed);
+  const given=S.helpRequests.flatMap(h=>h.helps.filter(x=>x.by==="Grandma Avatar").map(x=>({hr:h,h:x})));
+  let out='<div class="card"><header><h3>Asked</h3><span class="badge b-mut">'+asked.length+'</span></header><div class="body">'+
+    (asked.length?'<ul class="plain feed">'+asked.slice().reverse().map(h=>
+      '<li>'+esc(h.about)+' <span class="badge '+(h.state==="Open"?"b-open":"b-ans")+'">'+esc(h.state)+'</span></li>').join("")+'</ul>'
+      :'<p class="empty">Nothing asked.</p>')+'</div></div>';
+  out+='<div class="card"><header><h3>Answers given</h3><span class="badge b-mut">'+given.length+'</span></header><div class="body">'+
+    (given.length?given.map(g=>'<div class="tile" style="margin-bottom:var(--s3)"><h4>'+esc(g.hr.about)+'</h4>'+
+      '<ul class="plain" style="margin-top:6px">'+g.h.items.map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul></div>').join("")
+      :'<p class="empty">Nothing answered yet.</p>')+'</div></div>';
+  return shell("Grandma Avatar","The one who answers when nobody else does.",out);
+}
+
+const VIEWS={registration:vRegistration,planning:vPlanning,sharing:vSharing,assistance:vAssistance,
+             preparation:vPreparation,notification:vNotification,avatar:vAvatar};
+
+function counts(id){
+  if(id==="assistance") return S.helpRequests.filter(h=>h.state==="Open").length;
+  if(id==="notification") return S.notifications.length;
+  return 0;
+}
+
+function render(){
+  picSel.clear(); tpicSel.clear();
+  document.getElementById("modnav").innerHTML=LANES.map(l=>{
+    const c=counts(l.id);
+    return '<button class="navpill" data-go="'+l.id+'" aria-current="'+(S.view===l.id)+'">'+esc(l.name)+
+           (c?'<span class="cnt">'+c+'</span>':'')+'</button>';
+  }).join("");
+  document.getElementById("whoami").innerHTML="Signed in as <strong style='color:var(--ink)'>"+esc(roleName())+"</strong>";
+  const rs=document.getElementById("roleSel");
+  if(rs.options.length!==ROLES.length) rs.innerHTML=ROLES.map(r=>'<option>'+esc(r)+'</option>').join("");
+  rs.value=S.role;
+  document.getElementById("main").innerHTML=VIEWS[S.view]();
+  window.scrollTo({top:0});
+}
+
+/* ============================== EVENTS ================================= */
+document.addEventListener("click", ev=>{
+  const t=ev.target.closest("[data-go],[data-act],[data-trouble],[data-step],[data-answer],[data-pic],[data-tpic]");
+  if(!t) return;
+
+  if(t.dataset.go){ S.view=t.dataset.go; S.compose=null; return render(); }
+
+  if(t.dataset.pic!==undefined){
+    const on=t.getAttribute("aria-pressed")==="true";
+    if(!on&&picSel.size>=MAX_PICTURES) return toast("You can attach ten photos at most.","bad");
+    t.setAttribute("aria-pressed",String(!on));
+    on?picSel.delete(t.dataset.pic):picSel.add(t.dataset.pic); return;
+  }
+  if(t.dataset.tpic!==undefined){
+    const on=t.getAttribute("aria-pressed")==="true";
+    if(!on&&tpicSel.size>=MAX_PICTURES) return toast("You can share ten photos at most.","bad");
+    t.setAttribute("aria-pressed",String(!on));
+    on?tpicSel.delete(t.dataset.tpic):tpicSel.add(t.dataset.tpic); return;
+  }
+
+  if(t.dataset.trouble){
+    const n=t.dataset.trouble;
+    if(S.openTrouble.includes(n)) return toast("Already flagged.","bad");
+    S.openTrouble.push(n);
+    S.planState = n==="Ingredients missing" ? "Blocked" : "Stalled";
+    S.view="assistance";
+    toast("Ask the community about it.","ok");
+    return render();
+  }
+
+  if(t.dataset.step){
+    const p=S.prep, r=recipe(p.recipeId);
+    if(t.dataset.step==="done"){
+      if(!p.done.includes(p.current)) p.done.push(p.current);
+      p.state="Cooking";
+      S.openTrouble=S.openTrouble.filter(x=>x!=="Step unclear");
+      if(p.current<r.steps.length-1) p.current++;
+    } else if(t.dataset.step==="unclear"){
+      p.state="Stuck";
+      if(!S.openTrouble.includes("Step unclear")) S.openTrouble.push("Step unclear");
+      S.view="assistance"; toast("Ask about that step.","ok");
+    } else {
+      p.state="In catastrophe";
+      p.catastrophe={step:p.current+1, what:"Something has gone wrong at step "+(p.current+1)+"."};
+      if(!S.openTrouble.includes("Catastrophe happened")) S.openTrouble.push("Catastrophe happened");
+      S.view="assistance"; toast("Ask for help.","bad");
+    }
+    return render();
+  }
+
+  if(t.dataset.answer){
+    S.compose=t.dataset.answer; render();
+    const cards=document.querySelectorAll(".card");
+    if(cards.length) cards[cards.length-1].scrollIntoView({behavior:"smooth"});
+    return;
+  }
+
+  const act=t.dataset.act;
+  if(act==="search"){ S.searchTerm=(document.getElementById("q")||{}).value||""; S.searched=true; return render(); }
+
+  if(act==="settle"){
+    const blocked=S.openTrouble.filter(x=>TROUBLE[x].lane==="planning");
+    if(blocked.length) return toast(TROUBLE[blocked[0]].label+" — sort that out first.","bad");
+    S.planState="Settled"; S.planPublished=true;
+    toast("Plan settled.","ok"); return render();
+  }
+  if(act==="startPrep"){
+    S.prep={id:"P-1", recipeId:S.dinner.menu.courses[1].meals[0].recipeId, state:"Cooking",
+            current:0, done:[], catastrophe:null};
+    return render();
+  }
+  if(act==="completePrep"){
+    const p=S.prep, r=recipe(p.recipeId);
+    if(p.state==="In catastrophe") return toast("Not while it's gone wrong.","bad");
+    const left=r.steps.length-p.done.length;
+    if(left>0) return toast(left+" step"+(left===1?"":"s")+" still to go.","bad");
+    p.state="Prepared"; toast("Meal is ready.","ok"); return render();
+  }
+  if(act==="requestHelp"){
+    const trouble=(document.getElementById("trouble")||{}).value;
+    const words=((document.getElementById("words")||{}).value||"").trim();
+    if(!trouble) return toast("Nothing's gone wrong yet.","bad");
+    if(!words) return toast("Say what happened, or nobody can help.","bad");
+    const about = TROUBLE[trouble].lane==="planning" ? S.dinner.name
+                : recipe(S.prep.recipeId).name+" — Step "+(S.prep.current+1);
+    const hr={id:nid("HR"), type:TROUBLE[trouble].type, about, words,
+              pictures:[...picSel], helps:[], state:"Open", routed:false};
+    S.helpRequests.push(hr);
+    S.openTrouble=S.openTrouble.filter(x=>x!==trouble);
+    routeRequest(hr);
+    toast("Asked. The community has been told.","ok");
+    return render();
+  }
+  if(act==="cancelHelp"){ S.compose=null; return render(); }
+  if(act==="submitHelp"){
+    const hr=S.helpRequests.find(h=>h.id===S.compose);
+    if(!hr) return;
+    const sh=HELP_SHAPE[hr.type];
+    const items=[...document.querySelectorAll(".helpitem")].map(i=>i.value.trim()).filter(Boolean);
+    if(items.length<sh.min) return toast("Give at least "+sh.min+" "+sh.term.toLowerCase()+".","bad");
+    if(items.length>sh.max) return toast("At most "+sh.max+".","bad");
+    if(hr.state!=="Open") return toast("Someone answered that already.","bad");
+    if(isCook()) return toast("You can't answer your own question.","bad");
+    addHelp(hr,roleName(),items);
+    S.compose=null; toast("Sent.","ok"); return render();
+  }
+  if(act==="takePic"){
+    const kind = (S.prep && S.prep.state==="Prepared") ? "result" : "evidence";
+    const cap=((document.getElementById("piccap")||{}).value||"").trim() ||
+              (kind==="result"?"The finished meal":"From the kitchen");
+    S.pictures.push({id:nid("PIC"),kind,cap});
+    toast("Photo taken.","ok"); return render();
+  }
+  if(act==="giveThanks"){
+    const to=(document.getElementById("thanksTo")||{}).value;
+    const words=((document.getElementById("thanksWords")||{}).value||"").trim();
+    if(!to) return toast("Pick who helped you.","bad");
+    if(!words) return toast("Say something.","bad");
+    const th={id:nid("T"),to,words,pictures:[...tpicSel]};
+    S.thanks.push(th); notifyThanks(th);
+    toast("Thanks sent.","ok"); return render();
+  }
+});
+
+document.getElementById("roleSel").addEventListener("change",e=>{ S.role=e.target.value; S.compose=null; render(); });
+document.getElementById("resetBtn").addEventListener("click",()=>{ seed(); render(); });
+
+seed(); render();
+</script>
+</body>
+</html>

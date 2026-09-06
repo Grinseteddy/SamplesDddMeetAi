@@ -1,0 +1,35 @@
+# Companion to example-community-cooking.arazzo.yaml — Cook Assistance lane.
+openapi: 3.1.0
+info:
+  title: Cook Assistance
+  version: 1.0.0
+paths:
+  /help-requests:
+    post:
+      operationId: requestHelp
+      summary: Ask the community for help.
+      responses:
+        '201':
+          description: Help request raised.
+  /help-requests/{helpRequestId}:
+    get:
+      operationId: getHelpRequest
+      summary: A help request and the responses it has collected.
+      parameters:
+        - name: helpRequestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Help request with responses.
+  /thanks:
+    post:
+      operationId: giveThanks
+      summary: Thank a help provider.
+      responses:
+        '201':
+          description: Thanks recorded.
+        '422':
+          description: No help response to thank.

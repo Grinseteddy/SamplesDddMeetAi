@@ -1,0 +1,41 @@
+# Companion to example-community-cooking.arazzo.yaml — Meal Preparation lane.
+openapi: 3.1.0
+info:
+  title: Meal Preparation
+  version: 1.0.0
+paths:
+  /preparations:
+    post:
+      operationId: startPreparation
+      summary: Start cooking a settled plan.
+      responses:
+        '201':
+          description: Preparation started.
+  /preparations/{preparationId}:
+    get:
+      operationId: getPreparation
+      summary: Where the preparation currently is.
+      parameters:
+        - name: preparationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current step, status and incidents.
+  /preparations/{preparationId}/completion:
+    post:
+      operationId: completeMealPreparation
+      summary: Declare the meal prepared.
+      parameters:
+        - name: preparationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Meal prepared.
+        '409':
+          description: Mandatory steps are still open.

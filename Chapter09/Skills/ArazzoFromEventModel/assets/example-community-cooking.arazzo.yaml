@@ -1,0 +1,460 @@
+# Gold-standard example for the arazzo-from-event-model skill.
+#
+# Derived from the Community Cooking Event Model (3 board images; swimlanes
+# Registration · Meal Planning · Sharing · Cook Assistance · Meal Preparation ·
+# Notification · AI Avatar). It demonstrates the five patterns worth copying:
+#
+#   1. recurrence  — the help flow drawn twice on the board is ONE workflow
+#                    (getHelpWhenStuck), called from planning and from cooking
+#   2. automation  — a policy is a WAIT, never a button: awaitHelpProvided is an
+#                    async receive, awaitMealRescued is a poll with retry
+#   3. branching   — the board's trouble branch is onSuccess/goto, not a new path
+#   4. guards      — invariants become named onFailure actions
+#   5. traceability— every workflow and step carries x-event-model
+arazzo: 1.1.0
+info:
+  title: Community Cooking
+  summary: What a cook does, from planning dinner to thanking whoever rescued it.
+  description: |
+    Derived from the Community Cooking Event Model (images 1-3, left to right).
+    Workflows describe the COOK's interactions only. Slices in the Notification
+    and AI Avatar lanes carry no user action and appear here as waits.
+  version: 1.0.0
+sourceDescriptions:
+  - name: mealPlanningApi
+    url: ./example-meal-planning.openapi.yaml
+    type: openapi
+  - name: mealPreparationApi
+    url: ./example-meal-preparation.openapi.yaml
+    type: openapi
+  - name: cookAssistanceApi
+    url: ./example-cook-assistance.openapi.yaml
+    type: openapi
+  - name: cookingEvents
+    url: ./example-cooking.asyncapi.yaml
+    type: asyncapi
+
+workflows:
+  - workflowId: planDinner
+    summary: Plan a dinner and settle on what will be cooked.
+    description: Meal Planning lane, image 1 through the left half of image 2.
+    x-event-model:
+      lane: Meal Planning
+      actor: Cook
+      image: 1-2
+    inputs:
+      type: object
+      required: [occasion, guestCount, recipeId]
+      properties:
+        occasion:
+          type: string
+          description: What the dinner is for, in the cook's own words.
+        guestCount:
+          type: integer
+          minimum: 1
+        recipeId:
+          type: string
+          description: The recipe the cook picks from the search results.
+    steps:
+      - stepId: planDinner
+        description: The cook starts a plan for an occasion and a guest count.
+        operationId: $sourceDescriptions.mealPlanningApi.planDinner
+        requestBody:
+          contentType: application/json
+          payload:
+            occasion: $inputs.occasion
+            guests: $inputs.guestCount
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          planId: $response.body#/planId
+        x-event-model:
+          lane: Meal Planning
+          slice: Plan dinner
+          sliceType: state-change
+          image: 1
+          stickies: [Plan dinner, Guests, Menu]
+          status: inferred
+          note: >-
+            The board draws the command but no event above it; `Dinner planned`
+            is inferred. Open question 1 in the report.
+      - stepId: searchRecipes
+        description: The cook searches the catalogue and sees candidate recipes.
+        operationId: $sourceDescriptions.mealPlanningApi.searchRecipes
+        parameters:
+          - name: q
+            in: query
+            value: $inputs.occasion
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $.recipes[*]
+            type: jsonpath
+        outputs:
+          recipes: $response.body#/recipes
+        x-event-model:
+          lane: Meal Planning
+          slice: Recipes
+          sliceType: state-view
+          image: 1
+          stickies: [Search recipes, Recipes searched, Recipes]
+          status: on-board
+      - stepId: selectRecipe
+        description: The cook puts the recipe they chose onto the menu.
+        operationId: $sourceDescriptions.mealPlanningApi.selectRecipe
+        parameters:
+          - name: planId
+            in: path
+            value: $steps.planDinner.outputs.planId
+        requestBody:
+          contentType: application/json
+          payload:
+            recipeId: $inputs.recipeId
+        successCriteria:
+          - condition: $statusCode == 200
+        x-event-model:
+          lane: Meal Planning
+          slice: Select recipe
+          sliceType: state-change
+          image: 1
+          stickies: [Select recipe, Recipe selected, Selected Recipes]
+          status: on-board
+      - stepId: viewSelectedRecipes
+        description: The cook sees the recipes now on the menu.
+        operationId: $sourceDescriptions.mealPlanningApi.getSelectedRecipes
+        parameters:
+          - name: planId
+            in: path
+            value: $steps.planDinner.outputs.planId
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $.recipes[*]
+            type: jsonpath
+        outputs:
+          selectedRecipeIds: $response.body#/recipes
+        x-event-model:
+          lane: Meal Planning
+          slice: Selected Recipes
+          sliceType: state-view
+          image: 1
+          stickies: [Selected Recipes]
+          status: on-board
+      - stepId: settleMealPlan
+        description: The cook settles the plan; after this the menu is fixed.
+        operationId: $sourceDescriptions.mealPlanningApi.settleMealPlan
+        parameters:
+          - name: planId
+            in: path
+            value: $steps.planDinner.outputs.planId
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - name: ingredientsOutstanding
+            type: end
+            criteria:
+              - condition: $statusCode == 409
+        outputs:
+          settledAt: $response.body#/settledAt
+        x-event-model:
+          lane: Meal Planning
+          slice: Settle meal plan
+          sliceType: state-change
+          image: 2
+          stickies: [Settle meal plan, Meal plan settled, Meal Plan]
+          status: on-board
+          guard: >-
+            A plan cannot settle while an ingredient is outstanding
+            (INV-PLAN-04) — the 409 branch.
+    outputs:
+      planId: $steps.planDinner.outputs.planId
+      settledAt: $steps.settleMealPlan.outputs.settledAt
+
+  - workflowId: getHelpWhenStuck
+    summary: Ask the community for help and wait for an answer.
+    description: >-
+      The board draws this cluster twice — once reached from planning trouble
+      (Ingredients missing / Meal planning stalled) and once from cooking
+      trouble (Step unclear / Catastrophe happened). Recurrence, not
+      duplication: one workflow, two callers.
+    x-event-model:
+      lane: Cook Assistance
+      actor: Cook
+      image: 1-2
+      recurrence: reached from both the planning and the cooking trouble events
+    inputs:
+      type: object
+      required: [troubleDescription, subjectRef, correlationId]
+      properties:
+        troubleDescription:
+          type: string
+          description: What went wrong, in the cook's own words.
+        subjectRef:
+          type: string
+          description: The plan or preparation the request is about.
+        correlationId:
+          type: string
+          description: Correlates the request with the answer coming back.
+    steps:
+      - stepId: requestHelp
+        description: The cook asks the community, attaching the situation.
+        operationId: $sourceDescriptions.cookAssistanceApi.requestHelp
+        parameters:
+          - name: X-Correlation-Id
+            in: header
+            value: $inputs.correlationId
+        requestBody:
+          contentType: application/json
+          payload:
+            situation: $inputs.troubleDescription
+            about: $inputs.subjectRef
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          helpRequestId: $response.body#/helpRequestId
+        x-event-model:
+          lane: Cook Assistance
+          slice: Request help
+          sliceType: state-change
+          image: 1-2
+          stickies: [Request help, Help requested, Help request]
+          status: on-board
+      - stepId: awaitHelpProvided
+        description: >-
+          Wait for a responder — Community, Chef or the Grandma Avatar. Nobody
+          presses anything here; the cook waits.
+        operationId: $sourceDescriptions.cookingEvents.helpProvided
+        action: receive
+        correlationId: $inputs.correlationId
+        timeout: 600000
+        dependsOn: [requestHelp]
+        successCriteria:
+          - context: $message.payload
+            condition: $.status == 'ANSWERED'
+            type: jsonpath
+        onFailure:
+          - name: nobodyAnswered
+            type: end
+        outputs:
+          helpResponseId: $message.payload#/helpResponseId
+        x-event-model:
+          lane: Notification
+          slice: Community / Chef informed → Help provided
+          sliceType: automation
+          image: 1-2
+          stickies: [Community / Chef informed, Avatar asked, Provide help, Help provided]
+          status: on-board
+      - stepId: viewHelpResponse
+        description: The cook reads the answer and sees who gave it.
+        operationId: $sourceDescriptions.cookAssistanceApi.getHelpRequest
+        parameters:
+          - name: helpRequestId
+            in: path
+            value: $steps.requestHelp.outputs.helpRequestId
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $.responses[*]
+            type: jsonpath
+        outputs:
+          helpProviderId: $response.body#/responses/0/helpProviderId
+        x-event-model:
+          lane: Cook Assistance
+          slice: Help
+          sliceType: state-view
+          image: 1-2
+          stickies: [Help]
+          status: on-board
+    outputs:
+      helpRequestId: $steps.requestHelp.outputs.helpRequestId
+      helpResponseId: $steps.awaitHelpProvided.outputs.helpResponseId
+      helpProviderId: $steps.viewHelpResponse.outputs.helpProviderId
+
+  - workflowId: cookMeal
+    summary: Cook the settled plan, getting help when it goes wrong.
+    description: Meal Preparation lane, image 2.
+    dependsOn: [planDinner]
+    x-event-model:
+      lane: Meal Preparation
+      actor: Cook
+      image: 2
+    inputs:
+      type: object
+      required: [planId]
+      properties:
+        planId:
+          type: string
+          description: The settled plan, from planDinner's outputs.
+    steps:
+      - stepId: startPreparation
+        description: The cook starts cooking the settled plan.
+        operationId: $sourceDescriptions.mealPreparationApi.startPreparation
+        requestBody:
+          contentType: application/json
+          payload:
+            planId: $inputs.planId
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          preparationId: $response.body#/preparationId
+        x-event-model:
+          lane: Meal Preparation
+          slice: Start meal preparation
+          sliceType: state-change
+          image: 2
+          stickies: [Start meal preparation, Meal preparation started]
+          status: on-board
+      - stepId: viewNextStep
+        description: >-
+          The cook looks at where the preparation is. Cooking carries on; a
+          catastrophe falls through to the help branch below.
+        operationId: $sourceDescriptions.mealPreparationApi.getPreparation
+        parameters:
+          - name: preparationId
+            in: path
+            value: $steps.startPreparation.outputs.preparationId
+        successCriteria:
+          - condition: $statusCode == 200
+        onSuccess:
+          - name: carryOnCooking
+            type: goto
+            stepId: completeMealPreparation
+            criteria:
+              - condition: $response.body#/status == 'COOKING'
+        outputs:
+          currentStep: $response.body#/currentStep
+          status: $response.body#/status
+        x-event-model:
+          lane: Meal Preparation
+          slice: Meal Preparation Step
+          sliceType: state-view
+          image: 2
+          stickies: [Step unclear, Step completed, Catastrophe happened]
+          status: on-board
+      - stepId: getHelpForCatastrophe
+        description: The braise has caught — ask the community, and wait.
+        workflowId: getHelpWhenStuck
+        parameters:
+          - name: troubleDescription
+            value: $steps.viewNextStep.outputs.currentStep
+          - name: subjectRef
+            value: $steps.startPreparation.outputs.preparationId
+          - name: correlationId
+            value: $steps.startPreparation.outputs.preparationId
+        outputs:
+          helpResponseId: $workflows.getHelpWhenStuck.outputs.helpResponseId
+        x-event-model:
+          lane: Cook Assistance
+          slice: Catastrophe happened → Request help
+          sliceType: state-change
+          image: 2
+          stickies: [Catastrophe Pictures, Request help]
+          status: on-board
+          note: The second caller of the recurring help workflow.
+      - stepId: awaitMealRescued
+        description: >-
+          Poll the preparation until the rescue is recorded. `Meal rescued`
+          carries a machine marker on the board — no button, so this is a wait.
+        operationId: $sourceDescriptions.mealPreparationApi.getPreparation
+        parameters:
+          - name: preparationId
+            in: path
+            value: $steps.startPreparation.outputs.preparationId
+        successCriteria:
+          - condition: $response.body#/status == 'RESCUED'
+        onSuccess:
+          - name: backToTheStove
+            type: goto
+            stepId: viewNextStep
+        onFailure:
+          - name: keepWaitingForRescue
+            type: retry
+            retryAfter: 5
+            retryLimit: 12
+          - name: rescueNeverArrived
+            type: end
+        x-event-model:
+          lane: Meal Preparation
+          slice: Meal rescued
+          sliceType: automation
+          image: 2
+          stickies: [Meal rescued]
+          status: on-board
+          note: >-
+            Open question — is the arrival of advice really the rescue? The
+            board draws no policy line into this sticky.
+      - stepId: completeMealPreparation
+        description: The cook declares the meal prepared.
+        operationId: $sourceDescriptions.mealPreparationApi.completeMealPreparation
+        parameters:
+          - name: preparationId
+            in: path
+            value: $steps.startPreparation.outputs.preparationId
+        successCriteria:
+          - condition: $statusCode == 200
+        onFailure:
+          - name: stepsStillOpen
+            type: end
+            criteria:
+              - condition: $statusCode == 409
+        outputs:
+          preparedAt: $response.body#/preparedAt
+        x-event-model:
+          lane: Meal Preparation
+          slice: Complete meal preparation
+          sliceType: state-change
+          image: 2
+          stickies: [Complete meal preparation, Meal prepared]
+          status: on-board
+          guard: Refused while any mandatory step is open (INV-PREP-04).
+    outputs:
+      preparationId: $steps.startPreparation.outputs.preparationId
+      preparedAt: $steps.completeMealPreparation.outputs.preparedAt
+
+  - workflowId: thankTheHelper
+    summary: Thank whoever answered, with a picture of the meal.
+    description: Sharing lane, image 3. Thanks are addressed to a help provider.
+    dependsOn: [getHelpWhenStuck]
+    x-event-model:
+      lane: Sharing
+      actor: Cook
+      image: 3
+    inputs:
+      type: object
+      required: [helpResponseId, helpProviderId]
+      properties:
+        helpResponseId:
+          type: string
+        helpProviderId:
+          type: string
+        message:
+          type: string
+    steps:
+      - stepId: giveThanks
+        description: The cook thanks the responder for the answer that worked.
+        operationId: $sourceDescriptions.cookAssistanceApi.giveThanks
+        requestBody:
+          contentType: application/json
+          payload:
+            helpResponseId: $inputs.helpResponseId
+            helpProviderId: $inputs.helpProviderId
+            message: $inputs.message
+        successCriteria:
+          - condition: $statusCode == 201
+        onFailure:
+          - name: noHelpToThank
+            type: end
+            criteria:
+              - condition: $statusCode == 422
+        outputs:
+          thanksId: $response.body#/thanksId
+        x-event-model:
+          lane: Sharing
+          slice: Give thanks
+          sliceType: state-change
+          image: 3
+          stickies: [Give thanks, Thanks given, Thanks]
+          status: on-board
+          guard: Refused with no help response to thank.
+    outputs:
+      thanksId: $steps.giveThanks.outputs.thanksId

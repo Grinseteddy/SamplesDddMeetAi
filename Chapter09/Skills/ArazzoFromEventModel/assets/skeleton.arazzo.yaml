@@ -1,0 +1,67 @@
+# Minimal correct starting point. Replace every <angle bracket>, keep the
+# x-event-model blocks, and delete what the board does not justify.
+arazzo: 1.0.1                     # 1.1.0 only if you need asyncapi steps
+info:
+  title: <Board name>
+  summary: <what a user achieves here, one line>
+  description: |
+    Derived from the <board name> Event Model (<images and their order>).
+    Workflows describe the <actor>'s interactions only.
+  version: 1.0.0
+sourceDescriptions:
+  - name: <laneApi>              # [A-Za-z0-9_-]+ — one per bounded-context lane
+    url: ./<lane>.openapi.yaml
+    type: openapi
+
+workflows:
+  - workflowId: <userGoal>
+    summary: <the outcome the user is after>
+    x-event-model:
+      lane: <swimlane>
+      actor: <who runs this>
+      image: <n>
+    inputs:
+      type: object
+      required: [<field>]
+      properties:
+        <field>:
+          type: string
+    steps:
+      - stepId: <userAction>
+        description: <what the user does, in the board's words>
+        operationId: $sourceDescriptions.<laneApi>.<operationId>
+        requestBody:
+          contentType: application/json
+          payload:
+            <field>: $inputs.<field>
+        successCriteria:
+          - condition: $statusCode == 201
+        outputs:
+          <id>: $response.body#/<id>
+        x-event-model:
+          lane: <swimlane>
+          slice: <slice name on the board>
+          sliceType: state-change      # state-change | state-view | automation | translation
+          image: <n>
+          stickies: [<command>, <event>, <read model>]
+          status: on-board             # on-board | inferred | proposed-operation
+      - stepId: view<Thing>
+        description: <what the user now sees>
+        operationId: $sourceDescriptions.<laneApi>.<getOperationId>
+        parameters:
+          - name: <id>
+            in: path
+            value: $steps.<userAction>.outputs.<id>
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $.<collection>[*]
+            type: jsonpath
+        x-event-model:
+          lane: <swimlane>
+          slice: <read model name>
+          sliceType: state-view
+          image: <n>
+          status: on-board
+    outputs:
+      <id>: $steps.<userAction>.outputs.<id>

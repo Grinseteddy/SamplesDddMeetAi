@@ -1,0 +1,60 @@
+# Companion to example-community-cooking.arazzo.yaml — Meal Planning lane.
+# Deliberately minimal: it exists so the example's operationIds resolve.
+openapi: 3.1.0
+info:
+  title: Meal Planning
+  version: 1.0.0
+paths:
+  /meal-plans:
+    post:
+      operationId: planDinner
+      summary: Start a plan for an occasion.
+      responses:
+        '201':
+          description: Plan created.
+  /recipes:
+    get:
+      operationId: searchRecipes
+      summary: Search the recipe catalogue.
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Candidate recipes.
+  /meal-plans/{planId}/recipes:
+    parameters:
+      - name: planId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: selectRecipe
+      summary: Put a recipe on the menu.
+      responses:
+        '200':
+          description: Menu updated.
+    get:
+      operationId: getSelectedRecipes
+      summary: The recipes currently on the menu.
+      responses:
+        '200':
+          description: Selected recipes.
+  /meal-plans/{planId}/settlement:
+    post:
+      operationId: settleMealPlan
+      summary: Settle the plan.
+      parameters:
+        - name: planId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plan settled.
+        '409':
+          description: An ingredient is still outstanding.

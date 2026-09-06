@@ -1,0 +1,62 @@
+# Companion to example-community-cooking.arazzo.yaml — the events a cook waits
+# for. Referenced as an `asyncapi` source description, which needs Arazzo 1.1.0.
+asyncapi: 3.0.0
+info:
+  title: Community Cooking Events
+  version: 1.0.0
+defaultContentType: application/json
+channels:
+  helpResponses:
+    address: cooking/help-responses
+    messages:
+      helpProvided:
+        $ref: '#/components/messages/helpProvided'
+  preparations:
+    address: cooking/preparations
+    messages:
+      mealRescued:
+        $ref: '#/components/messages/mealRescued'
+operations:
+  helpProvided:
+    action: receive
+    channel:
+      $ref: '#/channels/helpResponses'
+    messages:
+      - $ref: '#/channels/helpResponses/messages/helpProvided'
+  mealRescued:
+    action: receive
+    channel:
+      $ref: '#/channels/preparations'
+    messages:
+      - $ref: '#/channels/preparations/messages/mealRescued'
+components:
+  messages:
+    helpProvided:
+      name: HelpProvided
+      title: Help Provided
+      payload:
+        type: object
+        properties:
+          helpRequestId:
+            type: string
+          helpResponseId:
+            type: string
+          helpProviderId:
+            type: string
+          status:
+            type: string
+            enum: [ANSWERED]
+    mealRescued:
+      name: MealRescued
+      title: Meal Rescued
+      payload:
+        type: object
+        properties:
+          preparationId:
+            type: string
+          rescuedAt:
+            type: string
+            format: date-time
+          status:
+            type: string
+            enum: [RESCUED]

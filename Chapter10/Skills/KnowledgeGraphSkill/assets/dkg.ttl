@@ -1,0 +1,272 @@
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/ns> a owl:Ontology ;
+                          rdfs:label "Domain Knowledge Graph vocabulary" ;
+                          rdfs:comment """A small vocabulary for holding the results of collaborative
+modelling workshops — brainstorms, Business Model Canvases, Wardley Maps, Impact
+Maps, Domain Stories, Visual Glossaries, EventStorming boards and Event Models —
+in ONE browsable graph. The IRI is an identifier, not a promise that it
+resolves. Point it at your own namespace if you have one; change it here and
+nowhere else.""" .
+
+##############################################################################
+# 1. The spine — the classes that make cross-artifact browsing possible
+#
+# Everything a workshop produces lands in one of these. Artifact-specific
+# classes below are subclasses, so a query over the spine sees the whole graph
+# and a query over a subclass sees one artifact's contribution.
+##############################################################################
+
+dkg:Node a owl:Class ;
+         rdfs:label "Node" ;
+         rdfs:comment "Anything the graph holds. Every Node carries at least one dkg:source and exactly one dkg:confidence." .
+
+dkg:Concept a owl:Class ; rdfs:subClassOf dkg:Node ;
+            rdfs:label "Concept" ;
+            rdfs:comment "A domain noun. THE merge target: when two artifacts say the same word, they meet here. Terms, work objects, aggregates and business objects are all Concepts." .
+
+dkg:Actor a owl:Class ; rdfs:subClassOf dkg:Node ;
+          rdfs:label "Actor" ;
+          rdfs:comment "A person, role, team, customer segment or system that does something or is done to. Merge target across BMC segments, impact-map actors, story actors and board actors." .
+
+dkg:Capability a owl:Class ; rdfs:subClassOf dkg:Node ;
+               rdfs:label "Capability" ;
+               rdfs:comment "Something the business can do. Wardley components and BMC key activities land here." .
+
+dkg:Activity a owl:Class ; rdfs:subClassOf dkg:Node ;
+             rdfs:label "Activity" ;
+             rdfs:comment "A verb performed by an Actor on a Concept. Domain-story activities, commands." .
+
+dkg:Occurrence a owl:Class ; rdfs:subClassOf dkg:Node ;
+               rdfs:label "Occurrence" ;
+               rdfs:comment "Something that happened, in the past tense. Domain events." .
+
+dkg:Goal a owl:Class ; rdfs:subClassOf dkg:Node ;
+         rdfs:label "Goal" ;
+         rdfs:comment "A measurable business outcome. Impact-map WHY, Wardley user need, North Star." .
+
+dkg:Deliverable a owl:Class ; rdfs:subClassOf dkg:Node ;
+                rdfs:label "Deliverable" ;
+                rdfs:comment "Something a team could build or do. Impact-map WHAT, and where brainstorm ideas usually settle." .
+
+dkg:BoundedContext a owl:Class ; rdfs:subClassOf dkg:Node ;
+                   rdfs:label "Bounded Context" ;
+                   rdfs:comment "A boundary inside which one model and one language hold. Board bubbles, story lanes, Event Model swimlanes." .
+
+dkg:Question a owl:Class ; rdfs:subClassOf dkg:Node ;
+             rdfs:label "Question" ;
+             rdfs:comment "Something the artifacts do not settle. Hotspots, open questions, contested calls. First-class: a graph that cannot hold doubt will launder it." .
+
+dkg:Rule a owl:Class ; rdfs:subClassOf dkg:Node ;
+         rdfs:label "Rule" ;
+         rdfs:comment "An invariant, guard or policy the business would state as a rule." .
+
+##############################################################################
+# 2. Provenance
+##############################################################################
+
+dkg:Artifact a owl:Class ;
+             rdfs:label "Artifact" ;
+             rdfs:comment "One source document, board, photo or session — the thing a statement came from." .
+
+dkg:Brainstorm             a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:BusinessModelCanvas    a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:WardleyMap             a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:ImpactMap              a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:DomainStory            a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:VisualGlossary         a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:EventStormingBoard     a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:EventModel             a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:CapabilityMap          a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:CoreDomainChart        a owl:Class ; rdfs:subClassOf dkg:Artifact .
+
+dkg:source a owl:ObjectProperty ;
+           rdfs:label "source" ; rdfs:range dkg:Artifact ;
+           rdfs:comment "REQUIRED on every Node. Repeat it: a Concept that three artifacts mention carries three sources, and that count is the browsable measure of corroboration." .
+
+dkg:locator a owl:DatatypeProperty ;
+            rdfs:label "locator" ;
+            rdfs:comment "Where in the artifact: a sentence number, sticky position, event number, canvas block. Makes a finding checkable against the wall." .
+
+dkg:ingestedAt a owl:DatatypeProperty ; rdfs:range xsd:date .
+
+# Confidence — deliberately the same three words the rest of this toolkit uses.
+dkg:confidence a owl:ObjectProperty ; rdfs:label "confidence" .
+dkg:OnArtifact a dkg:ConfidenceLevel ; rdfs:label "on-artifact" ;
+               rdfs:comment "A sticky, box or arrow says so. Transcription, not interpretation." .
+dkg:Implied    a dkg:ConfidenceLevel ; rdfs:label "implied" ;
+               rdfs:comment "Not written, but the artifact does not make sense otherwise." .
+dkg:Inferred   a dkg:ConfidenceLevel ; rdfs:label "inferred" ;
+               rdfs:comment "Domain knowledge from outside the artifacts. Needs a human to confirm before anyone builds on it." .
+
+##############################################################################
+# 3. Statements about statements — reification for provenance and disagreement
+##############################################################################
+#
+# Direct triples are the default. Reify ONLY when (a) the edge is asserted by
+# more than one artifact, (b) two artifacts disagree, or (c) the edge is
+# contested. Reifying everything makes the graph unreadable and browsing is the
+# point. Standard rdf:Statement is reused rather than reinvented.
+
+dkg:Assertion a owl:Class ; rdfs:subClassOf rdf:Statement ;
+              rdfs:label "Assertion" ;
+              rdfs:comment "A reified edge carrying its own dkg:source, dkg:confidence and optionally dkg:contradicts." .
+
+dkg:contradicts a owl:ObjectProperty ; rdfs:range dkg:Assertion ;
+                rdfs:label "contradicts" ;
+                rdfs:comment "Two artifacts assert incompatible things. NEVER resolve this silently — a contradiction between a Wardley Map and an EventStorming board is a finding worth more than the graph itself." .
+
+##############################################################################
+# 4. Identity and language
+##############################################################################
+
+# Merged nodes keep every spelling ever seen:
+#   skos:prefLabel  the agreed ubiquitous term (or the newest artifact's)
+#   skos:altLabel   every other spelling, one per artifact
+#   dkg:spelledOn   which artifact used which spelling
+dkg:spelling a owl:Class ; rdfs:label "Spelling" ;
+             rdfs:comment "A label as one artifact wrote it, with the artifact that wrote it. Use when a rename is itself the finding (Catastrophe/Catastrophe, Cook/User)." .
+dkg:spelledOn a owl:ObjectProperty ; rdfs:range dkg:Artifact .
+dkg:literal   a owl:DatatypeProperty .
+
+dkg:proposedSameAs a owl:ObjectProperty ; rdfs:label "proposed same as" ;
+                   rdfs:comment "A merge candidate NOT yet confirmed by a human. Never collapse two IRIs on this basis; the merge ledger exists so the room decides." .
+
+dkg:renamedTo a owl:ObjectProperty ; rdfs:label "renamed to" ;
+              rdfs:comment "A noun re-modelled across a boundary: User renamedTo Cook. Boundary evidence, not a synonym." .
+
+##############################################################################
+# 5. The cross-artifact spine properties — what makes this a map and not a pile
+##############################################################################
+
+dkg:mentions a owl:ObjectProperty ;
+             rdfs:label "mentions" ;
+             rdfs:comment "Any Node → Concept. The cheapest and most useful edge in the graph: it is what lets you ask 'everything that touches Meal plan' across a canvas, a story and a board." .
+
+dkg:supports a owl:ObjectProperty ;
+             rdfs:label "supports" ;
+             rdfs:comment "Capability/Deliverable → Goal or ValueProposition. The strategy-to-build trace." .
+
+dkg:realises a owl:ObjectProperty ;
+             rdfs:label "realises" ;
+             rdfs:comment "Deliverable → Impact. Impact-map WHAT to HOW." .
+
+dkg:dependsOn a owl:ObjectProperty ;
+              rdfs:label "depends on" ;
+              rdfs:comment "Wardley value-chain edge, and any other 'needs this to work'." .
+
+dkg:inContext a owl:ObjectProperty ; rdfs:range dkg:BoundedContext ;
+              rdfs:label "in context" ;
+              rdfs:comment "A Node belongs inside a boundary. A Node with two of these is a straddler — query for it." .
+
+dkg:performedBy a owl:ObjectProperty ; rdfs:range dkg:Actor ;
+                rdfs:label "performed by" .
+
+dkg:actsOn a owl:ObjectProperty ; rdfs:range dkg:Concept ;
+           rdfs:label "acts on" .
+
+dkg:precedes a owl:ObjectProperty ;
+             rdfs:label "precedes" ;
+             rdfs:comment "Sequence: story sentence n → n+1, event n → n+1. Ordering is evidence; keep it." .
+
+dkg:raises a owl:ObjectProperty ; rdfs:range dkg:Question ;
+           rdfs:label "raises" .
+
+dkg:sequence a owl:DatatypeProperty ; rdfs:range xsd:integer .
+
+##############################################################################
+# 6. Artifact-specific classes
+##############################################################################
+
+# --- Brainstorm -------------------------------------------------------------
+dkg:Idea a owl:Class ; rdfs:subClassOf dkg:Deliverable ;
+         rdfs:comment "One sticky from an ideation session. Stays an Idea until another artifact picks it up — an Idea nothing ever references again is the brainstorm's own answer about itself." .
+dkg:Cluster a owl:Class ; rdfs:subClassOf dkg:Node ;
+            rdfs:comment "A group of ideas the room drew. The room's own clustering, not a re-clustering." .
+dkg:inCluster a owl:ObjectProperty ; rdfs:range dkg:Cluster .
+dkg:votes a owl:DatatypeProperty ; rdfs:range xsd:integer ;
+          rdfs:comment "Dot-vote count if the board has one. Do not invent a score." .
+
+# --- Business Model Canvas --------------------------------------------------
+dkg:CustomerSegment      a owl:Class ; rdfs:subClassOf dkg:Actor .
+dkg:ValueProposition     a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:Channel              a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:CustomerRelationship a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:RevenueStream        a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:KeyResource          a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:KeyActivity          a owl:Class ; rdfs:subClassOf dkg:Capability .
+dkg:KeyPartner           a owl:Class ; rdfs:subClassOf dkg:Actor .
+dkg:CostStructure        a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:servesSegment  a owl:ObjectProperty ; rdfs:range dkg:CustomerSegment .
+dkg:deliveredVia   a owl:ObjectProperty ; rdfs:range dkg:Channel .
+dkg:paidBy         a owl:ObjectProperty ; rdfs:range dkg:RevenueStream .
+
+# --- Wardley Map ------------------------------------------------------------
+dkg:UserNeed  a owl:Class ; rdfs:subClassOf dkg:Goal .
+dkg:Component a owl:Class ; rdfs:subClassOf dkg:Capability .
+dkg:evolution a owl:ObjectProperty ; rdfs:label "evolution" .
+dkg:Genesis a dkg:EvolutionStage ; rdfs:label "genesis" .
+dkg:CustomBuilt a dkg:EvolutionStage ; rdfs:label "custom-built" .
+dkg:Product a dkg:EvolutionStage ; rdfs:label "product" .
+dkg:Commodity a dkg:EvolutionStage ; rdfs:label "commodity" .
+dkg:visibility a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+               rdfs:comment "Height on the value chain, 0..1. Record only if the map is measured rather than sketched." .
+dkg:movesTo a owl:ObjectProperty ; rdfs:range dkg:EvolutionStage ;
+            rdfs:comment "A drawn movement arrow. A prediction the graph can later be checked against." .
+
+# --- Impact Map -------------------------------------------------------------
+dkg:Impact a owl:Class ; rdfs:subClassOf dkg:Node ;
+           rdfs:comment "A behaviour change in an Actor — HOW. Not a feature." .
+dkg:impactedActor a owl:ObjectProperty ; rdfs:range dkg:Actor .
+dkg:towardsGoal   a owl:ObjectProperty ; rdfs:range dkg:Goal .
+dkg:metric a owl:DatatypeProperty ;
+           rdfs:comment "The Goal's measure. A Goal with no metric is a wish — leave the property off and let the query find it." .
+
+# --- Domain Story -----------------------------------------------------------
+dkg:Sentence   a owl:Class ; rdfs:subClassOf dkg:Node ;
+               rdfs:comment "One numbered actor → activity → work-object sentence." .
+dkg:WorkObject a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:Lane       a owl:Class ; rdfs:subClassOf dkg:BoundedContext .
+
+# --- Visual Glossary --------------------------------------------------------
+dkg:Term          a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:Entity        a owl:Class ; rdfs:subClassOf dkg:Term .
+dkg:ValueObject   a owl:Class ; rdfs:subClassOf dkg:Term .
+dkg:AggregateRoot a owl:Class ; rdfs:subClassOf dkg:Entity .
+dkg:Relationship  a owl:Class ; rdfs:subClassOf dkg:Node ;
+                  rdfs:comment "A labelled, counted edge between two Terms, reified because the cardinality and the verb both matter." .
+dkg:from a owl:ObjectProperty .
+dkg:to   a owl:ObjectProperty .
+dkg:verb a owl:DatatypeProperty .
+dkg:cardinality a owl:DatatypeProperty ;
+                rdfs:comment "Verbatim: '1', '0..1', '1..*', '0..25'. Never normalise a range the glossary drew." .
+dkg:cardinalityGiven a owl:DatatypeProperty ; rdfs:range xsd:boolean ;
+                     rdfs:comment "true = the glossary drew this number. false = derived. Confusing the two turns a guess into a business rule." .
+
+# --- EventStorming / Event Model --------------------------------------------
+dkg:DomainEvent    a owl:Class ; rdfs:subClassOf dkg:Occurrence .
+dkg:Command        a owl:Class ; rdfs:subClassOf dkg:Activity .
+dkg:Aggregate      a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:ReadModel      a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:BusinessObject a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:Policy         a owl:Class ; rdfs:subClassOf dkg:Rule .
+dkg:ExternalSystem a owl:Class ; rdfs:subClassOf dkg:Actor .
+dkg:Hotspot        a owl:Class ; rdfs:subClassOf dkg:Question .
+dkg:PivotalEvent   a owl:Class ; rdfs:subClassOf dkg:DomainEvent .
+dkg:Slice          a owl:Class ; rdfs:subClassOf dkg:Node ;
+                   rdfs:comment "Event Model vertical slice: state change, state view, automation or translation." .
+dkg:sliceKind a owl:DatatypeProperty .
+dkg:Swimlane a owl:Class ; rdfs:subClassOf dkg:BoundedContext .
+
+dkg:triggers  a owl:ObjectProperty ; rdfs:comment "Command → DomainEvent, or Policy → Command." .
+dkg:emittedBy a owl:ObjectProperty ; rdfs:range dkg:Aggregate .
+dkg:reads     a owl:ObjectProperty ; rdfs:range dkg:ReadModel .
+dkg:produces  a owl:ObjectProperty ; rdfs:range dkg:BusinessObject .
+dkg:reactsTo  a owl:ObjectProperty ; rdfs:domain dkg:Policy ; rdfs:range dkg:Occurrence .
+dkg:hasState  a owl:DatatypeProperty ;
+              rdfs:comment "A status word from a state sticky. Only from a sticky — a reconstructed state machine is dkg:Inferred and belongs in the invariant sheet, not silently here." .

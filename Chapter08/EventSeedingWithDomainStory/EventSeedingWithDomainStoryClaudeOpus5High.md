@@ -5,13 +5,14 @@ Create a couple of events as start points of an EventStorming session based on t
 ![](../assets/AskCommunity.jpg)
 ![](../assets/AskGrandma.jpg)
 
+
 # Answer
 
 Both uploads are domain stories, so I read them as the seed input rather than as diagrams to critique. Here's my transcription first, since everything below is traceable to it:
 
 **A — AskCommunity:** 1 Cook prepares Meal · 2 Cook needs Help with Ingredients · 3 Cook asks Community for Help with Ingredients · 4 Community provides Help with Ingredients Substitutes · 5 Cook prepares Meal and takes Pictures · 6 Cook thanks Community and shares Pictures with Community
 
-**B — AskGrandma:** 1 Cook prepares Meal · 2 Cook burns Meal and takes Pictures · 3 Cook asks Grandma Avatar for Help with Catastrophy Pictures · 4 Grandma Avatar provides Help to rescue Meal · 5 Cook rescues Meal and takes Pictures · 6 Cook thanks Grandma Avatar and shares Pictures with Community
+**B — AskGrandma:** 1 Cook prepares Meal · 2 Cook burns Meal and takes Pictures · 3 Cook asks Grandma Avatar for Help with Catastrophe Pictures · 4 Grandma Avatar provides Help to rescue Meal · 5 Cook rescues Meal and takes Pictures · 6 Cook thanks Grandma Avatar and shares Pictures with Community
 
 # Seed domain events — cooking with help
 

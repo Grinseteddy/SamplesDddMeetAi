@@ -30,23 +30,23 @@ By story: A — 6, B — 7, C — 6 (four shared across all three).
 
 ## 2. Term ledger
 
-| Glossary term | Story A (Community) | Story B (Grandma) | Story C (GrandmaII) | Status |
-|---|---|---|---|---|
-| Cook | Cook (1,2,3,5,6) | Cook (1,2,3,5,6) | Cook (1,2,3,5,6) | = |
-| Community | Community (3,4,6) | Community (6) | Community (6) | = |
-| Grandma Avatar | — | Grandma Avatar (3,4) / **Grandma** (6) | Grandma Avatar (3,4,6) | ✗ mismatch in B(6) |
-| Meal | Meal (1,5) | Meal (1,2,4,5) | Meal (1,5) | = |
-| Recipe | — | — | — | — unused |
-| **Help Request** | — *(written `Help`)* | — *(written `Help`)* | — *(written `Help`)* | ✗ **never named — F1** |
-| Help | Help (2,3,4) | Help (3,4) | Help (2,3,4) | ✗ **overloaded — F1** |
-| Picture | Pictures (5,6) | Pictures (2,3,5,6) | Pictures (5,6) | ~ plural |
-| Thanks | *(verb only, 6)* | *(verb only, 6)* | *(verb only, 6)* | ✗ never a work object — F9 |
-| Meal Preparation Catastrophy | — | — *(B is this scenario; B(2) says "burns Meal")* | — | — unused, **F3** |
+| Glossary term                  | Story A (Community) | Story B (Grandma) | Story C (GrandmaII) | Status |
+|--------------------------------|---|---|---|---|
+| Cook                           | Cook (1,2,3,5,6) | Cook (1,2,3,5,6) | Cook (1,2,3,5,6) | = |
+| Community                      | Community (3,4,6) | Community (6) | Community (6) | = |
+| Grandma Avatar                 | — | Grandma Avatar (3,4) / **Grandma** (6) | Grandma Avatar (3,4,6) | ✗ mismatch in B(6) |
+| Meal                           | Meal (1,5) | Meal (1,2,4,5) | Meal (1,5) | = |
+| Recipe                         | — | — | — | — unused |
+| **Help Request**               | — *(written `Help`)* | — *(written `Help`)* | — *(written `Help`)* | ✗ **never named — F1** |
+| Help                           | Help (2,3,4) | Help (3,4) | Help (2,3,4) | ✗ **overloaded — F1** |
+| Picture                        | Pictures (5,6) | Pictures (2,3,5,6) | Pictures (5,6) | ~ plural |
+| Thanks                         | *(verb only, 6)* | *(verb only, 6)* | *(verb only, 6)* | ✗ never a work object — F9 |
+| Meal Preparation Catastrophe   | — | — *(B is this scenario; B(2) says "burns Meal")* | — | — unused, **F3** |
 | Help for Meal Preparation Step | — | — | "Help for Meal Preparation Step" (2) / "Help **with** Meal Preparation Step" (3,4) | ~ variant, misused in (4) |
-| Help with Ingredients | "Help with Ingredients" (2,3) | — | — | = |
-| Ingredient Substitute | "Ingredients Substitutes" (4) | — | — | ~ plural/spacing |
-| Preparation Step Expanation | — | — | — *(C(4) says "Help with Meal Preparation Step")* | — unused, **F3** |
-| Steps to Mitigate Catastrophy | — | — *(B(4) says "Help to rescue Meal")* | — | — unused, **F3** |
+| Help with Ingredients          | "Help with Ingredients" (2,3) | — | — | = |
+| Ingredient Substitute          | "Ingredients Substitutes" (4) | — | — | ~ plural/spacing |
+| Preparation Step Expanation    | — | — | — *(C(4) says "Help with Meal Preparation Step")* | — unused, **F3** |
+| Steps to Mitigate Catastrophe  | — | — *(B(4) says "Help to rescue Meal")* | — | — unused, **F3** |
 
 ### Story-only nouns — domain terms missing from the glossary
 
@@ -93,16 +93,16 @@ Option 2 also tidies the duplicated `provides 0..*` edges. **Recommendation: ask
 
 ### F3 · `DRIFT` · Significant — three stories, three ad-hoc names for the same slot
 
-The glossary names the *content* of a Help precisely: `Ingredient Substitute`, `Preparation Step Expanation`, `Steps to Mitigate Catastrophy`. Sentence 4 of each story is exactly the moment that content is delivered — and each story names it differently:
+The glossary names the *content* of a Help precisely: `Ingredient Substitute`, `Preparation Step Expanation`, `Steps to Mitigate Catastrophe`. Sentence 4 of each story is exactly the moment that content is delivered — and each story names it differently:
 
-| | Story A(4) | Story B(4) | Story C(4) |
-|---|---|---|---|
-| story says | "Help with **Ingredients Substitutes**" | "Help **to rescue Meal**" | "Help with **Meal Preparation Step**" |
-| glossary says | `Ingredient Substitute` ~ close | `Steps to Mitigate Catastrophy` ✗ | `Preparation Step Expanation` ✗ |
+| | Story A(4) | Story B(4)                        | Story C(4) |
+|---|---|-----------------------------------|---|
+| story says | "Help with **Ingredients Substitutes**" | "Help **to rescue Meal**"         | "Help with **Meal Preparation Step**" |
+| glossary says | `Ingredient Substitute` ~ close | `Steps to Mitigate Catastrophe` ✗ | `Preparation Step Expanation` ✗ |
 
 Only Story A lands near the glossary word. Story B invents free prose. Story C reuses the *request*-type name (`Help ... Meal Preparation Step`) for the *response*, which is F1 showing up a second time at a different place.
 
-The same holds for the request subtypes: A(2,3) correctly says `Help with Ingredients`, C(2) correctly says `Help for Meal Preparation Step`, and Story B — which is the `Meal Preparation Catastrophy` scenario in its entirety — never once uses that name. The glossary's word for what Story B is *about* does not appear in Story B.
+The same holds for the request subtypes: A(2,3) correctly says `Help with Ingredients`, C(2) correctly says `Help for Meal Preparation Step`, and Story B — which is the `Meal Preparation Catastrophe` scenario in its entirety — never once uses that name. The glossary's word for what Story B is *about* does not appear in Story B.
 
 The insight is not six words. It is that the bottom row of the glossary — the taxonomy that took the most work to draw — has not reached the stories at all. *Story moves,* all three, toward the glossary terms.
 
@@ -130,9 +130,9 @@ Both stories are to-be, so these are **glossary moves**: add both terms, and rel
 
 Story B(2) "Cook **burns** Meal"; B(5) "Cook **rescues** Meal". That is one Meal in three states — prepared, burnt, rescued — and the glossary has no status, state, or lifecycle concept anywhere on `Meal`. Per guard G1 this is raised once, not once per adjective.
 
-This is worth more than it looks, because `Meal Preparation Catastrophy` is currently modelled as a *kind of Help Request* — the catastrophe exists only as something you ask about. Nothing in the model says the *meal* went wrong. If the burnt meal is never rescued and no request is ever posted, the model has no record that anything happened.
+This is worth more than it looks, because `Meal Preparation Catastrophe` is currently modelled as a *kind of Help Request* — the catastrophe exists only as something you ask about. Nothing in the model says the *meal* went wrong. If the burnt meal is never rescued and no request is ever posted, the model has no record that anything happened.
 
-*Glossary moves:* add a state to `Meal`, and decide whether `Meal Preparation Catastrophy` is a request type, a meal state, or both (in which case it is two terms wearing one name — closely related to F1).
+*Glossary moves:* add a state to `Meal`, and decide whether `Meal Preparation Catastrophe` is a request type, a meal state, or both (in which case it is two terms wearing one name — closely related to F1).
 
 ### F7 · `REL-X` · Significant — a Picture of a Meal has nowhere to attach
 
@@ -156,47 +156,47 @@ The glossary models one `Thanks` that both `—contains→ 0..* Picture` and `�
 - **`Community —contains→ 1..* Cook`** — never exercised. Community appears in the stories only as a helper and an audience, never as something a Cook belongs to.
 - **`Help —contains→ 0..* Picture`** — never exercised. Only Help *Requests* (B3) and Thanks (all 6s) carry pictures in the stories. Does a Grandma Avatar's answer ever include an image? If not, drop the edge.
 - **`Thanks` as a work object** — all three stories treat thanking as an activity verb ("6 thanks") and never draw `Thanks` as a thing. Not a defect (guard G6), but the glossary makes it an artifact with pictures and a recipient, so at least one story should show it being created.
-- **`Meal Preparation Catastrophy`**, **`Preparation Step Expanation`**, **`Steps to Mitigate Catastrophy`** — never named; covered by F3.
+- **`Meal Preparation Catastrophe`**, **`Preparation Step Expanation`**, **`Steps to Mitigate Catastrophe`** — never named; covered by F3.
 
 ### F10 · Minor (grouped) — variants and spellings
 
 - `Pictures` → `Picture` (plural, all stories, all sentences) — the glossary term is singular and the cardinality carries the plurality.
 - A(4) `Ingredients Substitutes` → `Ingredient Substitute` (plural + spacing).
 - C(3), C(4) "Help **with** Meal Preparation Step" → `Help for Meal Preparation Step` (preposition), though see F3 — in C(4) the right fix is a different term entirely, not a preposition.
-- **Glossary-side spellings**, read charitably and noted once (G7): `Preparation Step **Expanation**` → *Explanation*; `**Catastrophy**` → *Catastrophe* (twice). Not findings; just fix them.
+- **Glossary-side spellings**, read charitably and noted once (G7): `Preparation Step **Expanation**` → *Explanation*; `**Catastrophe**` → *Catastrophe* (twice). Not findings; just fix them.
 
 ---
 
 ## 4. Relationships & cardinalities
 
-| Glossary relationship | Card. | Exercised by | Verdict |
-|---|---|---|---|
-| Cook —prepares→ Meal | 0..* | A(1,5), B(1), C(1,5) | consistent |
-| Meal —with→ Recipe | 1 | — | never exercised — F9 |
-| Community —contains→ Cook | 1..* | — | never exercised — F9 |
-| Cook —posts→ Help Request | 0..* | A(3), B(3), C(3) | consistent *(named `Help` — F1)* |
-| Cook —posts→ Thanks | 0..* | A(6), B(6), C(6) | consistent *(as a verb — F9)* |
-| Help Request —at→ Community | **1** | A(3) | **contradicted — F2** |
-| Help Request —at→ Grandma Avatar | **1** | B(3), C(3) | **contradicted — F2** |
-| Community —provides→ Help | 0..* | A(4) | consistent |
-| Grandma Avatar —provides→ Help | 0..* | B(4), C(4) | consistent |
-| Help —for→ Help Request | 1 | implied A(3→4), B(3→4), C(3→4) | consistent, implicit only |
-| Help Request —belongs→ Meal | 1 | implied A(2), B(3), C(2) | consistent, implicit only |
-| Help Request —contains→ Picture | 0..* | B(3) | consistent |
-| Help —contains→ Picture | 0..* | — | never exercised — F9 |
-| Thanks —contains→ Picture | 0..* | A(6), B(6), C(6) | consistent |
-| Help —contains→ Ingredient Substitute | 0..* | A(4) | consistent |
-| Help —contains→ Preparation Step Expanation | 0..* | implied C(4) | never exercised by name — F3 |
-| Help —contains→ Steps to Mitigate Catastrophy | 0..* | implied B(4) | never exercised by name — F3 |
-| Meal Preparation Catastrophy —is→ Help Request | — | implied B(3) | never exercised by name — F3 |
-| Help for Meal Preparation Step —is→ Help Request | — | C(2) | consistent |
-| Help with Ingredients —is→ Help Request | — | A(2,3) | consistent |
-| Ingredient Substitute —belongs to→ Help with Ingredients | 1 | implied A(3→4) | consistent, implicit only |
+| Glossary relationship                                                   | Card. | Exercised by | Verdict |
+|-------------------------------------------------------------------------|---|---|---|
+| Cook —prepares→ Meal                                                    | 0..* | A(1,5), B(1), C(1,5) | consistent |
+| Meal —with→ Recipe                                                      | 1 | — | never exercised — F9 |
+| Community —contains→ Cook                                               | 1..* | — | never exercised — F9 |
+| Cook —posts→ Help Request                                               | 0..* | A(3), B(3), C(3) | consistent *(named `Help` — F1)* |
+| Cook —posts→ Thanks                                                     | 0..* | A(6), B(6), C(6) | consistent *(as a verb — F9)* |
+| Help Request —at→ Community                                             | **1** | A(3) | **contradicted — F2** |
+| Help Request —at→ Grandma Avatar                                        | **1** | B(3), C(3) | **contradicted — F2** |
+| Community —provides→ Help                                               | 0..* | A(4) | consistent |
+| Grandma Avatar —provides→ Help                                          | 0..* | B(4), C(4) | consistent |
+| Help —for→ Help Request                                                 | 1 | implied A(3→4), B(3→4), C(3→4) | consistent, implicit only |
+| Help Request —belongs→ Meal                                             | 1 | implied A(2), B(3), C(2) | consistent, implicit only |
+| Help Request —contains→ Picture                                         | 0..* | B(3) | consistent |
+| Help —contains→ Picture                                                 | 0..* | — | never exercised — F9 |
+| Thanks —contains→ Picture                                               | 0..* | A(6), B(6), C(6) | consistent |
+| Help —contains→ Ingredient Substitute                                   | 0..* | A(4) | consistent |
+| Help —contains→ Preparation Step Expanation                             | 0..* | implied C(4) | never exercised by name — F3 |
+| Help —contains→ Steps to Mitigate Catastrophe                           | 0..* | implied B(4) | never exercised by name — F3 |
+| Meal Preparation Catastrophe —is→ Help Request                          | — | implied B(3) | never exercised by name — F3 |
+| Help for Meal Preparation Step —is→ Help Request                        | — | C(2) | consistent |
+| Help with Ingredients —is→ Help Request                                 | — | A(2,3) | consistent |
+| Ingredient Substitute —belongs to→ Help with Ingredients                | 1 | implied A(3→4) | consistent, implicit only |
 | Preparation Step Expanation —belongs to→ Help for Meal Preparation Step | 1 | — | never exercised |
-| Steps to Mitigate Catastrophy —belongs to→ Meal Preparation Catastrophy | 1 | — | never exercised |
-| Thanks —to→ Community *(reading uncertain)* | 0..1 | A(6) | consistent |
-| Thanks —to→ Grandma Avatar *(reading uncertain)* | 0..1 | B(6), C(6) | consistent |
-| Thanks —for→ Help *(reading uncertain)* | 1 | implied A(6), B(6), C(6) | consistent, implicit only |
+| Steps to Mitigate Catastrophe —belongs to→ Meal Preparation Catastrophe | 1 | — | never exercised |
+| Thanks —to→ Community *(reading uncertain)*                             | 0..1 | A(6) | consistent |
+| Thanks —to→ Grandma Avatar *(reading uncertain)*                        | 0..1 | B(6), C(6) | consistent |
+| Thanks —for→ Help *(reading uncertain)*                                 | 1 | implied A(6), B(6), C(6) | consistent, implicit only |
 
 **Implied by the stories, absent from the glossary:**
 
@@ -226,7 +226,7 @@ The glossary does suggest a natural clustering worth confirming, since the stori
 
 - **A(2,3), B(3), C(2,3)**: request-side `Help` → **`Help Request`** *(F1 — the single highest-value edit)*
 - **A(4)**: `Help with Ingredients Substitutes` → `Help with Ingredient Substitute` *(F3, F10)*
-- **B(3)**: name the request type — `Meal Preparation Catastrophy` *(F3)*
+- **B(3)**: name the request type — `Meal Preparation Catastrophe` *(F3)*
 - **B(4)**: `Help to rescue Meal` → `Help with Steps to Mitigate Catastrophe` *(F3)*
 - **B(6)**: `Grandma` → `Grandma Avatar` *(F4 — pending the question below)*
 - **C(3)**: `Help with Meal Preparation Step` → `Help for Meal Preparation Step` *(F10)*
@@ -239,12 +239,12 @@ The glossary does suggest a natural clustering worth confirming, since the stori
 - `Help Request —at→ Community` and `—at→ Grandma Avatar`: `1` → `0..1` with an exactly-one constraint, **or** introduce a `Helper` supertype *(F2 — decide which)*
 - Add **`Ingredient`**; relate `Recipe —requires→ 0..* Ingredient` *(guess)* and `Ingredient Substitute —substitutes for→ 1 Ingredient` *(F5)*
 - Add **`Meal Preparation Step`**; relate `Recipe —contains→ 1..* Meal Preparation Step` *(guess)* *(F5)*
-- Add a **state/lifecycle** on `Meal` (prepared / burnt / rescued) and decide whether `Meal Preparation Catastrophy` is a request type, a meal state, or two terms sharing a name *(F6)*
+- Add a **state/lifecycle** on `Meal` (prepared / burnt / rescued) and decide whether `Meal Preparation Catastrophe` is a request type, a meal state, or two terms sharing a name *(F6)*
 - Add **`Picture —of→ 1 Meal`** *(F7)*
 - Split the thanking act from the sharing act, or split `Thanks`'s recipient roles *(F8 — confirm my reading of those edges first)*
 - Decide whether `Help —contains→ Picture` is real; drop it if a Help never carries images *(F9)*
 - Put cardinalities on the three `is` edges, or redraw them with a generalisation arrowhead if they are subtyping *(F10)*
-- Spelling: `Expanation` → `Explanation`; `Catastrophy` → `Catastrophe` (×2) *(F10)*
+- Spelling: `Expanation` → `Explanation`; `Catastrophe` → `Catastrophe` (×2) *(F10)*
 
 ### Questions for a domain expert
 

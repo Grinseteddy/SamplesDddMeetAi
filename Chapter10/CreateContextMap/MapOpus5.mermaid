@@ -1,0 +1,34 @@
+graph TB
+CP[Cook Profile]:::ctx
+MP[Meal Planning]:::ctx
+CA[Cook Assistance<br/><b>4 appearances</b>]:::ctx
+PR[Meal Preparation<br/><i>writes nothing</i>]:::ctx
+ME[Media]:::ctx
+SH[Sharing]:::ctx
+RC[Recipe Catalog<br/><i>off-board</i>]:::off
+ID[Identity / account<br/><i>off-board</i>]:::off
+GA([Grandma Avatar ⚙<br/>external]):::ext
+
+MP -->|"C/S · menu, ingredient gap"| CA
+CA -->|"C/S · help response"| MP
+CA -->|"C/S · help response"| PR
+ME -->|"C/S · catastrophe pictures"| CA
+ME -->|"C/S · meal pictures"| SH
+GA ==>|"CF today · ACL recommended · machine answers"| CA
+RC -->|"CF · recipe, ingredients, steps"| MP
+RC -->|"CF · recipe, steps"| PR
+RC -->|"CF · recipe ref in requests"| CA
+ID -->|"CF · user identity"| CP
+
+MP -.->|"GAP · Meal plan is read by nobody"| PR
+PR -.->|"GAP · no preparation fact crosses"| CA
+PR -.->|"GAP · nothing identifies the meal"| ME
+PR -.->|"GAP · nothing identifies the meal"| SH
+CA -.->|"GAP · Help provider never written"| SH
+SH -.->|"GAP · Thanks reaches nobody"| CA
+CP -.->|"GAP · nothing reads Cook"| CA
+CA -.->|"GAP · nobody is told a request exists"| CA
+
+classDef ctx fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+classDef off fill:#f4f4f5,stroke:#a1a1aa,stroke-dasharray:4 3
+classDef ext fill:#fce7f3,stroke:#db2777

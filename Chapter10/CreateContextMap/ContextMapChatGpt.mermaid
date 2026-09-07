@@ -1,0 +1,27 @@
+graph LR
+    RC["Recipe Catalog<br/><i>off-board</i>"]:::off
+    CP["Cook Profile"]:::ctx
+    MP["Meal Planning"]:::ctx
+    CA["Cooking Assistance"]:::ctx
+    PREP["Meal Preparation"]:::ctx
+    MED["Media"]:::ctx
+    CH["Cooking Help"]:::ctx
+    SH["Sharing"]:::ctx
+
+    RC -->|"CF · Recipe / Recipe Catalog"| MP
+    RC -->|"CF · Recipe"| CA
+    RC -->|"CF · Recipe"| PREP
+    RC -->|"CF · Recipe"| CH
+
+    MP -->|"C/S · Menu, Ingredients"| CA
+    CA -->|"C/S · Help response"| MP
+
+    MED -->|"C/S · Pictures"| CH
+    MED -->|"C/S · Pictures"| SH
+
+    MP -.->|"GAP · Meal plan not consumed"| PREP
+    PREP -.->|"GAP · catastrophe/problem crossing not modelled"| CH
+    CH -.->|"GAP · Help provider identity"| SH
+
+    classDef ctx fill:#dbeafe,stroke:#2563eb
+    classDef off fill:#f4f4f5,stroke:#a1a1aa,stroke-dasharray:4 3

@@ -1,0 +1,33 @@
+graph LR
+    CP[Cook Profile]:::ctx
+    MP[Meal Planning]:::ctx
+    CA[Cooking Assistance / Help]:::ctx
+    MPrep[Meal Preparation]:::ctx
+    MED[Media]:::ctx
+    SH[Sharing]:::ctx
+
+    REC[Recipe Catalog & Content<br/><i>off-board</i>]:::off
+    ING[Ingredient Repository<br/><i>off-board</i>]:::off
+    EXT_U[Identity / User System<br/><i>off-board</i>]:::off
+
+    EXT_U -->|"CF · user id, profile"| CP
+    REC -->|"OHS/PL · recipe structure, steps"| MP
+    REC -->|"OHS/PL · recipe steps"| MPrep
+    REC -->|"OHS/PL · ingredients, steps"| CA
+    ING -->|"CF · ingredient master"| MP
+    ING -->|"CF · ingredient master"| CA
+
+    MP -->|"C/S · meal plan id, menu item"| MPrep
+    MP -->|"C/S · menu context"| CA
+    CA -->|"C/S · help response, ingredient sub"| MP
+    CA -->|"C/S · help response, step rescue"| MPrep
+    MED -->|"C/S · picture payload"| CA
+    MED -->|"C/S · picture payload"| SH
+    CA -->|"C/S · help provider id"| SH
+
+    CP -.->|"GAP · cook preferences & skill level"| MP
+    CP -.->|"GAP · cook skill level"| CA
+    MPrep -.->|"GAP · step event trigger"| MED
+
+    classDef ctx fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef off fill:#f4f4f5,stroke:#a1a1aa,stroke-dasharray:4 3

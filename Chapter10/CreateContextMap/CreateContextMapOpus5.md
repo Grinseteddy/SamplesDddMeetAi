@@ -1,3 +1,12 @@
+# Prompt 2026-09-07
+
+/event-storming-context-mapper
+Create a Context Map based on the provided EventStorming board.
+
+![](../assets/EventStormingBoardWithBcs.jpg)
+
+# Answer
+
 # Context Map — Community Cooking board
 
 **Mode: review of the contexts, propose for the relationships.** The team drew

@@ -1,3 +1,15 @@
+# Prompt 2026-09-07
+
+Create a Context Map based on the provided EventStorming board. Use the provided skill.
+
+![](../assets/EventStormingBoardWithBcs.jpg)
+
+[Skill](../Skills/ContextMapSkill/SKILL.md)
+
+[References Pattern catalog](../Skills/ContextMapSkill/references/pattern-catalog.md)
+
+[References Worked example](../Skills/ContextMapSkill/references/worked-example.md)
+
 # Context Map — Collaborative Cooking Platform
 
 ## 1. Board as read

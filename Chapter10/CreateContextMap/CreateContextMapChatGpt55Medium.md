@@ -1,3 +1,17 @@
+# Prompt 2026-09-07
+
+Create a Context Map based on the provided EventStorming board. Use the provided skill.
+
+![](../assets/EventStormingBoardWithBcs.jpg)
+
+[Skill](../Skills/ContextMapSkill/SKILL.md)
+
+[References Pattern catalog](../Skills/ContextMapSkill/references/pattern-catalog.md)
+
+[References Worked example](../Skills/ContextMapSkill/references/worked-example.md)
+
+# Answer
+
 # Context Map — Cooking / Meal Planning board
 
 I treated this as **review mode**: the bounded-context bubbles on the EventStorming board are preserved, repeated appearances are collapsed into one node, and relationships are reconstructed from ownership/read crossings rather than from timeline adjacency. That is the method prescribed by the supplied skill.  Direction below follows the writer-as-upstream rule; relationship patterns are assigned only after direction is established.

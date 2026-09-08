@@ -14,395 +14,365 @@ Check EventStorming board against the Context Map. Use the provided skill.
 
 ## 0. Scope checked
 
-I checked the supplied Context Map against the supplied EventStorming board using the uploaded consistency-check skill and its detection rules. The method treats the **board as evidence of observed producers/consumers and the map as a later claim**, so board silence is reported as “unsupported,” not automatically “wrong.”
+I compared the supplied **Context Map** with the supplied **EventStorming board with bounded-context bubbles**, using the provided consistency-checking skill and its check catalogue.
 
-Three provenance questions are not stated in the artifacts: whether this map was derived directly from this exact board, which artifact is newer, and whether the board represents the whole scope or one session slice. The skill says those facts can change the interpretation of unsupported nodes and edges.
+I treated the board as evidence of observed producers/consumers and the map as the architectural claim. Per the skill, lack of board evidence means **unsupported**, not automatically **wrong**.  Direction is derived primarily from the writer/reader relationship: the context producing an object is upstream of contexts reading it.
 
-**Assumption for this pass:** the map is intended to describe the domain shown on this board.
+One limitation: I cannot tell from the artifacts alone whether the Context Map was produced after additional design decisions not captured on this board, nor which artifact is newer. Findings involving completely new concepts such as **Consent** and **Notification** should therefore be read as “not supported by this board” rather than “definitely incorrect.”
 
 ## 1. Verdict
 
-**Diverged.**
+**Consistent with substantial drift.**
 
-The most important problem is not cosmetic: the map appears to have **collapsed or omitted the board's distinct `Cooking Help` context**, and several integrations have consequently been attached to `Cooking Assistance` instead. This then creates contract and direction problems around `Help request`, `Help response`, and `Pictures`.
+The central context structure is quite good: recurring board bubbles have generally been collapsed correctly, and several important producer/consumer integrations are represented correctly. The main problems are around **ownership and routing of Recipe/Ingredients**, an entirely **missing Catastrophe upstream**, and several map nodes/edges for which this board provides no evidence.
 
-My count from the legible evidence:
+My count:
 
-| Severity                                 | Findings |
-| ---------------------------------------- | -------: |
-| **Blocking**                             |        3 |
-| **Significant**                          |        8 |
-| **Minor**                                |        0 |
-| **Needs clarification / board backfill** |        2 |
+| Severity                  | Findings |
+| ------------------------- | -------: |
+| **Blocking**              |        2 |
+| **Significant**           |        7 |
+| **Minor / open question** |        2 |
 
-The skill specifically treats reversed producer/consumer direction and silently resolved contested ownership as blocking.
+The two most important corrections are:
 
----
-
-## 2. Board as read
-
-After collapsing repeated appearances, I read these board contexts:
-
-* `Cook Profile`
-* `Meal Planning` — appears more than once
-* `Cooking Assistance` — appears more than once
-* `Cooking Help` — appears more than once
-* `Meal Preparation` — appears more than once
-* `Media` — appears more than once
-* `Sharing`
-
-`Grandma Avatar` appears as the external/pink participant in help provision.
-
-The repeated `Meal Planning`, `Meal Preparation`, `Media`, `Cooking Assistance`, and `Cooking Help` bubbles are important: recurrence means “same context appears in multiple phases,” not “make multiple map nodes.” The consistency method explicitly requires recurrence to be collapsed before comparing nodes.
-
-Some key board evidence is especially clear:
-
-* `Meal Planning` writes **Menu**, **Ingredients**, and **Meal plan**.
-* `Cooking Assistance` writes **Help request** and **Help response**.
-* `Cooking Help` also writes **Help request** and **Help response**.
-* `Media` writes **Pictures**.
-* `Sharing` writes **Thanks**.
-* `Recipe` is repeatedly **read**, but I do not see a board context writing it.
-* `Pictures` is read in `Cooking Help` and `Sharing`.
-* `Help response` is read in `Meal Planning` and `Meal Preparation`.
+1. **Recipe Catalog must not own Ingredients if the board is authoritative on observation.** The board writes `Ingredients` in Meal Planning.
+2. **Recipe must not be routed through Meal Planning/Cooking Assistance as though those contexts produce it.** The board repeatedly reads Recipe but never shows a local writer.
 
 ---
 
-## 3. Context Map as read
+## 2. Term ledger
 
-Map nodes:
+The most useful subset of the ledger is:
 
-`Recipe Catalog`, `Cook Profile`, `Meal Planning`, `Grandma Avatar AI`, `Notification`, `Cooking Assistance`, `Media`, `Consent Management`, `Meal Preparation`, `Sharing`.
+| Term              | Written by on board                           | Read by on board                                    | Context Map claim                                                                     | Verdict                                                 |
+| ----------------- | --------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Cook**          | Cook Profile                                  | Mainly appears as actor elsewhere                   | Cook Profile                                                                          | Consistent enough                                       |
+| **Menu**          | Meal Planning                                 | Meal Planning; Cooking Assistance                   | Meal Planning                                                                         | **Consistent; MP → CA**                                 |
+| **Ingredients**   | **Meal Planning** (`Ingredients substituted`) | Cooking Assistance                                  | **Recipe Catalog** also shown owning Ingredients; MP sends Ingredients                | **OWN conflict**                                        |
+| **Recipe**        | **No writer shown**                           | Meal Planning; Meal Preparation; Cooking Assistance | Recipe Catalog owns it; then Recipe is propagated through other contexts              | Upstream plausible, routing unsupported                 |
+| **Meal plan**     | Meal Planning                                 | No reader shown                                     | Meal Planning                                                                         | Board orphan, but not harmful unless used in a contract |
+| **Help request**  | Cooking Assistance                            | Cooking Assistance help-provision flow              | Cooking Assistance **and Grandma Avatar AI** visually contain it                      | Ownership needs clarification                           |
+| **Help response** | Cooking Assistance                            | Meal Planning; Meal Preparation                     | Cooking Assistance, also represented in Grandma Avatar AI; used toward other contexts | CA → MP / CA → Prep supported                           |
+| **Pictures**      | Media                                         | Cooking Assistance; Sharing                         | Media                                                                                 | **Consistent**                                          |
+| **Catastrophe**   | **No writer shown**                           | Cooking Assistance; Meal Preparation                | No node                                                                               | **Missing off-board upstream**                          |
+| **Help provider** | No writer shown                               | Sharing                                             | No clear owner/edge                                                                   | Board gap                                               |
+| **Thanks**        | Sharing                                       | No reader shown                                     | Sharing                                                                               | Consistent                                              |
+| **Consent**       | **Absent from board**                         | Absent                                              | Cook Profile → Consent Management → Sharing                                           | Unsupported by this board                               |
 
-Notably absent:
-
-**`Cooking Help`**
-
-Notably present with no corresponding board bubble/evidence:
-
-**`Notification`**
-**`Consent Management`**
-
-Important map contracts include:
-
-* `Recipe Catalog → Meal Planning`: `Recipe`
-* `Meal Planning → Cooking Assistance`: `Help request`
-* `Cooking Assistance → Meal Planning`: `Help response`
-* `Cooking Assistance → Meal Preparation`: `Help request`
-* `Meal Preparation → Cooking Assistance`: `Help response`
-* `Media → Cooking Assistance`: `Pictures`
-* `Media → Sharing`: `Pictures`
-* `Meal Preparation → Sharing`: `Help response`
-* `Cook Profile → Consent Management`: `Consent`
-* `Consent Management → Sharing`: `Consent`
-* asynchronous help interaction between `Cooking Assistance` and `Grandma Avatar AI`
+The checks explicitly require the reverse sweep: any term written in one context and read in another should correspond to an edge, and nouns read by multiple contexts but written nowhere are strong evidence of an off-board upstream.
 
 ---
 
-## 4. Term ledger
+## 3. Node reconciliation
 
-| Term               | Written by on board                                        | Read by on board                              | Map says / implies                                          | Verdict                                                 |
-| ------------------ | ---------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
-| **Cook**           | Cook Profile                                               | actors throughout board                       | Cook Profile                                                | consistent                                              |
-| **Menu**           | Meal Planning                                              | Meal Planning, Cooking Assistance             | Meal Planning                                               | consistent                                              |
-| **Ingredients**    | Meal Planning                                              | Cooking Assistance                            | Meal Planning **and Recipe Catalog appear to contain it**   | **OWN / clarification**                                 |
-| **Meal plan**      | Meal Planning                                              | no clear cross-context reader                 | Meal Planning                                               | consistent locally                                      |
-| **Help request**   | Cooking Assistance **and Cooking Help**                    | corresponding help-provision flows            | Cooking Assistance + Grandma Avatar AI; Cooking Help absent | **OWN / NODE**                                          |
-| **Help response**  | Cooking Assistance **and Cooking Help**                    | Meal Planning, Meal Preparation               | Cooking Assistance + Grandma Avatar AI; Cooking Help absent | **OWN / DIR**                                           |
-| **Recipe**         | no board writer visible                                    | Meal Planning, Meal Preparation, Cooking Help | Recipe Catalog                                              | plausible off-board upstream, but edges incomplete      |
-| **Recipe Catalog** | no board writer visible                                    | Meal Planning                                 | Recipe Catalog node                                         | supported as an inferred upstream                       |
-| **Pictures**       | Media                                                      | Cooking Help, Sharing                         | Media → Cooking Assistance and Sharing                      | **EDGE**                                                |
-| **Catastrophe**    | associated with `Catastrophe happened` in Meal Preparation | Meal Preparation / Cooking Help               | no explicit border contract                                 | likely missing crossing; producer notation less certain |
-| **Help provider**  | no explicit object writer visible                          | Sharing                                       | no matching contract                                        | **board gap / probable EDGE**                           |
-| **Thanks**         | Sharing                                                    | nobody visible                                | Sharing                                                     | consistent/orphan                                       |
-| **Consent**        | not present                                                | not present                                   | Cook Profile / Consent Management / Sharing                 | unsupported by board                                    |
-| **Notification**   | not present                                                | not present                                   | Notification                                                | unsupported by board                                    |
+### Correct collapsing of recurring contexts
 
-The ledger is the core of the requested check: writer = upstream, and cross-context readers establish the edge.
+This is one of the stronger parts of the map.
 
----
+The board draws several contexts multiple times along the timeline:
 
-# 5. Main findings
+* **Meal Planning** — multiple appearances → one map node.
+* **Cooking Assistance** — several appearances → one map node.
+* **Meal Preparation** — multiple appearances → one map node.
+* **Media** — multiple appearances → one map node.
 
-### F1 — `NODE` — `Cooking Help` is missing from the Context Map
+That is exactly the intended treatment: repeated appearances of one context on an EventStorming timeline should collapse to one Context Map node.
 
-**Significant — map moves**
+### Direct matches
 
-The EventStorming board explicitly contains a separate `Cooking Help` bounded context, in at least two phases: one around `Help requested`, and another around `Help provided`.
+`Cook Profile`, `Meal Planning`, `Cooking Assistance`, `Meal Preparation`, `Media`, and `Sharing` all have clear board bubbles and corresponding map nodes.
 
-The Context Map has only `Cooking Assistance`.
+### Grandma Avatar AI
 
-This should not be silently treated as recurrence: the board actually uses **two different bubble names**, `Cooking Assistance` and `Cooking Help`. The node-matching rules say two distinct board bubbles collapsed into one map node must be investigated as a collapse, not assumed to be synonyms.
+**Supported as a node.** The pink `Grandma Avatar` stickies participate in the Cooking Assistance flows. Under the supplied rules, an external system represented by a pink sticky may legitimately be represented as an ordinary bounded context on the map; its existence is not itself a finding.
 
-**Recommendation:** add `Cooking Help` as a map node unless the team explicitly decided that `Cooking Help` and `Cooking Assistance` are one bounded context. If they are one, rename the board bubbles consistently and record that decision.
+### Recipe Catalog
 
----
+There is no `Recipe Catalog` bubble, but there **is** a green `Recipe Catalog` read model, while `Recipe` itself is repeatedly read and has no board writer. So an off-board Recipe supplier is a reasonable architectural inference.
 
-### F2 — `OWN` — `Help request` / `Help response` ownership is silently resolved
+What is not supported is the stronger map claim that this context owns **Ingredients** as well.
 
-**Blocking — ask**
+### Notification
 
-Both `Cooking Assistance` and `Cooking Help` visibly contain:
+No corresponding board bubble, event, external participant, object, or obvious policy appears in the supplied EventStorming board.
 
-* a `Help requested` / `Help provided` flow,
-* `Help request`,
-* `Help response`.
+→ **NODE: unsupported by this board.**
 
-So the board presents two contexts writing the same business terms.
+### Consent Management
 
-The map removes `Cooking Help`, effectively resolving those objects into `Cooking Assistance`/`Grandma Avatar AI` without recording how ownership was settled.
+Likewise, neither a Consent Management bubble nor a `Consent` object/read model appears on the board.
 
-That is exactly the skill's contested-ownership case: two contexts write one term and the map silently chooses one.
-
-**Question that settles it:** Are `Help request` and `Help response` the same aggregate in both help contexts, or are there deliberately two different help models with the same names?
+→ **NODE: unsupported by this board.**
 
 ---
 
-### F3 — `DIR` — `Help response` between Meal Preparation and Cooking Assistance is reversed
+# 4. Findings
 
-**Blocking — map moves**
+## F1 — `OWN` — Ingredients ownership conflicts
 
-The map shows:
+**Severity: Blocking · Resolution: map moves / ask**
 
-**Meal Preparation → Cooking Assistance: `Help response`**
+The board places the `Ingredients` aggregate with **Meal Planning**, specifically around `Ingredients substituted`. Cooking Assistance later reads Ingredients.
 
-But the board shows `Help response` being produced by the help contexts and later consulted in `Meal Preparation`.
+The Context Map, however, places an `Ingredients` owned-state sticky inside **Recipe Catalog** while also showing Ingredients moving from Meal Planning toward Cooking Assistance.
 
-The observed direction is therefore:
+That means the map appears to claim an owner that the board does not show writing the object.
 
-**Cooking Assistance / Cooking Help → Meal Preparation**
+The ownership check defines exactly this shape as a finding: a map assigning a term to a context that never writes it on the board.
 
-not the reverse.
-
-Direction is the most mechanical check in the skill: the producer is upstream, and a map arrow against that producer/consumer evidence is a real direction defect.
-
-**Recommendation:** reverse that `Help response` integration, and first decide whether its actual producer is `Cooking Assistance`, `Cooking Help`, or both.
+**Recommendation:** remove `Ingredients` ownership from Recipe Catalog unless that sticky represents a copy or a distinct Recipe-Catalog concept. If it is a copy, label the translation explicitly.
 
 ---
 
-### F4 — `CONTRACT` — Meal Planning → Cooking Assistance names the wrong payload
+## F2 — `CONTRACT` / `EDGE` — Recipe is being relayed by contexts that never produce it
 
-**Significant — map moves**
+**Severity: Blocking · Resolution: map moves**
 
-The map says:
+The board repeatedly consumes `Recipe` in:
 
-**Meal Planning → Cooking Assistance: `Help request`**
+* Meal Planning
+* Meal Preparation
+* Cooking Assistance
 
-The board does **not** show Meal Planning producing `Help request`.
+but nowhere on the board is `Recipe` produced.
 
-What the board does show is:
+The Context Map instead appears to do this:
 
-* `Ingredients substituted` in `Meal Planning`,
-* an `Ingredients` business object there,
-* `Ingredients` being read in `Cooking Assistance`.
+**Recipe Catalog → Meal Planning → Cooking Assistance → Meal Preparation**
 
-So the board-supported crossing is much closer to:
+with Recipe included in downstream contracts.
 
-**Meal Planning → Cooking Assistance: `Ingredients`**
+The problem is that Meal Planning and Cooking Assistance are readers of Recipe, not producers of record. Sharing a read model from the same off-board source does **not** establish an edge between the readers. The check explicitly warns that when two contexts merely read the same off-board thing, each should depend on the upstream source rather than on one another for that object.
 
-while `Help request` originates inside the help contexts.
+**Recommendation:** if Recipe Catalog truly owns Recipe, model direct Recipe dependencies from Recipe Catalog to every consuming context:
 
-A contract naming a payload that its stated upstream does not produce is a `CONTRACT` finding.
+* Recipe Catalog → Meal Planning
+* Recipe Catalog → Cooking Assistance
+* Recipe Catalog → Meal Preparation
 
----
-
-### F5 — `CONTRACT` — Cooking Assistance → Meal Preparation `Help request` is unsupported
-
-**Significant — back to the wall / map moves**
-
-The map sends `Help request` from `Cooking Assistance` into `Meal Preparation`.
-
-The board shows `Meal Preparation` consuming **Help response**, not `Help request`.
-
-I therefore cannot find board evidence for this contract.
-
-This does not prove the integration cannot exist; it means the supplied board does not support it.
+Do not include `Recipe` in MP→CA or CA→Meal Preparation contracts unless one of those contexts genuinely publishes a transformed Recipe model.
 
 ---
 
-### F6 — `EDGE` — Media is wired to the wrong help context
+## F3 — `EXT` — Catastrophe upstream is missing
 
-**Significant — map moves**
+**Severity: Significant · Resolution: map moves**
 
-The board shows:
+`Catastrophe` is a green read model in at least:
 
-`Media` produces **Pictures** → `Cooking Help` reads **Pictures**.
+* Meal Preparation (`Catastrophe happened`)
+* Cooking Assistance (`Help requested`)
 
-The map instead says:
+No context on the board writes it.
 
-`Media → Cooking Assistance: Pictures`.
+This is the strongest missing-upstream pattern in the supplied checks: a noun read by two or more contexts and written by none is evidence for an off-board upstream context.
 
-That looks like a downstream consequence of F1: once `Cooking Help` disappeared, its picture dependency was attached to `Cooking Assistance`.
+The Context Map has no Catastrophe-related node.
 
-**Recommendation:**
-
-`Media → Cooking Help: Pictures`
-
-`Media → Sharing: Pictures`
-
-The second of those is already correctly present.
+**Recommendation:** add an off-board/external source for `Catastrophe` and connect it independently to Meal Preparation and Cooking Assistance—or return to the board and identify the actual producer.
 
 ---
 
-### F7 — `NODE` — Notification has no support on this board
+## F4 — `EDGE` / `CONTRACT` — Meal Preparation → Sharing is not supported
 
-**Significant — ask**
+**Severity: Significant · Resolution: back to the wall**
 
-`Notification` is a map node, but I cannot find a Notification bubble, event, command, actor/system, or object on the EventStorming board.
+The map shows a solid relationship from **Meal Preparation → Sharing**, apparently carrying `Help response`.
 
-Likewise, the asynchronous edge from `Cooking Assistance` into Notification has no observable crossing on this board.
+But on the board:
 
-The correct wording here is **unsupported**, not wrong: it may have been added after the workshop or come from another artifact. That distinction is explicitly required by the skill.
+* Meal Preparation does not produce `Help response`.
+* `Help response` is produced by Cooking Assistance.
+* Sharing reads `Help provider` and `Pictures`, not `Help response`.
 
-**Question:** Was Notification added after the EventStorming session or sourced from another model?
+So neither the source context nor the named payload is supported.
 
----
+**Recommendation:** establish what Sharing actually needs:
 
-### F8 — `NODE` — Consent Management has no support on this board
-
-**Significant — ask**
-
-The map contains `Consent Management`, but the board has no corresponding context or visible `Consent` flow.
-
-That also leaves these map edges unsupported:
-
-* `Cook Profile → Consent Management`
-* `Consent Management → Sharing`
-
-Again: unsupported by this board, not necessarily an architectural mistake.
+* If it needs the helper/provider identity from Cooking Assistance, draw **Cooking Assistance → Sharing** and add the missing production/read evidence.
+* Otherwise remove the Meal Preparation → Sharing edge.
 
 ---
 
-### F9 — `EDGE` — Recipe Catalog has more consumers than the map records
+## F5 — `NODE` / `EDGE` / `CONTRACT` — Consent Management chain is unsupported
 
-**Significant — map moves / ask**
+**Severity: Significant · Resolution: ask / back to the wall**
 
-The board repeatedly reads `Recipe` in:
+The map introduces:
 
-* `Meal Planning`
-* `Meal Preparation`
-* `Cooking Help`
+**Cook Profile → Consent Management → Sharing**
 
-No local context visibly writes `Recipe`.
+with `Consent` as the crossing object.
 
-That is strong evidence for an off-board upstream, and `Recipe Catalog` is a plausible map representation of it.
+The board contains no visible `Consent` sticky and no Consent Management context.
 
-However, the map only draws:
+Therefore this whole chain may be a valid later design decision, but the supplied board does not support it.
 
-`Recipe Catalog → Meal Planning`.
+This is important wording-wise: it is **unsupported**, not contradicted. The supplied rules explicitly distinguish those cases.
 
-The reverse sweep therefore finds at least the likely missing dependencies:
+**Question that settles it:** “Was consent added as an architectural/domain decision after this EventStorming session?”
 
-`Recipe Catalog → Meal Preparation`
-
-`Recipe Catalog → Cooking Help`
-
-The skill specifically requires this reverse sweep because crossings omitted from a Context Map are often more valuable than unsupported edges.
+If yes, document it as off-board provenance. If no, take it back to the wall.
 
 ---
 
-### F10 — `EDGE` — Meal Preparation → Sharing / `Help response` is unsupported
+## F6 — `NODE` / `EDGE` — Notification is unsupported
 
-**Significant — map moves / back to the wall**
+**Severity: Significant · Resolution: ask**
 
-The map sends `Help response` from `Meal Preparation` to `Sharing`.
+The map contains a `Notification` context with an asynchronous edge from Cooking Assistance, but the board shows no Notification bubble, notification event, external participant, or explicit policy.
 
-But the Sharing bubble reads:
+It might be a post-session design decision. The board simply cannot verify it.
 
-* `Help provider`
-* `Pictures`
-
-and produces `Thanks`.
-
-It does not visibly consume `Help response`, and Meal Preparation does not visibly produce it.
-
-So both ends of this contract disagree with the board evidence.
-
-There may indeed be a help-related dependency into Sharing, but the board currently names that information **Help provider**, not Help response.
+**Recommendation:** either annotate Notification as derived from another artifact/decision, or add the notification event/policy to the board.
 
 ---
 
-### F11 — `OWN` / `TERM` — Ingredients appears to have two owners
+## F7 — `OWN` — Grandma Avatar AI duplicates Help ownership
 
-**Blocking if it is one concept; otherwise clarify two models**
+**Severity: Significant, potentially Blocking · Resolution: ask**
 
-On the board, `Ingredients` is clearly written inside Meal Planning (`Ingredients substituted`) and later read by Cooking Assistance.
+Grandma Avatar itself is a perfectly legitimate external node.
 
-On the map, `Ingredients` also appears as an owned/yellow object inside `Recipe Catalog`.
+The ambiguity is inside the node: the Context Map visually puts `Help request` / `Help response` and corresponding events into **Grandma Avatar AI**, while the board places those aggregates/events inside **Cooking Assistance**.
 
-If both stickies mean the same domain concept, the map gives an object to a context that the board does not show writing it, while Meal Planning demonstrably does write it.
+That can mean either:
 
-If they are intentionally different concepts—for example “catalog recipe ingredients” versus “ingredients selected/substituted for this meal”—then using the same name across the border without recording the translation is a `TERM` issue.
+1. Grandma Avatar receives/sends **copies/contracts** while Cooking Assistance owns the local lifecycle — fine; or
+2. both contexts are being presented as owners — contested ownership.
 
-**Recommendation:** distinguish the two terms, or establish one owner.
+The checks specifically call out the situation where an external system and local context appear to produce the same object and the map does not state whose model owns it.
 
----
-
-## 6. Undrawn edges / missing nodes
-
-The reverse sweep produces this patch candidate set:
-
-| Board evidence                                                | Context-map status                                                    |
-| ------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Meal Planning → Cooking Assistance: **Ingredients**           | edge exists, **wrong contract**                                       |
-| Help context → Meal Planning: **Help response**               | present from Cooking Assistance; Cooking Help contribution unresolved |
-| Help context → Meal Preparation: **Help response**            | **map points opposite way**                                           |
-| Media → Cooking Help: **Pictures**                            | **missing / attached to Cooking Assistance**                          |
-| Media → Sharing: **Pictures**                                 | consistent                                                            |
-| Recipe Catalog → Meal Preparation: **Recipe**                 | missing                                                               |
-| Recipe Catalog → Cooking Help: **Recipe**                     | missing                                                               |
-| Meal Preparation → Cooking Help: likely `Catastrophe` trigger | probable missing edge; notation less explicit                         |
-| Help context → Sharing: likely `Help provider`                | board suggests a crossing but writer is not explicitly modelled       |
+**Recommendation:** label these as request/response contracts or translated DTOs, rather than owned domain state, if that is the intent.
 
 ---
 
-## 7. Allowed divergence
+## F8 — `EDGE` — Help provider has no source
 
-I did **not** report these as defects:
+**Severity: Significant · Resolution: back to the wall**
 
-* The `ACL` around `Grandma Avatar AI`. The board shows the external Grandma Avatar participant, so an external map node is legitimate. The rules explicitly say not to flag external/pink participants merely for being represented as bounded contexts.
-* Whether the external integration is drawn dashed, solid, synchronously or asynchronously where the board supplies no timing evidence.
-* `CF`/Conformist choices where the board does not positively contradict them; relationship patterns are architectural decisions and absence of evidence alone is allowlisted.
-* The repeated Meal Planning, Meal Preparation and Media bubbles being collapsed to one map node each. That part is correct.
-* Layout and drawing style.
+Sharing consults the green read model `Help provider`, but no event visibly produces `Help provider`.
+
+It could be derived from Community Cook / Chef / Grandma Avatar participation, but that derivation is not drawn.
+
+This makes the source of Sharing's provider information unresolved.
+
+**Recommendation:** identify who publishes `Help provider` and add the corresponding producer/crossing.
 
 ---
 
-# 8. Patch list
+## F9 — `GAP` — Meal plan is produced but appears unconsumed
 
-### Context Map changes
+**Severity: Minor / board gap · Resolution: back to the wall**
 
-1. **Add `Cooking Help`** as a separate node, unless the team explicitly confirms it should be merged with `Cooking Assistance`.
-2. Reattach **Media → Cooking Help: Pictures**.
-3. Replace **Meal Planning → Cooking Assistance: Help request** with the board-supported **Ingredients** contract.
-4. Reverse the current `Help response` direction between Meal Preparation and the help domain: **help → Meal Preparation**.
-5. Remove or justify the `Cooking Assistance → Meal Preparation: Help request` contract.
-6. Remove or justify `Meal Preparation → Sharing: Help response`; model the board's `Help provider` crossing instead if that is the intended dependency.
-7. Add Recipe Catalog consumers for **Meal Preparation** and **Cooking Help**, if `Recipe Catalog` is indeed the source of `Recipe`.
-8. Mark `Notification` and `Consent Management` as off-board/newer-source contexts, or remove them from this board-derived map.
-9. Resolve the ownership/name collision around **Ingredients**.
-10. Resolve ownership of **Help request / Help response** before finalizing the help-related arrows.
+`Meal plan` is produced by Meal Planning, but I do not see another event consuming the aggregate/read model.
 
-### Back to the EventStorming wall
+That is not itself a map defect because the map does not seem to use `Meal plan` as a border contract. It is nevertheless a useful board gap: either it is genuinely terminal state or its downstream consumer is missing.
 
-1. Decide explicitly whether `Cooking Assistance` and `Cooking Help` are genuinely separate bounded contexts.
-2. If separate, distinguish their `Help request` and `Help response` models or record who owns the shared aggregate.
-3. Show where `Recipe` actually comes from; the board currently only consumes it.
-4. Clarify how `Help provider` is produced before Sharing consumes it.
-5. Make the `Catastrophe happened → Request help` handoff explicit if that is the intended cross-context trigger.
-6. Add Notification and Consent flows to the board if they really are part of this scenario.
+---
 
-## 9. Already consistent
+## F10 — `PAT` — ACL on Grandma Avatar is not verifiable from this board
 
-Several important parts do match:
+**Severity: Minor · Resolution: ask**
 
-* One `Cook Profile` node for the board's Cook Profile.
-* Repeated `Meal Planning` collapsed to one map context.
-* Repeated `Meal Preparation` collapsed to one map context.
-* Repeated `Media` collapsed to one map context.
-* `Media → Sharing: Pictures`.
-* `Recipe Catalog → Meal Planning: Recipe` is directionally plausible from the board's unwritten-but-read `Recipe`.
-* `Grandma Avatar AI` as a separate external context is supported by the pink `Grandma Avatar` participant.
-* `Cooking Assistance → Meal Planning: Help response` is consistent with `Help response` produced in the help context and read when the meal plan is settled.
+The map explicitly selects an **ACL** for Grandma Avatar AI.
 
-The biggest correction is therefore **not a wholesale redraw**: restore/resolve `Cooking Help`, then repair the help-related integrations around that boundary.
+The board establishes that Grandma Avatar is external, but it does not visibly name a model/language mismatch that the ACL translates.
+
+However, the supplied checks say relationship patterns encode organisational/design decisions and should not be rejected merely because the board is silent.
+
+So I would **not call the ACL wrong**.
+
+Just record the unanswered question: *what semantic difference is the ACL translating?*
+
+---
+
+# 5. Undrawn edges / missing upstreams
+
+This reverse sweep is where the largest corrections appear.
+
+| Board evidence                                                       | Expected map relationship                 | Current status                  |
+| -------------------------------------------------------------------- | ----------------------------------------- | ------------------------------- |
+| Meal Planning writes `Menu`; Cooking Assistance reads it             | **Meal Planning → Cooking Assistance**    | Present                         |
+| Meal Planning writes `Ingredients`; Cooking Assistance reads it      | **Meal Planning → Cooking Assistance**    | Present                         |
+| Cooking Assistance writes `Help response`; Meal Planning reads it    | **Cooking Assistance → Meal Planning**    | Present                         |
+| Cooking Assistance writes `Help response`; Meal Preparation reads it | **Cooking Assistance → Meal Preparation** | Present                         |
+| Media writes `Pictures`; Cooking Assistance reads it                 | **Media → Cooking Assistance**            | Present                         |
+| Media writes `Pictures`; Sharing reads it                            | **Media → Sharing**                       | Present                         |
+| Off-board `Recipe`; MP reads it                                      | Recipe source → Meal Planning             | Present only via Recipe Catalog |
+| Off-board `Recipe`; CA reads it                                      | Recipe source → Cooking Assistance        | **Missing**                     |
+| Off-board `Recipe`; Meal Preparation reads it                        | Recipe source → Meal Preparation          | **Missing**                     |
+| Off-board `Catastrophe`; CA reads it                                 | Catastrophe source → Cooking Assistance   | **Missing**                     |
+| Off-board `Catastrophe`; Meal Preparation reads it                   | Catastrophe source → Meal Preparation     | **Missing**                     |
+| Unknown producer of `Help provider`; Sharing reads it                | Producer → Sharing                        | **Unresolved**                  |
+
+The skill explicitly says this reverse sweep is mandatory because missing crossings are often more valuable than questionable existing arrows.
+
+---
+
+# 6. Allowed divergence
+
+I deliberately **did not** report the following as defects:
+
+* The repeated board bubbles for Cooking Assistance, Meal Planning, Meal Preparation and Media. The map correctly collapses recurrence.
+* Grandma Avatar AI existing as its own node despite being pink/external on the board.
+* Synchronous versus asynchronous choices where the board supplies no timing constraint.
+* OHS / Conformist / ACL decisions merely because the board doesn't contain organisational negotiation facts.
+* Context-map layout and placement.
+* The fact that Recipe Catalog has no bubble by itself: there is enough evidence of an off-board Recipe dependency to make such a node plausible; the problem is the ownership/routing details.
+
+These are explicitly classes the supplied checks say to allowlist rather than score as findings.
+
+---
+
+# 7. Patch list
+
+### Edits to the Context Map
+
+1. **Remove `Ingredients` ownership from Recipe Catalog**, or mark it explicitly as a translated/cached copy.
+2. Keep `Ingredients` ownership with **Meal Planning** based on this board.
+3. Treat **Recipe Catalog/off-board Recipe source** as the direct upstream for every context reading Recipe:
+
+    * → Meal Planning
+    * → Cooking Assistance
+    * → Meal Preparation
+4. Remove `Recipe` from MP→CA and CA→Meal Preparation contracts unless those contexts really republish a transformed Recipe.
+5. Add a **Catastrophe** off-board upstream and connect it to:
+
+    * Cooking Assistance
+    * Meal Preparation
+6. Revisit **Meal Preparation → Sharing**; it is not evidenced by the board.
+7. Clarify Grandma Avatar's `Help request` / `Help response` as **contracts/copies versus owned state**.
+8. Mark **Notification** and **Consent Management** as off-board/post-session decisions if that is their provenance.
+9. If Consent was not a later decision, remove those edges until the board establishes the concept.
+
+### Take back to the EventStorming wall
+
+1. Who produces `Recipe`?
+2. Who produces `Catastrophe`?
+3. Who produces `Help provider`?
+4. Does Sharing actually consume `Help response`, `Help provider`, or both?
+5. What consumes the `Meal plan` aggregate?
+6. Does Grandma Avatar own a separate Help model, or merely participate in Cooking Assistance?
+7. Where does `Consent` enter the domain?
+8. What event/policy triggers Notification?
+
+---
+
+## 8. Already consistent
+
+Several important pieces match cleanly and should be preserved:
+
+* **Recurring contexts were collapsed correctly.**
+* **Meal Planning → Cooking Assistance** for `Menu` and `Ingredients`.
+* **Cooking Assistance → Meal Planning** for `Help response`.
+* **Cooking Assistance → Meal Preparation** for `Help response`.
+* **Media → Cooking Assistance** for `Pictures`.
+* **Media → Sharing** for `Pictures`.
+* `Cook Profile`, `Meal Planning`, `Cooking Assistance`, `Meal Preparation`, `Media`, and `Sharing` all correspond cleanly to board contexts.
+* Grandma Avatar is correctly recognized as an external participating context rather than being ignored.
+
+The supplied skill calls for findings rather than a binary verdict and asks for concrete map and board patch lists, because the board records observations while the map may legitimately contain later decisions.
+
+**Bottom line:** the map's **core bounded-context decomposition is strong**, but the **information-flow model needs revision**, especially for `Recipe`, `Ingredients`, `Catastrophe`, and the unsupported Consent/Notification additions.

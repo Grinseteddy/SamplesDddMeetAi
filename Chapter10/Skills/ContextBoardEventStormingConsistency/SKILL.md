@@ -6,7 +6,7 @@ description: >-
   the board's producer/consumer evidence, edges with nothing crossing them, one
   context drawn twice on the board turned into two nodes, ownership the board
   contradicts, patterns with no evidence, contracts naming payloads no event
-  produces, external systems promoted to contexts, and board silences presented
+  produces, external systems and upstreams missing, and board silences presented
   as a working system. Produces a Conformance Report: a term ledger of every noun
   by who writes it, reads it and owns it, coded findings with severity and cited
   sticky evidence, and two patch lists. Use whenever someone has a board (photo,
@@ -191,6 +191,16 @@ Watch specifically for a node imported from a **different artifact**: an Event
 Model swimlane, a team name, a service in the deployment diagram. It is not
 wrong, but it is not on this board, and the map should say where it came from.
 
+**An external system or process taking part in an event — a pink sticky — is
+allowed to be an ordinary bounded context on the map.** It has its own model,
+its own language and its own release cycle; it is simply outside the team's
+control. Never report a node for existing where the board has a pink sticky,
+and never report how it was drawn — marked or unmarked, dashed or solid, named
+after the vendor. The only `EXT` finding is something **missing**: a pink
+sticky with no node, or an off-board upstream neither artifact drew. A stated
+choice of conform, wrap or walk away is worth having, but it belongs in the
+open questions, not the findings.
+
 Codes: `NODE`, `COLL`, `EXT`.
 
 ### Step 5 — Check the edges
@@ -230,7 +240,7 @@ codes are in `references/checks.md`. Read it before Step 4.
 | `PAT` | Relationship pattern the evidence does not support |
 | `CONTRACT` | What the map says crosses vs what the board actually produces |
 | `TERM` | Renamed, normalised, or one word with two models |
-| `EXT` | External systems promoted to contexts, or off-board upstreams missing |
+| `EXT` | A pink sticky with no node, or an off-board upstream nobody drew |
 | `STALE` | Mechanism or staleness window the board's own clock refuses |
 | `GAP` | A board silence the map presents as settled |
 

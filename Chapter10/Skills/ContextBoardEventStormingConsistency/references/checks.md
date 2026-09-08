@@ -130,7 +130,8 @@ evidence of centrality rather than as nodes.
 
 **Guards.**
 - A node marked *off-board* or *external* by the map is not unsupported — it is
-  the map doing its job. Check `EXT` instead.
+  the map doing its job, and an external system with a pink sticky on the board
+  is fully supported evidence for a node. Check `EXT` instead.
 - A missing node may be a deliberate scope exclusion. If the map states one,
   honour it and list the bubble under allowed divergence.
 - A node traceable to another artifact gets its own phrasing: not "no
@@ -150,6 +151,9 @@ from another artifact: significant, and it is usually the report's headline.
    silently gave it to one.
 3. The map assigns a term **no context writes** — an off-board concept given a
    local owner.
+4. An **external system and a local context both produce the same object** on
+   the board, and the map draws both as nodes without saying which model owns
+   it. Routed here from `EXT`: the two nodes are correct, the silence is not.
 
 **Guards.**
 - Writing a *copy* is not owning. A context that snapshots a value at a border
@@ -243,25 +247,55 @@ implemented twice.
 
 ### `EXT` — external systems and off-board upstreams
 
-**Detect.** Every external-system sticky on the board should appear on the map
-as an external node with a stated choice: conform, wrap, or walk away. Every
-noun read by two or more contexts and written by none should appear as a dashed
-off-board upstream.
+**Start from the right default: a pink sticky belongs on the map as a node.**
+An external system or an external process that participates in an event *is* a
+bounded context — one with its own model, its own language and its own release
+cycle, which happens to be outside the team's control. Drawing it as a context
+is correct, and it is what makes the translation choice visible. **Never report
+a map for having a node where the board has a pink sticky.** That was the old
+default here and it was wrong.
 
-Then the inverse: a map node named after a **system, vendor, database or
-team**, drawn as an ordinary bounded context.
+**Detect.** Three things, all about what is *missing* rather than what is
+present.
+
+1. **A pink sticky with no node at all.** The board says an outside party takes
+   part in an event, and the map is silent about the dependency.
+2. **A noun read by two or more contexts and written by none.** An off-board
+   upstream: a context that exists in the business but was never drawn. Two
+   consumers of the same unwritten noun is the strongest argument a board makes
+   for a missing context. Expected on the map as a dashed node.
+
+**Not a finding: how the external node is drawn.** Marked or unmarked, dashed
+or solid, named after the vendor or after a capability — an external system in
+pink is allowed to be an ordinary bounded context on the map, and none of these
+is reported. An external context cannot be negotiated with, so a stated choice
+of **conform, wrap (anticorruption layer), or walk away** is worth having; put
+it in the open questions, never in the findings.
 
 **Guards.**
-- An external system that appears *inside* a context's cluster on the board,
-  alongside that context's own actors, doing the same work as they do, is a
-  **participant inside that context**, not a context of its own. Promoting it
-  to a node produces two services sharing one aggregate. This is a common and
-  expensive error; check it explicitly whenever a system appears in more than
-  one cluster.
-- A vendor node is fine on a *deployment* map. Check which map this is first.
+- **Recurrence applies to external systems too.** One system appearing in
+  several clusters is one node with several appearances, not several nodes.
+  That is `COLL`, not `EXT`.
+- **A system appearing inside another context's cluster is not thereby demoted.**
+  When an external system does the same work as that context's own actors —
+  producing the same object, answering the same request — it still gets its own
+  node. What the map owes is a statement of **who owns the shared object**: the
+  local context, with the system supplying content through a translation, or
+  the system, with the local context conforming. Report the missing ownership
+  statement under `OWN`; do not report the node.
+- **Do not demand a business capability from an external node.** The
+  "component, not a context" objection applies to *internal* nodes named after
+  a vendor or database. An outside party is a context by virtue of being a
+  separate model, whatever it is named.
+- A vendor node is also fine on a *deployment* map. Check which map this is.
 
-**Severity.** Missing off-board upstream read by many: significant. External
-system promoted to a context: significant, blocking if it splits an aggregate.
+**Severity.** Missing node for a pink sticky: significant. Missing off-board
+upstream read by many contexts: significant. Those two are the only `EXT`
+findings; a pink sticky that made it onto the map, however drawn, produces
+none.
+
+**Typical resolution.** Map moves for a missing node. Ask for the translation
+choice — it is a decision, and the board never carries it.
 
 ---
 
@@ -344,6 +378,12 @@ Do not report these. Publish the list instead.
 - **Deployment, technology, repository and service boundaries.** Different map.
 - **Nodes the map explicitly marks off-board, external or out of scope.** The
   map doing its job.
+- **External systems and external processes drawn as bounded contexts**, marked
+  or unmarked. A pink sticky is a separate model outside the team's control,
+  which is what a bounded context is. Allowed on the map as an ordinary
+  context, and never a finding. The only related finding is an unstated owner
+  when the external system and a local context write the same object, and that
+  is `OWN`.
 - **Contexts the map states as deliberately excluded from scope**, where the
   board covers them. Honour stated exclusions; test them once, then let them
   pass.

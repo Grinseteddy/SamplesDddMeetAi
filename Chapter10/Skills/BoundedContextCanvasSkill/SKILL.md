@@ -203,6 +203,12 @@ explains why the wrapper subgraph and the subgraph-level column arrows are
 load-bearing; a plain `flowchart LR` produces this shape in source and something
 else on screen.
 
+**Keep the frontmatter config block the template opens with.** It pins the font
+Mermaid measures with and adds node padding, which is what stops a viewer whose
+CSS font is taller from clipping the last line of every label. Two habits go
+with it: never hand-break prose — write it as one sentence and let it wrap — and
+cap any panel at four lines, moving the overflow into the field table.
+
 ### Step 7 — Write one file per context
 
 Default naming, in an output folder named for the map:
@@ -243,8 +249,12 @@ word, and needs `npm install mermaid jsdom`:
 node scripts/parse_with_mermaid.mjs bounded-context-canvases/*.canvas.md
 ```
 
-Fix every syntax error. Do **not** fix asymmetries by editing a canvas — write
-them up. Each one is one of:
+Fix every syntax error. **Then look at one rendered canvas** in the tool the team
+will read it in, the first time a new shape appears: clipped labels are invisible
+to every check that reads source, and a canvas whose boxes are a line short is
+wrong on screen while being right in the file.
+
+Do **not** fix asymmetries by editing a canvas — write them up. Each one is one of:
 
 - **a missing edge on the context map** — the most valuable output this skill
   produces, because the map looked complete;

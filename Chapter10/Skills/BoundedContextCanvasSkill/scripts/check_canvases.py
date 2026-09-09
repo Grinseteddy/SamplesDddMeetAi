@@ -37,6 +37,10 @@ MSG_TYPES = {"cmd", "qry", "evt", "?"}
 # be the middle dot or a hyphen.
 MSG_LABEL_RE = re.compile(r"^\s*(cmd|qry|evt|\?)\s*[\u00b7\u2022|-]\s*(.+?)\s*$")
 REQUIRED_SUBGRAPHS = ("IN", "BCX", "OUT", "META")
+FRONTMATTER_RE = re.compile(r"\A\s*---\s*\n(.*?)\n---\s*\n", re.S)
+# Hand-broken prose is what gets clipped when the viewer's font is taller than
+# the one Mermaid measured with. Four lines is the practical ceiling per node.
+MAX_LABEL_LINES = 4
 
 ID_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 FENCE_RE = re.compile(r"```mermaid\s*\n(.*?)^```", re.S | re.M)
@@ -97,7 +101,25 @@ def check_syntax(path, raw, body, findings):
         findings.append(Finding("ERROR", path, "no ```mermaid block found"))
         return {}, [], set()
 
-    lines = [ln for ln in body.splitlines() if ln.strip() and not ln.strip().startswith("%%")]
+    front = FRONTMATTER_RE.match(body)
+    if front:
+        graph_body = body[front.end():]
+        if "fontFamily" not in front.group(1) or "padding" not in front.group(1):
+            findings.append(Finding(
+                "WARN", path,
+                "the frontmatter config sets no fontFamily and/or flowchart padding; "
+                "both are what stop a viewer whose font is taller than Mermaid's "
+                "measurement from clipping the last line of every label"))
+    else:
+        graph_body = body
+        findings.append(Finding(
+            "WARN", path,
+            "no frontmatter config block -- without a pinned font and padding, "
+            "labels are clipped in any viewer whose CSS font differs from the "
+            "one Mermaid measured with"))
+
+    lines = [ln for ln in graph_body.splitlines()
+             if ln.strip() and not ln.strip().startswith("%%")]
     if not lines:
         findings.append(Finding("ERROR", path, "the mermaid block is empty"))
         return {}, [], set()
@@ -150,6 +172,14 @@ def check_syntax(path, raw, body, findings):
         findings.append(Finding(
             "WARN", path, "node `%s` is used in an edge but never given a label" % nid))
 
+    for nid, label in labels.items():
+        n_lines = len(re.split(r"<br\s*/?>", label, flags=re.I))
+        if n_lines > MAX_LABEL_LINES:
+            findings.append(Finding(
+                "WARN", path,
+                "`%s` has %d lines; %d is the ceiling. Move the overflow into the "
+                "field table, and never hand-break prose -- let it wrap"
+                % (nid, n_lines, MAX_LABEL_LINES)))
     for nid, label in labels.items():
         if "#" in label and "&num;" not in label:
             findings.append(Finding(

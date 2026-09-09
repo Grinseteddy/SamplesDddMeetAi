@@ -1,0 +1,89 @@
+---
+config:
+  themeVariables:
+    fontSize: 22px
+    fontFamily: Arial
+  flowchart:
+    htmlLabels: true
+    padding: 12
+    nodeSpacing: 30
+    rankSpacing: 30
+    wrappingWidth: 380
+---
+%% Bounded Context Canvas — Cooking Assistance
+%% Source: Community Cooking context map + Visual Glossary · derived 2026-09-09 · provenance in the field tables below
+flowchart TB
+
+    classDef panel fill:#FFF9D6,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef head fill:#FDE68A,stroke:#B08900,stroke-width:2px,color:#1A1A1A
+    classDef collab fill:#EAF2FB,stroke:#6E9BD1,stroke-width:1px,color:#1A1A1A
+    classDef offboard fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+    classDef unknown fill:#F4F4F4,stroke:#B0B0B0,stroke-width:1px,color:#7A7A7A
+    classDef frame fill:none,stroke:none
+    classDef term fill:#FDF6C8,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef termgap fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+
+subgraph TOP[" "]
+direction LR
+
+subgraph IN["Inbound communication"]
+in_meal_planning["<b>Meal Planning</b><br/>qry · Help response"]
+in_meal_preparation["<b>Meal Preparation</b><br/>qry · Help response"]
+in_grandma_avatar_ai["<b>Grandma Avatar AI</b><br/><i>via ACL</i><br/>evt · Help response"]
+end
+
+subgraph BCX["Cooking Assistance"]
+direction TB
+bc["<b>Cooking Assistance</b><br/>When a cook is stuck, while planning or at the stove, takes the request, gets it answered by the community, a chef or the Grandma Avatar, and carries the answer back."]
+strat["<b>Strategic classification</b><br/>Domain — <i>core (proposed, hypothesis)</i><br/>Business model — <i>engagement creator (proposed)</i><br/>Evolution — <i>unknown</i>"]
+roles["<b>Domain roles</b><br/>Gateway · Engagement creator"]
+subgraph LANG["Ubiquitous language"]
+t_help_request["<b>Help Request</b><br/><i>map: Help request</i>"]
+t_help["<b>Help</b><br/><i>map: Help response</i>"]
+t_menu_proposal["<b>Menu proposal</b>"]
+t_help_provider["<b>Help provider</b><br/><i>owned by nobody on the map</i>"]
+t_picture["<b>Picture</b><br/><i>borrowed — Media</i>"]
+t_meal["<b>Meal</b><br/><i>borrowed — unclaimed, grey in the glossary</i>"]
+t_help -->|"for 1"| t_help_request
+t_help_provider -.->|"provides 0..*"| t_help
+t_help -->|"contains 1..3"| t_menu_proposal
+t_help_request -->|"contains 0..10"| t_picture
+t_help -->|"contains 0..10"| t_picture
+t_help_request -->|"belongs 1"| t_meal
+end
+rules["<b>Business decisions</b><br/>You cannot answer your own question <i>(INV-HELP-03)</i><br/>Every Help is for exactly one Help Request <i>(given)</i><br/><i>…and 10 more (see below)</i>"]
+bc ~~~ strat
+strat ~~~ roles
+roles ~~~ LANG
+LANG ~~~ rules
+end
+
+subgraph OUT["Outbound communication"]
+out_meal_planning["<b>Meal Planning</b><br/>qry · Menu<br/>qry · Ingredients<br/>qry · Recipe"]
+out_meal_preparation["<b>Meal Preparation</b><br/>qry · Menu<br/>qry · Recipe"]
+out_media["<b>Media</b><br/>qry · Pictures"]
+out_notification["<b>Notification</b><br/>evt · Help request<br/>evt · Help response"]
+out_grandma_avatar_ai["<b>Grandma Avatar AI</b><br/><i>via ACL</i><br/>evt · Help request"]
+end
+
+IN --> BCX
+BCX --> OUT
+end
+
+subgraph META["Assumptions · Verification metrics · Open questions"]
+assume["<b>Assumptions</b><br/>The board's Cooking Assistance and Cooking Help are this one bubble<br/>Every sync arrow is a query issued by the arrowhead side; every dashed one an event<br/><i>…and 3 more (see below)</i>"]
+metrics["<b>Verification metrics</b><br/><i>none supplied</i>"]
+quest["<b>Open questions</b><br/>How does this context learn a cook is stuck — no trouble event crosses a border<br/>Does a request carry a snapshot, or do responders query live (six outbound queries)?<br/><i>…and 6 more (see below)</i>"]
+assume ~~~ metrics
+metrics ~~~ quest
+end
+
+TOP ~~~ META
+
+class bc head
+class strat,roles,rules,assume,quest panel
+class t_help_request,t_help,t_menu_proposal term
+class t_help_provider,t_picture,t_meal termgap
+class metrics unknown
+class in_meal_planning,in_meal_preparation,in_grandma_avatar_ai,out_meal_planning,out_meal_preparation,out_media,out_notification,out_grandma_avatar_ai collab
+class TOP frame

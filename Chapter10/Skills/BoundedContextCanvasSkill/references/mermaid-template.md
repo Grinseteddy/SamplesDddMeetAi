@@ -12,7 +12,8 @@ has learned to read one canvas should not have to learn the next.
 5. Label conventions
 6. Class definitions
 7. Variants — empty columns, dense canvas, diagram-only, block-beta
-8. Mermaid syntax traps
+8. Sizing and legibility
+9. Mermaid syntax traps
 
 ---
 
@@ -54,6 +55,18 @@ Fill the placeholders; keep the structure, the ids and the class names.
 
 ````markdown
 ```mermaid
+---
+config:
+  themeVariables:
+    fontSize: 14px
+    fontFamily: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif
+  flowchart:
+    htmlLabels: true
+    padding: 16
+    nodeSpacing: 45
+    rankSpacing: 55
+    wrappingWidth: 280
+---
 %% Bounded Context Canvas — <Context name>
 %% Source: <artifact> · derived <date> · provenance in the field tables below
 flowchart TB
@@ -77,7 +90,7 @@ flowchart TB
 
     subgraph BCX["&lt;Context name&gt;"]
       direction TB
-      bc["<b>&lt;Context name&gt;</b><br/>&lt;purpose, one or two lines&gt;"]
+      bc["<b>&lt;Context name&gt;</b><br/>&lt;purpose — one unbroken sentence; let it wrap&gt;"]
       strat["<b>Strategic classification</b><br/>Domain — &lt;core / supporting / generic / unknown&gt;<br/>Business model — &lt;…&gt;<br/>Evolution — &lt;…&gt;"]
       roles["<b>Domain roles</b><br/>&lt;role&gt; · &lt;role&gt;"]
       subgraph LANG["Ubiquitous language"]
@@ -222,9 +235,9 @@ Slugs are the collaborator name in lower snake_case: *Rack management* →
   renderer has `htmlLabels: false`, drop the tags and keep `<br/>`.
 - **Separate list items with ` · `**, not commas — commas inside quoted labels
   are legal but hard to scan at diagram size.
-- **Cap a panel at roughly six lines.** Beyond that the picture stops being
-  readable and the field table is the right home; put the top few on the canvas
-  and end the panel with `<i>…and n more (see below)</i>`.
+- **Cap a panel at four lines**, and never hand-break a sentence to fit — see
+  §8. Put the top few facts on the canvas and end the panel with
+  `<i>…and n more (see below)</i>`.
 - **Mark unknown fields on the picture**, not just in the text: `<i>none
   supplied</i>`, and give the node the `unknown` class so it goes grey. A grey
   box in a folder of canvases is a to-do list.
@@ -294,7 +307,37 @@ Help requested"]`. Never delete it and never invent the receiving context.
 
 ---
 
-## 8. Mermaid syntax traps
+## 8. Sizing and legibility
+
+The single most common way a canvas comes out unreadable is **every multi-line
+box losing its last line**. Mermaid measures a label with one font and the
+viewer renders it with another; if the rendered font is taller, the box is a
+line short and the text is clipped at the border. It is not a parse error, so
+nothing warns you — the diagram is simply wrong on screen and right in source.
+
+Four defences, in order of how much they help:
+
+1. **The frontmatter config block, on every canvas.** Pinning `fontFamily` and
+   `fontSize` makes Mermaid measure with the font it will render with, which
+   removes the mismatch at its source. `padding: 16` buys headroom for whatever
+   is left. `check_canvases.py` warns when the block is missing.
+2. **Never hand-break prose.** Write the purpose as one unbroken sentence and
+   let Mermaid wrap it at `wrappingWidth`; it sizes the box from its own
+   wrapping, which it gets right. Use `<br/>` only for genuine list items —
+   classification lines, terms, rules — where each line is a separate fact.
+3. **Four lines per node, hard.** The checker warns above that. A fifth line is
+   the field table's job, and the panel ends `<i>…and n more (see below)</i>`.
+4. **Look at it once.** Render a canvas in the tool the team will actually read
+   it in, the first time a new shape appears. Clipping is invisible to every
+   check that reads source.
+
+If a canvas still clips in a particular viewer, that viewer is applying its own
+CSS font over the diagram. Change `fontFamily` in the frontmatter to match it
+rather than shortening the labels — the labels are not the problem.
+
+---
+
+## 9. Mermaid syntax traps
 
 The ones that actually break canvases, in rough order of how often:
 

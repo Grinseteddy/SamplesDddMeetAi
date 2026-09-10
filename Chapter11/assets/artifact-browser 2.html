@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Artifact Browser</title>
+<style>
+  /* light is the default: built for print and screenshots */
+  :root {
+    --ground: #fcfcfd; --surface: #f1f3f5; --surface-hi: #e5e9ed; --rule: #d5dae0;
+    --rule-hi: #b9c1ca; --ink: #1b2229; --ink-dim: #46525c; --muted: #77838d;
+    --faint: #aab3bb; --focus: #0f766e; --focus-hi: #0b5f59; --danger: #a3323f;
+    --actor: #8a5810; --actor-line: #8a581055;
+    --activity: #10695e; --activity-line: #10695e55;
+    --work: #454fa0; --work-line: #454fa055;
+    --event: #9b3547; --event-line: #9b354755;
+    --goal: #55670f; --goal-line: #55670f55;
+    --other: #5a666f; --other-line: #5a666f55;
+    --ctx: #6e4e9b; --vc: #9aa4ad;
+    --figure-bg: #ffffff; --veil-bg: rgba(252,252,253,.92);
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  [data-theme="dark"] {
+    --ground: #151a21; --surface: #1c232c; --surface-hi: #232c37; --rule: #2c3742;
+    --rule-hi: #3d4a58; --ink: #dce3ea; --ink-dim: #98a6b4; --muted: #6f7f8e;
+    --faint: #4d5a66; --focus: #7fd1c1; --focus-hi: #92dccd; --danger: #d98080;
+    --actor: #e0a458; --actor-line: #e0a45855;
+    --activity: #5fafa0; --activity-line: #5fafa055;
+    --work: #8b96d4; --work-line: #8b96d455;
+    --event: #c97d8a; --event-line: #c97d8a55;
+    --goal: #9fb459; --goal-line: #9fb45955;
+    --other: #8695a4; --other-line: #8695a455;
+    --ctx: #c0a0d8; --vc: #3d4a58;
+    --figure-bg: #121820; --veil-bg: rgba(21,26,33,.9);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ground);
+    color: var(--ink); font-family: var(--sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  #app { display: grid; grid-template-columns: 256px 1fr; grid-template-rows: 52px 1fr; height: 100%; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 18px;
+    border-bottom: 1px solid var(--rule); background: var(--surface); }
+  .wordmark { font-family: var(--serif); font-size: 19px; white-space: nowrap; }
+  .bar-actions { margin-left: auto; display: flex; gap: 8px; }
+  .btn { background: var(--surface-hi); border: 1px solid var(--rule); border-radius: 5px;
+    padding: 6px 12px; cursor: pointer; color: var(--ink-dim); white-space: nowrap; }
+  .btn:hover { color: var(--ink); border-color: var(--rule-hi); }
+  .btn.primary { color: var(--ground); background: var(--focus); border-color: var(--focus); font-weight: 500; }
+  .btn.primary:hover { background: var(--focus-hi); }
+
+  #crumbs { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted);
+    overflow: hidden; white-space: nowrap; }
+  #crumbs button { background: none; border: none; padding: 0; cursor: pointer; color: var(--ink-dim); }
+  #crumbs button:hover { color: var(--ink); text-decoration: underline; }
+  #crumbs .here { color: var(--ink); }
+  #crumbs .sep { color: var(--muted); }
+
+  aside { border-right: 1px solid var(--rule); background: var(--surface); overflow-y: auto; padding-bottom: 30px; }
+  .rail-section { padding: 13px 15px; border-bottom: 1px solid var(--rule); }
+  .rail-section h2 { font-family: var(--serif); font-size: 13.5px; font-weight: 400; margin: 0 0 9px; }
+  .rail-hint { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 9px 0 0; }
+  #search { width: 100%; background: var(--ground); border: 1px solid var(--rule);
+    border-radius: 5px; padding: 7px 10px; }
+  #search::placeholder { color: var(--muted); }
+
+  .nav-item { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left;
+    background: none; border: none; padding: 6px 8px; border-radius: 5px; cursor: pointer; line-height: 1.35; }
+  .nav-item:hover { background: var(--surface-hi); }
+  .nav-item.on { background: var(--surface-hi); box-shadow: inset 2px 0 0 var(--focus); }
+  .nav-item .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; align-self: center; }
+  .nav-item .nm { flex: 1; color: var(--ink-dim); font-size: 13px; overflow: hidden; text-overflow: ellipsis; }
+  .nav-item.on .nm, .nav-item:hover .nm { color: var(--ink); }
+  .nav-item .ct { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .kind-head { color: var(--muted); font-size: 11.5px; margin: 12px 0 4px 8px; }
+  .kind-head:first-child { margin-top: 0; }
+
+  .depth { display: flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+  .depth button { flex: 1; background: none; border: none; padding: 7px 4px; cursor: pointer;
+    color: var(--muted); font-size: 12px; border-right: 1px solid var(--rule); }
+  .depth button:last-child { border-right: none; }
+  .depth button:hover { color: var(--ink-dim); background: var(--surface-hi); }
+  .depth button.on { background: var(--surface-hi); color: var(--ink); }
+
+  main { overflow: auto; }
+  .sheet { max-width: 900px; padding: 26px 30px 90px; }
+  .sheet.wide { max-width: 1180px; }
+  .sheet h1 { font-family: var(--serif); font-size: 26px; font-weight: 400; margin: 0 0 6px; line-height: 1.2; }
+  .sheet .sub { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 24px; max-width: 66ch; }
+  .sheet h2 { font-family: var(--serif); font-size: 16px; font-weight: 400; margin: 30px 0 12px;
+    padding-bottom: 7px; border-bottom: 1px solid var(--rule); }
+  .empty { color: var(--muted); line-height: 1.65; max-width: 62ch; }
+
+  .reg-row { display: grid; grid-template-columns: 10px 1fr auto auto; gap: 12px; align-items: baseline;
+    padding: 10px; border: none; background: none; text-align: left; cursor: pointer;
+    border-bottom: 1px solid var(--rule); width: 100%; }
+  .reg-row:hover { background: var(--surface); }
+  .reg-row .dot { width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+  .reg-row .t { color: var(--ink); font-size: 14.5px; }
+  .reg-row .t small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; line-height: 1.5; }
+  .reg-row .k { color: var(--muted); font-size: 12px; }
+  .reg-row .n { color: var(--ink-dim); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+  /* pills */
+  .pill { display: inline-flex; align-items: baseline; gap: 5px; border: 1px solid; border-radius: 999px;
+    background: transparent; padding: 2.5px 10px; font-size: 12.5px; cursor: pointer; line-height: 1.5;
+    text-align: left; }
+  .pill:hover { background: var(--surface-hi); }
+  .pill .badge { font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pill .clash { font-size: 10px; color: var(--danger); }
+  .pill.actor { color: var(--actor); border-color: var(--actor-line); }
+  .pill.activity { color: var(--activity); border-color: var(--activity-line); }
+  .pill.work { color: var(--work); border-color: var(--work-line); }
+  .pill.event { color: var(--event); border-color: var(--event-line); }
+  .pill.goal { color: var(--goal); border-color: var(--goal-line); }
+  .pill.other { color: var(--other); border-color: var(--other-line); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* sentence / event spine */
+  .spine { display: grid; grid-template-columns: 34px 1fr; gap: 12px; position: relative; padding: 9px 0; }
+  .spine::before { content: ""; position: absolute; left: 16px; top: 0; bottom: 0; border-left: 1px solid var(--rule); }
+  .spine.first::before { top: 18px; }
+  .spine.last::before { bottom: calc(100% - 18px); }
+  .seq { position: relative; z-index: 1; width: 33px; height: 22px; margin-top: 1px; display: flex;
+    align-items: center; justify-content: center; background: var(--ground); color: var(--muted);
+    font-size: 12px; font-variant-numeric: tabular-nums; }
+  .say { margin: 0; line-height: 1.55; color: var(--ink-dim); cursor: pointer; }
+  .say:hover { color: var(--ink); }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .shared { margin-top: 8px; font-size: 12px; color: var(--muted); line-height: 1.65; }
+  .shared b { color: var(--ink-dim); font-weight: 400; }
+  .lane-head { display: flex; align-items: center; gap: 10px; margin: 26px 0 10px; }
+  .lane-head span { font-size: 12.5px; color: var(--focus); }
+  .lane-head hr { flex: 1; border: none; border-top: 1px solid var(--rule); margin: 0; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin: 0 0 22px; }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+  /* business model canvas */
+  .bmc { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 6px;
+    overflow: hidden; grid-template-columns: repeat(10, 1fr); }
+  .bmc .cell { background: var(--ground); padding: 11px 12px; min-height: 96px; }
+  .bmc .cell h4 { margin: 0 0 9px; font-size: 11.5px; font-weight: 500; color: var(--muted); }
+  .bmc .cell.empty-cell h4 { color: var(--faint); }
+  .c-kp { grid-column: span 2; grid-row: span 2; }
+  .c-ka { grid-column: span 2; } .c-kr { grid-column: span 2; }
+  .c-vp { grid-column: span 2; grid-row: span 2; }
+  .c-cr { grid-column: span 2; } .c-ch { grid-column: span 2; }
+  .c-cs { grid-column: span 2; grid-row: span 2; }
+  .c-cost { grid-column: span 5; } .c-rev { grid-column: span 5; }
+
+  /* impact map */
+  .imap { border-left: 1px solid var(--rule); padding-left: 0; }
+  .lvl { padding: 5px 0 5px 16px; border-left: 1px solid var(--rule); margin-left: 8px; }
+  .lvl:first-child { margin-left: 0; }
+  .lvl-tag { font-size: 11px; color: var(--muted); margin-right: 8px; }
+  .goal-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 14px 0 4px; }
+  .metric { font-size: 12px; color: var(--muted); }
+
+  /* svg canvases */
+  .figure { border: 1px solid var(--rule); border-radius: 6px; background: var(--figure-bg); overflow-x: auto; }
+  .figure svg { display: block; }
+  .fig-note { color: var(--muted); font-size: 12px; margin: 9px 0 0; line-height: 1.6; }
+
+  /* language lens */
+  .lang-row { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 14px; align-items: baseline;
+    padding: 9px 4px; border-bottom: 1px solid var(--rule); }
+  .lang-row .term { color: var(--ink); }
+  .lang-row .where { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+  .lang-row .n { color: var(--ink-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .warn { border-left: 2px solid var(--danger); padding-left: 12px; margin: 10px 0; }
+  .warn .h { color: var(--danger); font-size: 12.5px; margin-bottom: 5px; }
+
+
+  /* svg figures, themed */
+  svg .ax { stroke: var(--rule); }
+  svg .ax-t, svg .cx-s, svg .ce-t { fill: var(--muted); }
+  svg .vc { stroke: var(--vc); }
+  svg .mv { stroke: var(--focus); fill: none; stroke-dasharray: 4 3; }
+  svg .nd { stroke: var(--ground); stroke-width: 1.5; }
+  svg .nd.need { fill: var(--goal); }
+  svg .nd.comp { fill: var(--activity); }
+  svg .nd-t { fill: var(--ink-dim); }
+  svg .ce { stroke: var(--vc); }
+  svg .ce.ex { stroke: var(--focus); }
+  svg .cx { fill: var(--surface); stroke: var(--ctx); }
+  svg .cx-t { fill: var(--ink); }
+
+  .grouped h3 { font-size: 12.5px; color: var(--muted); font-weight: 500; margin: 18px 0 8px; }
+
+  /* panel */
+  #panel { position: fixed; top: 52px; right: 0; bottom: 0; width: 344px; background: var(--surface);
+    border-left: 1px solid var(--rule); transform: translateX(100%);
+    transition: transform .22s cubic-bezier(.4,0,.2,1); overflow-y: auto; padding: 18px 18px 50px; z-index: 5; }
+  #panel.open { transform: none; }
+  @media (prefers-reduced-motion: reduce) { #panel { transition: none; } }
+  .p-close { float: right; background: none; border: none; cursor: pointer; color: var(--muted); font-size: 20px; }
+  .p-close:hover { color: var(--ink); }
+  .p-title { font-family: var(--serif); font-size: 21px; margin: 0 26px 5px 0; line-height: 1.25; word-break: break-word; }
+  .p-iri { color: var(--muted); font-size: 11px; word-break: break-all; margin: 0 0 14px; line-height: 1.5; }
+  .p-sec { margin-top: 18px; }
+  .p-sec h4 { font-size: 11.5px; color: var(--muted); font-weight: 500; margin: 0 0 7px;
+    padding-bottom: 5px; border-bottom: 1px solid var(--rule); }
+  .p-row { display: grid; grid-template-columns: 96px 1fr; gap: 10px; padding: 4px 0; font-size: 13px; }
+  .p-row dt { color: var(--muted); }
+  .p-row dd { margin: 0; color: var(--ink); line-height: 1.45; word-break: break-word; }
+  .link { background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+    color: var(--focus); line-height: 1.5; display: block; }
+  .link:hover { text-decoration: underline; }
+  .occ { padding: 6px 0; border-bottom: 1px solid var(--rule); font-size: 13px; }
+  .occ .where { color: var(--muted); font-size: 11.5px; margin-bottom: 3px; }
+
+  #notice { position: fixed; left: 50%; top: 68px; transform: translateX(-50%); background: var(--surface-hi);
+    border: 1px solid var(--rule); border-left: 3px solid var(--focus); padding: 9px 14px; border-radius: 5px;
+    font-size: 13px; max-width: 600px; display: none; z-index: 20; }
+  #notice.on { display: block; }
+  #notice.bad { border-left-color: var(--danger); }
+  #veil { position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: var(--veil-bg); border: 2px dashed var(--focus); font-family: var(--serif);
+    font-size: 20px; color: var(--focus); z-index: 30; }
+  #veil.on { display: flex; }
+
+  @media (max-width: 940px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: 52px auto 1fr; }
+    aside { max-height: 180px; } #panel { width: 100%; } #crumbs { display: none; }
+    .bmc { grid-template-columns: repeat(2, 1fr); }
+    .bmc .cell { grid-column: span 2 !important; grid-row: auto !important; min-height: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="wordmark">Artifact Browser</span>
+    <nav id="crumbs"></nav>
+    <div class="bar-actions">
+      <button class="btn" id="btn-theme">Dark</button>
+      <button class="btn" id="btn-sample">Sample</button>
+      <button class="btn primary" id="btn-load">Load graph.ttl</button>
+      <input type="file" id="file-input" accept=".ttl,.nt,.n3,.trig,.json,.jsonld,.txt" hidden>
+    </div>
+  </header>
+
+  <aside>
+    <div class="rail-section">
+      <input id="search" type="search" placeholder="Find a term or actor" autocomplete="off">
+    </div>
+    <div class="rail-section">
+      <h2>Detail</h2>
+      <div class="depth" id="depth">
+        <button data-d="1">Outline</button>
+        <button data-d="2" class="on">Detail</button>
+        <button data-d="3">Links</button>
+      </div>
+      <p class="rail-hint" id="depth-hint"></p>
+    </div>
+    <div class="rail-section">
+      <h2>Across artifacts</h2>
+      <div id="lens-list"></div>
+    </div>
+    <div class="rail-section">
+      <h2>Artifacts</h2>
+      <div id="art-list"></div>
+    </div>
+  </aside>
+
+  <main id="main"><div class="sheet" id="sheet"></div></main>
+</div>
+
+<div id="panel"></div>
+<div id="notice"></div>
+<div id="veil">Drop your graph.ttl</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. Turtle / N-Triples parser (practical subset)
+   ============================================================ */
+const RDF_TYPE  = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+const RDF_FIRST = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first';
+const RDF_REST  = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest';
+const RDF_NIL   = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil';
+const XSD       = 'http://www.w3.org/2001/XMLSchema#';
+
+const LABEL_PREDICATES = [
+  'http://www.w3.org/2000/01/rdf-schema#label',
+  'http://www.w3.org/2004/02/skos/core#prefLabel',
+  'http://schema.org/name',
+  'https://schema.org/name',
+  'http://xmlns.com/foaf/0.1/name',
+  'http://purl.org/dc/terms/title',
+  'http://purl.org/dc/elements/1.1/title'
+];
+
+function parseTurtle(text) {
+  const prefixes = Object.create(null);
+  let base = '';
+  const triples = [];
+  let i = 0, bnodeCounter = 0;
+  const n = text.length;
+
+  function err(msg) {
+    const line = text.slice(0, i).split('\n').length;
+    throw new Error(msg + ' on line ' + line);
+  }
+  function skipWs() {
+    for (;;) {
+      while (i < n && /\s/.test(text[i])) i++;
+      if (text[i] === '#') { while (i < n && text[i] !== '\n') i++; continue; }
+      break;
+    }
+  }
+  function eat(s) { skipWs(); if (text.startsWith(s, i)) { i += s.length; return true; } return false; }
+  function eatKeyword(word) {
+    skipWs();
+    if (text.slice(i, i + word.length).toLowerCase() === word.toLowerCase()) {
+      const after = text[i + word.length];
+      if (after === undefined || /[\s<"'#]/.test(after)) { i += word.length; return true; }
+    }
+    return false;
+  }
+  function resolve(iri) {
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(iri)) return iri;
+    if (!base) return iri;
+    if (iri === '') return base;
+    if (iri[0] === '#' || iri[0] === '?') return base.replace(/[#?].*$/, '') + iri;
+    if (iri[0] === '/') { const m = base.match(/^([a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^/]*)/); return m ? m[1] + iri : iri; }
+    return base.replace(/[^/]*$/, '') + iri;
+  }
+  function unescape(str) {
+    return str.replace(/\\(u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|.)/g, (m, g) => {
+      const c = g[0];
+      if (c === 'u' || c === 'U') { try { return String.fromCodePoint(parseInt(g.slice(1), 16)); } catch (e) { return m; } }
+      return { t: '\t', n: '\n', r: '\r', b: '\b', f: '\f' }[c] || c;
+    });
+  }
+  function readIriRef() {
+    i++;
+    let out = '';
+    while (i < n && text[i] !== '>') {
+      if (text[i] === '\\') { out += text[i] + text[i + 1]; i += 2; } else out += text[i++];
+    }
+    if (text[i] !== '>') err('unterminated IRI');
+    i++;
+    return resolve(unescape(out));
+  }
+  function readPName() {
+    const start = i;
+    while (i < n && /[^\s:;,.()\[\]"'<>]/.test(text[i])) i++;
+    if (text[i] !== ':') { i = start; return null; }
+    const prefix = text.slice(start, i);
+    i++;
+    let local = '';
+    while (i < n) {
+      const c = text[i];
+      if (c === '\\') { local += text[i + 1]; i += 2; continue; }
+      if (c === '%') { local += text.slice(i, i + 3); i += 3; continue; }
+      if (/[\s;,\[\]()<>"']/.test(c)) break;
+      if (c === '.') {
+        const next = text[i + 1];
+        if (next === undefined || /[\s;,\[\]()<>"']/.test(next)) break;
+      }
+      local += c; i++;
+    }
+    return { iri: (prefix in prefixes) ? prefixes[prefix] + local : prefix + ':' + local };
+  }
+  function readBlank() {
+    i += 2;
+    let label = '';
+    while (i < n && /[^\s;,.\[\]()<>"']/.test(text[i])) label += text[i++];
+    return '_:' + label;
+  }
+  function readString() {
+    const q = text[i];
+    const isTriple = text.startsWith(q + q + q, i);
+    const delim = isTriple ? q + q + q : q;
+    i += delim.length;
+    let out = '';
+    for (;;) {
+      if (i >= n) err('unterminated string');
+      if (text[i] === '\\') { out += text[i] + text[i + 1]; i += 2; continue; }
+      if (text.startsWith(delim, i)) { i += delim.length; break; }
+      out += text[i++];
+    }
+    return unescape(out);
+  }
+  function readNumber() {
+    const m = /^[+-]?(\d+\.\d*([eE][+-]?\d+)?|\.?\d+([eE][+-]?\d+)?)/.exec(text.slice(i));
+    if (!m) return null;
+    i += m[0].length;
+    const dt = /[eE]/.test(m[0]) ? XSD + 'double' : (m[0].includes('.') ? XSD + 'decimal' : XSD + 'integer');
+    return { value: m[0], datatype: dt };
+  }
+  const freshBnode = () => '_:b' + (++bnodeCounter);
+
+  function readTerm() {
+    skipWs();
+    const c = text[i];
+    if (c === undefined) err('unexpected end of input');
+    if (c === '<') return { term: readIriRef(), type: 'iri' };
+    if (c === '_' && text[i + 1] === ':') return { term: readBlank(), type: 'bnode' };
+    if (c === '"' || c === "'") {
+      const value = readString();
+      let lang = null, datatype = null;
+      if (text[i] === '@') {
+        i++; let l = '';
+        while (i < n && /[a-zA-Z0-9-]/.test(text[i])) l += text[i++];
+        lang = l;
+      } else if (text.startsWith('^^', i)) {
+        i += 2; datatype = readTerm().term;
+      }
+      return { term: value, type: 'literal', lang, datatype };
+    }
+    if (c === '[') {
+      i++;
+      const b = freshBnode();
+      skipWs();
+      if (text[i] === ']') { i++; return { term: b, type: 'bnode' }; }
+      readPredicateObjectList(b);
+      skipWs();
+      if (text[i] !== ']') err("expected ']'");
+      i++;
+      return { term: b, type: 'bnode' };
+    }
+    if (c === '(') {
+      i++;
+      const items = [];
+      for (;;) {
+        skipWs();
+        if (text[i] === ')') { i++; break; }
+        if (i >= n) err('unterminated list');
+        items.push(readTerm());
+      }
+      if (!items.length) return { term: RDF_NIL, type: 'iri' };
+      const head = freshBnode();
+      let cur = head;
+      items.forEach((item, idx) => {
+        triples.push({ s: cur, p: RDF_FIRST, o: item.term, oType: item.type, lang: item.lang || null, datatype: item.datatype || null });
+        const next = idx === items.length - 1 ? RDF_NIL : freshBnode();
+        triples.push({ s: cur, p: RDF_REST, o: next, oType: 'iri', lang: null, datatype: null });
+        cur = next;
+      });
+      return { term: head, type: 'bnode' };
+    }
+    if (/[0-9+.\-]/.test(c)) {
+      const num = readNumber();
+      if (num) return { term: num.value, type: 'literal', lang: null, datatype: num.datatype };
+    }
+    for (const val of ['true', 'false']) {
+      if (text.startsWith(val, i)) {
+        const after = text[i + val.length];
+        if (after === undefined || /[\s.;,)\]]/.test(after)) {
+          i += val.length;
+          return { term: val, type: 'literal', lang: null, datatype: XSD + 'boolean' };
+        }
+      }
+    }
+    const pn = readPName();
+    if (pn) return { term: pn.iri, type: 'iri' };
+    err('could not read ' + JSON.stringify(text.slice(i, i + 24)));
+  }
+
+  function readPredicate() {
+    skipWs();
+    if (text[i] === 'a' && /[\s<"']/.test(text[i + 1] || ' ')) { i++; return RDF_TYPE; }
+    return readTerm().term;
+  }
+
+  function readPredicateObjectList(subject) {
+    for (;;) {
+      const p = readPredicate();
+      for (;;) {
+        const o = readTerm();
+        triples.push({ s: subject, p, o: o.term, oType: o.type, lang: o.lang || null, datatype: o.datatype || null });
+        skipWs();
+        if (text[i] === ',') { i++; continue; }
+        break;
+      }
+      skipWs();
+      if (text[i] === ';') {
+        i++; skipWs();
+        if (text[i] === '.' || text[i] === ']' || i >= n) break;
+        continue;
+      }
+      break;
+    }
+  }
+
+  for (;;) {
+    skipWs();
+    if (i >= n) break;
+    if (eatKeyword('@prefix') || eatKeyword('PREFIX')) {
+      skipWs();
+      let name = '';
+      while (i < n && text[i] !== ':') name += text[i++];
+      i++; skipWs();
+      prefixes[name.trim()] = readIriRef();
+      eat('.');
+      continue;
+    }
+    if (eatKeyword('@base') || eatKeyword('BASE')) { skipWs(); base = readIriRef(); eat('.'); continue; }
+    if (text[i] === '{' || text[i] === '}') { i++; continue; }  // tolerate TriG graph braces
+    const subj = readTerm();
+    skipWs();
+    if (text[i] === '.') { i++; continue; }
+    readPredicateObjectList(subj.term);
+    skipWs();
+    if (text[i] === '.') i++;
+    else if (i < n) err('expected "."');
+  }
+  return { triples, prefixes, base };
+}
+
+/* ---- JSON inputs: node-link shape, or JSON-LD-ish ---- */
+function parseJsonGraph(text) {
+  const data = JSON.parse(text);
+  const triples = [];
+  const prefixes = Object.create(null);
+
+  const nodeList = data.nodes || data.vertices || (Array.isArray(data) ? null : null);
+  const edgeList = data.links || data.edges || data.relationships;
+
+  if (Array.isArray(nodeList) && Array.isArray(edgeList)) {
+    for (const nd of nodeList) {
+      const id = String(nd.id ?? nd.name ?? nd.label);
+      for (const [k, v] of Object.entries(nd)) {
+        if (k === 'id') continue;
+        if (v === null || typeof v === 'object') continue;
+        const pred = (k === 'type' || k === 'group' || k === 'category') ? RDF_TYPE : k;
+        triples.push({ s: id, p: pred, o: String(v), oType: pred === RDF_TYPE ? 'iri' : 'literal', lang: null, datatype: null });
+      }
+      if (!Object.prototype.hasOwnProperty.call(nd, 'type')) {
+        triples.push({ s: id, p: 'declared', o: 'node', oType: 'literal', lang: null, datatype: null });
+      }
+    }
+    for (const ed of edgeList) {
+      const s = String(ed.source ?? ed.from ?? ed.s);
+      const o = String(ed.target ?? ed.to ?? ed.o);
+      const p = String(ed.label ?? ed.type ?? ed.predicate ?? ed.rel ?? 'linked to');
+      triples.push({ s, p, o, oType: 'iri', lang: null, datatype: null });
+    }
+    return { triples, prefixes, base: '' };
+  }
+
+  // JSON-LD-ish: array of objects, or {"@graph": [...]}
+  const items = Array.isArray(data) ? data : (data['@graph'] || [data]);
+  let anon = 0;
+  const walk = (obj) => {
+    const id = obj['@id'] || obj.id || ('_:j' + (++anon));
+    for (const [k, v] of Object.entries(obj)) {
+      if (k === '@id' || k === '@context' || k === 'id') continue;
+      const pred = k === '@type' ? RDF_TYPE : k;
+      const vals = Array.isArray(v) ? v : [v];
+      for (const val of vals) {
+        if (val === null) continue;
+        if (typeof val === 'object') {
+          if ('@value' in val) {
+            triples.push({ s: id, p: pred, o: String(val['@value']), oType: 'literal', lang: val['@language'] || null, datatype: val['@type'] || null });
+          } else {
+            const childId = walk(val);
+            triples.push({ s: id, p: pred, o: childId, oType: 'iri', lang: null, datatype: null });
+          }
+        } else {
+          triples.push({ s: id, p: pred, o: String(val), oType: pred === RDF_TYPE ? 'iri' : 'literal', lang: null, datatype: null });
+        }
+      }
+    }
+    return id;
+  };
+  items.forEach(walk);
+  return { triples, prefixes, base: '' };
+}
+
+/* ============================================================
+   2. dkg vocabulary
+   ============================================================ */
+const DKG = 'https://w3id.org/dkg/ns#';
+const SKOS = 'http://www.w3.org/2004/02/skos/core#';
+const RDFS = 'http://www.w3.org/2000/01/rdf-schema#';
+const d = (t) => DKG + t;
+
+const SUPER = {
+  Concept: 'Node', Actor: 'Node', Capability: 'Node', Activity: 'Node', Occurrence: 'Node',
+  Goal: 'Node', Deliverable: 'Node', BoundedContext: 'Node', Question: 'Node', Rule: 'Node',
+  Sentence: 'Node', Cluster: 'Node', Impact: 'Node', Relationship: 'Node', Slice: 'Node',
+  ValueProposition: 'Node', Channel: 'Node', CustomerRelationship: 'Node', RevenueStream: 'Node',
+  KeyResource: 'Node', CostStructure: 'Node',
+  WorkObject: 'Concept', Term: 'Concept', Aggregate: 'Concept', ReadModel: 'Concept',
+  BusinessObject: 'Concept', Entity: 'Term', ValueObject: 'Term', AggregateRoot: 'Entity',
+  Lane: 'BoundedContext', Swimlane: 'BoundedContext',
+  CustomerSegment: 'Actor', KeyPartner: 'Actor', ExternalSystem: 'Actor',
+  Command: 'Activity', KeyActivity: 'Capability', Component: 'Capability',
+  DomainEvent: 'Occurrence', PivotalEvent: 'DomainEvent',
+  Policy: 'Rule', Hotspot: 'Question', Idea: 'Deliverable', UserNeed: 'Goal',
+  Brainstorm: 'Artifact', BusinessModelCanvas: 'Artifact', WardleyMap: 'Artifact',
+  ImpactMap: 'Artifact', DomainStory: 'Artifact', VisualGlossary: 'Artifact',
+  EventStormingBoard: 'Artifact', EventModel: 'Artifact', CapabilityMap: 'Artifact',
+  CoreDomainChart: 'Artifact', ContextMap: 'Artifact'
+};
+
+const ARTIFACT_TONE = {
+  dark: {
+    DomainStory: '#e0a458', EventStormingBoard: '#c97d8a', EventModel: '#be86be',
+    VisualGlossary: '#8b96d4', Brainstorm: '#9fb459', BusinessModelCanvas: '#5f9bc4',
+    WardleyMap: '#5fafa0', ImpactMap: '#c4907a', CapabilityMap: '#7fb5a0',
+    CoreDomainChart: '#d18f9f', ContextMap: '#c0a0d8'
+  },
+  light: {
+    DomainStory: '#8a5810', EventStormingBoard: '#9b3547', EventModel: '#7c4a94',
+    VisualGlossary: '#454fa0', Brainstorm: '#55670f', BusinessModelCanvas: '#1f6188',
+    WardleyMap: '#10695e', ImpactMap: '#8f5330', CapabilityMap: '#2f7060',
+    CoreDomainChart: '#993f57', ContextMap: '#6e4e9b'
+  }
+};
+function artTone(kind) { return ARTIFACT_TONE[THEME][kind] || 'var(--other)'; }
+
+let THEME = 'light';
+function setTheme(t) {
+  THEME = t;
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('btn-theme').textContent = t === 'light' ? 'Dark' : 'Light';
+  render();
+}
+
+const STAGES = ['Genesis', 'CustomBuilt', 'Product', 'Commodity'];
+const STAGE_LABEL = { Genesis: 'Genesis', CustomBuilt: 'Custom-built', Product: 'Product', Commodity: 'Commodity' };
+
+const state = {
+  nodes: new Map(), prefixes: {}, artifacts: [], sentencesBy: new Map(),
+  aliasGroups: new Map(), aliasByKey: new Map(), contexts: [], extraSubclass: {},
+  view: { kind: 'register' }, artifact: null, depth: 2
+};
+
+const DEPTH_HINT = ['',
+  'Top level only — the headlines each artifact puts on the wall.',
+  'Each item opened up into the parts it names.',
+  'Also shows where a name turns up in other artifacts.'];
+
+/* ---- index ---- */
+function localName(iri) { const m = /[#/]([^#/]+)$/.exec(String(iri)); return m ? m[1] : String(iri); }
+function humanise(iri) {
+  let s = localName(iri).replace(/^(Con|Act|Cap|Ev|Cmd|Goal|Imp|Del|Idea|Ctx|Q|R|Rel|Art|As|Sen|VP|Ch|Rev|Cost|Res)_/, '');
+  return s.replace(/[_-]+/g, ' ').replace(/([a-z\d])([A-Z])/g, '$1 $2').trim() || String(iri);
+}
+
+function buildIndex(triples) {
+  const nodes = new Map();
+  const get = (id) => {
+    let n = nodes.get(id);
+    if (!n) { n = { id, types: [], label: null, alt: [], lits: [], out: new Map(), in: new Map(),
+                    sources: [], locator: null, confidence: null, seq: null }; nodes.set(id, n); }
+    return n;
+  };
+  const extra = {};
+  for (const t of triples) if (t.p === RDFS + 'subClassOf' && t.oType !== 'literal') extra[localName(t.s)] = localName(t.o);
+  state.extraSubclass = extra;
+
+  for (const t of triples) {
+    const s = get(t.s);
+    if (t.p === RDF_TYPE && t.oType !== 'literal') { s.types.push(t.o); continue; }
+    if (t.oType === 'literal') {
+      if (t.p === SKOS + 'prefLabel' || t.p === RDFS + 'label') { if (!s.label) s.label = t.o; }
+      else if (t.p === SKOS + 'altLabel') s.alt.push(t.o);
+      else if (t.p === d('locator')) s.locator = t.o;
+      else if (t.p === d('sequence')) s.seq = parseInt(t.o, 10);
+      else s.lits.push({ pred: t.p, value: t.o });
+      continue;
+    }
+    if (t.p === d('source')) { s.sources.push(t.o); get(t.o); continue; }
+    if (t.p === d('confidence')) { s.confidence = t.o; continue; }
+    const o = get(t.o);
+    if (!s.out.has(t.p)) s.out.set(t.p, []);
+    s.out.get(t.p).push(t.o);
+    if (!o.in.has(t.p)) o.in.set(t.p, []);
+    o.in.get(t.p).push(t.s);
+  }
+  for (const n of nodes.values()) if (!n.label) n.label = humanise(n.id);
+  return nodes;
+}
+
+function isA(node, cls) {
+  for (const t of node.types) {
+    let cur = localName(t);
+    for (let hop = 0; hop < 8 && cur; hop++) { if (cur === cls) return true; cur = SUPER[cur] || state.extraSubclass[cur]; }
+  }
+  return false;
+}
+function primaryType(node) {
+  const ranked = node.types.map(localName);
+  const specific = ranked.find(t => SUPER[t] && SUPER[t] !== 'Node' && SUPER[t] !== 'Artifact');
+  return specific || ranked[0] || null;
+}
+const nodeOf = (id) => state.nodes.get(id);
+const labelOf = (id) => { const n = nodeOf(id); return n ? n.label : humanise(id); };
+const outOf = (n, pred) => (n && n.out.get(d(pred))) || [];
+const inOf = (n, pred) => (n && n.in.get(d(pred))) || [];
+const litOf = (n, pred) => { const l = n.lits.find(x => x.pred === d(pred)); return l ? l.value : null; };
+const allOfType = (cls) => [...state.nodes.values()].filter(n => isA(n, cls));
+
+/* ---- the linking layer: same name, everywhere ---- */
+function normalise(s) {
+  let t = String(s).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+  t = t.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return t.split(' ').map(w => (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) ? w.slice(0, -1) : w).join(' ');
+}
+function buildAliasGroups() {
+  // union-find over every normalised spelling, so "Cook", "Cooks" and a node
+  // carrying both as prefLabel/altLabel collapse into one group, not three
+  const cands = [...state.nodes.values()].filter(n => !isA(n, 'Artifact') && !isA(n, 'Sentence'));
+  const parent = new Map(cands.map(n => [n.id, n.id]));
+  const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
+  const union = (a, b) => { a = find(a); b = find(b); if (a !== b) parent.set(a, b); };
+
+  const byKey = new Map();
+  for (const n of cands) {
+    for (const key of new Set([n.label, ...n.alt].map(normalise).filter(Boolean))) {
+      if (!byKey.has(key)) byKey.set(key, []);
+      byKey.get(key).push(n);
+    }
+  }
+  for (const list of byKey.values()) for (let i = 1; i < list.length; i++) union(list[0].id, list[i].id);
+
+  const groups = new Map();
+  for (const n of cands) {
+    const root = find(n.id);
+    if (!groups.has(root)) groups.set(root, { key: root, nodes: [], spellings: new Set() });
+    const g = groups.get(root);
+    g.nodes.push(n);
+    [n.label, ...n.alt].forEach(s => g.spellings.add(s));
+  }
+  state.aliasGroups = groups;
+  state.aliasByKey = new Map();
+  for (const [key, list] of byKey) state.aliasByKey.set(key, groups.get(find(list[0].id)));
+  for (const n of state.nodes.values()) n._group = null;
+  for (const g of groups.values()) for (const n of g.nodes) n._group = g;
+}
+// artifacts a node is known from, counting its twins under the same name
+function reach(node) {
+  const arts = new Set(node.sources);
+  for (const sen of occurrences(node)) for (const s of sen.sources) arts.add(s);
+  const g = node._group;
+  if (g) for (const twin of g.nodes) {
+    if (twin === node) continue;
+    twin.sources.forEach(s => arts.add(s));
+    for (const sen of occurrences(twin)) for (const s of sen.sources) arts.add(s);
+  }
+  return [...arts];
+}
+function twinsOf(node) {
+  const g = node._group;
+  return g ? g.nodes.filter(n => n !== node) : [];
+}
+
+function occurrences(node) {
+  const out = [];
+  for (const [pred, subs] of node.in) {
+    if (![d('mentions'), d('performedBy'), d('actsOn')].includes(pred)) continue;
+    for (const sid of subs) {
+      const s = nodeOf(sid);
+      if (s && isA(s, 'Sentence') && !out.includes(s)) out.push(s);
+    }
+  }
+  return out;
+}
+
+/* ---- assemble ---- */
+function assemble() {
+  state.artifacts = [...state.nodes.values()].filter(n => isA(n, 'Artifact')).sort((a, b) => {
+    const order = ['BusinessModelCanvas', 'ImpactMap', 'WardleyMap', 'DomainStory',
+                   'EventStormingBoard', 'ContextMap', 'VisualGlossary'];
+    const ia = order.indexOf(primaryType(a)), ib = order.indexOf(primaryType(b));
+    if (ia !== ib) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    return a.label.localeCompare(b.label);
+  });
+  state.sentencesBy = new Map();
+  for (const n of state.nodes.values()) {
+    if (!isA(n, 'Sentence')) continue;
+    for (const src of n.sources) {
+      if (!state.sentencesBy.has(src)) state.sentencesBy.set(src, []);
+      state.sentencesBy.get(src).push(n);
+    }
+  }
+  for (const l of state.sentencesBy.values()) l.sort(cmpSeq);
+  state.contexts = allOfType('BoundedContext').sort((a, b) => a.label.localeCompare(b.label));
+  buildAliasGroups();
+}
+function cmpSeq(a, b) {
+  if (a.seq != null && b.seq != null && a.seq !== b.seq) return a.seq - b.seq;
+  if (a.seq != null) return -1;
+  if (b.seq != null) return 1;
+  return String(a.locator || a.id).localeCompare(String(b.locator || b.id));
+}
+function contributed(artifactId) {
+  return [...state.nodes.values()].filter(n => n.sources.includes(artifactId) && !isA(n, 'Artifact'));
+}
+
+/* ============================================================
+   3. Shared rendering helpers
+   ============================================================ */
+const sheet = document.getElementById('sheet');
+const panel = document.getElementById('panel');
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function svgEl(tag, attrs) {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+  return e;
+}
+function toneOf(n) {
+  if (isA(n, 'Actor')) return 'actor';
+  if (isA(n, 'Activity') || isA(n, 'Capability')) return 'activity';
+  if (isA(n, 'Occurrence')) return 'event';
+  if (isA(n, 'Goal') || isA(n, 'Impact') || isA(n, 'Deliverable')) return 'goal';
+  if (isA(n, 'Concept')) return 'work';
+  return 'other';
+}
+function pill(n, cls, homeArtifactId) {
+  const p = el('button', 'pill ' + (cls || toneOf(n)), n.label);
+  if (state.depth >= 3) {
+    const arts = reach(n);
+    if (arts.length > 1) {
+      const badge = el('span', 'badge', String(arts.length));
+      badge.title = arts.map(labelOf).join(', ');
+      p.appendChild(badge);
+    }
+    if (twinsOf(n).length) {
+      const c = el('span', 'clash', '\u2260');
+      c.title = 'Another node carries this name: ' + twinsOf(n).map(t => t.id).join(', ');
+      p.appendChild(c);
+    }
+  }
+  p.title = n.id;
+  p.addEventListener('click', () => openPanel(n));
+  return p;
+}
+function chipRow(list, cls) {
+  const box = el('div', 'chips');
+  for (const n of list) box.appendChild(pill(n, cls));
+  return box;
+}
+function sharedLine(nodes, homeId) {
+  if (state.depth < 3) return null;
+  const shared = nodes.filter(n => reach(n).filter(a => a !== homeId).length);
+  if (!shared.length) return null;
+  const line = el('p', 'shared');
+  line.appendChild(document.createTextNode('Also in: '));
+  shared.forEach((n, i) => {
+    if (i) line.appendChild(document.createTextNode(', '));
+    const others = reach(n).filter(a => a !== homeId).map(labelOf);
+    line.appendChild(el('b', null, n.label + ' (' + others.join(', ') + ')'));
+  });
+  return line;
+}
+function legend(pairs) {
+  const lg = el('div', 'legend');
+  for (const [cls, name] of pairs) {
+    const s = el('span', null, name);
+    const i = el('i');
+    i.style.background = 'var(--' + cls + ')';
+    s.prepend(i);
+    lg.appendChild(s);
+  }
+  return lg;
+}
+
+/* ============================================================
+   4. Views
+   ============================================================ */
+function render() {
+  renderCrumbs(); renderRail();
+  document.getElementById('depth-hint').textContent = DEPTH_HINT[state.depth];
+  sheet.innerHTML = '';
+  sheet.className = 'sheet';
+  if (state.view.kind === 'register') renderRegister();
+  else if (state.view.kind === 'lens') (state.view.lens === 'language' ? renderLanguage : renderContexts)();
+  else renderArtifact(state.artifact);
+  document.getElementById('main').scrollTop = 0;
+}
+
+function renderCrumbs() {
+  const c = document.getElementById('crumbs');
+  c.innerHTML = '';
+  const add = (text, fn, here) => {
+    if (c.children.length) c.appendChild(el('span', 'sep', '/'));
+    if (here || !fn) c.appendChild(el('span', 'here', text));
+    else { const b = el('button', null, text); b.addEventListener('click', fn); c.appendChild(b); }
+  };
+  add('All artifacts', () => go({ kind: 'register' }), state.view.kind === 'register');
+  if (state.artifact) add(state.artifact.label, null, true);
+  if (state.view.kind === 'lens') add(state.view.lens === 'language' ? 'Shared language' : 'Contexts', null, true);
+}
+
+function renderRail() {
+  const lenses = document.getElementById('lens-list');
+  lenses.innerHTML = '';
+  const lensItem = (key, name, count) => {
+    const b = el('button', 'nav-item' + (state.view.kind === 'lens' && state.view.lens === key ? ' on' : ''));
+    const dot = el('span', 'dot');
+    dot.style.background = 'var(--focus)';
+    b.appendChild(dot);
+    b.appendChild(el('span', 'nm', name));
+    b.appendChild(el('span', 'ct', String(count)));
+    b.addEventListener('click', () => go({ kind: 'lens', lens: key }));
+    lenses.appendChild(b);
+  };
+  const multi = [...state.aliasGroups.values()].filter(g => sharedAcross(g) > 1).length;
+  lensItem('language', 'Shared language', multi);
+  lensItem('contexts', 'Contexts', state.contexts.length);
+
+  const box = document.getElementById('art-list');
+  box.innerHTML = '';
+  if (!state.artifacts.length) { box.appendChild(el('p', 'rail-hint', 'No dkg:Artifact nodes found.')); return; }
+  let lastKind = null;
+  for (const a of state.artifacts) {
+    const kind = primaryType(a) || 'Artifact';
+    if (kind !== lastKind) { box.appendChild(el('div', 'kind-head', humanise(kind))); lastKind = kind; }
+    const b = el('button', 'nav-item' + (state.artifact === a ? ' on' : ''));
+    const dot = el('span', 'dot');
+    dot.style.background = artTone(kind);
+    b.appendChild(dot);
+    b.appendChild(el('span', 'nm', a.label));
+    b.appendChild(el('span', 'ct', String((state.sentencesBy.get(a.id) || []).length || contributed(a.id).length)));
+    b.title = a.label;
+    b.addEventListener('click', () => go({ kind: 'artifact' }, a));
+    box.appendChild(b);
+  }
+}
+function sharedAcross(g) {
+  const arts = new Set();
+  for (const n of g.nodes) reach(n).forEach(a => arts.add(a));
+  return arts.size;
+}
+
+function go(view, artifact) {
+  state.view = view;
+  state.artifact = view.kind === 'artifact' ? artifact : null;
+  closePanel();
+  render();
+}
+
+/* ---- register ---- */
+function renderRegister() {
+  sheet.appendChild(el('h1', null, 'What has been ingested'));
+  sheet.appendChild(el('p', 'sub',
+    'Each artifact opens in the shape it was drawn in — a canvas as nine blocks, a story as ' +
+    'numbered sentences, a map as its own map. Names that recur across artifacts are linked; ' +
+    'the shared-language lens lists every one of them.'));
+  if (!state.artifacts.length) {
+    sheet.appendChild(el('p', 'empty', 'No dkg:Artifact nodes in this file, so there is nothing to group by.'));
+    return;
+  }
+  const groups = new Map();
+  for (const a of state.artifacts) {
+    const k = primaryType(a) || 'Artifact';
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(a);
+  }
+  for (const [kind, list] of groups) {
+    sheet.appendChild(el('h2', null, humanise(kind)));
+    for (const a of list) {
+      const row = el('button', 'reg-row');
+      const dot = el('span', 'dot');
+      dot.style.background = artTone(kind);
+      row.appendChild(dot);
+      const t = el('span', 't', a.label);
+      const comment = a.lits.find(l => l.pred === RDFS + 'comment');
+      if (comment) t.appendChild(el('small', null, comment.value));
+      row.appendChild(t);
+      const ing = a.lits.find(l => l.pred === d('ingestedAt'));
+      row.appendChild(el('span', 'k', ing ? ing.value : ''));
+      const sens = (state.sentencesBy.get(a.id) || []).length;
+      row.appendChild(el('span', 'n', sens ? sens + ' sentences' : contributed(a.id).length + ' nodes'));
+      row.addEventListener('click', () => go({ kind: 'artifact' }, a));
+      sheet.appendChild(row);
+    }
+  }
+}
+
+/* ---- artifact router ---- */
+function renderArtifact(a) {
+  sheet.appendChild(el('h1', null, a.label));
+  const bits = [humanise(primaryType(a) || 'Artifact')];
+  const ing = a.lits.find(l => l.pred === d('ingestedAt'));
+  if (ing) bits.push('ingested ' + ing.value);
+  const comment = a.lits.find(l => l.pred === RDFS + 'comment');
+  sheet.appendChild(el('p', 'sub', bits.join(', ') + (comment ? '. ' + comment.value : '.')));
+
+  const kind = primaryType(a);
+  const mine = contributed(a.id);
+  if (kind === 'BusinessModelCanvas') return renderCanvas(a, mine);
+  if (kind === 'ImpactMap') return renderImpactMap(a, mine);
+  if (kind === 'WardleyMap') return renderWardley(a, mine);
+  if (kind === 'ContextMap') return renderContextMapArtifact(a, mine);
+  if ((state.sentencesBy.get(a.id) || []).length) return renderStory(a);
+  if (mine.some(n => isA(n, 'Occurrence'))) return renderStorming(a, mine);
+  return renderGeneric(a, mine);
+}
+
+/* ---- domain story ---- */
+function renderStory(a) {
+  const sentences = state.sentencesBy.get(a.id) || [];
+  if (state.depth >= 2) sheet.appendChild(legend([['actor', 'actor'], ['activity', 'activity'], ['work', 'work object']]));
+  const lanes = new Map();
+  for (const sen of sentences) {
+    const ctx = outOf(sen, 'inContext')[0] || '';
+    if (!lanes.has(ctx)) lanes.set(ctx, []);
+    lanes.get(ctx).push(sen);
+  }
+  const laned = lanes.size > 1 || [...lanes.keys()][0] !== '';
+  for (const [ctx, list] of lanes) {
+    if (laned) {
+      const h = el('div', 'lane-head');
+      h.appendChild(el('span', null, ctx ? labelOf(ctx) : 'No lane drawn'));
+      h.appendChild(document.createElement('hr'));
+      sheet.appendChild(h);
+    }
+    list.forEach((sen, i) => sheet.appendChild(spineRow(sen, a, i === 0, i === list.length - 1, storyParts(sen))));
+  }
+}
+function storyParts(sen) {
+  const seen = new Set(), out = [];
+  const take = (id, force) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const n = nodeOf(id);
+    if (n) out.push([n, force || toneOf(n)]);
+  };
+  outOf(sen, 'performedBy').forEach(id => take(id, 'actor'));
+  outOf(sen, 'mentions').forEach(id => take(id));
+  outOf(sen, 'actsOn').forEach(id => take(id, 'work'));
+  const rank = { actor: 0, activity: 1, work: 2, event: 3, goal: 4, other: 5 };
+  return out.sort((x, y) => rank[x[1]] - rank[y[1]]);
+}
+
+function spineRow(node, artifact, first, last, parts) {
+  const row = el('article', 'spine' + (first ? ' first' : '') + (last ? ' last' : ''));
+  row.appendChild(el('div', 'seq', node.seq != null ? String(node.seq)
+    : String(node.locator || '').replace(/\D+/g, '') || '\u00b7'));
+  const body = el('div');
+  const say = el('p', 'say', node.label);
+  say.addEventListener('click', () => openPanel(node));
+  body.appendChild(say);
+  if (state.depth >= 2 && parts.length) {
+    const pills = el('div', 'pills');
+    for (const [n, cls] of parts) pills.appendChild(pill(n, cls, artifact.id));
+    body.appendChild(pills);
+    const line = sharedLine(parts.map(p => p[0]), artifact.id);
+    if (line) body.appendChild(line);
+  }
+  row.appendChild(body);
+  return row;
+}
+
+/* ---- business model canvas ---- */
+const BMC_BLOCKS = [
+  ['c-kp', 'KeyPartner', 'Key partners'], ['c-ka', 'KeyActivity', 'Key activities'],
+  ['c-vp', 'ValueProposition', 'Value propositions'], ['c-cr', 'CustomerRelationship', 'Customer relationships'],
+  ['c-cs', 'CustomerSegment', 'Customer segments'], ['c-kr', 'KeyResource', 'Key resources'],
+  ['c-ch', 'Channel', 'Channels'], ['c-cost', 'CostStructure', 'Cost structure'],
+  ['c-rev', 'RevenueStream', 'Revenue streams']
+];
+function renderCanvas(a, mine) {
+  sheet.className = 'sheet wide';
+  const grid = el('div', 'bmc');
+  for (const [cls, type, title] of BMC_BLOCKS) {
+    const items = mine.filter(n => primaryType(n) === type);
+    const cell = el('div', 'cell ' + cls + (items.length ? '' : ' empty-cell'));
+    cell.appendChild(el('h4', null, title + (items.length ? ' \u00b7 ' + items.length : '')));
+    if (items.length) cell.appendChild(chipRow(items));
+    grid.appendChild(cell);
+  }
+  sheet.appendChild(grid);
+
+  if (state.depth >= 2) {
+    const links = [];
+    for (const n of mine) {
+      for (const pred of ['servesSegment', 'deliveredVia', 'paidBy', 'supports']) {
+        for (const id of outOf(n, pred)) links.push([n, pred, nodeOf(id)]);
+      }
+    }
+    sheet.appendChild(el('h2', null, links.length ? 'Connections the canvas draws' : 'The canvas draws no connections'));
+    if (!links.length) {
+      sheet.appendChild(el('p', 'empty',
+        'Nothing joins the blocks. That is normal for a canvas and it is not an error in the ' +
+        'ingest — it means the fit between blocks has not been stated yet.'));
+    } else {
+      for (const [from, pred, to] of links) {
+        const r = el('div', 'pills');
+        r.appendChild(pill(from, null, a.id));
+        r.appendChild(el('span', 'lvl-tag', humanise(pred)));
+        if (to) r.appendChild(pill(to, null, a.id));
+        sheet.appendChild(r);
+      }
+    }
+  }
+  const line = sharedLine(mine, a.id);
+  if (line) { sheet.appendChild(el('h2', null, 'Names shared with other artifacts')); sheet.appendChild(line); }
+}
+
+/* ---- impact map ---- */
+function renderImpactMap(a, mine) {
+  const goals = mine.filter(n => isA(n, 'Goal'));
+  const impacts = mine.filter(n => isA(n, 'Impact'));
+  if (!goals.length && !impacts.length) return renderGeneric(a, mine);
+  sheet.appendChild(legend([['goal', 'goal, impact, deliverable'], ['actor', 'actor']]));
+
+  for (const goal of goals) {
+    const row = el('div', 'goal-row');
+    row.appendChild(el('span', 'lvl-tag', 'why'));
+    row.appendChild(pill(goal, 'goal', a.id));
+    const metric = litOf(goal, 'metric');
+    if (metric) row.appendChild(el('span', 'metric', metric));
+    sheet.appendChild(row);
+    if (state.depth < 2) continue;
+
+    const mineImpacts = impacts.filter(i => outOf(i, 'towardsGoal').includes(goal.id));
+    const byActor = new Map();
+    for (const imp of mineImpacts) {
+      const actors = outOf(imp, 'impactedActor');
+      const key = actors.length ? actors[0] : '';
+      if (!byActor.has(key)) byActor.set(key, []);
+      byActor.get(key).push(imp);
+    }
+    if (!byActor.size) { sheet.appendChild(el('p', 'empty', 'No impact points at this goal.')); continue; }
+    for (const [actorId, list] of byActor) {
+      const who = el('div', 'lvl');
+      const wr = el('div', 'pills');
+      wr.appendChild(el('span', 'lvl-tag', 'who'));
+      if (actorId) wr.appendChild(pill(nodeOf(actorId), 'actor', a.id));
+      else wr.appendChild(el('span', 'metric', 'no actor drawn'));
+      who.appendChild(wr);
+      for (const imp of list) {
+        const how = el('div', 'lvl');
+        const hr = el('div', 'pills');
+        hr.appendChild(el('span', 'lvl-tag', 'how'));
+        hr.appendChild(pill(imp, 'goal', a.id));
+        how.appendChild(hr);
+        const dels = mine.filter(n => isA(n, 'Deliverable') && outOf(n, 'realises').includes(imp.id));
+        if (dels.length) {
+          const what = el('div', 'lvl');
+          const wr2 = el('div', 'pills');
+          wr2.appendChild(el('span', 'lvl-tag', 'what'));
+          dels.forEach(dl => wr2.appendChild(pill(dl, 'goal', a.id)));
+          what.appendChild(wr2);
+          how.appendChild(what);
+        } else {
+          how.appendChild(el('p', 'shared', 'No deliverable realises this impact.'));
+        }
+        who.appendChild(how);
+      }
+      sheet.appendChild(who);
+    }
+  }
+  const orphanDel = mine.filter(n => isA(n, 'Deliverable') && !outOf(n, 'realises').length);
+  if (orphanDel.length) {
+    sheet.appendChild(el('h2', null, 'Deliverables with no impact'));
+    sheet.appendChild(chipRow(orphanDel, 'goal'));
+  }
+}
+
+/* ---- wardley map ---- */
+function renderWardley(a, mine) {
+  sheet.className = 'sheet wide';
+  const comps = mine.filter(n => isA(n, 'Capability') || isA(n, 'Goal'));
+  if (!comps.length) return renderGeneric(a, mine);
+
+  const depth = new Map(comps.map(c => [c.id, 0]));
+  for (let pass = 0; pass < comps.length; pass++) {
+    let moved = false;
+    for (const c of comps) for (const id of outOf(c, 'dependsOn')) {
+      if (!depth.has(id)) continue;
+      const want = depth.get(c.id) + 1;
+      if (depth.get(id) < want) { depth.set(id, want); moved = true; }
+    }
+    if (!moved) break;
+  }
+  const maxDepth = Math.max(1, ...depth.values());
+
+  const W = 860, H = 60 + maxDepth * 78 + 90;
+  const x0 = 46, x1 = W - 24;
+  const stageX = (n) => {
+    const st = outOf(n, 'evolution')[0];
+    const idx = STAGES.indexOf(localName(st || ''));
+    return x0 + ((idx < 0 ? 0.5 : (idx + 0.5) / 4)) * (x1 - x0);
+  };
+  const pos = new Map();
+  const lane = new Map();
+  for (const c of comps) {
+    const dy = depth.get(c.id);
+    const k = dy + ':' + Math.round(stageX(c) / 60);
+    const bump = (lane.get(k) || 0);
+    lane.set(k, bump + 1);
+    pos.set(c.id, { x: stageX(c), y: 54 + dy * 78 + bump * 26 });
+  }
+
+  const svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', style: 'min-width:640px' });
+  for (let i = 0; i < 4; i++) {
+    const bx = x0 + i * (x1 - x0) / 4;
+    svg.appendChild(svgEl('line', { x1: bx, y1: 26, x2: bx, y2: H - 40, class: 'ax' }));
+    const t = svgEl('text', { x: bx + 6, y: H - 22, class: 'ax-t', 'font-size': 11 });
+    t.textContent = STAGE_LABEL[STAGES[i]];
+    svg.appendChild(t);
+  }
+  svg.appendChild(svgEl('line', { x1: x1, y1: 26, x2: x1, y2: H - 40, class: 'ax' }));
+  const yl = svgEl('text', { x: 12, y: 40, class: 'ax-t', 'font-size': 11, transform: 'rotate(-90 12 40)' });
+  yl.textContent = 'visible to the user';
+  svg.appendChild(yl);
+
+  for (const c of comps) for (const id of outOf(c, 'dependsOn')) {
+    const p = pos.get(c.id), q = pos.get(id);
+    if (!p || !q) continue;
+    svg.appendChild(svgEl('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y, class: 'vc', 'stroke-width': 1 }));
+  }
+  for (const c of comps) {
+    const p = pos.get(c.id);
+    const moves = outOf(c, 'movesTo')[0];
+    if (moves) {
+      const idx = STAGES.indexOf(localName(moves));
+      if (idx >= 0) {
+        const tx = x0 + ((idx + 0.5) / 4) * (x1 - x0);
+        svg.appendChild(svgEl('line', { x1: p.x + 8, y1: p.y, x2: tx - 8, y2: p.y, class: 'mv', 'stroke-width': 1.2 }));
+        svg.appendChild(svgEl('circle', { cx: tx, cy: p.y, r: 3, class: 'mv' }));
+      }
+    }
+  }
+  for (const c of comps) {
+    const p = pos.get(c.id);
+    const isNeed = isA(c, 'Goal');
+    const g = svgEl('g', { style: 'cursor:pointer' });
+    g.appendChild(svgEl('circle', { cx: p.x, cy: p.y, r: isNeed ? 6 : 4.5, class: 'nd ' + (isNeed ? 'need' : 'comp') }));
+    const t = svgEl('text', { x: p.x + 10, y: p.y + 4, class: 'nd-t', 'font-size': 11.5 });
+    t.textContent = c.label;
+    g.appendChild(t);
+    g.addEventListener('click', () => openPanel(c));
+    svg.appendChild(g);
+  }
+  const fig = el('div', 'figure');
+  fig.appendChild(svg);
+  sheet.appendChild(fig);
+  sheet.appendChild(el('p', 'fig-note',
+    'Horizontal position comes from dkg:evolution. Height is computed from the dkg:dependsOn chain, ' +
+    'not measured off the original map. Dashed lines are dkg:movesTo predictions.'));
+
+  if (state.depth >= 3) {
+    const line = sharedLine(comps, a.id);
+    if (line) { sheet.appendChild(el('h2', null, 'Names shared with other artifacts')); sheet.appendChild(line); }
+  }
+}
+
+/* ---- event storming ---- */
+function renderStorming(a, mine) {
+  const events = mine.filter(n => isA(n, 'Occurrence')).sort(cmpSeq);
+  if (!events.length) return renderGeneric(a, mine);
+  if (state.depth >= 2) sheet.appendChild(legend([['event', 'event'], ['activity', 'command'],
+    ['actor', 'actor'], ['work', 'aggregate, read model'], ['other', 'policy, hotspot']]));
+
+  const byCtx = new Map();
+  for (const ev of events) {
+    const ctx = outOf(ev, 'inContext')[0] || '';
+    if (!byCtx.has(ctx)) byCtx.set(ctx, []);
+    byCtx.get(ctx).push(ev);
+  }
+  const laned = byCtx.size > 1 || [...byCtx.keys()][0] !== '';
+  for (const [ctx, list] of byCtx) {
+    if (laned) {
+      const h = el('div', 'lane-head');
+      h.appendChild(el('span', null, ctx ? labelOf(ctx) : 'No context bubble drawn'));
+      h.appendChild(document.createElement('hr'));
+      sheet.appendChild(h);
+    }
+    list.forEach((ev, i) => sheet.appendChild(spineRow(ev, a, i === 0, i === list.length - 1, stormParts(ev))));
+  }
+  const loose = mine.filter(n => isA(n, 'Hotspot'));
+  if (loose.length) {
+    sheet.appendChild(el('h2', null, 'Hotspots'));
+    sheet.appendChild(chipRow(loose, 'other'));
+  }
+}
+function stormParts(ev) {
+  const seen = new Set(), out = [];
+  const take = (id, cls) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const n = nodeOf(id);
+    if (n) out.push([n, cls || toneOf(n)]);
+  };
+  inOf(ev, 'triggers').forEach(id => take(id, 'activity'));      // command → event
+  outOf(ev, 'performedBy').forEach(id => take(id, 'actor'));
+  outOf(ev, 'emittedBy').forEach(id => take(id, 'work'));
+  outOf(ev, 'produces').forEach(id => take(id, 'work'));
+  outOf(ev, 'reads').forEach(id => take(id, 'work'));
+  outOf(ev, 'mentions').forEach(id => take(id));
+  inOf(ev, 'reactsTo').forEach(id => take(id, 'other'));         // policy reacting
+  outOf(ev, 'raises').forEach(id => take(id, 'other'));
+  return out;
+}
+
+/* ---- context map, as an artifact and as a lens ---- */
+function renderContextMapArtifact(a, mine) { renderContextFigure(mine.filter(n => isA(n, 'BoundedContext'))); }
+
+function renderContexts() {
+  sheet.appendChild(el('h1', null, 'Contexts'));
+  sheet.appendChild(el('p', 'sub',
+    'Every dkg:BoundedContext in the graph, wherever it was drawn — story lanes, board bubbles, ' +
+    'a context map. Edges are the terms two contexts both claim; a term in two contexts is a straddler.'));
+  renderContextFigure(state.contexts);
+}
+
+function renderContextFigure(contexts) {
+  if (!contexts.length) { sheet.appendChild(el('p', 'empty', 'No bounded contexts in the graph.')); return; }
+  sheet.className = 'sheet wide';
+
+  const members = new Map(contexts.map(c => [c.id, []]));
+  const memberCtx = new Map();
+  for (const n of state.nodes.values()) {
+    for (const cid of outOf(n, 'inContext')) {
+      if (!members.has(cid)) continue;
+      members.get(cid).push(n);
+      if (!memberCtx.has(n.id)) memberCtx.set(n.id, new Set());
+      memberCtx.get(n.id).add(cid);
+    }
+  }
+  // sentences carry lanes; credit what they name to the lane too
+  for (const n of state.nodes.values()) {
+    if (!isA(n, 'Sentence')) continue;
+    for (const cid of outOf(n, 'inContext')) {
+      if (!members.has(cid)) continue;
+      for (const [p] of storyParts(n)) {
+        if (!members.get(cid).includes(p)) members.get(cid).push(p);
+        if (!memberCtx.has(p.id)) memberCtx.set(p.id, new Set());
+        memberCtx.get(p.id).add(cid);
+      }
+    }
+  }
+
+  const edges = [];
+  for (let i = 0; i < contexts.length; i++) for (let j = i + 1; j < contexts.length; j++) {
+    const A = members.get(contexts[i].id) || [], B = members.get(contexts[j].id) || [];
+    const shared = A.filter(n => B.includes(n));
+    const explicit = outOf(contexts[i], 'dependsOn').includes(contexts[j].id) ||
+                     outOf(contexts[j], 'dependsOn').includes(contexts[i].id);
+    if (shared.length || explicit) edges.push({ a: i, b: j, shared, explicit });
+  }
+
+  const W = 860, H = 420, cx = W / 2, cy = H / 2 - 6;
+  const R = Math.min(cx, cy) - 96;
+  const pts = contexts.map((c, i) => {
+    const ang = -Math.PI / 2 + (i * 2 * Math.PI) / contexts.length;
+    return { x: cx + Math.cos(ang) * (contexts.length === 1 ? 0 : R), y: cy + Math.sin(ang) * (contexts.length === 1 ? 0 : R) };
+  });
+
+  const svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', style: 'min-width:620px' });
+  for (const e of edges) {
+    const p = pts[e.a], q = pts[e.b];
+    svg.appendChild(svgEl('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y,
+      class: 'ce' + (e.explicit ? ' ex' : ''), 'stroke-width': Math.min(4, 1 + e.shared.length * 0.5) }));
+    const t = svgEl('text', { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 - 5, class: 'ce-t',
+      'font-size': 10.5, 'text-anchor': 'middle' });
+    t.textContent = e.shared.length ? e.shared.length + ' shared' : 'depends on';
+    svg.appendChild(t);
+  }
+  contexts.forEach((c, i) => {
+    const p = pts[i];
+    const g = svgEl('g', { style: 'cursor:pointer' });
+    const count = (members.get(c.id) || []).length;
+    g.appendChild(svgEl('circle', { cx: p.x, cy: p.y, r: 30 + Math.min(22, count * 1.6),
+      class: 'cx', 'stroke-width': 1.4 }));
+    const t = svgEl('text', { x: p.x, y: p.y + 4, class: 'cx-t', 'font-size': 12, 'text-anchor': 'middle' });
+    t.textContent = c.label;
+    g.appendChild(t);
+    const s = svgEl('text', { x: p.x, y: p.y + 19, class: 'cx-s', 'font-size': 10, 'text-anchor': 'middle' });
+    s.textContent = count + ' terms';
+    g.appendChild(s);
+    g.addEventListener('click', () => openPanel(c));
+    svg.appendChild(g);
+  });
+  const fig = el('div', 'figure');
+  fig.appendChild(svg);
+  sheet.appendChild(fig);
+  sheet.appendChild(el('p', 'fig-note',
+    'Line weight is how many terms two contexts share. Teal means an explicit dkg:dependsOn; ' +
+    'grey is inferred from shared membership only, and is a question rather than a finding.'));
+
+  const straddlers = [...memberCtx.entries()].filter(([, s]) => s.size > 1);
+  if (straddlers.length) {
+    sheet.appendChild(el('h2', null, 'Straddlers \u00b7 ' + straddlers.length));
+    sheet.appendChild(el('p', 'empty', 'Named inside more than one context. Either the boundary is wrong, or the word means two things.'));
+    const box = el('div', 'chips');
+    box.style.marginTop = '10px';
+    for (const [nid, set] of straddlers) {
+      const n = nodeOf(nid);
+      if (!n) continue;
+      const p = pill(n, null);
+      p.title = [...set].map(labelOf).join(' | ');
+      box.appendChild(p);
+    }
+    sheet.appendChild(box);
+  }
+  if (state.depth >= 2) {
+    for (const c of contexts) {
+      sheet.appendChild(el('h2', null, c.label));
+      const list = members.get(c.id) || [];
+      if (!list.length) sheet.appendChild(el('p', 'empty', 'Nothing is placed in this context.'));
+      else sheet.appendChild(chipRow(list));
+    }
+  }
+}
+
+/* ---- generic fallback ---- */
+function renderGeneric(a, mine) {
+  if (!mine.length) { sheet.appendChild(el('p', 'empty', 'Nothing cites this artifact as a source.')); return; }
+  const groups = new Map();
+  for (const n of mine) {
+    const k = primaryType(n) || 'Node';
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(n);
+  }
+  const wrap = el('div', 'grouped');
+  for (const [k, list] of [...groups].sort((x, y) => y[1].length - x[1].length)) {
+    wrap.appendChild(el('h3', null, humanise(k) + ' \u00b7 ' + list.length));
+    wrap.appendChild(chipRow(list.sort((x, y) => x.label.localeCompare(y.label))));
+  }
+  sheet.appendChild(wrap);
+  const line = sharedLine(mine, a.id);
+  if (line) { sheet.appendChild(el('h2', null, 'Names shared with other artifacts')); sheet.appendChild(line); }
+}
+
+/* ---- shared language lens ---- */
+function renderLanguage() {
+  sheet.appendChild(el('h1', null, 'Shared language'));
+  sheet.appendChild(el('p', 'sub',
+    'Names that appear in more than one artifact, matched on spelling after case, punctuation and ' +
+    'plurals are normalised. Corroboration is the point of the graph — a term four artifacts agree ' +
+    'on is the domain\u2019s spine, and one they spell differently is an argument worth having.'));
+
+  const rows = [...state.aliasGroups.values()]
+    .map(g => ({ g, arts: (() => { const s = new Set(); g.nodes.forEach(n => reach(n).forEach(a => s.add(a))); return [...s]; })() }))
+    .filter(r => r.arts.length > 1)
+    .sort((x, y) => y.arts.length - x.arts.length || x.g.nodes[0].label.localeCompare(y.g.nodes[0].label));
+
+  if (!rows.length) sheet.appendChild(el('p', 'empty', 'No name appears in more than one artifact yet.'));
+  for (const r of rows) {
+    const row = el('div', 'lang-row');
+    const term = el('div', 'term');
+    term.appendChild(pill(r.g.nodes[0]));
+    const spellings = [...r.g.spellings].filter(s => s !== r.g.nodes[0].label);
+    if (spellings.length) term.appendChild(el('div', 'where', 'also written ' + spellings.join(', ')));
+    row.appendChild(term);
+    row.appendChild(el('div', 'where', r.arts.map(labelOf).join(', ')));
+    row.appendChild(el('div', 'n', String(r.arts.length)));
+    sheet.appendChild(row);
+  }
+
+  const clashes = [...state.aliasGroups.values()].filter(g => g.nodes.length > 1);
+  if (clashes.length) {
+    sheet.appendChild(el('h2', null, 'One name, more than one node'));
+    sheet.appendChild(el('p', 'empty',
+      'These did not merge on IRI but read as the same word. Each is either a missed merge or ' +
+      'genuinely two things that need distinguishing.'));
+    for (const g of clashes) {
+      const w = el('div', 'warn');
+      w.appendChild(el('div', 'h', [...g.spellings].join(' / ')));
+      const box = el('div', 'chips');
+      for (const n of g.nodes) {
+        const p = pill(n);
+        p.title = n.id + ' \u2014 ' + n.sources.map(labelOf).join(', ');
+        box.appendChild(p);
+      }
+      w.appendChild(box);
+      sheet.appendChild(w);
+    }
+  }
+
+  const stated = [];
+  for (const n of state.nodes.values()) {
+    for (const id of outOf(n, 'renamedTo')) stated.push([n, 'renamed to', nodeOf(id)]);
+    for (const id of outOf(n, 'proposedSameAs')) stated.push([n, 'proposed same as', nodeOf(id)]);
+  }
+  if (stated.length) {
+    sheet.appendChild(el('h2', null, 'Links the graph already states'));
+    for (const [from, verb, to] of stated) {
+      const r = el('div', 'pills');
+      r.appendChild(pill(from));
+      r.appendChild(el('span', 'lvl-tag', verb));
+      if (to) r.appendChild(pill(to));
+      sheet.appendChild(r);
+    }
+  }
+}
+
+/* ============================================================
+   5. Panel
+   ============================================================ */
+function closePanel() { panel.classList.remove('open'); panel.innerHTML = ''; }
+
+function openPanel(node) {
+  panel.innerHTML = '';
+  panel.classList.add('open');
+  const close = el('button', 'p-close', '\u00d7');
+  close.addEventListener('click', closePanel);
+  panel.appendChild(close);
+  panel.appendChild(el('h2', 'p-title', node.label));
+  panel.appendChild(el('p', 'p-iri', node.id));
+
+  const facts = el('dl', 'p-sec');
+  facts.style.margin = '0';
+  const factRow = (k, v) => {
+    if (!v) return;
+    const r = el('div', 'p-row');
+    r.appendChild(el('dt', null, k));
+    const dd = el('dd');
+    dd.textContent = v;
+    r.appendChild(dd);
+    facts.appendChild(r);
+  };
+  factRow('Type', node.types.map(humanise).join(', '));
+  if (node.alt.length) factRow('Also called', node.alt.join(', '));
+  factRow('Confidence', node.confidence ? humanise(node.confidence) : null);
+  factRow('Locator', node.locator);
+  for (const l of node.lits) factRow(humanise(l.pred), l.value);
+  if (facts.children.length) panel.appendChild(facts);
+
+  const arts = reach(node);
+  if (arts.length) {
+    const sec = el('div', 'p-sec');
+    sec.appendChild(el('h4', null, arts.length > 1 ? 'Appears in ' + arts.length + ' artifacts' : 'Appears in'));
+    for (const s of arts) {
+      const b = el('button', 'link', labelOf(s));
+      b.addEventListener('click', () => { const a = nodeOf(s); if (a) go({ kind: 'artifact' }, a); });
+      sec.appendChild(b);
+    }
+    panel.appendChild(sec);
+  }
+
+  const twins = twinsOf(node);
+  if (twins.length) {
+    const sec = el('div', 'p-sec');
+    sec.appendChild(el('h4', null, 'Same name, different node'));
+    for (const t of twins) {
+      const b = el('button', 'link', t.label + ' \u00b7 ' + (t.sources.map(labelOf).join(', ') || 'no source'));
+      b.addEventListener('click', () => openPanel(t));
+      sec.appendChild(b);
+    }
+    panel.appendChild(sec);
+  }
+
+  if (!isA(node, 'Sentence') && !isA(node, 'Artifact')) {
+    const occ = occurrences(node);
+    if (occ.length) {
+      const sec = el('div', 'p-sec');
+      sec.appendChild(el('h4', null, 'Named in ' + occ.length + (occ.length === 1 ? ' sentence' : ' sentences')));
+      for (const sen of occ) {
+        const box = el('div', 'occ');
+        box.appendChild(el('div', 'where', sen.sources.map(labelOf).join(', ') +
+          (sen.seq != null ? ' \u00b7 sentence ' + sen.seq : '')));
+        const b = el('button', 'link', sen.label);
+        b.addEventListener('click', () => {
+          const art = nodeOf(sen.sources[0]);
+          if (art) { state.view = { kind: 'artifact' }; state.artifact = art; render(); openPanel(sen); }
+        });
+        box.appendChild(b);
+        sec.appendChild(box);
+      }
+      panel.appendChild(sec);
+    }
+  }
+
+  const rels = [...node.out].filter(([p]) =>
+    !(isA(node, 'Sentence') && [d('mentions'), d('performedBy'), d('actsOn')].includes(p)));
+  if (rels.length) {
+    const sec = el('div', 'p-sec');
+    sec.appendChild(el('h4', null, 'Related'));
+    for (const [p, list] of rels) {
+      const r = el('div', 'p-row');
+      r.appendChild(el('dt', null, humanise(p)));
+      const dd = el('dd');
+      for (const id of list) {
+        const target = nodeOf(id);
+        const b = el('button', 'link', labelOf(id));
+        b.addEventListener('click', () => { if (target) openPanel(target); });
+        dd.appendChild(b);
+      }
+      r.appendChild(dd);
+      sec.appendChild(r);
+    }
+    panel.appendChild(sec);
+  }
+}
+
+/* ============================================================
+   6. Controls and loading
+   ============================================================ */
+document.getElementById('depth').addEventListener('click', e => {
+  const b = e.target.closest('button[data-d]');
+  if (!b) return;
+  state.depth = parseInt(b.dataset.d, 10);
+  [...b.parentNode.children].forEach(x => x.classList.toggle('on', x === b));
+  render();
+});
+document.getElementById('search').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const q = normalise(e.target.value);
+  if (!q) return;
+  const g = state.aliasByKey && state.aliasByKey.get(q);
+  if (g) { openPanel(g.nodes[0]); return; }
+  let hit = null;
+  for (const n of state.nodes.values()) {
+    if (isA(n, 'Sentence') || isA(n, 'Artifact')) continue;
+    if (normalise(n.label).includes(q)) { hit = n; break; }
+  }
+  if (hit) openPanel(hit); else say('Nothing matching "' + e.target.value.trim() + '".', true);
+});
+
+const notice = document.getElementById('notice');
+let noticeTimer = null;
+function say(msg, bad) {
+  notice.textContent = msg;
+  notice.classList.toggle('bad', !!bad);
+  notice.classList.add('on');
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => notice.classList.remove('on'), bad ? 8000 : 5000);
+}
+
+function loadText(text, name) {
+  let result;
+  try { result = /^\s*[{\[]/.test(text) ? parseJsonGraph(text) : parseTurtle(text); }
+  catch (err) { say('Could not read ' + (name || 'that file') + ': ' + err.message, true); return; }
+  if (!result.triples.length) { say('No statements in ' + (name || 'that file') + '.', true); return; }
+  state.prefixes = result.prefixes || {};
+  state.nodes = buildIndex(result.triples);
+  assemble();
+  state.view = { kind: 'register' };
+  state.artifact = null;
+  closePanel();
+  render();
+  if (name) {
+    const linked = [...state.aliasGroups.values()].filter(g => sharedAcross(g) > 1).length;
+    say(state.artifacts.length + ' artifacts read from ' + name + '. ' +
+        linked + ' names appear in more than one of them.');
+  }
+}
+
+document.getElementById('btn-load').addEventListener('click', () => document.getElementById('file-input').click());
+document.getElementById('file-input').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => loadText(String(r.result), f.name);
+  r.readAsText(f);
+  e.target.value = '';
+});
+const veil = document.getElementById('veil');
+let dragDepth = 0;
+window.addEventListener('dragenter', e => { e.preventDefault(); dragDepth++; veil.classList.add('on'); });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; veil.classList.remove('on'); } });
+window.addEventListener('drop', e => {
+  e.preventDefault(); dragDepth = 0; veil.classList.remove('on');
+  const f = e.dataTransfer.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => loadText(String(r.result), f.name);
+  r.readAsText(f);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePanel();
+  if (e.key === '/' && document.activeElement !== document.getElementById('search')) {
+    e.preventDefault(); document.getElementById('search').focus();
+  }
+});
+
+const SAMPLE = `
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix :     <https://w3id.org/dkg/graph/community-cooking#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+dkg:ContextMap rdfs:subClassOf dkg:Artifact .
+
+### artifacts ###############################################################
+:Art_BMC a dkg:BusinessModelCanvas ; rdfs:label "Community Cooking canvas" ;
+  rdfs:comment "Workshop canvas, nine blocks, no lines drawn between them." ;
+  dkg:ingestedAt "2026-02-10"^^xsd:date .
+:Art_ImpactMap a dkg:ImpactMap ; rdfs:label "Retention impact map" ;
+  rdfs:comment "One goal, three actors." ; dkg:ingestedAt "2026-02-18"^^xsd:date .
+:Art_Wardley a dkg:WardleyMap ; rdfs:label "Cooking assistance value chain" ;
+  rdfs:comment "Hand-drawn, two components straddle a band line." ; dkg:ingestedAt "2026-02-24"^^xsd:date .
+:Art_StoryA a dkg:DomainStory ; rdfs:label "Story A — rescuing a burnt meal" ;
+  rdfs:comment "Whiteboard photo, six sentences, two lanes." ; dkg:ingestedAt "2026-03-04"^^xsd:date .
+:Art_StoryB a dkg:DomainStory ; rdfs:label "Story B — planning the week" ;
+  rdfs:comment "egon.io export, five sentences, no lanes drawn." ; dkg:ingestedAt "2026-03-06"^^xsd:date .
+:Art_ESBoard a dkg:EventStormingBoard ; rdfs:label "Cooking session board" ;
+  rdfs:comment "Three photos stitched, nine events in two bubbles." ; dkg:ingestedAt "2026-03-12"^^xsd:date .
+:Art_ContextMap a dkg:ContextMap ; rdfs:label "Context map, first cut" ;
+  rdfs:comment "Drawn after the board; four contexts." ; dkg:ingestedAt "2026-03-19"^^xsd:date .
+
+### contexts ################################################################
+:Ctx_Cooking a dkg:BoundedContext ; skos:prefLabel "Cooking" ;
+  dkg:source :Art_StoryA, :Art_ESBoard, :Art_ContextMap ; dkg:confidence dkg:OnArtifact .
+:Ctx_Assistance a dkg:BoundedContext ; skos:prefLabel "Cook Assistance" ; skos:altLabel "Assistance" ;
+  dkg:source :Art_StoryA, :Art_ESBoard, :Art_ContextMap ; dkg:confidence dkg:OnArtifact ;
+  dkg:dependsOn :Ctx_Cooking .
+:Ctx_Planning a dkg:BoundedContext ; skos:prefLabel "Meal Planning" ;
+  dkg:source :Art_ContextMap ; dkg:confidence dkg:OnArtifact ; dkg:dependsOn :Ctx_Supply .
+:Ctx_Supply a dkg:BoundedContext ; skos:prefLabel "Supply" ;
+  dkg:source :Art_ContextMap ; dkg:confidence dkg:OnArtifact .
+
+### the shared vocabulary ###################################################
+:Act_Cook a dkg:Actor ; skos:prefLabel "Cook" ;
+  dkg:source :Art_StoryA, :Art_StoryB, :Art_ESBoard, :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Act_HomeCook a dkg:CustomerSegment ; skos:prefLabel "Cooks" ;
+  rdfs:comment "The canvas segment. Probably the same people as :Act_Cook — nobody has said so." ;
+  dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Act_GrandmaAvatar a dkg:ExternalSystem ; skos:prefLabel "Grandma Avatar" ; skos:altLabel "AI Avatar" ;
+  dkg:source :Art_StoryA, :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:Act_Household a dkg:Actor ; skos:prefLabel "Household" ;
+  dkg:source :Art_StoryB, :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Act_Grocer a dkg:KeyPartner ; skos:prefLabel "Local grocer" ;
+  dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+
+:Con_Meal a dkg:WorkObject ; skos:prefLabel "Meal" ; dkg:inContext :Ctx_Cooking ;
+  dkg:source :Art_StoryA, :Art_StoryB, :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:Con_Recipe a dkg:WorkObject ; skos:prefLabel "Recipe" ; dkg:inContext :Ctx_Cooking ;
+  dkg:source :Art_StoryA, :Art_StoryB, :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Con_MealPlan a dkg:WorkObject ; skos:prefLabel "Meal Plan" ; dkg:inContext :Ctx_Planning ;
+  dkg:source :Art_StoryB, :Art_ESBoard, :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Con_ShoppingList a dkg:WorkObject ; skos:prefLabel "Shopping List" ; dkg:inContext :Ctx_Supply ;
+  dkg:source :Art_StoryB ; dkg:confidence dkg:OnArtifact .
+:Con_Ingredients a dkg:WorkObject ; skos:prefLabel "Ingredients" ; dkg:inContext :Ctx_Supply ;
+  dkg:source :Art_StoryB, :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Con_CatastrophePictures a dkg:WorkObject ; skos:prefLabel "Catastrophe Pictures" ; dkg:inContext :Ctx_Assistance ;
+  dkg:source :Art_StoryA ; dkg:confidence dkg:OnArtifact .
+:Con_Help a dkg:WorkObject ; skos:prefLabel "Help" ; dkg:inContext :Ctx_Assistance ;
+  dkg:source :Art_StoryA ; dkg:confidence dkg:OnArtifact .
+:Con_Rescue a dkg:WorkObject ; skos:prefLabel "Rescue Suggestion" ; dkg:inContext :Ctx_Assistance ;
+  dkg:source :Art_StoryA, :Art_ESBoard ; dkg:confidence dkg:Implied .
+
+### business model canvas ###################################################
+:VP_NeverRuinDinner a dkg:ValueProposition ; skos:prefLabel "Dinner is never ruined" ;
+  dkg:servesSegment :Act_HomeCook ; dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:VP_PlanOnce a dkg:ValueProposition ; skos:prefLabel "Plan the week once" ;
+  dkg:servesSegment :Act_HomeCook ; dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Ch_App a dkg:Channel ; skos:prefLabel "Phone app" ; dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:CR_Community a dkg:CustomerRelationship ; skos:prefLabel "Neighbourhood community" ;
+  dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Rev_Subscription a dkg:RevenueStream ; skos:prefLabel "Monthly subscription" ;
+  dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Res_RecipeLibrary a dkg:KeyResource ; skos:prefLabel "Recipe library" ;
+  dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Cap_Rescue a dkg:KeyActivity ; skos:prefLabel "Rescue advice" ;
+  dkg:supports :VP_NeverRuinDinner ; dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+:Cost_Hosting a dkg:CostStructure ; skos:prefLabel "Model hosting" ;
+  dkg:source :Art_BMC ; dkg:confidence dkg:OnArtifact .
+
+### impact map ##############################################################
+:Goal_Retention a dkg:Goal ; skos:prefLabel "Cooks still cooking after three months" ;
+  dkg:metric "60% of signups active in month 3" ;
+  dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Imp_AskInsteadOfQuit a dkg:Impact ; skos:prefLabel "Asks for help instead of giving up" ;
+  dkg:impactedActor :Act_Cook ; dkg:towardsGoal :Goal_Retention ;
+  dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Imp_PlansAhead a dkg:Impact ; skos:prefLabel "Plans the week in one sitting" ;
+  dkg:impactedActor :Act_Household ; dkg:towardsGoal :Goal_Retention ;
+  dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Del_HelpRequest a dkg:Deliverable ; skos:prefLabel "In-app help request" ;
+  dkg:realises :Imp_AskInsteadOfQuit ; dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Del_RescueLibrary a dkg:Deliverable ; skos:prefLabel "Rescue Suggestion library" ;
+  dkg:realises :Imp_AskInsteadOfQuit ; dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Del_WeeklyPlanner a dkg:Deliverable ; skos:prefLabel "Weekly Meal Plan builder" ;
+  dkg:realises :Imp_PlansAhead ; dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+:Del_Badges a dkg:Deliverable ; skos:prefLabel "Streak badges" ;
+  dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+
+### wardley map #############################################################
+:Goal_CookConfident a dkg:UserNeed ; skos:prefLabel "Get dinner on the table" ;
+  dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+:Cap_Assistance a dkg:Component ; skos:prefLabel "Cooking assistance" ;
+  dkg:supports :Goal_CookConfident ; dkg:dependsOn :Cap_RescueEngine, :Cap_RecipeData ;
+  dkg:evolution dkg:CustomBuilt ; dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+:Cap_Planner a dkg:Component ; skos:prefLabel "Meal planner" ;
+  dkg:supports :Goal_CookConfident ; dkg:dependsOn :Cap_RecipeData ;
+  dkg:evolution dkg:Product ; dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+:Cap_RescueEngine a dkg:Component ; skos:prefLabel "Rescue engine" ;
+  dkg:dependsOn :Cap_Vision, :Cap_LLM ; dkg:evolution dkg:Genesis ; dkg:movesTo dkg:CustomBuilt ;
+  dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+:Cap_RecipeData a dkg:Component ; skos:prefLabel "Recipe data" ;
+  dkg:dependsOn :Cap_Storage ; dkg:evolution dkg:Product ;
+  dkg:source :Art_Wardley ; dkg:confidence dkg:Inferred .
+:Cap_Vision a dkg:Component ; skos:prefLabel "Photo understanding" ;
+  dkg:dependsOn :Cap_Compute ; dkg:evolution dkg:Product ; dkg:movesTo dkg:Commodity ;
+  dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+:Cap_LLM a dkg:Component ; skos:prefLabel "Language model" ;
+  dkg:dependsOn :Cap_Compute ; dkg:evolution dkg:Product ;
+  dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+:Cap_Storage a dkg:Component ; skos:prefLabel "Storage" ; dkg:dependsOn :Cap_Compute ;
+  dkg:evolution dkg:Commodity ; dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+:Cap_Compute a dkg:Component ; skos:prefLabel "Compute" ; dkg:evolution dkg:Commodity ;
+  dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+
+### domain story A ##########################################################
+:Cmd_Starts a dkg:Activity ; skos:prefLabel "starts" ; dkg:source :Art_StoryA ; dkg:confidence dkg:OnArtifact .
+:Cmd_Burns a dkg:Activity ; skos:prefLabel "burns" ; dkg:source :Art_StoryA ; dkg:confidence dkg:OnArtifact .
+:Cmd_Takes a dkg:Activity ; skos:prefLabel "takes" ; dkg:source :Art_StoryA ; dkg:confidence dkg:OnArtifact .
+:Cmd_Asks a dkg:Activity ; skos:prefLabel "asks for" ; dkg:source :Art_StoryA ; dkg:confidence dkg:OnArtifact .
+:Cmd_Suggests a dkg:Activity ; skos:prefLabel "suggests" ; dkg:source :Art_StoryA ; dkg:confidence dkg:OnArtifact .
+:Cmd_Serves a dkg:Activity ; skos:prefLabel "serves" ; dkg:source :Art_StoryA, :Art_StoryB ; dkg:confidence dkg:OnArtifact .
+
+:Sen_A1 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Cook starts Meal from Recipe" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Starts, :Con_Meal, :Con_Recipe ;
+  dkg:inContext :Ctx_Cooking ; dkg:precedes :Sen_A2 ;
+  dkg:source :Art_StoryA ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact .
+:Sen_A2 a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Cook burns Meal" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Burns, :Con_Meal ;
+  dkg:inContext :Ctx_Cooking ; dkg:precedes :Sen_A3 ;
+  dkg:source :Art_StoryA ; dkg:locator "sentence 2a" ; dkg:confidence dkg:OnArtifact .
+:Sen_A3 a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "Cook takes Catastrophe Pictures" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Takes, :Con_CatastrophePictures ;
+  dkg:inContext :Ctx_Cooking ; dkg:precedes :Sen_A4 ;
+  dkg:source :Art_StoryA ; dkg:locator "sentence 2b" ; dkg:confidence dkg:OnArtifact .
+:Sen_A4 a dkg:Sentence ; dkg:sequence 4 ;
+  skos:prefLabel "Cook asks Grandma Avatar for Help with Catastrophe Pictures" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Asks, :Act_GrandmaAvatar, :Con_Help, :Con_CatastrophePictures ;
+  dkg:inContext :Ctx_Assistance ; dkg:precedes :Sen_A5 ;
+  dkg:source :Art_StoryA ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_A5 a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Grandma Avatar suggests Rescue Suggestion to Cook" ;
+  dkg:performedBy :Act_GrandmaAvatar ; dkg:mentions :Cmd_Suggests, :Con_Rescue, :Act_Cook ;
+  dkg:inContext :Ctx_Assistance ; dkg:precedes :Sen_A6 ;
+  dkg:source :Art_StoryA ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact .
+:Sen_A6 a dkg:Sentence ; dkg:sequence 6 ; skos:prefLabel "Cook serves Meal" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Serves, :Con_Meal ;
+  dkg:inContext :Ctx_Cooking ;
+  dkg:source :Art_StoryA ; dkg:locator "sentence 5" ; dkg:confidence dkg:OnArtifact .
+
+### domain story B ##########################################################
+:Cmd_Picks a dkg:Activity ; skos:prefLabel "picks" ; dkg:source :Art_StoryB ; dkg:confidence dkg:OnArtifact .
+:Cmd_Writes a dkg:Activity ; skos:prefLabel "writes" ; dkg:source :Art_StoryB ; dkg:confidence dkg:OnArtifact .
+:Cmd_Buys a dkg:Activity ; skos:prefLabel "buys" ; dkg:source :Art_StoryB ; dkg:confidence dkg:OnArtifact .
+
+:Sen_B1 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Household picks Recipe" ;
+  dkg:performedBy :Act_Household ; dkg:mentions :Cmd_Picks, :Con_Recipe ; dkg:precedes :Sen_B2 ;
+  dkg:source :Art_StoryB ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact .
+:Sen_B2 a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Cook writes Meal Plan from Recipe" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Writes, :Con_MealPlan, :Con_Recipe ; dkg:precedes :Sen_B3 ;
+  dkg:source :Art_StoryB ; dkg:locator "sentence 2" ; dkg:confidence dkg:OnArtifact .
+:Sen_B3 a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "Cook writes Shopping List from Meal Plan" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Writes, :Con_ShoppingList, :Con_MealPlan ; dkg:precedes :Sen_B4 ;
+  dkg:source :Art_StoryB ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_B4 a dkg:Sentence ; dkg:sequence 4 ; skos:prefLabel "Cook buys Ingredients from Shopping List" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Buys, :Con_Ingredients, :Con_ShoppingList ; dkg:precedes :Sen_B5 ;
+  dkg:source :Art_StoryB ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact .
+:Sen_B5 a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Cook serves Meal from Meal Plan" ;
+  dkg:performedBy :Act_Cook ; dkg:mentions :Cmd_Serves, :Con_Meal, :Con_MealPlan ;
+  dkg:source :Art_StoryB ; dkg:locator "sentence 5" ; dkg:confidence dkg:OnArtifact .
+
+### event storming board ####################################################
+:Agg_Cook a dkg:Aggregate ; skos:prefLabel "Cooking session" ; dkg:hasState "planned, cooking, burnt, served" ;
+  dkg:inContext :Ctx_Cooking ; dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:Agg_Request a dkg:Aggregate ; skos:prefLabel "Help request" ; dkg:hasState "open, answered, abandoned" ;
+  dkg:inContext :Ctx_Assistance ; dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:RM_RescueFeed a dkg:ReadModel ; skos:prefLabel "Rescue feed" ; dkg:inContext :Ctx_Assistance ;
+  dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:Cmd_StartCooking a dkg:Command ; skos:prefLabel "Start cooking" ; dkg:triggers :Ev_CookingStarted ;
+  dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:Cmd_RequestHelp a dkg:Command ; skos:prefLabel "Request help" ; dkg:triggers :Ev_HelpRequested ;
+  dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:Cmd_AnswerHelp a dkg:Command ; skos:prefLabel "Answer request" ; dkg:triggers :Ev_RescueSuggested ;
+  dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:R_OnBurn a dkg:Policy ; skos:prefLabel "Whenever a meal burns, offer help" ;
+  dkg:reactsTo :Ev_MealBurnt ; dkg:triggers :Cmd_RequestHelp ;
+  dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+:Q_WhoAnswers a dkg:Hotspot ; skos:prefLabel "Who answers at 7pm on a Tuesday?" ;
+  dkg:source :Art_ESBoard ; dkg:confidence dkg:OnArtifact .
+
+:Ev_CookingStarted a dkg:DomainEvent ; dkg:sequence 1 ; skos:prefLabel "Cooking started" ;
+  dkg:performedBy :Act_Cook ; dkg:emittedBy :Agg_Cook ; dkg:mentions :Con_Recipe, :Con_MealPlan ;
+  dkg:inContext :Ctx_Cooking ; dkg:precedes :Ev_MealBurnt ;
+  dkg:source :Art_ESBoard ; dkg:locator "event 1" ; dkg:confidence dkg:OnArtifact .
+:Ev_MealBurnt a dkg:DomainEvent ; dkg:sequence 2 ; skos:prefLabel "Meal burnt" ;
+  dkg:performedBy :Act_Cook ; dkg:emittedBy :Agg_Cook ; dkg:mentions :Con_Meal ;
+  dkg:inContext :Ctx_Cooking ; dkg:precedes :Ev_HelpRequested ; dkg:raises :Q_WhoAnswers ;
+  dkg:source :Art_ESBoard ; dkg:locator "event 2" ; dkg:confidence dkg:OnArtifact .
+:Ev_HelpRequested a dkg:DomainEvent ; dkg:sequence 3 ; skos:prefLabel "Help requested" ;
+  dkg:performedBy :Act_Cook ; dkg:emittedBy :Agg_Request ; dkg:mentions :Con_CatastrophePictures ;
+  dkg:inContext :Ctx_Assistance ; dkg:precedes :Ev_RescueSuggested ;
+  dkg:source :Art_ESBoard ; dkg:locator "event 3" ; dkg:confidence dkg:OnArtifact .
+:Ev_RescueSuggested a dkg:DomainEvent ; dkg:sequence 4 ; skos:prefLabel "Rescue suggested" ;
+  dkg:performedBy :Act_GrandmaAvatar ; dkg:emittedBy :Agg_Request ;
+  dkg:reads :RM_RescueFeed ; dkg:mentions :Con_Rescue ;
+  dkg:inContext :Ctx_Assistance ; dkg:precedes :Ev_MealServed ;
+  dkg:source :Art_ESBoard ; dkg:locator "event 4" ; dkg:confidence dkg:OnArtifact .
+:Ev_MealServed a dkg:DomainEvent ; dkg:sequence 5 ; skos:prefLabel "Meal served" ;
+  dkg:performedBy :Act_Cook ; dkg:emittedBy :Agg_Cook ; dkg:mentions :Con_Meal ;
+  dkg:inContext :Ctx_Cooking ;
+  dkg:source :Art_ESBoard ; dkg:locator "event 5" ; dkg:confidence dkg:OnArtifact .
+`;
+
+document.getElementById('btn-theme').addEventListener('click', () => setTheme(THEME === 'light' ? 'dark' : 'light'));
+document.getElementById('btn-sample').addEventListener('click', () => loadText(SAMPLE, 'sample graph'));
+setTheme('light');
+loadText(SAMPLE, null);
+say('Showing a sample graph with six artifact kinds. Drop your own graph.ttl to replace it.');
+</script>
+</body>
+</html>

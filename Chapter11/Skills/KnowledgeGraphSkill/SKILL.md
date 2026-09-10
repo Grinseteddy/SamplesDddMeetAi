@@ -15,6 +15,7 @@ description: >-
   combine, reconcile or navigate two or more modelling artifacts together, and
   on follow-ups adding one more — even if nobody says "knowledge graph", "RDF"
   or "ontology". Outputs a .ttl file plus browsable views.
+author: Annegret Junker
 ---
 
 # Domain Knowledge Graph

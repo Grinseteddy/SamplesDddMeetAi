@@ -1,0 +1,2095 @@
+@prefix dkg:    <https://w3id.org/dkg/ns#> .
+@prefix larder: <https://w3id.org/dkg/larder/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/larder> a owl:Ontology ;
+                              rdfs:label "Larder Domain Knowledge Graph"@en ;
+                              owl:imports <https://w3id.org/dkg/ns> .
+
+# =============================================================================
+# Artifact Register
+# =============================================================================
+
+larder:Brainstorm_20260910_01 a dkg:Brainstorm, dkg:Artifact ;
+                              rdfs:label "Brainstorming Convergence Board 01" ;
+                              dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:BMC_20260910_01 a dkg:BusinessModelCanvas, dkg:Artifact ;
+                       rdfs:label "Business Model Canvas Enhanced 02" ;
+                       dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:CapMap_20260910_01 a dkg:CapabilityMap, dkg:CoreDomainChart, dkg:Artifact ;
+                          rdfs:label "Capability Map Step 3" ;
+                          dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:ImpactMap_20260910_01 a dkg:ImpactMap, dkg:Artifact ;
+                             rdfs:label "Impact Mapping with AI Step 3" ;
+                             dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:WardleyMap_20260910_01 a dkg:WardleyMap, dkg:Artifact ;
+                              rdfs:label "Wardley Map Evolution 05" ;
+                              dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:DS_AskChef a dkg:DomainStory, dkg:Artifact ;
+                  rdfs:label "Domain Story: Ask Chef" ;
+                  dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:DS_AskCommunity a dkg:DomainStory, dkg:Artifact ;
+                       rdfs:label "Domain Story: Ask Community" ;
+                       dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:DS_Competition a dkg:DomainStory, dkg:Artifact ;
+                      rdfs:label "Domain Story: Competition" ;
+                      dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:DS_Grandma_Crisis a dkg:DomainStory, dkg:Artifact ;
+                         rdfs:label "Domain Story: Grandma Avatar (Crisis Rescue)" ;
+                         dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:DS_Grandma_Prep a dkg:DomainStory, dkg:Artifact ;
+                       rdfs:label "Domain Story: Grandma Avatar II (Preparation Help)" ;
+                       dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:ES_Board_20260910_01 a dkg:EventStormingBoard, dkg:Artifact ;
+                            rdfs:label "EventStorming Board with Bounded Contexts 07" ;
+                            dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:VG_20260910_01 a dkg:VisualGlossary, dkg:Artifact ;
+                      rdfs:label "Visual Glossary Enhanced 08" ;
+                      dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:ContextMap_20260910_01 a dkg:Artifact ;
+                              rdfs:label "Context Map 09" ;
+                              dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+# =============================================================================
+# Bounded Contexts & Strategic Domains
+# =============================================================================
+
+larder:CoreDomain a dkg:BoundedContext ; rdfs:label "Core Domain" .
+larder:SupportingDomain a dkg:BoundedContext ; rdfs:label "Supporting Domain" .
+larder:GenericDomain a dkg:BoundedContext ; rdfs:label "Generic Domain" .
+
+larder:phase_onboarding a dkg:BoundedContext ; rdfs:label "Onboarding Phase" .
+larder:phase_cooking a dkg:BoundedContext ; rdfs:label "Cooking Phase" .
+larder:phase_cooking_support a dkg:BoundedContext ; rdfs:label "Cooking Support Phase" .
+larder:phase_sharing a dkg:BoundedContext ; rdfs:label "Sharing Phase" .
+larder:phase_rating a dkg:BoundedContext ; rdfs:label "Rating Phase" .
+
+larder:bc_cook_profile a dkg:BoundedContext, dkg:Node ;
+                       skos:prefLabel "Cook Profile"@en ;
+                       dkg:source larder:ES_Board_20260910_01, larder:ContextMap_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:bc_meal_planning a dkg:BoundedContext, dkg:Node ;
+                        skos:prefLabel "Meal Planning"@en ;
+                        dkg:source larder:ES_Board_20260910_01, larder:ContextMap_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:cluster_planner, larder:cap_planner .
+
+larder:bc_cooking_assistance a dkg:BoundedContext, dkg:Node ;
+                             skos:prefLabel "Cooking Assistance"@en ;
+                             dkg:source larder:ES_Board_20260910_01, larder:ContextMap_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact ;
+                             dkg:proposedSameAs larder:cluster_cooking_support, larder:phase_cooking_support .
+
+larder:bc_meal_preparation a dkg:BoundedContext, dkg:Node ;
+                           skos:prefLabel "Meal Preparation"@en ;
+                           dkg:source larder:ES_Board_20260910_01, larder:ContextMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:phase_cooking .
+
+larder:bc_media a dkg:BoundedContext, dkg:Node ;
+                skos:prefLabel "Media"@en ;
+                dkg:source larder:ES_Board_20260910_01, larder:ContextMap_20260910_01 ;
+                dkg:confidence dkg:OnArtifact ;
+                dkg:proposedSameAs larder:kr_media .
+
+larder:bc_sharing a dkg:BoundedContext, dkg:Node ;
+                  skos:prefLabel "Sharing"@en ;
+                  dkg:source larder:ES_Board_20260910_01, larder:ContextMap_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact ;
+                  dkg:proposedSameAs larder:phase_sharing .
+
+larder:bc_consent_management a dkg:BoundedContext, dkg:Node ;
+                             skos:prefLabel "Consent Management"@en ;
+                             dkg:source larder:ContextMap_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact .
+
+larder:bc_notification a dkg:BoundedContext, dkg:Node ;
+                       skos:prefLabel "Notification"@en ;
+                       dkg:source larder:ContextMap_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:bc_recipe_catalog a dkg:BoundedContext, dkg:Node ;
+                         skos:prefLabel "Recipe Catalog"@en ;
+                         dkg:source larder:ContextMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:bc_grandma_avatar_ai a dkg:BoundedContext, dkg:Node ;
+                            skos:prefLabel "Grandma Avatar AI"@en ;
+                            dkg:source larder:ContextMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact ;
+                            dkg:proposedSameAs larder:sys_grandma_avatar, larder:term_grandma_avatar .
+
+# =============================================================================
+# 1. Brainstorm Nodes (Root & Clusters & Ideas)
+# =============================================================================
+
+larder:cluster_larder a dkg:Cluster, dkg:Node ;
+                      skos:prefLabel "Larder"@en ;
+                      dkg:source larder:Brainstorm_20260910_01 ;
+                      dkg:locator "Center Green Sticky" ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:cluster_shopping a dkg:Cluster, dkg:Node ;
+                        skos:prefLabel "Shopping"@en ;
+                        dkg:inCluster larder:cluster_larder ;
+                        dkg:source larder:Brainstorm_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:cluster_special a dkg:Cluster, dkg:Node ;
+                       skos:prefLabel "Special"@en ;
+                       dkg:inCluster larder:cluster_larder ;
+                       dkg:source larder:Brainstorm_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:cluster_community a dkg:Cluster, dkg:Node ;
+                         skos:prefLabel "Community"@en ;
+                         dkg:inCluster larder:cluster_larder ;
+                         dkg:source larder:Brainstorm_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:cluster_grill_master a dkg:Cluster, dkg:Node ;
+                            skos:prefLabel "Grill master"@en ;
+                            dkg:inCluster larder:cluster_community ;
+                            dkg:source larder:Brainstorm_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:cluster_authentication a dkg:Cluster, dkg:Node ;
+                              skos:prefLabel "Authentication"@en ;
+                              dkg:inCluster larder:cluster_larder ;
+                              dkg:source larder:Brainstorm_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+larder:cluster_content_creation a dkg:Cluster, dkg:Node ;
+                                skos:prefLabel "Content Creation"@en ;
+                                dkg:inCluster larder:cluster_larder ;
+                                dkg:source larder:Brainstorm_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:cluster_content_rating a dkg:Cluster, dkg:Node ;
+                              skos:prefLabel "Content Rating"@en ;
+                              dkg:inCluster larder:cluster_larder ;
+                              dkg:source larder:Brainstorm_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+larder:cluster_planner a dkg:Cluster, dkg:Node ;
+                       skos:prefLabel "Planner"@en ;
+                       dkg:inCluster larder:cluster_larder ;
+                       dkg:source larder:Brainstorm_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:cluster_recipe_search a dkg:Cluster, dkg:Node ;
+                             skos:prefLabel "Recipe Search"@en ;
+                             dkg:inCluster larder:cluster_larder ;
+                             dkg:source larder:Brainstorm_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact .
+
+larder:cluster_cooking_support a dkg:Cluster, dkg:Node ;
+                               skos:prefLabel "Cooking Support"@en ;
+                               dkg:inCluster larder:cluster_larder ;
+                               dkg:source larder:Brainstorm_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact .
+
+larder:cluster_ask_grandma a dkg:Cluster, dkg:Node ;
+                           skos:prefLabel "Ask grandma"@en ;
+                           dkg:inCluster larder:cluster_cooking_support ;
+                           dkg:source larder:Brainstorm_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:cluster_creator_support a dkg:Cluster, dkg:Node ;
+                               skos:prefLabel "Creator Support"@en ;
+                               dkg:inCluster larder:cluster_larder ;
+                               dkg:source larder:Brainstorm_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact .
+
+larder:cluster_helper a dkg:Cluster, dkg:Node ;
+                      skos:prefLabel "Helper"@en ;
+                      dkg:inCluster larder:cluster_larder ;
+                      dkg:source larder:Brainstorm_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact .
+
+# Ideas
+larder:idea_larder_tracker a dkg:Idea, dkg:Node ;
+                           skos:prefLabel "Larder tracker"@en ;
+                           dkg:inCluster larder:cluster_shopping ;
+                           dkg:source larder:Brainstorm_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:idea_order_ingredients_directly a dkg:Idea, dkg:Node ;
+                                       skos:prefLabel "Order ingredients directly"@en ;
+                                       dkg:inCluster larder:cluster_shopping ;
+                                       dkg:source larder:Brainstorm_20260910_01 ;
+                                       dkg:confidence dkg:OnArtifact .
+
+larder:idea_kitchen_tools a dkg:Idea, dkg:Node ;
+                          skos:prefLabel "Kitchen tools"@en ;
+                          dkg:inCluster larder:cluster_shopping ;
+                          dkg:source larder:Brainstorm_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:idea_necessary_stuff a dkg:Idea, dkg:Node ;
+                            skos:prefLabel "Necessary stuff"@en ;
+                            dkg:inCluster larder:cluster_shopping ;
+                            dkg:source larder:Brainstorm_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:idea_historical_recipes a dkg:Idea, dkg:Node ;
+                               skos:prefLabel "Historical recipes"@en ;
+                               dkg:inCluster larder:cluster_special ;
+                               dkg:source larder:Brainstorm_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact .
+
+larder:idea_cooking_club a dkg:Idea, dkg:Node ;
+                         skos:prefLabel "Cooking Club"@en ;
+                         dkg:inCluster larder:cluster_community ;
+                         dkg:source larder:Brainstorm_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:idea_sponsor_contest a dkg:Idea, dkg:Node ;
+                            skos:prefLabel "Sponsor contest"@en ;
+                            dkg:inCluster larder:cluster_community ;
+                            dkg:source larder:Brainstorm_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:idea_sharing_on_instagram a dkg:Idea, dkg:Node ;
+                                 skos:prefLabel "Sharing on Instagram"@en ;
+                                 dkg:inCluster larder:cluster_community ;
+                                 dkg:source larder:Brainstorm_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact .
+
+larder:idea_login_with_social_account a dkg:Idea, dkg:Node ;
+                                      skos:prefLabel "Login with social account"@en ;
+                                      dkg:inCluster larder:cluster_authentication ;
+                                      dkg:source larder:Brainstorm_20260910_01 ;
+                                      dkg:confidence dkg:OnArtifact .
+
+larder:idea_cooking_videos a dkg:Idea, dkg:Node ;
+                           skos:prefLabel "Cooking Videos"@en ;
+                           dkg:inCluster larder:cluster_content_creation ;
+                           dkg:source larder:Brainstorm_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:idea_making_photos a dkg:Idea, dkg:Node ;
+                          skos:prefLabel "Making Photos"@en ;
+                          dkg:inCluster larder:cluster_content_creation ;
+                          dkg:source larder:Brainstorm_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:idea_remix_of_recipes a dkg:Idea, dkg:Node ;
+                             skos:prefLabel "Remix of recipes"@en ;
+                             dkg:inCluster larder:cluster_content_creation ;
+                             dkg:source larder:Brainstorm_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact .
+
+larder:idea_store_recipes a dkg:Idea, dkg:Node ;
+                          skos:prefLabel "Store recipes"@en ;
+                          dkg:inCluster larder:cluster_content_creation ;
+                          dkg:source larder:Brainstorm_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:idea_comments a dkg:Idea, dkg:Node ;
+                     skos:prefLabel "Comments"@en ;
+                     dkg:inCluster larder:cluster_content_rating ;
+                     dkg:source larder:Brainstorm_20260910_01 ;
+                     dkg:confidence dkg:OnArtifact .
+
+larder:idea_followers a dkg:Idea, dkg:Node ;
+                      skos:prefLabel "Followers"@en ;
+                      dkg:inCluster larder:cluster_content_rating ;
+                      dkg:source larder:Brainstorm_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:idea_rating a dkg:Idea, dkg:Node ;
+                   skos:prefLabel "Rating"@en ;
+                   dkg:inCluster larder:cluster_content_rating ;
+                   dkg:source larder:Brainstorm_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:idea_dinner_party_planner a dkg:Idea, dkg:Node ;
+                                 skos:prefLabel "Dinner-party planner"@en ;
+                                 dkg:inCluster larder:cluster_planner ;
+                                 dkg:source larder:Brainstorm_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact .
+
+larder:idea_cooking_calendar a dkg:Idea, dkg:Node ;
+                             skos:prefLabel "Cooking Calendar"@en ;
+                             dkg:inCluster larder:cluster_planner ;
+                             dkg:source larder:Brainstorm_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact .
+
+larder:idea_food_pairing a dkg:Idea, dkg:Node ;
+                         skos:prefLabel "Food pairing"@en ;
+                         dkg:inCluster larder:cluster_planner ;
+                         dkg:source larder:Brainstorm_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:idea_search_with_things_i_already_have a dkg:Idea, dkg:Node ;
+                                              skos:prefLabel "Search with things I already have"@en ;
+                                              dkg:inCluster larder:cluster_recipe_search ;
+                                              dkg:source larder:Brainstorm_20260910_01 ;
+                                              dkg:confidence dkg:OnArtifact .
+
+larder:idea_search_with_cooking_time a dkg:Idea, dkg:Node ;
+                                     skos:prefLabel "Search with cooking time"@en ;
+                                     dkg:inCluster larder:cluster_recipe_search ;
+                                     dkg:source larder:Brainstorm_20260910_01 ;
+                                     dkg:confidence dkg:OnArtifact .
+
+larder:idea_meal_chooser a dkg:Idea, dkg:Node ;
+                         skos:prefLabel "Meal Chooser"@en ;
+                         dkg:inCluster larder:cluster_recipe_search ;
+                         dkg:source larder:Brainstorm_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:idea_leftover_optimisations a dkg:Idea, dkg:Node ;
+                                   skos:prefLabel "Left over optimisations"@en ;
+                                   dkg:inCluster larder:cluster_recipe_search ;
+                                   dkg:source larder:Brainstorm_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact .
+
+larder:idea_budget a dkg:Idea, dkg:Node ;
+                   skos:prefLabel "Budget"@en ;
+                   dkg:inCluster larder:cluster_recipe_search ;
+                   dkg:source larder:Brainstorm_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:idea_allergens a dkg:Idea, dkg:Node ;
+                      skos:prefLabel "Allergens"@en ;
+                      dkg:inCluster larder:cluster_recipe_search ;
+                      dkg:source larder:Brainstorm_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:idea_dietary_requirements a dkg:Idea, dkg:Node ;
+                                 skos:prefLabel "Dietary requirements"@en ;
+                                 dkg:inCluster larder:cluster_recipe_search ;
+                                 dkg:source larder:Brainstorm_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact .
+
+larder:idea_fridge_photo_recipe_generation a dkg:Idea, dkg:Node ;
+                                           skos:prefLabel "Fridge-photo recipe generation"@en ;
+                                           dkg:inCluster larder:cluster_recipe_search ;
+                                           dkg:source larder:Brainstorm_20260910_01 ;
+                                           dkg:confidence dkg:OnArtifact .
+
+larder:idea_smart_kitchen a dkg:Idea, dkg:Node ;
+                          skos:prefLabel "Smart kitchen"@en ;
+                          dkg:inCluster larder:cluster_cooking_support ;
+                          dkg:source larder:Brainstorm_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:idea_cooking_skill_learning a dkg:Idea, dkg:Node ;
+                                   skos:prefLabel "Cooking skill learning"@en ;
+                                   dkg:inCluster larder:cluster_cooking_support ;
+                                   dkg:source larder:Brainstorm_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact .
+
+larder:idea_famous_chefs_as_partner a dkg:Idea, dkg:Node ;
+                                    skos:prefLabel "Famous chefs as partner"@en ;
+                                    dkg:inCluster larder:cluster_cooking_support ;
+                                    dkg:source larder:Brainstorm_20260910_01 ;
+                                    dkg:confidence dkg:OnArtifact .
+
+larder:idea_step_by_step_cooking_mode a dkg:Idea, dkg:Node ;
+                                      skos:prefLabel "Step-by-step cooking mode"@en ;
+                                      dkg:inCluster larder:cluster_cooking_support ;
+                                      dkg:source larder:Brainstorm_20260910_01 ;
+                                      dkg:confidence dkg:OnArtifact .
+
+larder:idea_cooking_skill_level a dkg:Idea, dkg:Node ;
+                                skos:prefLabel "Cooking skill level"@en ;
+                                dkg:inCluster larder:cluster_cooking_support ;
+                                dkg:source larder:Brainstorm_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:idea_grandpa_shows_how_to_do_it a dkg:Idea, dkg:Node ;
+                                       skos:prefLabel "Grandpa shows how to do it"@en ;
+                                       dkg:inCluster larder:cluster_ask_grandma ;
+                                       dkg:source larder:Brainstorm_20260910_01 ;
+                                       dkg:confidence dkg:OnArtifact .
+
+larder:idea_timer a dkg:Idea, dkg:Node ;
+                  skos:prefLabel "Timer"@en ;
+                  dkg:inCluster larder:cluster_creator_support ;
+                  dkg:source larder:Brainstorm_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact .
+
+larder:idea_cookbook_publishing a dkg:Idea, dkg:Node ;
+                                skos:prefLabel "Cookbook publishing"@en ;
+                                dkg:inCluster larder:cluster_creator_support ;
+                                dkg:source larder:Brainstorm_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:idea_voice_control a dkg:Idea, dkg:Node ;
+                          skos:prefLabel "Voice control"@en ;
+                          dkg:inCluster larder:cluster_helper ;
+                          dkg:source larder:Brainstorm_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+# =============================================================================
+# 2. Business Model Canvas Nodes
+# =============================================================================
+
+larder:kp_kitchen_ware_retailer a dkg:KeyPartner, dkg:Node ;
+                                skos:prefLabel "Kitchen ware retailer"@en ;
+                                dkg:source larder:BMC_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:kp_grocery_stores a dkg:KeyPartner, dkg:Node ;
+                         skos:prefLabel "Grocery stores"@en ;
+                         dkg:source larder:BMC_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:kp_photo_book_service a dkg:KeyPartner, dkg:Node ;
+                             skos:prefLabel "Photo book service"@en ;
+                             dkg:source larder:BMC_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact .
+
+larder:kp_chefs a dkg:KeyPartner, dkg:Node ;
+                skos:prefLabel "Chefs"@en ;
+                dkg:source larder:BMC_20260910_01 ;
+                dkg:confidence dkg:OnArtifact ;
+                dkg:proposedSameAs larder:idea_famous_chefs_as_partner .
+
+larder:ka_content_creation a dkg:KeyActivity, dkg:Node ;
+                           skos:prefLabel "Content Creation"@en ;
+                           dkg:source larder:BMC_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:cluster_content_creation .
+
+larder:ka_content_rating a dkg:KeyActivity, dkg:Node ;
+                         skos:prefLabel "Content Rating"@en ;
+                         dkg:source larder:BMC_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact ;
+                         dkg:proposedSameAs larder:cluster_content_rating .
+
+larder:ka_cooking_support a dkg:KeyActivity, dkg:Node ;
+                          skos:prefLabel "Cooking Support"@en ;
+                          dkg:source larder:BMC_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:cluster_cooking_support .
+
+larder:ka_recipe_search a dkg:KeyActivity, dkg:Node ;
+                        skos:prefLabel "Recipe Search"@en ;
+                        dkg:source larder:BMC_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:cluster_recipe_search .
+
+larder:kr_cooks a dkg:KeyResource, dkg:Node ;
+                skos:prefLabel "Cooks"@en ;
+                dkg:source larder:BMC_20260910_01 ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:kr_media a dkg:KeyResource, dkg:Node ;
+                skos:prefLabel "Media"@en ;
+                dkg:source larder:BMC_20260910_01 ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:kr_recipes a dkg:KeyResource, dkg:Node ;
+                  skos:prefLabel "Recipes"@en ;
+                  dkg:source larder:BMC_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact .
+
+larder:kr_ai_search_support a dkg:KeyResource, dkg:Node ;
+                            skos:prefLabel "AI search support"@en ;
+                            dkg:source larder:BMC_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:vp_easy_to_find_recipes a dkg:ValueProposition, dkg:Node ;
+                               skos:prefLabel "Easy to find recipes"@en ;
+                               dkg:source larder:BMC_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact .
+
+larder:vp_cooking_support a dkg:ValueProposition, dkg:Node ;
+                          skos:prefLabel "Cooking support"@en ;
+                          dkg:source larder:BMC_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:cluster_cooking_support .
+
+larder:vp_recipes_for_specialized_nutrition_requirements a dkg:ValueProposition, dkg:Node ;
+                                                         skos:prefLabel "Recipes for specialized nutrition requirements"@en ;
+                                                         dkg:source larder:BMC_20260910_01 ;
+                                                         dkg:confidence dkg:OnArtifact ;
+                                                         dkg:proposedSameAs larder:idea_dietary_requirements, larder:idea_allergens .
+
+larder:vp_ai_proposals a dkg:ValueProposition, dkg:Node ;
+                       skos:prefLabel "AI proposals"@en ;
+                       dkg:source larder:BMC_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:vp_planner a dkg:ValueProposition, dkg:Node ;
+                  skos:prefLabel "Planner"@en ;
+                  dkg:source larder:BMC_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact ;
+                  dkg:proposedSameAs larder:cluster_planner .
+
+larder:cr_daily_for_sharing a dkg:CustomerRelationship, dkg:Node ;
+                            skos:prefLabel "Daily for sharing"@en ;
+                            dkg:source larder:BMC_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:cr_weekly_for_creating a dkg:CustomerRelationship, dkg:Node ;
+                              skos:prefLabel "Weekly for creating"@en ;
+                              dkg:source larder:BMC_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+larder:cr_community a dkg:CustomerRelationship, dkg:Node ;
+                    skos:prefLabel "Community"@en ;
+                    dkg:source larder:BMC_20260910_01 ;
+                    dkg:confidence dkg:OnArtifact ;
+                    dkg:proposedSameAs larder:cluster_community .
+
+larder:ch_app a dkg:Channel, dkg:Node ;
+              skos:prefLabel "App"@en ;
+              dkg:source larder:BMC_20260910_01 ;
+              dkg:confidence dkg:OnArtifact .
+
+larder:cs_singles a dkg:CustomerSegment, dkg:Node ;
+                  skos:prefLabel "Singles"@en ;
+                  dkg:source larder:BMC_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact .
+
+larder:cs_young_families a dkg:CustomerSegment, dkg:Node ;
+                         skos:prefLabel "Young families"@en ;
+                         dkg:source larder:BMC_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:cost_software_development a dkg:CostStructure, dkg:Node ;
+                                 skos:prefLabel "Software development"@en ;
+                                 dkg:source larder:BMC_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact .
+
+larder:cost_software_maintainance a dkg:CostStructure, dkg:Node ;
+                                  skos:prefLabel "Software maintainance"@en ;
+                                  skos:altLabel "Software maintenance"@en ;
+                                  dkg:source larder:BMC_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:cost_cloud_service a dkg:CostStructure, dkg:Node ;
+                          skos:prefLabel "Cloud service"@en ;
+                          dkg:source larder:BMC_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:cost_licenses a dkg:CostStructure, dkg:Node ;
+                     skos:prefLabel "Licenses"@en ;
+                     dkg:source larder:BMC_20260910_01 ;
+                     dkg:confidence dkg:OnArtifact .
+
+larder:cost_marketing a dkg:CostStructure, dkg:Node ;
+                      skos:prefLabel "Marketing"@en ;
+                      dkg:source larder:BMC_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:rev_monthly_member_fee a dkg:RevenueStream, dkg:Node ;
+                              skos:prefLabel "Monthly member fee"@en ;
+                              dkg:source larder:BMC_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+larder:rev_ads_by_partners a dkg:RevenueStream, dkg:Node ;
+                           skos:prefLabel "Ads by partners"@en ;
+                           dkg:source larder:BMC_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+# =============================================================================
+# 3. Capability Map & Core Domain Nodes
+# =============================================================================
+
+larder:cap_famous_chefs_partner a dkg:Capability, dkg:Node ;
+                                skos:prefLabel "Famous chefs partner"@en ;
+                                dkg:inContext larder:phase_onboarding, larder:CoreDomain ;
+                                dkg:source larder:CapMap_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact ;
+                                dkg:proposedSameAs larder:idea_famous_chefs_as_partner, larder:kp_chefs .
+
+larder:cap_member_management a dkg:Capability, dkg:Node ;
+                             skos:prefLabel "Member management"@en ;
+                             dkg:inContext larder:phase_onboarding, larder:GenericDomain ;
+                             dkg:source larder:CapMap_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact ;
+                             dkg:proposedSameAs larder:rev_monthly_member_fee .
+
+larder:cap_ads_management a dkg:Capability, dkg:Node ;
+                          skos:prefLabel "Ads management"@en ;
+                          dkg:inContext larder:phase_onboarding, larder:GenericDomain ;
+                          dkg:source larder:CapMap_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:rev_ads_by_partners .
+
+larder:cap_meal_chooser a dkg:Capability, dkg:Node ;
+                        skos:prefLabel "Meal Chooser"@en ;
+                        dkg:inContext larder:phase_cooking, larder:SupportingDomain ;
+                        dkg:source larder:CapMap_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:idea_meal_chooser .
+
+larder:cap_proposals_based_on_larder a dkg:Capability, dkg:Node ;
+                                     skos:prefLabel "Proposals based on larder, etc."@en ;
+                                     dkg:inContext larder:phase_cooking, larder:CoreDomain ;
+                                     dkg:source larder:CapMap_20260910_01 ;
+                                     dkg:confidence dkg:OnArtifact ;
+                                     dkg:proposedSameAs larder:vp_ai_proposals, larder:idea_fridge_photo_recipe_generation .
+
+larder:cap_planner a dkg:Capability, dkg:Node ;
+                   skos:prefLabel "Planner"@en ;
+                   dkg:inContext larder:phase_cooking, larder:SupportingDomain ;
+                   dkg:source larder:CapMap_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact ;
+                   dkg:proposedSameAs larder:cluster_planner, larder:vp_planner .
+
+larder:cap_community_engagement a dkg:Capability, dkg:Node ;
+                                skos:prefLabel "Community Engagement"@en ;
+                                dkg:inContext larder:phase_cooking, larder:CoreDomain ;
+                                dkg:source larder:CapMap_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact ;
+                                dkg:proposedSameAs larder:cluster_community, larder:cr_community .
+
+larder:cap_nutrition_requirement_management a dkg:Capability, dkg:Node ;
+                                            skos:prefLabel "Nutrition requirement management"@en ;
+                                            dkg:inContext larder:phase_cooking_support, larder:SupportingDomain ;
+                                            dkg:source larder:CapMap_20260910_01 ;
+                                            dkg:confidence dkg:OnArtifact ;
+                                            dkg:proposedSameAs larder:vp_recipes_for_specialized_nutrition_requirements, larder:idea_dietary_requirements .
+
+larder:cap_direct_ordering a dkg:Capability, dkg:Node ;
+                           skos:prefLabel "Direct ordering"@en ;
+                           dkg:inContext larder:phase_cooking_support, larder:GenericDomain ;
+                           dkg:source larder:CapMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:idea_order_ingredients_directly, larder:kp_grocery_stores .
+
+larder:cap_kitchen_tool_ordering a dkg:Capability, dkg:Node ;
+                                 skos:prefLabel "Kitchen tool ordering"@en ;
+                                 dkg:inContext larder:phase_cooking_support, larder:GenericDomain ;
+                                 dkg:source larder:CapMap_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact ;
+                                 dkg:proposedSameAs larder:idea_kitchen_tools, larder:kp_kitchen_ware_retailer .
+
+larder:cap_cooking_aids a dkg:Capability, dkg:Node ;
+                        skos:prefLabel "Cooking aids"@en ;
+                        dkg:inContext larder:phase_cooking_support, larder:GenericDomain ;
+                        dkg:source larder:CapMap_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:idea_timer, larder:idea_voice_control .
+
+larder:cap_grandma_grandpa a dkg:Capability, dkg:Node ;
+                           skos:prefLabel "Grandma / Grandpa"@en ;
+                           dkg:inContext larder:phase_cooking_support, larder:CoreDomain ;
+                           dkg:source larder:CapMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:cluster_ask_grandma, larder:idea_grandpa_shows_how_to_do_it .
+
+larder:cap_content_creation a dkg:Capability, dkg:Node ;
+                            skos:prefLabel "Content Creation"@en ;
+                            dkg:inContext larder:phase_sharing, larder:CoreDomain ;
+                            dkg:source larder:CapMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact ;
+                            dkg:proposedSameAs larder:ka_content_creation, larder:cluster_content_creation .
+
+larder:cap_cookbook_publishing a dkg:Capability, dkg:Node ;
+                               skos:prefLabel "Cookbook publishing"@en ;
+                               dkg:inContext larder:phase_sharing, larder:SupportingDomain ;
+                               dkg:source larder:CapMap_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact ;
+                               dkg:proposedSameAs larder:idea_cookbook_publishing, larder:kp_photo_book_service .
+
+larder:cap_paywall_for_premium_content a dkg:Capability, dkg:Node ;
+                                       skos:prefLabel "Paywall for premium content"@en ;
+                                       dkg:inContext larder:phase_sharing, larder:GenericDomain ;
+                                       dkg:source larder:CapMap_20260910_01 ;
+                                       dkg:confidence dkg:OnArtifact ;
+                                       dkg:proposedSameAs larder:rev_monthly_member_fee .
+
+larder:cap_rating a dkg:Capability, dkg:Node ;
+                  skos:prefLabel "Rating"@en ;
+                  dkg:inContext larder:phase_rating, larder:SupportingDomain ;
+                  dkg:source larder:CapMap_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact ;
+                  dkg:proposedSameAs larder:idea_rating, larder:ka_content_rating .
+
+# =============================================================================
+# 4. Impact Map Nodes
+# =============================================================================
+
+larder:goal_paying_members a dkg:Goal, dkg:Node ;
+                           skos:prefLabel "Larder - recipe sharing platform with min. 2,500 paying members in two years"@en ;
+                           dkg:metric "2,500 paying members in two years" ;
+                           dkg:source larder:ImpactMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:actor_single a dkg:Actor, dkg:Node ;
+                    skos:prefLabel "Single"@en ;
+                    dkg:source larder:ImpactMap_20260910_01 ;
+                    dkg:confidence dkg:OnArtifact ;
+                    dkg:proposedSameAs larder:cs_singles .
+
+larder:actor_young_family a dkg:Actor, dkg:Node ;
+                          skos:prefLabel "Young family"@en ;
+                          dkg:source larder:ImpactMap_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:cs_young_families .
+
+larder:actor_cook_as_author a dkg:Actor, dkg:Node ;
+                            skos:prefLabel "Cook as author"@en ;
+                            dkg:source larder:ImpactMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:actor_kitchen_ware_retailer a dkg:Actor, dkg:Node ;
+                                   skos:prefLabel "Kitchen ware retailer"@en ;
+                                   dkg:source larder:ImpactMap_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact ;
+                                   dkg:proposedSameAs larder:kp_kitchen_ware_retailer .
+
+larder:actor_chefs_as_senior_partner a dkg:Actor, dkg:Node ;
+                                     skos:prefLabel "Chefs as senior partner"@en ;
+                                     dkg:source larder:ImpactMap_20260910_01 ;
+                                     dkg:confidence dkg:OnArtifact ;
+                                     dkg:proposedSameAs larder:kp_chefs, larder:cap_famous_chefs_partner .
+
+larder:actor_grocery_store a dkg:Actor, dkg:Node ;
+                           skos:prefLabel "Grocery store"@en ;
+                           dkg:source larder:ImpactMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:kp_grocery_stores .
+
+larder:actor_photo_book_service a dkg:Actor, dkg:Node ;
+                                skos:prefLabel "Photo book service"@en ;
+                                dkg:source larder:ImpactMap_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact ;
+                                dkg:proposedSameAs larder:kp_photo_book_service .
+
+larder:actor_propects a dkg:Actor, dkg:Node ;
+                      skos:prefLabel "Propects"@en ;
+                      skos:altLabel "Prospects"@en ;
+                      dkg:source larder:ImpactMap_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:actor_convertable a dkg:Actor, dkg:Node ;
+                         skos:prefLabel "Convertable"@en ;
+                         skos:altLabel "Convertible"@en ;
+                         dkg:source larder:ImpactMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:impact_follows_dietry_plans a dkg:Impact, dkg:Node ;
+                                   skos:prefLabel "follows dietry plans"@en ;
+                                   dkg:towardsGoal larder:goal_paying_members ;
+                                   dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                                   dkg:source larder:ImpactMap_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact .
+
+larder:impact_shop_easily_ingredients_discount a dkg:Impact, dkg:Node ;
+                                               skos:prefLabel "Shop easily ingredients and tools with discount"@en ;
+                                               dkg:towardsGoal larder:goal_paying_members ;
+                                               dkg:impactedActor larder:actor_single, larder:actor_young_family, larder:actor_kitchen_ware_retailer, larder:actor_grocery_store ;
+                                               dkg:source larder:ImpactMap_20260910_01 ;
+                                               dkg:confidence dkg:OnArtifact .
+
+larder:impact_use_community_recipes a dkg:Impact, dkg:Node ;
+                                    skos:prefLabel "Use of community shared recipes"@en ;
+                                    dkg:towardsGoal larder:goal_paying_members ;
+                                    dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                                    dkg:source larder:ImpactMap_20260910_01 ;
+                                    dkg:confidence dkg:OnArtifact .
+
+larder:impact_find_easily_recipes a dkg:Impact, dkg:Node ;
+                                  skos:prefLabel "Find easily recipes"@en ;
+                                  dkg:towardsGoal larder:goal_paying_members ;
+                                  dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                                  dkg:source larder:ImpactMap_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:impact_supports_unexperienced_members a dkg:Impact, dkg:Node ;
+                                             skos:prefLabel "supports unexperienced members"@en ;
+                                             dkg:towardsGoal larder:goal_paying_members ;
+                                             dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                                             dkg:source larder:ImpactMap_20260910_01 ;
+                                             dkg:confidence dkg:OnArtifact .
+
+larder:impact_use_effective_limited_budget a dkg:Impact, dkg:Node ;
+                                           skos:prefLabel "Use effective limited budget"@en ;
+                                           dkg:towardsGoal larder:goal_paying_members ;
+                                           dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                                           dkg:source larder:ImpactMap_20260910_01 ;
+                                           dkg:confidence dkg:OnArtifact .
+
+larder:impact_learn_cooking a dkg:Impact, dkg:Node ;
+                            skos:prefLabel "Learn cooking"@en ;
+                            dkg:towardsGoal larder:goal_paying_members ;
+                            dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                            dkg:source larder:ImpactMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:impact_publish_own_cookbook a dkg:Impact, dkg:Node ;
+                                   skos:prefLabel "Publish their own cookbook"@en ;
+                                   dkg:towardsGoal larder:goal_paying_members ;
+                                   dkg:impactedActor larder:actor_cook_as_author, larder:actor_photo_book_service ;
+                                   dkg:source larder:ImpactMap_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact .
+
+larder:impact_cookbooks_make_curious a dkg:Impact, dkg:Node ;
+                                     skos:prefLabel "Cookbooks make curious"@en ;
+                                     dkg:towardsGoal larder:goal_paying_members ;
+                                     dkg:impactedActor larder:actor_propects, larder:actor_photo_book_service ;
+                                     dkg:source larder:ImpactMap_20260910_01 ;
+                                     dkg:confidence dkg:OnArtifact .
+
+larder:impact_follow_cooks a dkg:Impact, dkg:Node ;
+                           skos:prefLabel "Follow cooks"@en ;
+                           dkg:towardsGoal larder:goal_paying_members ;
+                           dkg:impactedActor larder:actor_single, larder:actor_young_family, larder:actor_chefs_as_senior_partner ;
+                           dkg:source larder:ImpactMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:impact_convert_to_paid_plan a dkg:Impact, dkg:Node ;
+                                   skos:prefLabel "convert to paid plan"@en ;
+                                   dkg:towardsGoal larder:goal_paying_members ;
+                                   dkg:impactedActor larder:actor_convertable ;
+                                   dkg:source larder:ImpactMap_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact .
+
+larder:impact_paid_member_renews a dkg:Impact, dkg:Node ;
+                                 skos:prefLabel "paid member renews"@en ;
+                                 dkg:towardsGoal larder:goal_paying_members ;
+                                 dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                                 dkg:source larder:ImpactMap_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact .
+
+larder:impact_see_premium_content a dkg:Impact, dkg:Node ;
+                                  skos:prefLabel "see premium content"@en ;
+                                  dkg:towardsGoal larder:goal_paying_members ;
+                                  dkg:impactedActor larder:actor_single, larder:actor_young_family ;
+                                  dkg:source larder:ImpactMap_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:impact_pay_for_ads a dkg:Impact, dkg:Node ;
+                          skos:prefLabel "pay for ads"@en ;
+                          dkg:towardsGoal larder:goal_paying_members ;
+                          dkg:impactedActor larder:actor_kitchen_ware_retailer, larder:actor_grocery_store ;
+                          dkg:source larder:ImpactMap_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:del_nutrition_requirement_management a dkg:Deliverable, dkg:Node ;
+                                            skos:prefLabel "Nutrition requirement management"@en ;
+                                            dkg:realises larder:impact_follows_dietry_plans ;
+                                            dkg:sequence 1 ;
+                                            dkg:source larder:ImpactMap_20260910_01 ;
+                                            dkg:confidence dkg:OnArtifact ;
+                                            dkg:proposedSameAs larder:cap_nutrition_requirement_management .
+
+larder:del_direct_ordering a dkg:Deliverable, dkg:Node ;
+                           skos:prefLabel "Direct ordering"@en ;
+                           dkg:realises larder:impact_shop_easily_ingredients_discount ;
+                           dkg:sequence 1 ;
+                           dkg:source larder:ImpactMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:cap_direct_ordering .
+
+larder:del_kitchen_tool_ordering a dkg:Deliverable, dkg:Node ;
+                                 skos:prefLabel "Kitchen tool ordering"@en ;
+                                 dkg:realises larder:impact_shop_easily_ingredients_discount ;
+                                 dkg:sequence 2 ;
+                                 dkg:source larder:ImpactMap_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact ;
+                                 dkg:proposedSameAs larder:cap_kitchen_tool_ordering .
+
+larder:del_cooking_club a dkg:Deliverable, dkg:Node ;
+                        skos:prefLabel "Cooking club"@en ;
+                        dkg:realises larder:impact_use_community_recipes ;
+                        dkg:sequence 2 ;
+                        dkg:source larder:ImpactMap_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:idea_cooking_club .
+
+larder:del_content a dkg:Deliverable, dkg:Node ;
+                   skos:prefLabel "Content"@en ;
+                   dkg:realises larder:impact_find_easily_recipes, larder:impact_supports_unexperienced_members ;
+                   dkg:sequence 1 ;
+                   dkg:source larder:ImpactMap_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact ;
+                   dkg:proposedSameAs larder:cap_content_creation .
+
+larder:del_rating a dkg:Deliverable, dkg:Node ;
+                  skos:prefLabel "Rating"@en ;
+                  dkg:realises larder:impact_find_easily_recipes, larder:impact_supports_unexperienced_members ;
+                  dkg:sequence 1 ;
+                  dkg:source larder:ImpactMap_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact ;
+                  dkg:proposedSameAs larder:cap_rating .
+
+larder:del_meal_chooser a dkg:Deliverable, dkg:Node ;
+                        skos:prefLabel "Meal Chooser"@en ;
+                        dkg:realises larder:impact_find_easily_recipes, larder:impact_supports_unexperienced_members, larder:impact_use_effective_limited_budget ;
+                        dkg:sequence 2 ;
+                        dkg:source larder:ImpactMap_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:cap_meal_chooser .
+
+larder:del_ai_proposals a dkg:Deliverable, dkg:Node ;
+                        skos:prefLabel "AI proposals"@en ;
+                        dkg:realises larder:impact_find_easily_recipes, larder:impact_supports_unexperienced_members ;
+                        dkg:sequence 2 ;
+                        dkg:source larder:ImpactMap_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:vp_ai_proposals, larder:cap_proposals_based_on_larder .
+
+larder:del_timer a dkg:Deliverable, dkg:Node ;
+                 skos:prefLabel "Timer"@en ;
+                 dkg:realises larder:impact_learn_cooking ;
+                 dkg:sequence 3 ;
+                 dkg:source larder:ImpactMap_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact ;
+                 dkg:proposedSameAs larder:idea_timer .
+
+larder:del_grandma_grandpa_ai a dkg:Deliverable, dkg:Node ;
+                              skos:prefLabel "Grandma / Grandpa AI"@en ;
+                              dkg:realises larder:impact_learn_cooking ;
+                              dkg:sequence 3 ;
+                              dkg:source larder:ImpactMap_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact ;
+                              dkg:proposedSameAs larder:cap_grandma_grandpa .
+
+larder:del_planner a dkg:Deliverable, dkg:Node ;
+                   skos:prefLabel "Planner"@en ;
+                   dkg:realises larder:impact_find_easily_recipes, larder:impact_use_effective_limited_budget ;
+                   dkg:sequence 1 ;
+                   dkg:source larder:ImpactMap_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact ;
+                   dkg:proposedSameAs larder:cap_planner .
+
+larder:del_famous_chefs_partner a dkg:Deliverable, dkg:Node ;
+                                skos:prefLabel "Famous chefs partner"@en ;
+                                dkg:realises larder:impact_cookbooks_make_curious, larder:impact_follow_cooks ;
+                                dkg:sequence 2 ;
+                                dkg:source larder:ImpactMap_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact ;
+                                dkg:proposedSameAs larder:cap_famous_chefs_partner .
+
+larder:del_cookbook_publishing a dkg:Deliverable, dkg:Node ;
+                               skos:prefLabel "Cookbook publishing"@en ;
+                               dkg:realises larder:impact_publish_own_cookbook, larder:impact_cookbooks_make_curious ;
+                               dkg:sequence 1 ;
+                               dkg:source larder:ImpactMap_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact ;
+                               dkg:proposedSameAs larder:cap_cookbook_publishing .
+
+larder:del_member_management a dkg:Deliverable, dkg:Node ;
+                             skos:prefLabel "Member management"@en ;
+                             dkg:realises larder:impact_convert_to_paid_plan, larder:impact_paid_member_renews ;
+                             dkg:sequence 1 ;
+                             dkg:source larder:ImpactMap_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact ;
+                             dkg:proposedSameAs larder:cap_member_management .
+
+larder:del_paywall_for_premium_content a dkg:Deliverable, dkg:Node ;
+                                       skos:prefLabel "Paywall for premium content"@en ;
+                                       dkg:realises larder:impact_see_premium_content ;
+                                       dkg:sequence 1 ;
+                                       dkg:source larder:ImpactMap_20260910_01 ;
+                                       dkg:confidence dkg:OnArtifact ;
+                                       dkg:proposedSameAs larder:cap_paywall_for_premium_content .
+
+larder:del_ads_management a dkg:Deliverable, dkg:Node ;
+                          skos:prefLabel "Ads management"@en ;
+                          dkg:realises larder:impact_pay_for_ads ;
+                          dkg:sequence 1 ;
+                          dkg:source larder:ImpactMap_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:cap_ads_management .
+
+# =============================================================================
+# 5. Wardley Map Nodes
+# =============================================================================
+
+larder:wm_anchor_young_families a dkg:Actor, dkg:Node ;
+                                skos:prefLabel "Young families"@en ;
+                                dkg:source larder:WardleyMap_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact ;
+                                dkg:proposedSameAs larder:cs_young_families, larder:actor_young_family .
+
+larder:wm_anchor_singles a dkg:Actor, dkg:Node ;
+                         skos:prefLabel "Singles"@en ;
+                         dkg:source larder:WardleyMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact ;
+                         dkg:proposedSameAs larder:cs_singles, larder:actor_single .
+
+larder:wm_anchor_home_cook a dkg:Actor, dkg:Node ;
+                           skos:prefLabel "Home cook"@en ;
+                           dkg:source larder:WardleyMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:kr_cooks .
+
+larder:wm_anchor_prospect a dkg:Actor, dkg:Node ;
+                          skos:prefLabel "Prospect"@en ;
+                          dkg:source larder:WardleyMap_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:actor_propects .
+
+larder:wm_need_better_cooking_skills a dkg:UserNeed, dkg:Node ;
+                                     skos:prefLabel "Better cooking skills"@en ;
+                                     dkg:source larder:WardleyMap_20260910_01 ;
+                                     dkg:confidence dkg:OnArtifact .
+
+larder:wm_need_efficient_usage_groceries a dkg:UserNeed, dkg:Node ;
+                                         skos:prefLabel "Efficient usage of groceries"@en ;
+                                         dkg:source larder:WardleyMap_20260910_01 ;
+                                         dkg:confidence dkg:OnArtifact .
+
+larder:wm_need_create_content a dkg:UserNeed, dkg:Node ;
+                              skos:prefLabel "Create content"@en ;
+                              dkg:source larder:WardleyMap_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact ;
+                              dkg:proposedSameAs larder:ka_content_creation, larder:cap_content_creation .
+
+larder:wm_need_rate_content a dkg:UserNeed, dkg:Node ;
+                            skos:prefLabel "Rate content"@en ;
+                            dkg:source larder:WardleyMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact ;
+                            dkg:proposedSameAs larder:cap_rating, larder:del_rating .
+
+larder:wm_need_search_recipes a dkg:UserNeed, dkg:Node ;
+                              skos:prefLabel "Search recipes with nutrition, meals, ..."@en ;
+                              dkg:source larder:WardleyMap_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+larder:wm_need_support_cooking a dkg:UserNeed, dkg:Node ;
+                               skos:prefLabel "Support cooking"@en ;
+                               dkg:source larder:WardleyMap_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact ;
+                               dkg:proposedSameAs larder:cluster_cooking_support, larder:ka_cooking_support .
+
+larder:wm_need_become_a_member a dkg:UserNeed, dkg:Node ;
+                               skos:prefLabel "Become a member"@en ;
+                               dkg:source larder:WardleyMap_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact ;
+                               dkg:proposedSameAs larder:impact_convert_to_paid_plan .
+
+larder:comp_ask_grandma_grandpa a dkg:Component, dkg:Node ;
+                                skos:prefLabel "Ask Grandma / Grandpa"@en ;
+                                dkg:evolution dkg:CustomBuilt ;
+                                dkg:dependsOn larder:comp_specific_ai, larder:comp_remote_meeting, larder:comp_chat ;
+                                dkg:source larder:WardleyMap_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact ;
+                                dkg:proposedSameAs larder:cap_grandma_grandpa, larder:del_grandma_grandpa_ai .
+
+larder:comp_ask_chef a dkg:Component, dkg:Node ;
+                     skos:prefLabel "Ask chef"@en ;
+                     dkg:evolution dkg:CustomBuilt ;
+                     dkg:dependsOn larder:comp_remote_meeting, larder:comp_chat ;
+                     dkg:source larder:WardleyMap_20260910_01 ;
+                     dkg:confidence dkg:OnArtifact ;
+                     dkg:proposedSameAs larder:kp_chefs, larder:actor_chefs_as_senior_partner .
+
+larder:comp_competitions a dkg:Component, dkg:Node ;
+                         skos:prefLabel "Competitions"@en ;
+                         dkg:evolution dkg:CustomBuilt ;
+                         dkg:dependsOn larder:comp_chat ;
+                         dkg:source larder:WardleyMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact ;
+                         dkg:proposedSameAs larder:idea_sponsor_contest .
+
+larder:comp_ask_community a dkg:Component, dkg:Node ;
+                          skos:prefLabel "Ask community"@en ;
+                          dkg:evolution dkg:CustomBuilt ;
+                          dkg:dependsOn larder:comp_chat ;
+                          dkg:source larder:WardleyMap_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:cluster_community, larder:cap_community_engagement .
+
+larder:comp_specific_ai a dkg:Component, dkg:Node ;
+                        skos:prefLabel "Specific AI"@en ;
+                        dkg:evolution dkg:CustomBuilt ;
+                        dkg:dependsOn larder:comp_gen_ai ;
+                        dkg:source larder:WardleyMap_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact ;
+                        dkg:proposedSameAs larder:vp_ai_proposals, larder:cap_proposals_based_on_larder .
+
+larder:comp_refrigerator a dkg:Component, dkg:Node ;
+                         skos:prefLabel "Refrigerator"@en ;
+                         dkg:evolution dkg:Product ;
+                         dkg:dependsOn larder:comp_recipe_database ;
+                         dkg:source larder:WardleyMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:comp_nutrition a dkg:Component, dkg:Node ;
+                      skos:prefLabel "Nutrition"@en ;
+                      dkg:evolution dkg:Product ;
+                      dkg:dependsOn larder:comp_recipe_database ;
+                      dkg:source larder:WardleyMap_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact ;
+                      dkg:proposedSameAs larder:cap_nutrition_requirement_management .
+
+larder:comp_meal a dkg:Component, dkg:Node ;
+                 skos:prefLabel "Meal"@en ;
+                 dkg:evolution dkg:Product ;
+                 dkg:dependsOn larder:comp_recipe_database ;
+                 dkg:source larder:WardleyMap_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact ;
+                 dkg:proposedSameAs larder:cap_meal_chooser .
+
+larder:comp_advanced_search a dkg:Component, dkg:Node ;
+                            skos:prefLabel "Advanced Search"@en ;
+                            dkg:evolution dkg:Product ;
+                            dkg:dependsOn larder:comp_specific_ai, larder:comp_recipe_database ;
+                            dkg:source larder:WardleyMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:comp_rate_content a dkg:Component, dkg:Node ;
+                         skos:prefLabel "Rate content"@en ;
+                         dkg:evolution dkg:Product ;
+                         dkg:dependsOn larder:comp_rating_database ;
+                         dkg:source larder:WardleyMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact ;
+                         dkg:proposedSameAs larder:cap_rating .
+
+larder:comp_recipe_database a dkg:Component, dkg:Node ;
+                            skos:prefLabel "Recipe database"@en ;
+                            dkg:evolution dkg:Product ;
+                            dkg:dependsOn larder:comp_cloud ;
+                            dkg:source larder:WardleyMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:comp_rating_database a dkg:Component, dkg:Node ;
+                            skos:prefLabel "Rating Database"@en ;
+                            dkg:evolution dkg:Product ;
+                            dkg:dependsOn larder:comp_cloud ;
+                            dkg:source larder:WardleyMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:comp_write_recipe a dkg:Component, dkg:Node ;
+                         skos:prefLabel "Write recipe"@en ;
+                         dkg:evolution dkg:Commodity ;
+                         dkg:dependsOn larder:comp_recipe_database ;
+                         dkg:source larder:WardleyMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:comp_upload_media a dkg:Component, dkg:Node ;
+                         skos:prefLabel "Upload media"@en ;
+                         dkg:evolution dkg:Commodity ;
+                         dkg:dependsOn larder:comp_media_storage ;
+                         dkg:source larder:WardleyMap_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:comp_timer a dkg:Component, dkg:Node ;
+                  skos:prefLabel "Timer"@en ;
+                  dkg:evolution dkg:Commodity ;
+                  dkg:dependsOn larder:comp_mobile ;
+                  dkg:source larder:WardleyMap_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact ;
+                  dkg:proposedSameAs larder:idea_timer, larder:del_timer .
+
+larder:comp_free_hand_control a dkg:Component, dkg:Node ;
+                              skos:prefLabel "Free hand control"@en ;
+                              dkg:evolution dkg:Commodity ;
+                              dkg:dependsOn larder:comp_mobile ;
+                              dkg:source larder:WardleyMap_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact ;
+                              dkg:proposedSameAs larder:idea_voice_control .
+
+larder:comp_member_management a dkg:Component, dkg:Node ;
+                              skos:prefLabel "Member Management"@en ;
+                              dkg:evolution dkg:Commodity ;
+                              dkg:dependsOn larder:comp_idm ;
+                              dkg:source larder:WardleyMap_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact ;
+                              dkg:proposedSameAs larder:cap_member_management, larder:del_member_management .
+
+larder:comp_remote_meeting a dkg:Component, dkg:Node ;
+                           skos:prefLabel "Remote meeting"@en ;
+                           dkg:evolution dkg:Commodity ;
+                           dkg:dependsOn larder:comp_gen_ai, larder:comp_cloud ;
+                           dkg:source larder:WardleyMap_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:comp_chat a dkg:Component, dkg:Node ;
+                 skos:prefLabel "Chat"@en ;
+                 dkg:evolution dkg:Commodity ;
+                 dkg:dependsOn larder:comp_gen_ai, larder:comp_cloud ;
+                 dkg:source larder:WardleyMap_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact .
+
+larder:comp_gen_ai a dkg:Component, dkg:Node ;
+                   skos:prefLabel "Gen AI"@en ;
+                   dkg:evolution dkg:Commodity ;
+                   dkg:dependsOn larder:comp_cloud ;
+                   dkg:source larder:WardleyMap_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:comp_media_storage a dkg:Component, dkg:Node ;
+                          skos:prefLabel "Media Storage"@en ;
+                          dkg:evolution dkg:Commodity ;
+                          dkg:dependsOn larder:comp_cloud ;
+                          dkg:source larder:WardleyMap_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:comp_idm a dkg:Component, dkg:Node ;
+                skos:prefLabel "IDM"@en ;
+                dkg:evolution dkg:Commodity ;
+                dkg:dependsOn larder:comp_cloud ;
+                dkg:source larder:WardleyMap_20260910_01 ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:comp_cloud a dkg:Component, dkg:Node ;
+                  skos:prefLabel "Cloud"@en ;
+                  dkg:evolution dkg:Commodity ;
+                  dkg:source larder:WardleyMap_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact .
+
+larder:comp_mobile a dkg:Component, dkg:Node ;
+                   skos:prefLabel "Mobile"@en ;
+                   dkg:evolution dkg:Commodity ;
+                   dkg:source larder:WardleyMap_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact .
+
+# =============================================================================
+# 6. Domain Story Nodes
+# =============================================================================
+
+larder:ds_actor_cook a dkg:Actor, dkg:Node ;
+                     skos:prefLabel "Cook"@en ;
+                     dkg:source larder:DS_AskChef, larder:DS_AskCommunity, larder:DS_Competition, larder:DS_Grandma_Crisis, larder:DS_Grandma_Prep ;
+                     dkg:confidence dkg:OnArtifact ;
+                     dkg:proposedSameAs larder:wm_anchor_home_cook, larder:kr_cooks .
+
+larder:ds_actor_chef a dkg:Actor, dkg:Node ;
+                     skos:prefLabel "Chef"@en ;
+                     dkg:source larder:DS_AskChef ;
+                     dkg:confidence dkg:OnArtifact ;
+                     dkg:proposedSameAs larder:actor_chefs_as_senior_partner, larder:comp_ask_chef .
+
+larder:ds_actor_parents_in_law a dkg:Actor, dkg:Node ;
+                               skos:prefLabel "Parents in Law"@en ;
+                               dkg:source larder:DS_AskChef ;
+                               dkg:confidence dkg:OnArtifact .
+
+larder:ds_actor_community a dkg:Actor, dkg:Node ;
+                          skos:prefLabel "Community"@en ;
+                          dkg:source larder:DS_AskChef, larder:DS_AskCommunity, larder:DS_Grandma_Crisis, larder:DS_Grandma_Prep ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:comp_ask_community, larder:cap_community_engagement .
+
+larder:ds_actor_community_admin a dkg:Actor, dkg:Node ;
+                                skos:prefLabel "Community Administrator"@en ;
+                                dkg:source larder:DS_Competition ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:ds_actor_other_cooks a dkg:Actor, dkg:Node ;
+                            skos:prefLabel "Other cooks"@en ;
+                            dkg:source larder:DS_Competition ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:ds_actor_winner a dkg:Actor, dkg:Node ;
+                       skos:prefLabel "Winner"@en ;
+                       dkg:source larder:DS_Competition ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:ds_actor_grandma_avatar a dkg:Actor, dkg:Node ;
+                               skos:prefLabel "Grandma Avatar"@en ;
+                               skos:altLabel "Grandma"@en ;
+                               dkg:source larder:DS_Grandma_Crisis, larder:DS_Grandma_Prep ;
+                               dkg:confidence dkg:OnArtifact ;
+                               dkg:proposedSameAs larder:cap_grandma_grandpa, larder:del_grandma_grandpa_ai, larder:comp_ask_grandma_grandpa .
+
+larder:wo_dinner a dkg:WorkObject, dkg:Node ;
+                 skos:prefLabel "Dinner"@en ;
+                 dkg:source larder:DS_AskChef ;
+                 dkg:confidence dkg:OnArtifact .
+
+larder:wo_help a dkg:WorkObject, dkg:Node ;
+               skos:prefLabel "Help"@en ;
+               dkg:source larder:DS_AskChef, larder:DS_AskCommunity, larder:DS_Grandma_Crisis, larder:DS_Grandma_Prep ;
+               dkg:confidence dkg:OnArtifact .
+
+larder:wo_meal_planning a dkg:WorkObject, dkg:Node ;
+                        skos:prefLabel "Meal Planning"@en ;
+                        dkg:source larder:DS_AskChef ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:wo_meal a dkg:WorkObject, dkg:Node ;
+               skos:prefLabel "Meal"@en ;
+               dkg:source larder:DS_AskChef, larder:DS_AskCommunity, larder:DS_Competition, larder:DS_Grandma_Crisis, larder:DS_Grandma_Prep ;
+               dkg:confidence dkg:OnArtifact .
+
+larder:wo_pictures a dkg:WorkObject, dkg:Node ;
+                   skos:prefLabel "Pictures"@en ;
+                   dkg:source larder:DS_AskChef, larder:DS_AskCommunity, larder:DS_Grandma_Crisis, larder:DS_Grandma_Prep ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:wo_catastrophe_pictures a dkg:WorkObject, dkg:Node ;
+                               skos:prefLabel "Catastrophe Pictures"@en ;
+                               dkg:source larder:DS_Grandma_Crisis ;
+                               dkg:confidence dkg:OnArtifact .
+
+larder:wo_ingredients a dkg:WorkObject, dkg:Node ;
+                      skos:prefLabel "Ingredients"@en ;
+                      dkg:source larder:DS_AskCommunity ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:wo_ingredients_substitutes a dkg:WorkObject, dkg:Node ;
+                                  skos:prefLabel "Ingredients Substitutes"@en ;
+                                  dkg:source larder:DS_AskCommunity ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:wo_competition a dkg:WorkObject, dkg:Node ;
+                      skos:prefLabel "Competition"@en ;
+                      dkg:source larder:DS_Competition ;
+                      dkg:confidence dkg:OnArtifact ;
+                      dkg:proposedSameAs larder:comp_competitions, larder:idea_sponsor_contest .
+
+larder:wo_recipe a dkg:WorkObject, dkg:Node ;
+                 skos:prefLabel "Recipe"@en ;
+                 dkg:source larder:DS_Competition ;
+                 dkg:confidence dkg:OnArtifact .
+
+larder:wo_meal_prep_skill a dkg:WorkObject, dkg:Node ;
+                          skos:prefLabel "Meal Preparation Skill"@en ;
+                          dkg:source larder:DS_Competition ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:s_askchef_1 a dkg:Sentence, dkg:Node ;
+                   dkg:performedBy larder:ds_actor_cook ;
+                   dkg:actsOn larder:wo_dinner ;
+                   dkg:sequence 1 ;
+                   dkg:source larder:DS_AskChef ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:s_askchef_2 a dkg:Sentence, dkg:Node ;
+                   dkg:performedBy larder:ds_actor_cook ;
+                   dkg:actsOn larder:wo_help ;
+                   dkg:sequence 2 ;
+                   dkg:precedes larder:s_askchef_1 ;
+                   dkg:source larder:DS_AskChef ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:s_askchef_3 a dkg:Sentence, dkg:Node ;
+                   dkg:performedBy larder:ds_actor_cook ;
+                   dkg:actsOn larder:wo_help ;
+                   dkg:sequence 3 ;
+                   dkg:precedes larder:s_askchef_2 ;
+                   dkg:source larder:DS_AskChef ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:s_askchef_4 a dkg:Sentence, dkg:Node ;
+                   dkg:performedBy larder:ds_actor_chef ;
+                   dkg:actsOn larder:wo_help ;
+                   dkg:sequence 4 ;
+                   dkg:precedes larder:s_askchef_3 ;
+                   dkg:source larder:DS_AskChef ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:s_askchef_5 a dkg:Sentence, dkg:Node ;
+                   dkg:performedBy larder:ds_actor_cook ;
+                   dkg:actsOn larder:wo_meal, larder:wo_pictures ;
+                   dkg:sequence 5 ;
+                   dkg:precedes larder:s_askchef_4 ;
+                   dkg:source larder:DS_AskChef ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:s_askchef_6 a dkg:Sentence, dkg:Node ;
+                   dkg:performedBy larder:ds_actor_cook ;
+                   dkg:actsOn larder:wo_pictures ;
+                   dkg:sequence 6 ;
+                   dkg:precedes larder:s_askchef_5 ;
+                   dkg:source larder:DS_AskChef ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:s_grandma_crisis_1 a dkg:Sentence, dkg:Node ;
+                          dkg:performedBy larder:ds_actor_cook ;
+                          dkg:actsOn larder:wo_meal ;
+                          dkg:sequence 1 ;
+                          dkg:source larder:DS_Grandma_Crisis ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:s_grandma_crisis_2 a dkg:Sentence, dkg:Node ;
+                          dkg:performedBy larder:ds_actor_cook ;
+                          dkg:actsOn larder:wo_meal, larder:wo_pictures ;
+                          dkg:sequence 2 ;
+                          dkg:precedes larder:s_grandma_crisis_1 ;
+                          dkg:source larder:DS_Grandma_Crisis ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:s_grandma_crisis_3 a dkg:Sentence, dkg:Node ;
+                          dkg:performedBy larder:ds_actor_cook ;
+                          dkg:actsOn larder:wo_catastrophe_pictures ;
+                          dkg:sequence 3 ;
+                          dkg:precedes larder:s_grandma_crisis_2 ;
+                          dkg:source larder:DS_Grandma_Crisis ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:s_grandma_crisis_4 a dkg:Sentence, dkg:Node ;
+                          dkg:performedBy larder:ds_actor_grandma_avatar ;
+                          dkg:actsOn larder:wo_help, larder:wo_meal ;
+                          dkg:sequence 4 ;
+                          dkg:precedes larder:s_grandma_crisis_3 ;
+                          dkg:source larder:DS_Grandma_Crisis ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:s_grandma_crisis_5 a dkg:Sentence, dkg:Node ;
+                          dkg:performedBy larder:ds_actor_cook ;
+                          dkg:actsOn larder:wo_meal, larder:wo_pictures ;
+                          dkg:sequence 5 ;
+                          dkg:precedes larder:s_grandma_crisis_4 ;
+                          dkg:source larder:DS_Grandma_Crisis ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:s_grandma_crisis_6 a dkg:Sentence, dkg:Node ;
+                          dkg:performedBy larder:ds_actor_cook ;
+                          dkg:actsOn larder:wo_pictures ;
+                          dkg:sequence 6 ;
+                          dkg:precedes larder:s_grandma_crisis_5 ;
+                          dkg:source larder:DS_Grandma_Crisis ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_1 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_cook ;
+                dkg:actsOn larder:wo_meal_prep_skill ;
+                dkg:sequence 1 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_2 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_community_admin ;
+                dkg:actsOn larder:wo_competition ;
+                dkg:sequence 2 ;
+                dkg:precedes larder:s_comp_1 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_3 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_community_admin ;
+                dkg:actsOn larder:wo_recipe ;
+                dkg:sequence 3 ;
+                dkg:precedes larder:s_comp_2 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_4 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_cook ;
+                dkg:actsOn larder:wo_competition ;
+                dkg:sequence 3 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_5 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_community_admin ;
+                dkg:actsOn larder:ds_actor_other_cooks ;
+                dkg:sequence 4 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_6 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_cook ;
+                dkg:actsOn larder:wo_meal ;
+                dkg:sequence 4 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_7 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_other_cooks ;
+                dkg:actsOn larder:wo_meal ;
+                dkg:sequence 5 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:s_comp_8 a dkg:Sentence, dkg:Node ;
+                dkg:performedBy larder:ds_actor_community_admin ;
+                dkg:actsOn larder:ds_actor_winner ;
+                dkg:sequence 6 ;
+                dkg:source larder:DS_Competition ;
+                dkg:confidence dkg:OnArtifact .
+
+# =============================================================================
+# 7. EventStorming Nodes
+# =============================================================================
+
+larder:agg_cook a dkg:Aggregate, dkg:Node ;
+                skos:prefLabel "Cook"@en ;
+                dkg:inContext larder:bc_cook_profile ;
+                dkg:source larder:ES_Board_20260910_01 ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:agg_menu a dkg:Aggregate, dkg:Node ;
+                skos:prefLabel "Menu"@en ;
+                dkg:inContext larder:bc_meal_planning ;
+                dkg:source larder:ES_Board_20260910_01 ;
+                dkg:confidence dkg:OnArtifact .
+
+larder:agg_help_request a dkg:Aggregate, dkg:Node ;
+                        skos:prefLabel "Help request"@en ;
+                        dkg:inContext larder:bc_cooking_assistance ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:agg_meal_plan a dkg:Aggregate, dkg:Node ;
+                     skos:prefLabel "Meal plan"@en ;
+                     dkg:inContext larder:bc_meal_planning ;
+                     dkg:source larder:ES_Board_20260910_01 ;
+                     dkg:confidence dkg:OnArtifact .
+
+larder:agg_help_response a dkg:Aggregate, dkg:Node ;
+                         skos:prefLabel "Help response"@en ;
+                         dkg:inContext larder:bc_cooking_assistance ;
+                         dkg:source larder:ES_Board_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:agg_pictures a dkg:Aggregate, dkg:Node ;
+                    skos:prefLabel "Pictures"@en ;
+                    dkg:inContext larder:bc_media ;
+                    dkg:source larder:ES_Board_20260910_01 ;
+                    dkg:confidence dkg:OnArtifact .
+
+larder:agg_thanks a dkg:Aggregate, dkg:Node ;
+                  skos:prefLabel "Thanks"@en ;
+                  dkg:inContext larder:bc_sharing ;
+                  dkg:source larder:ES_Board_20260910_01 ;
+                  dkg:confidence dkg:OnArtifact .
+
+larder:cmd_register_cook a dkg:Command, dkg:Node ;
+                         skos:prefLabel "Register cook"@en ;
+                         dkg:inContext larder:bc_cook_profile ;
+                         dkg:triggers larder:evt_cook_registered ;
+                         dkg:source larder:ES_Board_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:cmd_plan_dinner a dkg:Command, dkg:Node ;
+                       skos:prefLabel "Plan dinner"@en ;
+                       dkg:inContext larder:bc_meal_planning ;
+                       dkg:triggers larder:evt_dinner_planned ;
+                       dkg:source larder:ES_Board_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:cmd_search_recipes a dkg:Command, dkg:Node ;
+                          skos:prefLabel "Search recipes"@en ;
+                          dkg:inContext larder:bc_meal_planning ;
+                          dkg:triggers larder:evt_recipes_searched, larder:evt_recipe_selected ;
+                          dkg:source larder:ES_Board_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:cmd_search_ingredients a dkg:Command, dkg:Node ;
+                              skos:prefLabel "Search Ingredients"@en ;
+                              dkg:inContext larder:bc_meal_planning ;
+                              dkg:triggers larder:evt_ingredients_missing ;
+                              dkg:source larder:ES_Board_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+larder:cmd_request_help a dkg:Command, dkg:Node ;
+                        skos:prefLabel "Request help"@en ;
+                        dkg:inContext larder:bc_cooking_assistance ;
+                        dkg:triggers larder:evt_help_requested ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:cmd_substitute_ingredients a dkg:Command, dkg:Node ;
+                                  skos:prefLabel "Substitute Ingredients"@en ;
+                                  dkg:inContext larder:bc_meal_planning ;
+                                  dkg:triggers larder:evt_ingredients_substituted ;
+                                  dkg:source larder:ES_Board_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:cmd_plan_meal a dkg:Command, dkg:Node ;
+                     skos:prefLabel "Plan meal"@en ;
+                     dkg:inContext larder:bc_meal_planning ;
+                     dkg:triggers larder:evt_plan_setteled ;
+                     dkg:source larder:ES_Board_20260910_01 ;
+                     dkg:confidence dkg:OnArtifact .
+
+larder:cmd_provide_help a dkg:Command, dkg:Node ;
+                        skos:prefLabel "Provide help"@en ;
+                        dkg:inContext larder:bc_cooking_assistance ;
+                        dkg:triggers larder:evt_help_provided ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:cmd_prepare_meal a dkg:Command, dkg:Node ;
+                        skos:prefLabel "Prepare meal"@en ;
+                        dkg:inContext larder:bc_meal_preparation ;
+                        dkg:triggers larder:evt_meal_prep_started, larder:evt_step_unclear, larder:evt_catastrophe_happened, larder:evt_step_competeted, larder:evt_meal_rescued, larder:evt_meal_prepared ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:cmd_take_pictures a dkg:Command, dkg:Node ;
+                         skos:prefLabel "Take pictures"@en ;
+                         dkg:inContext larder:bc_media ;
+                         dkg:triggers larder:evt_pictures_taken ;
+                         dkg:source larder:ES_Board_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:cmd_provide_thanks a dkg:Command, dkg:Node ;
+                          skos:prefLabel "Provide thanks"@en ;
+                          dkg:inContext larder:bc_sharing ;
+                          dkg:triggers larder:evt_thanks_given ;
+                          dkg:source larder:ES_Board_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:evt_cook_registered a dkg:DomainEvent, dkg:Node ;
+                           skos:prefLabel "Cook registered"@en ;
+                           dkg:inContext larder:bc_cook_profile ;
+                           dkg:emittedBy larder:agg_cook ;
+                           dkg:source larder:ES_Board_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:evt_dinner_planned a dkg:DomainEvent, dkg:Node ;
+                          skos:prefLabel "Dinner planned"@en ;
+                          dkg:inContext larder:bc_meal_planning ;
+                          dkg:emittedBy larder:agg_menu ;
+                          dkg:source larder:ES_Board_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:evt_recipes_searched a dkg:DomainEvent, dkg:Node ;
+                            skos:prefLabel "Recipes searched"@en ;
+                            dkg:inContext larder:bc_meal_planning ;
+                            dkg:source larder:ES_Board_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .
+
+larder:evt_recipe_selected a dkg:DomainEvent, dkg:Node ;
+                           skos:prefLabel "Recipe selected"@en ;
+                           dkg:inContext larder:bc_meal_planning ;
+                           dkg:source larder:ES_Board_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:evt_ingredients_missing a dkg:DomainEvent, dkg:Node ;
+                               skos:prefLabel "Ingredients missing"@en ;
+                               dkg:inContext larder:bc_meal_planning ;
+                               dkg:source larder:ES_Board_20260910_01 ;
+                               dkg:confidence dkg:OnArtifact .
+
+larder:evt_meal_planning_stalled a dkg:DomainEvent, dkg:Node ;
+                                 skos:prefLabel "Meal planning stalled"@en ;
+                                 dkg:inContext larder:bc_meal_planning ;
+                                 dkg:source larder:ES_Board_20260910_01 ;
+                                 dkg:confidence dkg:OnArtifact .
+
+larder:evt_help_requested a dkg:DomainEvent, dkg:Node ;
+                          skos:prefLabel "Help requested"@en ;
+                          dkg:inContext larder:bc_cooking_assistance ;
+                          dkg:emittedBy larder:agg_help_request ;
+                          dkg:source larder:ES_Board_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:evt_ingredients_substituted a dkg:DomainEvent, dkg:Node ;
+                                   skos:prefLabel "Ingredients substituted"@en ;
+                                   dkg:inContext larder:bc_meal_planning ;
+                                   dkg:source larder:ES_Board_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact .
+
+larder:evt_plan_setteled a dkg:DomainEvent, dkg:Node ;
+                         skos:prefLabel "plan setteled"@en ;
+                         skos:altLabel "Plan settled"@en ;
+                         dkg:inContext larder:bc_meal_planning ;
+                         dkg:emittedBy larder:agg_meal_plan ;
+                         dkg:source larder:ES_Board_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:evt_help_provided a dkg:DomainEvent, dkg:Node ;
+                         skos:prefLabel "Help provided"@en ;
+                         dkg:inContext larder:bc_cooking_assistance ;
+                         dkg:emittedBy larder:agg_help_response ;
+                         dkg:source larder:ES_Board_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:evt_meal_prep_started a dkg:DomainEvent, dkg:Node ;
+                             skos:prefLabel "Meal preparation started"@en ;
+                             dkg:inContext larder:bc_meal_preparation ;
+                             dkg:source larder:ES_Board_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact .
+
+larder:evt_step_unclear a dkg:DomainEvent, dkg:Node ;
+                        skos:prefLabel "Step unclear"@en ;
+                        dkg:inContext larder:bc_meal_preparation ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:evt_catastrophe_happened a dkg:DomainEvent, dkg:Node ;
+                                skos:prefLabel "Catastrophe happened"@en ;
+                                dkg:inContext larder:bc_meal_preparation ;
+                                dkg:source larder:ES_Board_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:evt_step_competeted a dkg:DomainEvent, dkg:Node ;
+                           skos:prefLabel "Step competeted"@en ;
+                           skos:altLabel "Step completed"@en ;
+                           dkg:inContext larder:bc_meal_preparation ;
+                           dkg:source larder:ES_Board_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:evt_meal_rescued a dkg:DomainEvent, dkg:Node ;
+                        skos:prefLabel "Meal rescued"@en ;
+                        dkg:inContext larder:bc_meal_preparation ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:evt_meal_prepared a dkg:DomainEvent, dkg:Node ;
+                         skos:prefLabel "Meal prepared"@en ;
+                         dkg:inContext larder:bc_meal_preparation ;
+                         dkg:source larder:ES_Board_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:evt_pictures_taken a dkg:DomainEvent, dkg:Node ;
+                          skos:prefLabel "Pictures taken"@en ;
+                          dkg:inContext larder:bc_media ;
+                          dkg:emittedBy larder:agg_pictures ;
+                          dkg:source larder:ES_Board_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:evt_thanks_given a dkg:DomainEvent, dkg:Node ;
+                        skos:prefLabel "Thanks given"@en ;
+                        dkg:inContext larder:bc_sharing ;
+                        dkg:emittedBy larder:agg_thanks ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:rm_user a dkg:ReadModel, dkg:Node ;
+               skos:prefLabel "User"@en ;
+               dkg:inContext larder:bc_cook_profile ;
+               dkg:source larder:ES_Board_20260910_01 ;
+               dkg:confidence dkg:OnArtifact .
+
+larder:rm_guests a dkg:ReadModel, dkg:Node ;
+                 skos:prefLabel "Guests"@en ;
+                 dkg:inContext larder:bc_meal_planning ;
+                 dkg:source larder:ES_Board_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact .
+
+larder:rm_recipe_catalog a dkg:ReadModel, dkg:Node ;
+                         skos:prefLabel "Recipe Catalog"@en ;
+                         dkg:inContext larder:bc_meal_planning ;
+                         dkg:source larder:ES_Board_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:rm_recipe a dkg:ReadModel, dkg:Node ;
+                 skos:prefLabel "Recipe"@en ;
+                 dkg:inContext larder:bc_meal_planning, larder:bc_meal_preparation ;
+                 dkg:source larder:ES_Board_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact .
+
+larder:rm_ingredients a dkg:ReadModel, dkg:Node ;
+                      skos:prefLabel "Ingredients"@en ;
+                      dkg:inContext larder:bc_cooking_assistance ;
+                      dkg:source larder:ES_Board_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:rm_catastrophe a dkg:ReadModel, dkg:Node ;
+                      skos:prefLabel "Catastrophe"@en ;
+                      dkg:inContext larder:bc_meal_preparation ;
+                      dkg:source larder:ES_Board_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact .
+
+larder:rm_help_provider a dkg:ReadModel, dkg:Node ;
+                        skos:prefLabel "Help provider"@en ;
+                        dkg:inContext larder:bc_sharing ;
+                        dkg:source larder:ES_Board_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:sys_grandma_avatar a dkg:ExternalSystem, dkg:Node ;
+                          skos:prefLabel "Grandma Avatar"@en ;
+                          dkg:inContext larder:bc_cooking_assistance ;
+                          dkg:source larder:ES_Board_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact ;
+                          dkg:proposedSameAs larder:ds_actor_grandma_avatar, larder:cap_grandma_grandpa .
+
+# =============================================================================
+# 8. Visual Glossary Nodes & Relationships
+# =============================================================================
+
+larder:term_dinner a dkg:AggregateRoot, dkg:Entity, dkg:Node ;
+                   skos:prefLabel "Dinner"@en ;
+                   dkg:source larder:VG_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:term_menu a dkg:AggregateRoot, dkg:Entity, dkg:Node ;
+                 skos:prefLabel "Menu"@en ;
+                 dkg:source larder:VG_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact ;
+                 dkg:proposedSameAs larder:agg_menu, larder:rm_menu .
+
+larder:term_course a dkg:Entity, dkg:Node ;
+                   skos:prefLabel "Course"@en ;
+                   dkg:source larder:VG_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact .
+
+larder:term_meal a dkg:Entity, dkg:Node ;
+                 skos:prefLabel "Meal"@en ;
+                 dkg:source larder:VG_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact ;
+                 dkg:proposedSameAs larder:wo_meal .
+
+larder:term_cook a dkg:Concept, dkg:Node ;
+                 skos:prefLabel "Cook"@en ;
+                 dkg:source larder:VG_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact ;
+                 dkg:proposedSameAs larder:ds_actor_cook, larder:agg_cook .
+
+larder:term_community a dkg:Concept, dkg:Node ;
+                      skos:prefLabel "Community"@en ;
+                      dkg:source larder:VG_20260910_01 ;
+                      dkg:confidence dkg:OnArtifact ;
+                      dkg:proposedSameAs larder:ds_actor_community .
+
+larder:term_grandma_avatar a dkg:Concept, dkg:Node ;
+                           skos:prefLabel "Grandma Avatar"@en ;
+                           dkg:source larder:VG_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact ;
+                           dkg:proposedSameAs larder:sys_grandma_avatar, larder:ds_actor_grandma_avatar .
+
+larder:term_help_provider a dkg:Term, dkg:Node ;
+                          skos:prefLabel "Help provider"@en ;
+                          dkg:source larder:VG_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:term_chef a dkg:Term, dkg:Node ;
+                 skos:prefLabel "Chef"@en ;
+                 dkg:source larder:VG_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact ;
+                 dkg:proposedSameAs larder:ds_actor_chef, larder:kp_chefs .
+
+larder:term_recipe a dkg:Entity, dkg:Node ;
+                   skos:prefLabel "Recipe"@en ;
+                   dkg:source larder:VG_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact ;
+                   dkg:proposedSameAs larder:wo_recipe, larder:rm_recipe .
+
+larder:term_ingredient a dkg:ValueObject, dkg:Node ;
+                       skos:prefLabel "Ingredient"@en ;
+                       dkg:source larder:VG_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:term_step a dkg:ValueObject, dkg:Node ;
+                 skos:prefLabel "Step"@en ;
+                 dkg:source larder:VG_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact .
+
+larder:term_substitute a dkg:ValueObject, dkg:Node ;
+                       skos:prefLabel "Substitute"@en ;
+                       dkg:source larder:VG_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:term_thanks a dkg:Entity, dkg:Node ;
+                   skos:prefLabel "Thanks"@en ;
+                   dkg:source larder:VG_20260910_01 ;
+                   dkg:confidence dkg:OnArtifact ;
+                   dkg:proposedSameAs larder:agg_thanks, larder:evt_thanks_given .
+
+larder:term_help_request a dkg:AggregateRoot, dkg:Entity, dkg:Node ;
+                         skos:prefLabel "Help Request"@en ;
+                         dkg:source larder:VG_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact ;
+                         dkg:proposedSameAs larder:agg_help_request, larder:evt_help_requested .
+
+larder:term_help a dkg:AggregateRoot, dkg:Entity, dkg:Node ;
+                 skos:prefLabel "Help"@en ;
+                 dkg:source larder:VG_20260910_01 ;
+                 dkg:confidence dkg:OnArtifact ;
+                 dkg:proposedSameAs larder:agg_help_response, larder:wo_help .
+
+larder:term_picture a dkg:ValueObject, dkg:Node ;
+                    skos:prefLabel "Picture"@en ;
+                    dkg:source larder:VG_20260910_01 ;
+                    dkg:confidence dkg:OnArtifact .
+
+larder:term_meal_prep_catastrophe a dkg:Term, dkg:Node ;
+                                  skos:prefLabel "Meal Preparation Catastrophe"@en ;
+                                  dkg:source larder:VG_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:term_help_for_meal_prep_step a dkg:Term, dkg:Node ;
+                                    skos:prefLabel "Help for Meal Preparation Step"@en ;
+                                    dkg:source larder:VG_20260910_01 ;
+                                    dkg:confidence dkg:OnArtifact .
+
+larder:term_help_with_ingredients a dkg:Term, dkg:Node ;
+                                  skos:prefLabel "Help with Ingredients"@en ;
+                                  dkg:source larder:VG_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:term_help_meal_plan a dkg:Term, dkg:Node ;
+                           skos:prefLabel "Help Meal plan"@en ;
+                           dkg:source larder:VG_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:term_ingredient_substitute a dkg:ValueObject, dkg:Node ;
+                                  skos:prefLabel "Ingredient Substitute"@en ;
+                                  dkg:source larder:VG_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:term_prep_step_explanation a dkg:ValueObject, dkg:Node ;
+                                  skos:prefLabel "Preparation Step Explanation"@en ;
+                                  dkg:source larder:VG_20260910_01 ;
+                                  dkg:confidence dkg:OnArtifact .
+
+larder:term_steps_to_mitigate_catastrophe a dkg:ValueObject, dkg:Node ;
+                                          skos:prefLabel "Steps to Mitigate Catastrophe"@en ;
+                                          dkg:source larder:VG_20260910_01 ;
+                                          dkg:confidence dkg:OnArtifact .
+
+larder:term_menu_proposal a dkg:Term, dkg:Node ;
+                          skos:prefLabel "Menu proposal"@en ;
+                          dkg:source larder:VG_20260910_01 ;
+                          dkg:confidence dkg:OnArtifact .
+
+larder:rel_dinner_menu a dkg:Relationship, dkg:Node ;
+                       dkg:from larder:term_dinner ;
+                       dkg:to larder:term_menu ;
+                       dkg:verb "has" ;
+                       dkg:cardinality "1" ;
+                       dkg:cardinalityGiven true ;
+                       dkg:source larder:VG_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:rel_menu_course a dkg:Relationship, dkg:Node ;
+                       dkg:from larder:term_menu ;
+                       dkg:to larder:term_course ;
+                       dkg:verb "has" ;
+                       dkg:cardinality "1..*" ;
+                       dkg:cardinalityGiven true ;
+                       dkg:source larder:VG_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:rel_menu_meal a dkg:Relationship, dkg:Node ;
+                     dkg:from larder:term_menu ;
+                     dkg:to larder:term_meal ;
+                     dkg:verb "contains" ;
+                     dkg:cardinality "1..*" ;
+                     dkg:cardinalityGiven true ;
+                     dkg:source larder:VG_20260910_01 ;
+                     dkg:confidence dkg:OnArtifact .
+
+larder:rel_recipe_ingredient a dkg:Relationship, dkg:Node ;
+                             dkg:from larder:term_recipe ;
+                             dkg:to larder:term_ingredient ;
+                             dkg:verb "contains" ;
+                             dkg:cardinality "1..*" ;
+                             dkg:cardinalityGiven true ;
+                             dkg:source larder:VG_20260910_01 ;
+                             dkg:confidence dkg:OnArtifact .
+
+larder:rel_recipe_step a dkg:Relationship, dkg:Node ;
+                       dkg:from larder:term_recipe ;
+                       dkg:to larder:term_step ;
+                       dkg:verb "contains" ;
+                       dkg:cardinality "1..*" ;
+                       dkg:cardinalityGiven true ;
+                       dkg:source larder:VG_20260910_01 ;
+                       dkg:confidence dkg:OnArtifact .
+
+larder:rel_help_request_picture a dkg:Relationship, dkg:Node ;
+                                dkg:from larder:term_help_request ;
+                                dkg:to larder:term_picture ;
+                                dkg:verb "contains" ;
+                                dkg:cardinality "0..10" ;
+                                dkg:cardinalityGiven true ;
+                                dkg:source larder:VG_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:rel_help_picture a dkg:Relationship, dkg:Node ;
+                        dkg:from larder:term_help ;
+                        dkg:to larder:term_picture ;
+                        dkg:verb "contains" ;
+                        dkg:cardinality "0..10" ;
+                        dkg:cardinalityGiven true ;
+                        dkg:source larder:VG_20260910_01 ;
+                        dkg:confidence dkg:OnArtifact .
+
+larder:rel_help_substitute a dkg:Relationship, dkg:Node ;
+                           dkg:from larder:term_help ;
+                           dkg:to larder:term_ingredient_substitute ;
+                           dkg:verb "contains" ;
+                           dkg:cardinality "1..3" ;
+                           dkg:cardinalityGiven true ;
+                           dkg:source larder:VG_20260910_01 ;
+                           dkg:confidence dkg:OnArtifact .
+
+larder:rel_help_mitigate a dkg:Relationship, dkg:Node ;
+                         dkg:from larder:term_help ;
+                         dkg:to larder:term_steps_to_mitigate_catastrophe ;
+                         dkg:verb "contains" ;
+                         dkg:cardinality "1..10" ;
+                         dkg:cardinalityGiven true ;
+                         dkg:source larder:VG_20260910_01 ;
+                         dkg:confidence dkg:OnArtifact .
+
+larder:rel_help_menu_proposal a dkg:Relationship, dkg:Node ;
+                              dkg:from larder:term_help ;
+                              dkg:to larder:term_menu_proposal ;
+                              dkg:verb "contains" ;
+                              dkg:cardinality "1..3" ;
+                              dkg:cardinalityGiven true ;
+                              dkg:source larder:VG_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+# =============================================================================
+# 9. Context Map Integration Nodes
+# =============================================================================
+
+larder:rel_recipe_catalog_to_meal_planning a dkg:Relationship, dkg:Node ;
+                                           dkg:from larder:bc_recipe_catalog ;
+                                           dkg:to larder:bc_meal_planning ;
+                                           dkg:verb "Open Host Service (OHS) - Synchronous" ;
+                                           dkg:mentions larder:term_recipe ;
+                                           dkg:source larder:ContextMap_20260910_01 ;
+                                           dkg:confidence dkg:OnArtifact .
+
+larder:rel_cook_profile_to_consent a dkg:Relationship, dkg:Node ;
+                                   dkg:from larder:bc_cook_profile ;
+                                   dkg:to larder:bc_consent_management ;
+                                   dkg:verb "Open Host Service (OHS) - Synchronous" ;
+                                   dkg:source larder:ContextMap_20260910_01 ;
+                                   dkg:confidence dkg:OnArtifact .
+
+larder:rel_consent_to_meal_prep a dkg:Relationship, dkg:Node ;
+                                dkg:from larder:bc_consent_management ;
+                                dkg:to larder:bc_meal_preparation ;
+                                dkg:verb "Open Host Service (OHS) - Synchronous" ;
+                                dkg:source larder:ContextMap_20260910_01 ;
+                                dkg:confidence dkg:OnArtifact .
+
+larder:rel_consent_to_sharing a dkg:Relationship, dkg:Node ;
+                              dkg:from larder:bc_consent_management ;
+                              dkg:to larder:bc_sharing ;
+                              dkg:verb "Conformist (CF) - Synchronous" ;
+                              dkg:source larder:ContextMap_20260910_01 ;
+                              dkg:confidence dkg:OnArtifact .
+
+larder:rel_cooking_assistance_to_notification a dkg:Relationship, dkg:Node ;
+                                              dkg:from larder:bc_cooking_assistance ;
+                                              dkg:to larder:bc_notification ;
+                                              dkg:verb "Open Host Service (OHS) - Asynchronous" ;
+                                              dkg:mentions larder:term_help_request, larder:term_help ;
+                                              dkg:source larder:ContextMap_20260910_01 ;
+                                              dkg:confidence dkg:OnArtifact .
+
+larder:rel_cooking_assistance_to_grandma_ai a dkg:Relationship, dkg:Node ;
+                                            dkg:from larder:bc_cooking_assistance ;
+                                            dkg:to larder:bc_grandma_avatar_ai ;
+                                            dkg:verb "Anti-Corruption Layer (ACL) - Asynchronous" ;
+                                            dkg:mentions larder:term_help_request, larder:term_help ;
+                                            dkg:source larder:ContextMap_20260910_01 ;
+                                            dkg:confidence dkg:OnArtifact .
+
+larder:rel_media_to_cooking_assistance a dkg:Relationship, dkg:Node ;
+                                       dkg:from larder:bc_media ;
+                                       dkg:to larder:bc_cooking_assistance ;
+                                       dkg:verb "Open Host Service (OHS) - Synchronous" ;
+                                       dkg:mentions larder:term_picture ;
+                                       dkg:source larder:ContextMap_20260910_01 ;
+                                       dkg:confidence dkg:OnArtifact .
+
+larder:rel_media_to_sharing a dkg:Relationship, dkg:Node ;
+                            dkg:from larder:bc_media ;
+                            dkg:to larder:bc_sharing ;
+                            dkg:verb "Open Host Service (OHS) - Synchronous" ;
+                            dkg:mentions larder:term_picture ;
+                            dkg:source larder:ContextMap_20260910_01 ;
+                            dkg:confidence dkg:OnArtifact .

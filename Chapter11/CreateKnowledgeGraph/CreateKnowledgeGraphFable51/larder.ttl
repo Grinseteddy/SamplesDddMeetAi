@@ -1,0 +1,1033 @@
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix :     <https://w3id.org/dkg/graph/larder#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/graph/larder>
+    a owl:Ontology ;
+    owl:imports <https://w3id.org/dkg/ns> ;
+    rdfs:label "Larder (Community Cooking) — domain knowledge graph" .
+
+##############################################################################
+# INGEST 1 — Brainstorm, BrainstormingConvergence.jpg — 2026-09-10
+# Mind map centred on "Larder". Green nodes = clusters the room drew.
+# Yellow stickies = ideas. Blue italic stickies (8) = a second colour whose
+# meaning is NOT on the picture; recorded as rdfs:comment, not as a class.
+# No dot votes. No illegible stickies. Attachment of "Timer", "Cookbook
+# publishing", "Food pairing" and "Fridge-photo recipe generation" to a cluster
+# is read off crossing lines and marked Implied.
+##############################################################################
+
+:Art_Brainstorm a dkg:Brainstorm ;
+    rdfs:label "Larder brainstorm — mind map (BrainstormingConvergence.jpg)" ;
+    rdfs:comment "11 clusters, 42 idea stickies, 8 in a second (blue) colour of unconfirmed meaning, 0 illegible, no votes." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+:Idea_Larder a dkg:Idea, dkg:Concept ;
+    skos:prefLabel "Larder" ;
+    rdfs:comment "the centre of the mind map; the name every cluster hangs off" ;
+    dkg:source :Art_Brainstorm ; dkg:locator "centre" ; dkg:confidence dkg:OnArtifact .
+
+# --- clusters ---
+:Cluster_Shopping a dkg:Cluster ; skos:prefLabel "Shopping" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_Helper a dkg:Cluster ; skos:prefLabel "Helper" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_CreatorSupport a dkg:Cluster ; skos:prefLabel "Creator Support" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_Special a dkg:Cluster ; skos:prefLabel "Special" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_Community a dkg:Cluster ; skos:prefLabel "Community" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_Authentication a dkg:Cluster ; skos:prefLabel "Authentication" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_ContentCreation a dkg:Cluster ; skos:prefLabel "Content Creation" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_ContentRating a dkg:Cluster ; skos:prefLabel "Content Rating" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_Planner a dkg:Cluster ; skos:prefLabel "Planner" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_CookingSupport a dkg:Cluster ; skos:prefLabel "Cooking Support" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+:Cluster_RecipeSearch a dkg:Cluster ; skos:prefLabel "Recipe Search" ; dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+
+# --- ideas: Shopping ---
+:Idea_KitchenTools a dkg:Idea ; skos:prefLabel "Kitchen tools" ; dkg:inCluster :Cluster_Shopping ; dkg:source :Art_Brainstorm ; dkg:locator "Shopping" ; dkg:confidence dkg:OnArtifact .
+:Idea_NecessaryStuff a dkg:Idea ; skos:prefLabel "Necessary stuff" ; dkg:inCluster :Cluster_Shopping ; dkg:source :Art_Brainstorm ; dkg:locator "Shopping" ; dkg:confidence dkg:OnArtifact .
+:Idea_OrderIngredientsDirectly a dkg:Idea ; skos:prefLabel "Order ingredients directly" ; dkg:inCluster :Cluster_Shopping ; dkg:source :Art_Brainstorm ; dkg:locator "Shopping" ; dkg:confidence dkg:OnArtifact .
+:Idea_LarderTracker a dkg:Idea ; skos:prefLabel "Larder tracker" ; rdfs:comment "blue sticky" ; dkg:inCluster :Cluster_Shopping ; dkg:source :Art_Brainstorm ; dkg:locator "Shopping" ; dkg:confidence dkg:OnArtifact .
+# --- Helper ---
+:Idea_VoiceControl a dkg:Idea ; skos:prefLabel "Voice control" ; rdfs:comment "blue sticky" ; dkg:inCluster :Cluster_Helper ; dkg:source :Art_Brainstorm ; dkg:locator "Helper" ; dkg:confidence dkg:OnArtifact .
+:Idea_Timer a dkg:Idea ; skos:prefLabel "Timer" ; dkg:inCluster :Cluster_Helper ; dkg:source :Art_Brainstorm ; dkg:locator "Helper (line read as reaching Helper)" ; dkg:confidence dkg:Implied .
+# --- Creator Support ---
+:Idea_CookbookPublishing a dkg:Idea ; skos:prefLabel "Cookbook publishing" ; dkg:inCluster :Cluster_CreatorSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Creator Support (line read as reaching Creator Support)" ; dkg:confidence dkg:Implied .
+# --- Special ---
+:Idea_HistoricalRecipes a dkg:Idea ; skos:prefLabel "Historical recipes" ; rdfs:comment "blue sticky" ; dkg:inCluster :Cluster_Special ; dkg:source :Art_Brainstorm ; dkg:locator "Special" ; dkg:confidence dkg:OnArtifact .
+# --- Community ---
+:Idea_CookingClub a dkg:Idea ; skos:prefLabel "Cooking Club" ; dkg:inCluster :Cluster_Community ; dkg:source :Art_Brainstorm ; dkg:locator "Community" ; dkg:confidence dkg:OnArtifact .
+:Idea_SponsorContest a dkg:Idea ; skos:prefLabel "Sponsor contest" ; dkg:inCluster :Cluster_Community ; dkg:source :Art_Brainstorm ; dkg:locator "Community" ; dkg:confidence dkg:OnArtifact .
+:Idea_SharingOnInstagram a dkg:Idea ; skos:prefLabel "Sharing on Instagram" ; dkg:inCluster :Cluster_Community ; dkg:source :Art_Brainstorm ; dkg:locator "Community" ; dkg:confidence dkg:OnArtifact .
+:Idea_GrillMaster a dkg:Idea ; skos:prefLabel "Grill master" ; dkg:inCluster :Cluster_Community ; dkg:source :Art_Brainstorm ; dkg:locator "Community" ; dkg:confidence dkg:OnArtifact .
+# --- Authentication ---
+:Idea_LoginWithSocialAccount a dkg:Idea ; skos:prefLabel "Login with social account" ; dkg:inCluster :Cluster_Authentication ; dkg:source :Art_Brainstorm ; dkg:locator "Authentication" ; dkg:confidence dkg:OnArtifact .
+# --- Content Creation ---
+:Idea_CookingVideos a dkg:Idea ; skos:prefLabel "Cooking Videos" ; dkg:inCluster :Cluster_ContentCreation ; dkg:source :Art_Brainstorm ; dkg:locator "Content Creation" ; dkg:confidence dkg:OnArtifact .
+:Idea_MakingPhotos a dkg:Idea ; skos:prefLabel "Making Photos" ; dkg:inCluster :Cluster_ContentCreation ; dkg:source :Art_Brainstorm ; dkg:locator "Content Creation" ; dkg:confidence dkg:OnArtifact .
+:Idea_RemixOfRecipes a dkg:Idea ; skos:prefLabel "Remix of recipes" ; dkg:inCluster :Cluster_ContentCreation ; dkg:source :Art_Brainstorm ; dkg:locator "Content Creation" ; dkg:confidence dkg:OnArtifact .
+:Idea_StoreRecipes a dkg:Idea ; skos:prefLabel "Store recipes" ; dkg:inCluster :Cluster_ContentCreation ; dkg:source :Art_Brainstorm ; dkg:locator "Content Creation" ; dkg:confidence dkg:OnArtifact .
+# --- Content Rating ---
+:Idea_Comments a dkg:Idea ; skos:prefLabel "Comments" ; dkg:inCluster :Cluster_ContentRating ; dkg:source :Art_Brainstorm ; dkg:locator "Content Rating" ; dkg:confidence dkg:OnArtifact .
+:Idea_Followers a dkg:Idea ; skos:prefLabel "Followers" ; dkg:inCluster :Cluster_ContentRating ; dkg:source :Art_Brainstorm ; dkg:locator "Content Rating" ; dkg:confidence dkg:OnArtifact .
+:Idea_Rating a dkg:Idea ; skos:prefLabel "Rating" ; dkg:inCluster :Cluster_ContentRating ; dkg:source :Art_Brainstorm ; dkg:locator "Content Rating" ; dkg:confidence dkg:OnArtifact .
+# --- Planner ---
+:Idea_DinnerPartyPlanner a dkg:Idea ; skos:prefLabel "Dinner-party planner" ; rdfs:comment "blue sticky" ; dkg:inCluster :Cluster_Planner ; dkg:source :Art_Brainstorm ; dkg:locator "Planner" ; dkg:confidence dkg:OnArtifact .
+:Idea_CookingCalendar a dkg:Idea ; skos:prefLabel "Cooking Calendar" ; dkg:inCluster :Cluster_Planner ; dkg:source :Art_Brainstorm ; dkg:locator "Planner" ; dkg:confidence dkg:OnArtifact .
+:Idea_FoodPairing a dkg:Idea ; skos:prefLabel "Food pairing" ; rdfs:comment "blue sticky; line read as reaching Planner, could be Recipe Search" ; dkg:inCluster :Cluster_Planner ; dkg:source :Art_Brainstorm ; dkg:locator "Planner" ; dkg:confidence dkg:Implied .
+# --- Cooking Support ---
+:Idea_SmartKitchen a dkg:Idea ; skos:prefLabel "Smart kitchen" ; rdfs:comment "blue sticky" ; dkg:inCluster :Cluster_CookingSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Cooking Support" ; dkg:confidence dkg:OnArtifact .
+:Idea_CookingSkillLearning a dkg:Idea ; skos:prefLabel "Cooking skill learning" ; dkg:inCluster :Cluster_CookingSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Cooking Support" ; dkg:confidence dkg:OnArtifact .
+:Idea_FamousChefsAsPartner a dkg:Idea, dkg:Actor ; skos:prefLabel "Famous chefs as partner" ; dkg:inCluster :Cluster_CookingSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Cooking Support" ; dkg:confidence dkg:OnArtifact .
+:Idea_StepByStepCookingMode a dkg:Idea ; skos:prefLabel "Step-by-step cooking mode" ; dkg:inCluster :Cluster_CookingSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Cooking Support" ; dkg:confidence dkg:OnArtifact .
+:Idea_CookingSkillLevel a dkg:Idea ; skos:prefLabel "Cooking skill level" ; dkg:inCluster :Cluster_CookingSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Cooking Support" ; dkg:confidence dkg:OnArtifact .
+:Idea_GrandpaShowsHowToDoIt a dkg:Idea, dkg:Actor ; skos:prefLabel "Grandpa shows how to do it" ; dkg:inCluster :Cluster_CookingSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Cooking Support" ; dkg:confidence dkg:OnArtifact .
+:Idea_AskGrandma a dkg:Idea, dkg:Actor ; skos:prefLabel "Ask grandma" ; dkg:inCluster :Cluster_CookingSupport ; dkg:source :Art_Brainstorm ; dkg:locator "Cooking Support" ; dkg:confidence dkg:OnArtifact .
+# --- Recipe Search ---
+:Idea_SearchWithThingsIAlreadyHave a dkg:Idea ; skos:prefLabel "Search with things I already have" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:OnArtifact .
+:Idea_SearchWithCookingTime a dkg:Idea ; skos:prefLabel "Search with cooking time" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:OnArtifact .
+:Idea_MealChooser a dkg:Idea ; skos:prefLabel "Meal Chooser" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:OnArtifact .
+:Idea_LeftOverOptimizations a dkg:Idea ; skos:prefLabel "Left over optimizations" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:OnArtifact .
+:Idea_Budget a dkg:Idea ; skos:prefLabel "Budget" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:OnArtifact .
+:Idea_Allergenes a dkg:Idea ; skos:prefLabel "Allergenes" ; rdfs:comment "blue sticky; diagram spelling" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:OnArtifact .
+:Idea_DietaryRequirements a dkg:Idea ; skos:prefLabel "Dietary requirements" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:OnArtifact .
+:Idea_FridgePhotoRecipeGeneration a dkg:Idea ; skos:prefLabel "Fridge-photo recipe generation" ; rdfs:comment "blue sticky; line read as reaching Recipe Search" ; dkg:inCluster :Cluster_RecipeSearch ; dkg:source :Art_Brainstorm ; dkg:locator "Recipe Search" ; dkg:confidence dkg:Implied .
+
+:Q_BlueStickyMeaning a dkg:Question ;
+    skos:prefLabel "What does the blue sticky colour on the brainstorm mean?" ;
+    rdfs:comment "8 stickies: Larder tracker, Voice control, Historical recipes, Dinner-party planner, Food pairing, Smart kitchen, Allergenes, Fridge-photo recipe generation. Later-added? AI-proposed? Parked?" ;
+    dkg:source :Art_Brainstorm ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+# INGEST 2 — Impact Map, ImpactMappingWithAiStep3.jpg — 2026-09-10
+# Columns GOAL · ACTORS · IMPACT · DELIVERABLES. Deliverables carry a dark-blue
+# number (1/2/3) read as a priority; recorded in rdfs:comment, not as votes.
+# Two actor stickies and eight impacts and four deliverables are green rather
+# than yellow/blue; colour meaning not on the picture. Spellings kept verbatim
+# ("dietry", "Propects", "Convertable").
+# The actor→impact fan is largely unreadable; only followable lines are
+# recorded (Implied). Unrecorded wiring is a Question, not an edge.
+##############################################################################
+
+:Art_ImpactMap a dkg:ImpactMap ;
+    rdfs:label "Larder impact map (ImpactMappingWithAiStep3.jpg)" ;
+    rdfs:comment "1 goal, 9 actors, 14 impacts, 16 deliverables with priority numbers 1–3." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+:Goal_LarderPayingMembers a dkg:Goal ;
+    skos:prefLabel "Larder - recipe sharing platform with min. 2,500 paying members in two years" ;
+    dkg:metric "min. 2,500 paying members in two years" ;
+    dkg:mentions :Idea_Larder ;
+    dkg:source :Art_ImpactMap ; dkg:locator "GOAL" ; dkg:confidence dkg:OnArtifact .
+
+# --- actors ---
+:Act_Single a dkg:Actor ; skos:prefLabel "Single" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 1" ; dkg:confidence dkg:OnArtifact .
+:Act_YoungFamily a dkg:Actor ; skos:prefLabel "Young family" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 2" ; dkg:confidence dkg:OnArtifact .
+:Act_CookAsAuthor a dkg:Actor ; skos:prefLabel "Cook as author" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 3" ; dkg:confidence dkg:OnArtifact .
+:Act_KitchenWareRetailer a dkg:Actor ; skos:prefLabel "Kitchen ware retailer" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 4" ; dkg:confidence dkg:OnArtifact .
+:Act_ChefsAsSeniorPartner a dkg:Actor ; skos:prefLabel "Chefs as senior partner" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 5" ; dkg:confidence dkg:OnArtifact .
+:Act_GroceryStore a dkg:Actor ; skos:prefLabel "Grocery store" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 6" ; dkg:confidence dkg:OnArtifact .
+:Act_PhotoBookService a dkg:Actor ; skos:prefLabel "Photo book service" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 7" ; dkg:confidence dkg:OnArtifact .
+:Act_Propects a dkg:Actor ; skos:prefLabel "Propects" ; rdfs:comment "green sticky; diagram spelling, presumably Prospects" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 8" ; dkg:confidence dkg:OnArtifact .
+:Act_Convertable a dkg:Actor ; skos:prefLabel "Convertable" ; rdfs:comment "green sticky; diagram spelling" ; dkg:source :Art_ImpactMap ; dkg:locator "ACTORS 9" ; dkg:confidence dkg:OnArtifact .
+
+# --- impacts ---
+:Imp_FollowsDietryPlans a dkg:Impact ; skos:prefLabel "follows dietry plans" ; rdfs:comment "green; diagram spelling" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 1" ; dkg:confidence dkg:OnArtifact .
+:Imp_ShopEasilyWithDiscount a dkg:Impact ; skos:prefLabel "Shop easily ingredients and tools with discount" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 2" ; dkg:confidence dkg:OnArtifact .
+:Imp_UseOfCommunitySharedRecipes a dkg:Impact ; skos:prefLabel "Use of community shared recipes" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 3" ; dkg:confidence dkg:OnArtifact .
+:Imp_FindEasilyRecipes a dkg:Impact ; skos:prefLabel "Find easily recipes" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 4" ; dkg:confidence dkg:OnArtifact .
+:Imp_SupportsUnexperiencedMembers a dkg:Impact ; skos:prefLabel "supports unexperienced members" ; rdfs:comment "green" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 5" ; dkg:confidence dkg:OnArtifact .
+:Imp_UseEffectiveLimitedBudget a dkg:Impact ; skos:prefLabel "Use effective limited budget" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 6" ; dkg:confidence dkg:OnArtifact .
+:Imp_LearnCooking a dkg:Impact ; skos:prefLabel "Learn cooking" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 7" ; dkg:confidence dkg:OnArtifact .
+:Imp_PublishTheirOwnCookbook a dkg:Impact ; skos:prefLabel "Publish their own cookbook" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 8" ; dkg:confidence dkg:OnArtifact .
+:Imp_CookbooksMakeCurious a dkg:Impact ; skos:prefLabel "Cookbooks make curious" ; rdfs:comment "green" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 9" ; dkg:confidence dkg:OnArtifact .
+:Imp_FollowCooks a dkg:Impact ; skos:prefLabel "Follow cooks" ; rdfs:comment "green" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 10" ; dkg:confidence dkg:OnArtifact .
+:Imp_ConvertToPaidPlan a dkg:Impact ; skos:prefLabel "convert to paid plan" ; rdfs:comment "green" ; dkg:impactedActor :Act_Propects ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 11" ; dkg:confidence dkg:OnArtifact .
+:Imp_PaidMemberRenews a dkg:Impact ; skos:prefLabel "paid member renews" ; rdfs:comment "green" ; dkg:impactedActor :Act_Convertable ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 12" ; dkg:confidence dkg:OnArtifact .
+:Imp_SeePremiumContent a dkg:Impact ; skos:prefLabel "see premium content" ; rdfs:comment "green" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 13" ; dkg:confidence dkg:OnArtifact .
+:Imp_PayForAds a dkg:Impact ; skos:prefLabel "pay for ads" ; rdfs:comment "green" ; dkg:towardsGoal :Goal_LarderPayingMembers ; dkg:source :Art_ImpactMap ; dkg:locator "IMPACT 14" ; dkg:confidence dkg:OnArtifact .
+
+# actor→impact edges that could be followed (Implied — read off a crossing bundle)
+:Imp_PublishTheirOwnCookbook dkg:impactedActor :Act_CookAsAuthor .
+:Imp_ShopEasilyWithDiscount dkg:impactedActor :Act_Single, :Act_YoungFamily .
+:Imp_FollowsDietryPlans dkg:impactedActor :Act_Single, :Act_YoungFamily .
+:Imp_PayForAds dkg:impactedActor :Act_KitchenWareRetailer, :Act_GroceryStore, :Act_PhotoBookService .
+
+# --- deliverables (priority number in comment) ---
+:Del_NutritionRequirementManagement a dkg:Deliverable ; skos:prefLabel "Nutrition requirement management" ; rdfs:comment "priority 1; green" ; dkg:realises :Imp_FollowsDietryPlans ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 1" ; dkg:confidence dkg:OnArtifact .
+:Del_DirectOrdering a dkg:Deliverable ; skos:prefLabel "Direct ordering" ; rdfs:comment "priority 1" ; dkg:realises :Imp_ShopEasilyWithDiscount ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 2" ; dkg:confidence dkg:OnArtifact .
+:Del_KitchenToolOrdering a dkg:Deliverable ; skos:prefLabel "Kitchen tool ordering" ; rdfs:comment "priority 2" ; dkg:realises :Imp_ShopEasilyWithDiscount ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 3" ; dkg:confidence dkg:OnArtifact .
+:Del_CookingClub a dkg:Deliverable ; skos:prefLabel "Cooking club" ; rdfs:comment "priority 2" ; dkg:realises :Imp_UseOfCommunitySharedRecipes ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 4" ; dkg:confidence dkg:OnArtifact .
+:Del_Content a dkg:Deliverable ; skos:prefLabel "Content" ; rdfs:comment "priority 1" ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 5" ; dkg:confidence dkg:OnArtifact .
+:Del_Rating a dkg:Deliverable ; skos:prefLabel "Rating" ; rdfs:comment "priority 1" ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 6" ; dkg:confidence dkg:OnArtifact .
+:Del_MealChooser a dkg:Deliverable ; skos:prefLabel "Meal Chooser" ; rdfs:comment "priority 2" ; dkg:realises :Imp_UseEffectiveLimitedBudget ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 7" ; dkg:confidence dkg:OnArtifact .
+:Del_AIProposals a dkg:Deliverable ; skos:prefLabel "AI proposals" ; rdfs:comment "priority 2" ; dkg:realises :Imp_UseEffectiveLimitedBudget ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 8" ; dkg:confidence dkg:OnArtifact .
+:Del_Timer a dkg:Deliverable ; skos:prefLabel "Timer" ; rdfs:comment "priority 3" ; dkg:realises :Imp_LearnCooking ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 9" ; dkg:confidence dkg:OnArtifact .
+:Del_GrandmaGrandpaAI a dkg:Deliverable ; skos:prefLabel "Grandma / Grandpa AI" ; rdfs:comment "priority 3" ; dkg:realises :Imp_LearnCooking, :Imp_SupportsUnexperiencedMembers ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 10" ; dkg:confidence dkg:OnArtifact .
+:Del_Planner a dkg:Deliverable ; skos:prefLabel "Planner" ; rdfs:comment "priority 1" ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 11" ; dkg:confidence dkg:OnArtifact .
+:Del_FamousChefsPartner a dkg:Deliverable ; skos:prefLabel "Famous chefs partner" ; rdfs:comment "priority 2" ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 12" ; dkg:confidence dkg:OnArtifact .
+:Del_CookbookPublishing a dkg:Deliverable ; skos:prefLabel "Cookbook publishing" ; rdfs:comment "priority 1" ; dkg:realises :Imp_PublishTheirOwnCookbook ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 13" ; dkg:confidence dkg:OnArtifact .
+:Del_MemberManagement a dkg:Deliverable ; skos:prefLabel "Member management" ; rdfs:comment "priority 1; green" ; dkg:realises :Imp_ConvertToPaidPlan, :Imp_PaidMemberRenews ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 14" ; dkg:confidence dkg:OnArtifact .
+:Del_PaywallForPremiumContent a dkg:Deliverable ; skos:prefLabel "Paywall for premium content" ; rdfs:comment "priority 1; green" ; dkg:realises :Imp_SeePremiumContent ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 15" ; dkg:confidence dkg:OnArtifact .
+:Del_AdsManagement a dkg:Deliverable ; skos:prefLabel "Ads management" ; rdfs:comment "priority 1; green" ; dkg:realises :Imp_PayForAds ; dkg:source :Art_ImpactMap ; dkg:locator "DELIVERABLES 16" ; dkg:confidence dkg:OnArtifact .
+
+:Q_ImpactMapWiring a dkg:Question ;
+    skos:prefLabel "Which impacts hang off Single, Young family, Chefs as senior partner, Grocery store, Photo book service — and which impacts do Content, Rating, Planner, Famous chefs partner realise?" ;
+    rdfs:comment "The line bundle between ACTORS and IMPACT, and into Content/Rating/Planner/Famous chefs partner, is not followable on the photo. Only clearly traceable lines were recorded." ;
+    dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact .
+
+# --- merge ledger edges (Idea → Deliverable, proposed only) ---
+:Idea_CookingClub dkg:proposedSameAs :Del_CookingClub ; rdfs:comment "brainstorm 'Cooking Club' / impact-map 'Cooking club'; case differs" .
+:Idea_Timer dkg:proposedSameAs :Del_Timer ; rdfs:comment "identical label, Idea vs Deliverable" .
+:Idea_MealChooser dkg:proposedSameAs :Del_MealChooser ; rdfs:comment "identical label, Idea vs Deliverable" .
+:Idea_CookbookPublishing dkg:proposedSameAs :Del_CookbookPublishing ; rdfs:comment "identical label, Idea vs Deliverable" .
+:Idea_Rating dkg:proposedSameAs :Del_Rating ; rdfs:comment "identical label, Idea vs Deliverable" .
+:Idea_DietaryRequirements dkg:proposedSameAs :Del_NutritionRequirementManagement ; rdfs:comment "'Dietary requirements' sticky vs 'Nutrition requirement management' deliverable" .
+:Idea_OrderIngredientsDirectly dkg:proposedSameAs :Del_DirectOrdering ; rdfs:comment "'Order ingredients directly' vs 'Direct ordering'" .
+:Idea_KitchenTools dkg:proposedSameAs :Del_KitchenToolOrdering ; rdfs:comment "'Kitchen tools' (Shopping) vs 'Kitchen tool ordering'" .
+:Idea_FamousChefsAsPartner dkg:proposedSameAs :Del_FamousChefsPartner, :Act_ChefsAsSeniorPartner ; rdfs:comment "one sticky became a deliverable AND an actor on the impact map" .
+:Idea_AskGrandma dkg:proposedSameAs :Del_GrandmaGrandpaAI ; rdfs:comment "'Ask grandma' / 'Grandpa shows how to do it' vs 'Grandma / Grandpa AI'; the brainstorm never says AI" .
+:Idea_GrandpaShowsHowToDoIt dkg:proposedSameAs :Del_GrandmaGrandpaAI .
+:Idea_DinnerPartyPlanner dkg:proposedSameAs :Del_Planner ; rdfs:comment "brainstorm cluster 'Planner' + sticky 'Dinner-party planner' vs deliverable 'Planner'" .
+:Idea_Budget dkg:proposedSameAs :Imp_UseEffectiveLimitedBudget ; rdfs:comment "an Idea that resurfaced as an Impact, not a deliverable" .
+:Idea_CookingSkillLearning dkg:proposedSameAs :Imp_LearnCooking ; rdfs:comment "an Idea that resurfaced as an Impact" .
+:Idea_Followers dkg:proposedSameAs :Imp_FollowCooks ; rdfs:comment "an Idea that resurfaced as an Impact" .
+
+##############################################################################
+# INGEST 3 — Wardley Map, WardleyMapEvolution.jpg — 2026-09-10
+# Four users at the top, seven needs beneath, 24 components on the chain.
+# Axis: Genesis | Custom | Product (+rental) | Commodity (+utility).
+# Sketched, not measured: no dkg:visibility. No movement arrows drawn.
+# Components on or within a sticky-width of a stage line get dkg:Inferred.
+# The user→need and need→component fans are partly unreadable; recorded
+# where a single line is followable, otherwise in Q_WardleyWiring.
+##############################################################################
+
+:Art_Wardley a dkg:WardleyMap ;
+    rdfs:label "Larder Wardley map (WardleyMapEvolution.jpg)" ;
+    rdfs:comment "4 users, 7 needs, 24 components. No movement arrows, no inertia marks, no pipelines." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+# --- users (anchors) ---
+:Act_YoungFamilies a dkg:Actor ; skos:prefLabel "Young families" ; dkg:source :Art_Wardley ; dkg:locator "top row 1" ; dkg:confidence dkg:OnArtifact .
+:Act_Singles a dkg:Actor ; skos:prefLabel "Singles" ; dkg:source :Art_Wardley ; dkg:locator "top row 2" ; dkg:confidence dkg:OnArtifact .
+:Act_HomeCook a dkg:Actor ; skos:prefLabel "Home cook" ; dkg:source :Art_Wardley ; dkg:locator "top row 3" ; dkg:confidence dkg:OnArtifact .
+:Act_Prospect a dkg:Actor ; skos:prefLabel "Prospect" ; dkg:source :Art_Wardley ; dkg:locator "top row 4" ; dkg:confidence dkg:OnArtifact .
+
+# --- needs ---
+:Goal_BetterCookingSkills a dkg:UserNeed ; skos:prefLabel "Better cooking skills" ; dkg:source :Art_Wardley ; dkg:locator "need 1" ; dkg:confidence dkg:OnArtifact .
+:Goal_EfficientUsageOfGroceries a dkg:UserNeed ; skos:prefLabel "Efficient usage of groceries" ; dkg:source :Art_Wardley ; dkg:locator "need 2" ; dkg:confidence dkg:OnArtifact .
+:Goal_CreateContent a dkg:UserNeed ; skos:prefLabel "Create content" ; dkg:source :Art_Wardley ; dkg:locator "need 3" ; dkg:confidence dkg:OnArtifact .
+:Goal_RateContent a dkg:UserNeed ; skos:prefLabel "Rate content" ; dkg:source :Art_Wardley ; dkg:locator "need 4" ; dkg:confidence dkg:OnArtifact .
+:Goal_SearchRecipesWithNutritionMeals a dkg:UserNeed ; skos:prefLabel "Search recipes with nutrition, meals, ..." ; dkg:source :Art_Wardley ; dkg:locator "need 5" ; dkg:confidence dkg:OnArtifact .
+:Goal_SupportCooking a dkg:UserNeed ; skos:prefLabel "Support cooking" ; dkg:source :Art_Wardley ; dkg:locator "need 6" ; dkg:confidence dkg:OnArtifact .
+:Goal_BecomeAMember a dkg:UserNeed ; skos:prefLabel "Become a member" ; dkg:source :Art_Wardley ; dkg:locator "need 7" ; dkg:confidence dkg:OnArtifact .
+
+:Act_Prospect dkg:dependsOn :Goal_BecomeAMember .
+
+# --- components, visible row ---
+:Cap_AskGrandmaGrandpa a dkg:Component ; skos:prefLabel "Ask Grandma / Grandpa" ; dkg:evolution dkg:CustomBuilt ; rdfs:comment "sits on the Custom line; stage Inferred" ; dkg:supports :Goal_BetterCookingSkills ; dkg:dependsOn :Cap_SpecificAI ; dkg:source :Art_Wardley ; dkg:locator "visible row 1" ; dkg:confidence dkg:Inferred .
+:Cap_AskChef a dkg:Component ; skos:prefLabel "Ask chef" ; dkg:evolution dkg:CustomBuilt ; dkg:supports :Goal_BetterCookingSkills ; dkg:dependsOn :Cap_RemoteMeeting, :Cap_Chat ; dkg:source :Art_Wardley ; dkg:locator "visible row 2" ; dkg:confidence dkg:OnArtifact .
+:Cap_Competitions a dkg:Component ; skos:prefLabel "Competitions" ; dkg:evolution dkg:CustomBuilt ; dkg:supports :Goal_BetterCookingSkills ; dkg:dependsOn :Cap_RemoteMeeting, :Cap_Chat ; dkg:source :Art_Wardley ; dkg:locator "visible row 3" ; dkg:confidence dkg:OnArtifact .
+:Cap_AskCommunity a dkg:Component ; skos:prefLabel "Ask community" ; dkg:evolution dkg:CustomBuilt ; rdfs:comment "touches the Product line; stage Inferred" ; dkg:supports :Goal_BetterCookingSkills ; dkg:dependsOn :Cap_RemoteMeeting, :Cap_Chat ; dkg:source :Art_Wardley ; dkg:locator "visible row 4" ; dkg:confidence dkg:Inferred .
+:Cap_Refrigerator a dkg:Component ; skos:prefLabel "Refrigerator" ; dkg:evolution dkg:Product ; dkg:supports :Goal_EfficientUsageOfGroceries ; dkg:dependsOn :Cap_RecipeDatabase ; dkg:source :Art_Wardley ; dkg:locator "visible row 5" ; dkg:confidence dkg:OnArtifact .
+:Cap_Nutrition a dkg:Component ; skos:prefLabel "Nutrition" ; dkg:evolution dkg:Product ; dkg:supports :Goal_SearchRecipesWithNutritionMeals ; dkg:dependsOn :Cap_RecipeDatabase ; dkg:source :Art_Wardley ; dkg:locator "visible row 6" ; dkg:confidence dkg:OnArtifact .
+:Cap_Meal a dkg:Component ; skos:prefLabel "Meal" ; dkg:evolution dkg:Product ; dkg:supports :Goal_SearchRecipesWithNutritionMeals ; dkg:dependsOn :Cap_RecipeDatabase ; dkg:source :Art_Wardley ; dkg:locator "visible row 7" ; dkg:confidence dkg:OnArtifact .
+:Cap_WriteRecipe a dkg:Component ; skos:prefLabel "Write recipe" ; dkg:evolution dkg:Commodity ; rdfs:comment "sits on the Commodity line; stage Inferred" ; dkg:supports :Goal_CreateContent ; dkg:dependsOn :Cap_RecipeDatabase ; dkg:source :Art_Wardley ; dkg:locator "visible row 8" ; dkg:confidence dkg:Inferred .
+:Cap_UploadMedia a dkg:Component ; skos:prefLabel "Upload media" ; dkg:evolution dkg:Commodity ; dkg:supports :Goal_CreateContent ; dkg:dependsOn :Cap_MediaStorage ; dkg:source :Art_Wardley ; dkg:locator "visible row 9" ; dkg:confidence dkg:OnArtifact .
+:Cap_Timer a dkg:Component ; skos:prefLabel "Timer" ; dkg:evolution dkg:Commodity ; dkg:supports :Goal_SupportCooking ; dkg:dependsOn :Cap_Mobile ; dkg:source :Art_Wardley ; dkg:locator "visible row 10" ; dkg:confidence dkg:OnArtifact .
+:Cap_FreeHandControl a dkg:Component ; skos:prefLabel "Free hand control" ; dkg:evolution dkg:Commodity ; dkg:supports :Goal_SupportCooking ; dkg:dependsOn :Cap_Mobile ; dkg:source :Art_Wardley ; dkg:locator "visible row 11" ; dkg:confidence dkg:OnArtifact .
+:Cap_MemberManagement a dkg:Component ; skos:prefLabel "Member Management" ; dkg:evolution dkg:Commodity ; dkg:supports :Goal_BecomeAMember ; dkg:dependsOn :Cap_IDM ; dkg:source :Art_Wardley ; dkg:locator "visible row 12" ; dkg:confidence dkg:OnArtifact .
+
+# --- middle rows ---
+:Cap_AdvancedSearch a dkg:Component ; skos:prefLabel "Advanced Search" ; dkg:evolution dkg:CustomBuilt ; dkg:supports :Goal_SearchRecipesWithNutritionMeals ; dkg:dependsOn :Cap_SpecificAI, :Cap_RecipeDatabase ; dkg:source :Art_Wardley ; dkg:locator "row 2" ; dkg:confidence dkg:OnArtifact .
+:Cap_RateContent a dkg:Component ; skos:prefLabel "Rate content" ; dkg:evolution dkg:Product ; dkg:supports :Goal_RateContent ; dkg:dependsOn :Cap_RatingDatabase ; dkg:source :Art_Wardley ; dkg:locator "row 2" ; dkg:confidence dkg:OnArtifact .
+:Cap_RemoteMeeting a dkg:Component ; skos:prefLabel "Remote meeting" ; dkg:evolution dkg:Commodity ; dkg:dependsOn :Cap_Cloud ; dkg:source :Art_Wardley ; dkg:locator "row 3" ; dkg:confidence dkg:OnArtifact .
+:Cap_Chat a dkg:Component ; skos:prefLabel "Chat" ; dkg:evolution dkg:Commodity ; dkg:dependsOn :Cap_Cloud ; dkg:source :Art_Wardley ; dkg:locator "row 3" ; dkg:confidence dkg:OnArtifact .
+:Cap_IDM a dkg:Component ; skos:prefLabel "IDM" ; dkg:evolution dkg:Commodity ; dkg:dependsOn :Cap_Cloud ; dkg:source :Art_Wardley ; dkg:locator "row 3" ; dkg:confidence dkg:OnArtifact .
+:Cap_SpecificAI a dkg:Component ; skos:prefLabel "Specific AI" ; dkg:evolution dkg:CustomBuilt ; dkg:dependsOn :Cap_GenAI ; dkg:source :Art_Wardley ; dkg:locator "row 4" ; dkg:confidence dkg:OnArtifact .
+:Cap_GenAI a dkg:Component ; skos:prefLabel "Gen AI" ; dkg:evolution dkg:Commodity ; rdfs:comment "sits on the Commodity line; stage Inferred" ; dkg:dependsOn :Cap_Cloud ; dkg:source :Art_Wardley ; dkg:locator "row 4" ; dkg:confidence dkg:Inferred .
+:Cap_MediaStorage a dkg:Component ; skos:prefLabel "Media Storage" ; dkg:evolution dkg:Commodity ; dkg:dependsOn :Cap_Cloud ; dkg:source :Art_Wardley ; dkg:locator "row 4" ; dkg:confidence dkg:OnArtifact .
+:Cap_RecipeDatabase a dkg:Component ; skos:prefLabel "Recipe database" ; dkg:evolution dkg:Product ; dkg:dependsOn :Cap_Cloud ; dkg:source :Art_Wardley ; dkg:locator "row 5" ; dkg:confidence dkg:OnArtifact .
+:Cap_RatingDatabase a dkg:Component ; skos:prefLabel "Rating Database" ; dkg:evolution dkg:Product ; dkg:dependsOn :Cap_Cloud ; dkg:source :Art_Wardley ; dkg:locator "row 5" ; dkg:confidence dkg:OnArtifact .
+:Cap_Cloud a dkg:Component ; skos:prefLabel "Cloud" ; dkg:evolution dkg:Commodity ; dkg:source :Art_Wardley ; dkg:locator "bottom row" ; dkg:confidence dkg:OnArtifact .
+:Cap_Mobile a dkg:Component ; skos:prefLabel "Mobile" ; dkg:evolution dkg:Commodity ; dkg:source :Art_Wardley ; dkg:locator "bottom row" ; dkg:confidence dkg:OnArtifact .
+
+:Q_WardleyWiring a dkg:Question ;
+    skos:prefLabel "Which users own which needs on the Wardley map, and which of Refrigerator / Nutrition / Meal feed Remote meeting and Chat?" ;
+    rdfs:comment "The user→need fan (except Prospect→Become a member) and several long diagonals into Remote meeting/Chat and Recipe database cannot be attributed to a single origin on the photo." ;
+    dkg:source :Art_Wardley ; dkg:confidence dkg:OnArtifact .
+
+# --- merge ledger ---
+:Act_YoungFamilies dkg:proposedSameAs :Act_YoungFamily ; rdfs:comment "plural on the Wardley map, singular on the impact map" .
+:Act_Singles dkg:proposedSameAs :Act_Single ; rdfs:comment "plural vs singular" .
+:Act_Prospect dkg:proposedSameAs :Act_Propects ; rdfs:comment "Wardley 'Prospect' vs impact-map 'Propects' (misspelt plural)" .
+:Cap_Timer dkg:proposedSameAs :Del_Timer, :Idea_Timer ; rdfs:comment "same word; Component vs Deliverable vs Idea (cross-class)" .
+:Cap_MemberManagement dkg:proposedSameAs :Del_MemberManagement ; rdfs:comment "'Member Management' vs 'Member management'; Component vs Deliverable" .
+:Cap_AskGrandmaGrandpa dkg:proposedSameAs :Del_GrandmaGrandpaAI, :Idea_AskGrandma ; rdfs:comment "the Wardley component is Custom-built; the deliverable says AI; the brainstorm sticky does not" .
+:Cap_AskChef dkg:proposedSameAs :Act_ChefsAsSeniorPartner ; rdfs:comment "Component vs Actor — a capability named after who provides it" .
+:Cap_Competitions dkg:proposedSameAs :Idea_SponsorContest ; rdfs:comment "'Competitions' vs 'Sponsor contest'" .
+:Cap_RateContent dkg:proposedSameAs :Del_Rating, :Idea_Rating ; rdfs:comment "'Rate content' vs 'Rating'" .
+:Cap_Nutrition dkg:proposedSameAs :Del_NutritionRequirementManagement .
+:Cap_Refrigerator dkg:proposedSameAs :Idea_LarderTracker, :Idea_SearchWithThingsIAlreadyHave, :Idea_FridgePhotoRecipeGeneration ; rdfs:comment "'Refrigerator' is the map's word for the larder/fridge ideas; three stickies are candidates" .
+:Cap_FreeHandControl dkg:proposedSameAs :Idea_VoiceControl ; rdfs:comment "'Free hand control' vs 'Voice control'" .
+:Cap_AdvancedSearch dkg:supports :Goal_SearchRecipesWithNutritionMeals .
+:Goal_SearchRecipesWithNutritionMeals dkg:proposedSameAs :Imp_FindEasilyRecipes ; rdfs:comment "Wardley need vs impact-map impact" .
+:Goal_BetterCookingSkills dkg:proposedSameAs :Imp_LearnCooking ; rdfs:comment "Wardley need vs impact-map impact" .
+:Goal_EfficientUsageOfGroceries dkg:proposedSameAs :Imp_UseEffectiveLimitedBudget ; rdfs:comment "groceries vs budget — related, possibly not the same need" .
+:Goal_BecomeAMember dkg:proposedSameAs :Imp_ConvertToPaidPlan ; rdfs:comment "the map says member; the impact map says paying" .
+
+##############################################################################
+# INGEST 4 — Business Model Canvas, BusinessModelCanvasEnhanced.jpg — 2026-09-10
+# All nine blocks filled. No lines drawn between blocks, so NO servesSegment /
+# deliveredVia / paidBy / supports edges are emitted. Four stickies are blue
+# italic (Com-munity, AI proposals, Planner, Marketing); meaning not on the
+# canvas.
+##############################################################################
+
+:Art_BMC a dkg:BusinessModelCanvas ;
+    rdfs:label "Larder Business Model Canvas (BusinessModelCanvasEnhanced.jpg)" ;
+    rdfs:comment "9 blocks, 26 stickies, none empty, no inter-block lines. 4 blue stickies of unconfirmed meaning." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+# Customer Segments
+:Act_Singles_BMC a dkg:CustomerSegment ; skos:prefLabel "Singles" ; dkg:source :Art_BMC ; dkg:locator "Customer segments 1" ; dkg:confidence dkg:OnArtifact .
+:Act_YoungFamilies_BMC a dkg:CustomerSegment ; skos:prefLabel "Young families" ; dkg:source :Art_BMC ; dkg:locator "Customer segments 2" ; dkg:confidence dkg:OnArtifact .
+# Value Propositions
+:VP_EasyToFindRecipes a dkg:ValueProposition ; skos:prefLabel "Easy to find recipes" ; dkg:source :Art_BMC ; dkg:locator "Key propositions 1" ; dkg:confidence dkg:OnArtifact .
+:VP_CookingSupport a dkg:ValueProposition ; skos:prefLabel "Cooking support" ; dkg:source :Art_BMC ; dkg:locator "Key propositions 2" ; dkg:confidence dkg:OnArtifact .
+:VP_RecipesForSpecializedNutritionRequirements a dkg:ValueProposition ; skos:prefLabel "Recipes for specialized nutrition requirements" ; dkg:source :Art_BMC ; dkg:locator "Key propositions 3" ; dkg:confidence dkg:OnArtifact .
+:VP_AIProposals a dkg:ValueProposition ; skos:prefLabel "AI proposals" ; rdfs:comment "blue sticky" ; dkg:source :Art_BMC ; dkg:locator "Key propositions 4" ; dkg:confidence dkg:OnArtifact .
+:VP_Planner a dkg:ValueProposition ; skos:prefLabel "Planner" ; rdfs:comment "blue sticky" ; dkg:source :Art_BMC ; dkg:locator "Key propositions 5" ; dkg:confidence dkg:OnArtifact .
+# Channels
+:Ch_App a dkg:Channel ; skos:prefLabel "App" ; dkg:source :Art_BMC ; dkg:locator "Channels" ; dkg:confidence dkg:OnArtifact .
+# Customer Relationships
+:CR_DailyForSharing a dkg:CustomerRelationship ; skos:prefLabel "Daily for sharing" ; dkg:source :Art_BMC ; dkg:locator "Customer relationships 1" ; dkg:confidence dkg:OnArtifact .
+:CR_WeeklyForCreating a dkg:CustomerRelationship ; skos:prefLabel "Weekly for creating" ; dkg:source :Art_BMC ; dkg:locator "Customer relationships 2" ; dkg:confidence dkg:OnArtifact .
+:CR_Community a dkg:CustomerRelationship ; skos:prefLabel "Community" ; skos:altLabel "Com-munity" ; rdfs:comment "blue sticky" ; dkg:source :Art_BMC ; dkg:locator "Customer relationships 3" ; dkg:confidence dkg:OnArtifact .
+# Revenue Streams
+:RS_MonthlyMemberFee a dkg:RevenueStream ; skos:prefLabel "Monthly member fee" ; dkg:source :Art_BMC ; dkg:locator "Revenue Streams 1" ; dkg:confidence dkg:OnArtifact .
+:RS_AdsByPartners a dkg:RevenueStream ; skos:prefLabel "Ads by partners" ; dkg:source :Art_BMC ; dkg:locator "Revenue Streams 2" ; dkg:confidence dkg:OnArtifact .
+# Key Resources
+:KR_Cooks a dkg:KeyResource, dkg:Actor ; skos:prefLabel "Cooks" ; dkg:source :Art_BMC ; dkg:locator "Key resources 1" ; dkg:confidence dkg:OnArtifact .
+:KR_Media a dkg:KeyResource, dkg:Concept ; skos:prefLabel "Media" ; dkg:source :Art_BMC ; dkg:locator "Key resources 2" ; dkg:confidence dkg:OnArtifact .
+:KR_Recipes a dkg:KeyResource, dkg:Concept ; skos:prefLabel "Recipes" ; dkg:source :Art_BMC ; dkg:locator "Key resources 3" ; dkg:confidence dkg:OnArtifact .
+:KR_AISearchSupport a dkg:KeyResource ; skos:prefLabel "AI search support" ; dkg:source :Art_BMC ; dkg:locator "Key resources 4" ; dkg:confidence dkg:OnArtifact .
+# Key Activities
+:Cap_ContentCreation a dkg:KeyActivity ; skos:prefLabel "Content Creation" ; dkg:source :Art_BMC ; dkg:locator "Key activities 1" ; dkg:confidence dkg:OnArtifact .
+:Cap_ContentRating a dkg:KeyActivity ; skos:prefLabel "Content Rating" ; dkg:source :Art_BMC ; dkg:locator "Key activities 2" ; dkg:confidence dkg:OnArtifact .
+:Cap_CookingSupport a dkg:KeyActivity ; skos:prefLabel "Cooking Support" ; dkg:source :Art_BMC ; dkg:locator "Key activities 3" ; dkg:confidence dkg:OnArtifact .
+:Cap_RecipeSearch a dkg:KeyActivity ; skos:prefLabel "Recipe Search" ; dkg:source :Art_BMC ; dkg:locator "Key activities 4" ; dkg:confidence dkg:OnArtifact .
+# Key Partners
+:Act_KitchenWareRetailer_BMC a dkg:KeyPartner ; skos:prefLabel "Kitchen ware retailer" ; dkg:source :Art_BMC ; dkg:locator "Key partners 1" ; dkg:confidence dkg:OnArtifact .
+:Act_GroceryStores a dkg:KeyPartner ; skos:prefLabel "Grocery stores" ; dkg:source :Art_BMC ; dkg:locator "Key partners 2" ; dkg:confidence dkg:OnArtifact .
+:Act_PhotoBookService_BMC a dkg:KeyPartner ; skos:prefLabel "Photo book service" ; dkg:source :Art_BMC ; dkg:locator "Key partners 3" ; dkg:confidence dkg:OnArtifact .
+:Act_Chefs a dkg:KeyPartner ; skos:prefLabel "Chefs" ; dkg:source :Art_BMC ; dkg:locator "Key partners 4" ; dkg:confidence dkg:OnArtifact .
+# Cost Structure
+:Cost_SoftwareDevelopment a dkg:CostStructure ; skos:prefLabel "Software development" ; dkg:source :Art_BMC ; dkg:locator "Cost Structure 1" ; dkg:confidence dkg:OnArtifact .
+:Cost_SoftwareMaintainance a dkg:CostStructure ; skos:prefLabel "Software maintainance" ; rdfs:comment "diagram spelling" ; dkg:source :Art_BMC ; dkg:locator "Cost Structure 2" ; dkg:confidence dkg:OnArtifact .
+:Cost_CloudService a dkg:CostStructure ; skos:prefLabel "Cloud service" ; dkg:source :Art_BMC ; dkg:locator "Cost Structure 3" ; dkg:confidence dkg:OnArtifact .
+:Cost_Licenses a dkg:CostStructure ; skos:prefLabel "Licenses" ; dkg:source :Art_BMC ; dkg:locator "Cost Structure 4" ; dkg:confidence dkg:OnArtifact .
+:Cost_Marketing a dkg:CostStructure ; skos:prefLabel "Marketing" ; rdfs:comment "blue sticky" ; dkg:source :Art_BMC ; dkg:locator "Cost Structure 5" ; dkg:confidence dkg:OnArtifact .
+
+# --- merge ledger ---
+# Exact label + same spine class (Actor) but a canvas segment vs Wardley user: propose, per the BMC hazard rule.
+:Act_Singles_BMC dkg:proposedSameAs :Act_Singles, :Act_Single ; rdfs:comment "exact match with the Wardley user; segment vs user kept apart until confirmed" .
+:Act_YoungFamilies_BMC dkg:proposedSameAs :Act_YoungFamilies, :Act_YoungFamily .
+:Act_KitchenWareRetailer_BMC dkg:proposedSameAs :Act_KitchenWareRetailer ; rdfs:comment "exact label; KeyPartner vs impact-map actor" .
+:Act_GroceryStores dkg:proposedSameAs :Act_GroceryStore ; rdfs:comment "plural vs singular" .
+:Act_PhotoBookService_BMC dkg:proposedSameAs :Act_PhotoBookService ; rdfs:comment "exact label; KeyPartner vs impact-map actor" .
+:Act_Chefs dkg:proposedSameAs :Act_ChefsAsSeniorPartner, :Idea_FamousChefsAsPartner ; rdfs:comment "'Chefs' vs 'Chefs as senior partner' vs 'Famous chefs as partner'" .
+:KR_Cooks dkg:proposedSameAs :Act_HomeCook ; rdfs:comment "BMC resource 'Cooks' vs Wardley user 'Home cook'" .
+:Cap_ContentCreation dkg:proposedSameAs :Cluster_ContentCreation ; rdfs:comment "exact label; KeyActivity vs brainstorm Cluster (cross-class)" .
+:Cap_ContentRating dkg:proposedSameAs :Cluster_ContentRating ; rdfs:comment "exact label; KeyActivity vs brainstorm Cluster" .
+:Cap_CookingSupport dkg:proposedSameAs :Cluster_CookingSupport, :Goal_SupportCooking, :VP_CookingSupport ; rdfs:comment "one phrase as cluster, key activity, value proposition and Wardley need" .
+:Cap_RecipeSearch dkg:proposedSameAs :Cluster_RecipeSearch, :Cap_AdvancedSearch ; rdfs:comment "exact label with the brainstorm cluster; Wardley draws 'Advanced Search'" .
+:VP_AIProposals dkg:proposedSameAs :Del_AIProposals ; rdfs:comment "exact label; VP vs Deliverable" .
+:VP_Planner dkg:proposedSameAs :Del_Planner, :Cluster_Planner ; rdfs:comment "exact label; VP vs Deliverable vs Cluster" .
+:VP_EasyToFindRecipes dkg:proposedSameAs :Imp_FindEasilyRecipes, :Goal_SearchRecipesWithNutritionMeals ; rdfs:comment "VP vs impact vs Wardley need" .
+:VP_RecipesForSpecializedNutritionRequirements dkg:proposedSameAs :Del_NutritionRequirementManagement, :Imp_FollowsDietryPlans .
+:RS_MonthlyMemberFee dkg:proposedSameAs :Imp_ConvertToPaidPlan ; rdfs:comment "the revenue stream the impact-map goal counts" .
+:RS_AdsByPartners dkg:proposedSameAs :Imp_PayForAds, :Del_AdsManagement .
+:CR_Community dkg:proposedSameAs :Cluster_Community ; rdfs:comment "'Community' as relationship vs as brainstorm cluster" .
+:KR_Recipes dkg:proposedSameAs :Cap_RecipeDatabase ; rdfs:comment "resource 'Recipes' vs Wardley 'Recipe database'" .
+:KR_Media dkg:proposedSameAs :Cap_MediaStorage .
+:KR_AISearchSupport dkg:proposedSameAs :Cap_SpecificAI, :Cap_AdvancedSearch .
+:Cost_CloudService dkg:proposedSameAs :Cap_Cloud .
+
+##############################################################################
+# INGEST 5 — Capability Map, CapabilityMapStep3.jpg — 2026-09-10
+# Five level-1 chevrons (Onboarding · Cooking · Cooking Support · Sharing ·
+# Rating), 16 level-2 capabilities. Markings ARE drawn: legend Core (blue,
+# person-check) / Supporting (green, magnifier) / Generic (yellow, globe).
+# Each marking is a dated dkg:Assertion. Two small arrowheads (▲ on Member
+# management, ▶ near Planner) have no legend and are recorded as a Question.
+# Level-2 IRIs get the _CM suffix where the graph already holds the label in
+# another class; identity is proposed, not merged.
+##############################################################################
+
+:Art_CapMap a dkg:CapabilityMap ;
+    rdfs:label "Larder capability map (CapabilityMapStep3.jpg)" ;
+    rdfs:comment "5 level-1, 16 level-2, all 16 marked core/supporting/generic via a drawn legend." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+:Cap_Onboarding_L1 a dkg:Capability ; skos:prefLabel "Onboarding" ; rdfs:comment "level-1 chevron" ; dkg:source :Art_CapMap ; dkg:locator "level 1" ; dkg:confidence dkg:OnArtifact .
+:Cap_FamousChefsPartner_CM a dkg:Capability ; skos:prefLabel "Famous chefs partner" ; skos:broader :Cap_Onboarding_L1 ; rdfs:comment "core" ; dkg:source :Art_CapMap ; dkg:locator "Onboarding 1" ; dkg:confidence dkg:OnArtifact .
+:As_CM_FamousChefsPartner a dkg:Assertion ; rdf:subject :Cap_FamousChefsPartner_CM ; rdf:predicate rdfs:comment ; rdf:object "core" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_MemberManagement_CM a dkg:Capability ; skos:prefLabel "Member management" ; skos:broader :Cap_Onboarding_L1 ; rdfs:comment "generic" ; dkg:source :Art_CapMap ; dkg:locator "Onboarding 2" ; dkg:confidence dkg:OnArtifact .
+:As_CM_MemberManagement a dkg:Assertion ; rdf:subject :Cap_MemberManagement_CM ; rdf:predicate rdfs:comment ; rdf:object "generic" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_AdsManagement_CM a dkg:Capability ; skos:prefLabel "Ads management" ; skos:broader :Cap_Onboarding_L1 ; rdfs:comment "generic" ; dkg:source :Art_CapMap ; dkg:locator "Onboarding 3" ; dkg:confidence dkg:OnArtifact .
+:As_CM_AdsManagement a dkg:Assertion ; rdf:subject :Cap_AdsManagement_CM ; rdf:predicate rdfs:comment ; rdf:object "generic" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_Cooking_L1 a dkg:Capability ; skos:prefLabel "Cooking" ; rdfs:comment "level-1 chevron" ; dkg:source :Art_CapMap ; dkg:locator "level 1" ; dkg:confidence dkg:OnArtifact .
+:Cap_MealChooser_CM a dkg:Capability ; skos:prefLabel "Meal Chooser" ; skos:broader :Cap_Cooking_L1 ; rdfs:comment "supporting" ; dkg:source :Art_CapMap ; dkg:locator "Cooking 1" ; dkg:confidence dkg:OnArtifact .
+:As_CM_MealChooser a dkg:Assertion ; rdf:subject :Cap_MealChooser_CM ; rdf:predicate rdfs:comment ; rdf:object "supporting" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_ProposalsBasedOnLarderEtc_CM a dkg:Capability ; skos:prefLabel "Proposals based on larder, etc." ; skos:broader :Cap_Cooking_L1 ; rdfs:comment "core" ; dkg:source :Art_CapMap ; dkg:locator "Cooking 2" ; dkg:confidence dkg:OnArtifact .
+:As_CM_ProposalsBasedOnLarderEtc a dkg:Assertion ; rdf:subject :Cap_ProposalsBasedOnLarderEtc_CM ; rdf:predicate rdfs:comment ; rdf:object "core" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_Planner_CM a dkg:Capability ; skos:prefLabel "Planner" ; skos:broader :Cap_Cooking_L1 ; rdfs:comment "supporting" ; dkg:source :Art_CapMap ; dkg:locator "Cooking 3" ; dkg:confidence dkg:OnArtifact .
+:As_CM_Planner a dkg:Assertion ; rdf:subject :Cap_Planner_CM ; rdf:predicate rdfs:comment ; rdf:object "supporting" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_CommunityEngagement_CM a dkg:Capability ; skos:prefLabel "Community Engagement" ; skos:broader :Cap_Cooking_L1 ; rdfs:comment "core" ; dkg:source :Art_CapMap ; dkg:locator "Cooking 4" ; dkg:confidence dkg:OnArtifact .
+:As_CM_CommunityEngagement a dkg:Assertion ; rdf:subject :Cap_CommunityEngagement_CM ; rdf:predicate rdfs:comment ; rdf:object "core" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_CookingSupport_L1 a dkg:Capability ; skos:prefLabel "Cooking Support" ; rdfs:comment "level-1 chevron" ; dkg:source :Art_CapMap ; dkg:locator "level 1" ; dkg:confidence dkg:OnArtifact .
+:Cap_NutritionRequirementManagement_CM a dkg:Capability ; skos:prefLabel "Nutrition requirement management" ; skos:broader :Cap_CookingSupport_L1 ; rdfs:comment "supporting" ; dkg:source :Art_CapMap ; dkg:locator "Cooking Support 1" ; dkg:confidence dkg:OnArtifact .
+:As_CM_NutritionRequirementManagement a dkg:Assertion ; rdf:subject :Cap_NutritionRequirementManagement_CM ; rdf:predicate rdfs:comment ; rdf:object "supporting" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_DirectOrdering_CM a dkg:Capability ; skos:prefLabel "Direct ordering" ; skos:broader :Cap_CookingSupport_L1 ; rdfs:comment "generic" ; dkg:source :Art_CapMap ; dkg:locator "Cooking Support 2" ; dkg:confidence dkg:OnArtifact .
+:As_CM_DirectOrdering a dkg:Assertion ; rdf:subject :Cap_DirectOrdering_CM ; rdf:predicate rdfs:comment ; rdf:object "generic" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_KitchenToolOrdering_CM a dkg:Capability ; skos:prefLabel "Kitchen tool ordering" ; skos:broader :Cap_CookingSupport_L1 ; rdfs:comment "generic" ; dkg:source :Art_CapMap ; dkg:locator "Cooking Support 3" ; dkg:confidence dkg:OnArtifact .
+:As_CM_KitchenToolOrdering a dkg:Assertion ; rdf:subject :Cap_KitchenToolOrdering_CM ; rdf:predicate rdfs:comment ; rdf:object "generic" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_CookingAids_CM a dkg:Capability ; skos:prefLabel "Cooking aids" ; skos:broader :Cap_CookingSupport_L1 ; rdfs:comment "generic" ; dkg:source :Art_CapMap ; dkg:locator "Cooking Support 4" ; dkg:confidence dkg:OnArtifact .
+:As_CM_CookingAids a dkg:Assertion ; rdf:subject :Cap_CookingAids_CM ; rdf:predicate rdfs:comment ; rdf:object "generic" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_GrandmaGrandpa_CM a dkg:Capability ; skos:prefLabel "Grandma / Grandpa" ; skos:broader :Cap_CookingSupport_L1 ; rdfs:comment "core" ; dkg:source :Art_CapMap ; dkg:locator "Cooking Support 5" ; dkg:confidence dkg:OnArtifact .
+:As_CM_GrandmaGrandpa a dkg:Assertion ; rdf:subject :Cap_GrandmaGrandpa_CM ; rdf:predicate rdfs:comment ; rdf:object "core" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_Sharing_L1 a dkg:Capability ; skos:prefLabel "Sharing" ; rdfs:comment "level-1 chevron" ; dkg:source :Art_CapMap ; dkg:locator "level 1" ; dkg:confidence dkg:OnArtifact .
+:Cap_ContentCreation_CM a dkg:Capability ; skos:prefLabel "Content Creation" ; skos:broader :Cap_Sharing_L1 ; rdfs:comment "core" ; dkg:source :Art_CapMap ; dkg:locator "Sharing 1" ; dkg:confidence dkg:OnArtifact .
+:As_CM_ContentCreation a dkg:Assertion ; rdf:subject :Cap_ContentCreation_CM ; rdf:predicate rdfs:comment ; rdf:object "core" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_CookbookPublishing_CM a dkg:Capability ; skos:prefLabel "Cookbook publishing" ; skos:broader :Cap_Sharing_L1 ; rdfs:comment "supporting" ; dkg:source :Art_CapMap ; dkg:locator "Sharing 2" ; dkg:confidence dkg:OnArtifact .
+:As_CM_CookbookPublishing a dkg:Assertion ; rdf:subject :Cap_CookbookPublishing_CM ; rdf:predicate rdfs:comment ; rdf:object "supporting" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_PaywallForPremiumContent_CM a dkg:Capability ; skos:prefLabel "Paywall for premium content" ; skos:broader :Cap_Sharing_L1 ; rdfs:comment "generic" ; dkg:source :Art_CapMap ; dkg:locator "Sharing 3" ; dkg:confidence dkg:OnArtifact .
+:As_CM_PaywallForPremiumContent a dkg:Assertion ; rdf:subject :Cap_PaywallForPremiumContent_CM ; rdf:predicate rdfs:comment ; rdf:object "generic" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+:Cap_Rating_L1 a dkg:Capability ; skos:prefLabel "Rating" ; rdfs:comment "level-1 chevron" ; dkg:source :Art_CapMap ; dkg:locator "level 1" ; dkg:confidence dkg:OnArtifact .
+:Cap_Rating_CM a dkg:Capability ; skos:prefLabel "Rating" ; skos:broader :Cap_Rating_L1 ; rdfs:comment "supporting" ; dkg:source :Art_CapMap ; dkg:locator "Rating 1" ; dkg:confidence dkg:OnArtifact .
+:As_CM_Rating a dkg:Assertion ; rdf:subject :Cap_Rating_CM ; rdf:predicate rdfs:comment ; rdf:object "supporting" ; rdfs:comment "capability map marking, 2026-09-10" ; dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+
+:Q_CapMapArrows a dkg:Question ;
+    skos:prefLabel "What do the small ▲ on Member management and ▶ beside Planner mean on the capability map?" ;
+    dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact .
+
+# --- merge ledger ---
+:Cap_FamousChefsPartner_CM dkg:proposedSameAs :Del_FamousChefsPartner, :Act_Chefs, :Cap_AskChef ; rdfs:comment "exact label with the impact-map deliverable; capability vs deliverable" .
+:Cap_MemberManagement_CM dkg:proposedSameAs :Del_MemberManagement, :Cap_MemberManagement ; rdfs:comment "exact label with the deliverable; Wardley writes 'Member Management' — both are dkg:Capability but the Wardley node carries an evolution stage, so proposed rather than auto-merged" .
+:Cap_AdsManagement_CM dkg:proposedSameAs :Del_AdsManagement .
+:Cap_MealChooser_CM dkg:proposedSameAs :Del_MealChooser, :Idea_MealChooser .
+:Cap_ProposalsBasedOnLarderEtc_CM dkg:proposedSameAs :Del_AIProposals, :VP_AIProposals, :Idea_LarderTracker ; rdfs:comment "'Proposals based on larder, etc.' vs 'AI proposals' — the capability map drops the word AI" .
+:Cap_Planner_CM dkg:proposedSameAs :Del_Planner, :VP_Planner .
+:Cap_CommunityEngagement_CM dkg:proposedSameAs :CR_Community, :Cluster_Community, :Del_CookingClub ; rdfs:comment "no other artifact uses 'Community Engagement'; nearest are the BMC relationship, the brainstorm cluster and the Cooking club deliverable" .
+:Cap_NutritionRequirementManagement_CM dkg:proposedSameAs :Del_NutritionRequirementManagement, :Cap_Nutrition .
+:Cap_DirectOrdering_CM dkg:proposedSameAs :Del_DirectOrdering .
+:Cap_KitchenToolOrdering_CM dkg:proposedSameAs :Del_KitchenToolOrdering .
+:Cap_CookingAids_CM dkg:proposedSameAs :Cap_Timer, :Cap_FreeHandControl, :Cluster_Helper ; rdfs:comment "'Cooking aids' appears nowhere else; Wardley's Timer / Free hand control and the brainstorm 'Helper' cluster are the candidates" .
+:Cap_GrandmaGrandpa_CM dkg:proposedSameAs :Del_GrandmaGrandpaAI, :Cap_AskGrandmaGrandpa ; rdfs:comment "capability map says 'Grandma / Grandpa'; impact map says 'Grandma / Grandpa AI'; Wardley says 'Ask Grandma / Grandpa'" .
+:Cap_ContentCreation_CM dkg:proposedSameAs :Cap_ContentCreation, :Cluster_ContentCreation ; rdfs:comment "exact label with the BMC key activity; kept apart because the map marks it core and the canvas makes no such claim" .
+:Cap_CookbookPublishing_CM dkg:proposedSameAs :Del_CookbookPublishing, :Idea_CookbookPublishing .
+:Cap_PaywallForPremiumContent_CM dkg:proposedSameAs :Del_PaywallForPremiumContent .
+:Cap_Rating_CM dkg:proposedSameAs :Del_Rating, :Cap_RateContent, :Cap_ContentRating, :Idea_Rating .
+:Cap_CookingSupport_L1 dkg:proposedSameAs :Cap_CookingSupport, :Cluster_CookingSupport ; rdfs:comment "exact label with the BMC key activity and the brainstorm cluster; level-1 bundle, so not auto-merged" .
+:Cap_Sharing_L1 dkg:proposedSameAs :CR_DailyForSharing .
+:Cap_Rating_L1 dkg:proposedSameAs :Cap_ContentRating .
+:Cap_Onboarding_L1 dkg:proposedSameAs :Goal_BecomeAMember, :Cluster_Authentication .
+
+
+##############################################################################
+# INGEST 6 — Domain Stories (five), one artifact each — 2026-09-10
+# Order as uploaded: Grandma · AskChef · AskCommunity · Competition · GrandmaII.
+# No lanes or groups drawn on any story: NO dkg:Lane nodes are emitted.
+# Compound sentences split into a/b halves. Actors auto-merge across stories on
+# exact label; work objects likewise. 'Grandma' (story II, sentence 6) is a
+# different label from 'Grandma Avatar' and is a separate node with a
+# proposedSameAs. Sentence numbering is kept as drawn, including duplicates.
+##############################################################################
+
+:Art_StoryGrandma a dkg:DomainStory ; rdfs:label "Domain Story — Cook, Grandma Avatar and the burnt meal (DomainStoryGrandma.jpg)" ; rdfs:comment "9 clauses after splitting compound sentences." ; dkg:ingestedAt "2026-09-10"^^xsd:date .
+:Sen_A_1 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Cook prepares Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Prepares ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact .
+:Cmd_Prepares dkg:actsOn :Con_Meal .
+:Sen_A_2a a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Cook burns Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Burns ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 2a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 2" .
+:Sen_A_1 dkg:precedes :Sen_A_2a .
+:Cmd_Burns dkg:actsOn :Con_Meal .
+:Sen_A_2b a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "…and takes Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Cmd_Takes ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 2b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 2" .
+:Sen_A_2a dkg:precedes :Sen_A_2b .
+:Cmd_Takes dkg:actsOn :Con_Pictures .
+:Sen_A_3 a dkg:Sentence ; dkg:sequence 4 ; skos:prefLabel "Cook asks Grandma Avatar for Help with Catastrophe Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_GrandmaAvatar, :Con_Help, :Con_CatastrophePictures, :Cmd_Asks ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_A_2b dkg:precedes :Sen_A_3 .
+:Cmd_Asks dkg:actsOn :Con_Help .
+:Cmd_Asks dkg:actsOn :Con_CatastrophePictures .
+:Sen_A_4 a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Grandma Avatar provides Help to rescue Meal" ; dkg:performedBy :Act_GrandmaAvatar ; dkg:mentions :Con_Help, :Con_Meal, :Cmd_Provides ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact .
+:Sen_A_3 dkg:precedes :Sen_A_4 .
+:Cmd_Provides dkg:actsOn :Con_Help .
+:Cmd_Provides dkg:actsOn :Con_Meal .
+:Sen_A_5a a dkg:Sentence ; dkg:sequence 6 ; skos:prefLabel "Cook rescues Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Rescues ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 5a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_A_4 dkg:precedes :Sen_A_5a .
+:Cmd_Rescues dkg:actsOn :Con_Meal .
+:Sen_A_5b a dkg:Sentence ; dkg:sequence 7 ; skos:prefLabel "…and takes Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Cmd_Takes ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 5b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_A_5a dkg:precedes :Sen_A_5b .
+:Cmd_Takes dkg:actsOn :Con_Pictures .
+:Sen_A_6a a dkg:Sentence ; dkg:sequence 8 ; skos:prefLabel "Cook thanks Grandma Avatar" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_GrandmaAvatar, :Cmd_Thanks ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 6a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6" .
+:Sen_A_5b dkg:precedes :Sen_A_6a .
+:Sen_A_6b a dkg:Sentence ; dkg:sequence 9 ; skos:prefLabel "…and shares Pictures with Community" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Act_Community, :Cmd_Shares ; dkg:source :Art_StoryGrandma ; dkg:locator "sentence 6b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6" .
+:Sen_A_6a dkg:precedes :Sen_A_6b .
+:Cmd_Shares dkg:actsOn :Con_Pictures .
+
+:Art_StoryAskChef a dkg:DomainStory ; rdfs:label "Domain Story — Cook asks Chef to plan dinner (DomainStoryAskChef.jpg)" ; rdfs:comment "8 clauses after splitting compound sentences." ; dkg:ingestedAt "2026-09-10"^^xsd:date .
+:Sen_C_1 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Cook plans Dinner with Parents in Law" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Dinner, :Act_ParentsInLaw, :Cmd_Plans ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact .
+:Cmd_Plans dkg:actsOn :Con_Dinner .
+:Sen_C_2 a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Cook needs Help for Meal Planning" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Help, :Con_MealPlanning, :Cmd_Needs ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 2" ; dkg:confidence dkg:OnArtifact .
+:Sen_C_1 dkg:precedes :Sen_C_2 .
+:Cmd_Needs dkg:actsOn :Con_Help .
+:Cmd_Needs dkg:actsOn :Con_MealPlanning .
+:Sen_C_3 a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "Cook asks Chef for Help" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_Chef, :Con_Help, :Cmd_Asks ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_C_2 dkg:precedes :Sen_C_3 .
+:Cmd_Asks dkg:actsOn :Con_Help .
+:Sen_C_4 a dkg:Sentence ; dkg:sequence 4 ; skos:prefLabel "Chef provides Help to plan Dinner" ; dkg:performedBy :Act_Chef ; dkg:mentions :Con_Help, :Con_Dinner, :Cmd_Provides ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact .
+:Sen_C_3 dkg:precedes :Sen_C_4 .
+:Cmd_Provides dkg:actsOn :Con_Help .
+:Cmd_Provides dkg:actsOn :Con_Dinner .
+:Sen_C_5a a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Cook prepares Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Prepares ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 5a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_C_4 dkg:precedes :Sen_C_5a .
+:Cmd_Prepares dkg:actsOn :Con_Meal .
+:Sen_C_5b a dkg:Sentence ; dkg:sequence 6 ; skos:prefLabel "…and takes Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Cmd_Takes ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 5b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_C_5a dkg:precedes :Sen_C_5b .
+:Cmd_Takes dkg:actsOn :Con_Pictures .
+:Sen_C_6a a dkg:Sentence ; dkg:sequence 7 ; skos:prefLabel "Cook thanks Chef" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_Chef, :Cmd_Thanks ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 6a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6" .
+:Sen_C_5b dkg:precedes :Sen_C_6a .
+:Sen_C_6b a dkg:Sentence ; dkg:sequence 8 ; skos:prefLabel "…and shares Pictures with Community" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Act_Community, :Cmd_Shares ; dkg:source :Art_StoryAskChef ; dkg:locator "sentence 6b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6" .
+:Sen_C_6a dkg:precedes :Sen_C_6b .
+:Cmd_Shares dkg:actsOn :Con_Pictures .
+
+:Art_StoryAskCommunity a dkg:DomainStory ; rdfs:label "Domain Story — Cook asks Community about ingredients (DomainStoryAskCommunity.jpg)" ; rdfs:comment "8 clauses after splitting compound sentences." ; dkg:ingestedAt "2026-09-10"^^xsd:date .
+:Sen_D_1 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Cook prepares Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Prepares ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact .
+:Cmd_Prepares dkg:actsOn :Con_Meal .
+:Sen_D_2 a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Cook needs Help with Ingredients" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Help, :Con_Ingredients, :Cmd_Needs ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 2" ; dkg:confidence dkg:OnArtifact .
+:Sen_D_1 dkg:precedes :Sen_D_2 .
+:Cmd_Needs dkg:actsOn :Con_Help .
+:Cmd_Needs dkg:actsOn :Con_Ingredients .
+:Sen_D_3 a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "Cook asks Community for Help with Ingredients" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_Community, :Con_Help, :Con_Ingredients, :Cmd_Asks ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_D_2 dkg:precedes :Sen_D_3 .
+:Cmd_Asks dkg:actsOn :Con_Help .
+:Cmd_Asks dkg:actsOn :Con_Ingredients .
+:Sen_D_4 a dkg:Sentence ; dkg:sequence 4 ; skos:prefLabel "Community provides Help with Ingredients Substitutes" ; dkg:performedBy :Act_Community ; dkg:mentions :Con_Help, :Con_IngredientsSubstitutes, :Cmd_Provides ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact .
+:Sen_D_3 dkg:precedes :Sen_D_4 .
+:Cmd_Provides dkg:actsOn :Con_Help .
+:Cmd_Provides dkg:actsOn :Con_IngredientsSubstitutes .
+:Sen_D_5a a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Cook prepares Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Prepares ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 5a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_D_4 dkg:precedes :Sen_D_5a .
+:Cmd_Prepares dkg:actsOn :Con_Meal .
+:Sen_D_5b a dkg:Sentence ; dkg:sequence 6 ; skos:prefLabel "…and takes Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Cmd_Takes ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 5b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_D_5a dkg:precedes :Sen_D_5b .
+:Cmd_Takes dkg:actsOn :Con_Pictures .
+:Sen_D_6a a dkg:Sentence ; dkg:sequence 7 ; skos:prefLabel "Cook thanks Community" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_Community, :Cmd_Thanks ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 6a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6" .
+:Sen_D_5b dkg:precedes :Sen_D_6a .
+:Sen_D_6b a dkg:Sentence ; dkg:sequence 8 ; skos:prefLabel "…and shares Pictures with Community" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Act_Community, :Cmd_Shares ; dkg:source :Art_StoryAskCommunity ; dkg:locator "sentence 6b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6" .
+:Sen_D_6a dkg:precedes :Sen_D_6b .
+:Cmd_Shares dkg:actsOn :Con_Pictures .
+
+:Art_StoryCompetition a dkg:DomainStory ; rdfs:label "Domain Story — Competition (DomainStoryCompetition.jpg)" ; rdfs:comment "10 clauses after splitting compound sentences." ; dkg:ingestedAt "2026-09-10"^^xsd:date .
+:Sen_K_1 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Cook wnat to compare Meal Preparation Skill with other Cooks" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_MealPreparationSkill, :Act_Cooks, :Cmd_WnatToCompare ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "diagram spelling 'wnat'" .
+:Cmd_WnatToCompare dkg:actsOn :Con_MealPreparationSkill .
+:Sen_K_2 a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Community Administrator plans Competition" ; dkg:performedBy :Act_CommunityAdministrator ; dkg:mentions :Con_Competition, :Cmd_Plans ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 2" ; dkg:confidence dkg:OnArtifact .
+:Sen_K_1 dkg:precedes :Sen_K_2 .
+:Cmd_Plans dkg:actsOn :Con_Competition .
+:Sen_K_3 a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "Community Administrator selects Recipe for Preparation" ; dkg:performedBy :Act_CommunityAdministrator ; dkg:mentions :Con_Recipe, :Con_Preparation, :Cmd_Selects ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_K_2 dkg:precedes :Sen_K_3 .
+:Cmd_Selects dkg:actsOn :Con_Recipe .
+:Cmd_Selects dkg:actsOn :Con_Preparation .
+:Sen_K_3dup a dkg:Sentence ; dkg:sequence 4 ; skos:prefLabel "Cook registers for Competition" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Competition, :Cmd_RegistersFor ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 3'" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "duplicate number 3 on the diagram" .
+:Sen_K_3 dkg:precedes :Sen_K_3dup .
+:Cmd_RegistersFor dkg:actsOn :Con_Competition .
+:Sen_K_4 a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Community Administrator findes Other cooks for Rating" ; dkg:performedBy :Act_CommunityAdministrator ; dkg:mentions :Act_OtherCooks, :Con_Rating, :Cmd_Findes ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "diagram spelling 'findes'" .
+:Sen_K_3dup dkg:precedes :Sen_K_4 .
+:Cmd_Findes dkg:actsOn :Con_Rating .
+:Sen_K_4dupa a dkg:Sentence ; dkg:sequence 6 ; skos:prefLabel "Cook prepares Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Prepares ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 4'a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "duplicate number 4; split compound" .
+:Sen_K_4 dkg:precedes :Sen_K_4dupa .
+:Cmd_Prepares dkg:actsOn :Con_Meal .
+:Sen_K_4dupb a dkg:Sentence ; dkg:sequence 7 ; skos:prefLabel "…and shares online" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Online, :Cmd_Shares ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 4'b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "duplicate number 4; split compound; 'online' drawn as a work object (globe)" .
+:Sen_K_4dupa dkg:precedes :Sen_K_4dupb .
+:Cmd_Shares dkg:actsOn :Con_Online .
+:Sen_K_5a a dkg:Sentence ; dkg:sequence 8 ; skos:prefLabel "Other cooks rate Meal" ; dkg:performedBy :Act_OtherCooks ; dkg:mentions :Con_Meal, :Cmd_Rate ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 5a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split compound" .
+:Sen_K_4dupb dkg:precedes :Sen_K_5a .
+:Cmd_Rate dkg:actsOn :Con_Meal .
+:Sen_K_5b a dkg:Sentence ; dkg:sequence 9 ; skos:prefLabel "…and share online" ; dkg:performedBy :Act_OtherCooks ; dkg:mentions :Con_Online, :Cmd_Share ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 5b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split compound" .
+:Sen_K_5a dkg:precedes :Sen_K_5b .
+:Cmd_Share dkg:actsOn :Con_Online .
+:Sen_K_6 a dkg:Sentence ; dkg:sequence 10 ; skos:prefLabel "Community Administrator crowns Winner with Highest rate" ; dkg:performedBy :Act_CommunityAdministrator ; dkg:mentions :Con_Winner, :Con_HighestRate, :Cmd_Crowns ; dkg:source :Art_StoryCompetition ; dkg:locator "sentence 6" ; dkg:confidence dkg:OnArtifact .
+:Sen_K_5b dkg:precedes :Sen_K_6 .
+:Cmd_Crowns dkg:actsOn :Con_Winner .
+:Cmd_Crowns dkg:actsOn :Con_HighestRate .
+
+:Art_StoryGrandmaII a dkg:DomainStory ; rdfs:label "Domain Story — Cook asks Grandma Avatar during preparation (II) (DomainStoryGrandmaII.jpg)" ; rdfs:comment "9 clauses after splitting compound sentences." ; dkg:ingestedAt "2026-09-10"^^xsd:date .
+:Sen_B_1 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Cook prepares Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Prepares ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact .
+:Cmd_Prepares dkg:actsOn :Con_Meal .
+:Sen_B_2a a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Cook needs Help for Meal Preparation" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Help, :Con_MealPreparation, :Cmd_Needs ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 2a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 2" .
+:Sen_B_1 dkg:precedes :Sen_B_2a .
+:Cmd_Needs dkg:actsOn :Con_Help .
+:Cmd_Needs dkg:actsOn :Con_MealPreparation .
+:Sen_B_2b a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "…and takes Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Cmd_Takes ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 2b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 2" .
+:Sen_B_2a dkg:precedes :Sen_B_2b .
+:Cmd_Takes dkg:actsOn :Con_Pictures .
+:Sen_B_3 a dkg:Sentence ; dkg:sequence 4 ; skos:prefLabel "Cook asks Grandma Avatar for Help with Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_GrandmaAvatar, :Con_Help, :Con_Pictures, :Cmd_Asks ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_B_2b dkg:precedes :Sen_B_3 .
+:Cmd_Asks dkg:actsOn :Con_Help .
+:Cmd_Asks dkg:actsOn :Con_Pictures .
+:Sen_B_4 a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Grandma Avatar provides Help to prepare Meal" ; dkg:performedBy :Act_GrandmaAvatar ; dkg:mentions :Con_Help, :Con_Meal, :Cmd_Provides ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact .
+:Sen_B_3 dkg:precedes :Sen_B_4 .
+:Cmd_Provides dkg:actsOn :Con_Help .
+:Cmd_Provides dkg:actsOn :Con_Meal .
+:Sen_B_5a a dkg:Sentence ; dkg:sequence 6 ; skos:prefLabel "Cook prepares Meal" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Meal, :Cmd_Prepares ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 5a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_B_4 dkg:precedes :Sen_B_5a .
+:Cmd_Prepares dkg:actsOn :Con_Meal .
+:Sen_B_5b a dkg:Sentence ; dkg:sequence 7 ; skos:prefLabel "…and takes Pictures" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Cmd_Takes ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 5b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 5" .
+:Sen_B_5a dkg:precedes :Sen_B_5b .
+:Cmd_Takes dkg:actsOn :Con_Pictures .
+:Sen_B_6a a dkg:Sentence ; dkg:sequence 8 ; skos:prefLabel "Cook thanks Grandma" ; dkg:performedBy :Act_Cook ; dkg:mentions :Act_Grandma, :Cmd_Thanks ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 6a" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6; actor labelled 'Grandma', not 'Grandma Avatar'" .
+:Sen_B_5b dkg:precedes :Sen_B_6a .
+:Sen_B_6b a dkg:Sentence ; dkg:sequence 9 ; skos:prefLabel "…and shares Pictures with Community" ; dkg:performedBy :Act_Cook ; dkg:mentions :Con_Pictures, :Act_Community, :Cmd_Shares ; dkg:source :Art_StoryGrandmaII ; dkg:locator "sentence 6b" ; dkg:confidence dkg:OnArtifact ; rdfs:comment "split: compound sentence 6" .
+:Sen_B_6a dkg:precedes :Sen_B_6b .
+:Cmd_Shares dkg:actsOn :Con_Pictures .
+
+:Act_Cook a dkg:Actor ; skos:prefLabel "Cook" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryCompetition, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Cmd_Prepares a dkg:Activity ; skos:prefLabel "prepares" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryCompetition, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Con_Meal a dkg:WorkObject ; skos:prefLabel "Meal" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryCompetition, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Cmd_Burns a dkg:Activity ; skos:prefLabel "burns" ; dkg:source :Art_StoryGrandma ; dkg:confidence dkg:OnArtifact .
+:Cmd_Takes a dkg:Activity ; skos:prefLabel "takes" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Con_Pictures a dkg:WorkObject ; skos:prefLabel "Pictures" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Cmd_Asks a dkg:Activity ; skos:prefLabel "asks" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Act_GrandmaAvatar a dkg:Actor ; skos:prefLabel "Grandma Avatar" ; dkg:source :Art_StoryGrandma, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Con_Help a dkg:WorkObject ; skos:prefLabel "Help" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Con_CatastrophePictures a dkg:WorkObject ; skos:prefLabel "Catastrophe Pictures" ; dkg:source :Art_StoryGrandma ; dkg:confidence dkg:OnArtifact .
+:Cmd_Provides a dkg:Activity ; skos:prefLabel "provides" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Cmd_Rescues a dkg:Activity ; skos:prefLabel "rescues" ; dkg:source :Art_StoryGrandma ; dkg:confidence dkg:OnArtifact .
+:Cmd_Thanks a dkg:Activity ; skos:prefLabel "thanks" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Cmd_Shares a dkg:Activity ; skos:prefLabel "shares" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryCompetition, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Act_Community a dkg:Actor ; skos:prefLabel "Community" ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Cmd_Plans a dkg:Activity ; skos:prefLabel "plans" ; dkg:source :Art_StoryAskChef, :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_Dinner a dkg:WorkObject ; skos:prefLabel "Dinner" ; dkg:source :Art_StoryAskChef ; dkg:confidence dkg:OnArtifact .
+:Act_ParentsInLaw a dkg:Actor ; skos:prefLabel "Parents in Law" ; dkg:source :Art_StoryAskChef ; dkg:confidence dkg:OnArtifact .
+:Cmd_Needs a dkg:Activity ; skos:prefLabel "needs" ; dkg:source :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Con_MealPlanning a dkg:WorkObject ; skos:prefLabel "Meal Planning" ; dkg:source :Art_StoryAskChef ; dkg:confidence dkg:OnArtifact .
+:Act_Chef a dkg:Actor ; skos:prefLabel "Chef" ; dkg:source :Art_StoryAskChef ; dkg:confidence dkg:OnArtifact .
+:Con_Ingredients a dkg:WorkObject ; skos:prefLabel "Ingredients" ; dkg:source :Art_StoryAskCommunity ; dkg:confidence dkg:OnArtifact .
+:Con_IngredientsSubstitutes a dkg:WorkObject ; skos:prefLabel "Ingredients Substitutes" ; dkg:source :Art_StoryAskCommunity ; dkg:confidence dkg:OnArtifact .
+:Cmd_WnatToCompare a dkg:Activity ; skos:prefLabel "wnat to compare" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_MealPreparationSkill a dkg:WorkObject ; skos:prefLabel "Meal Preparation Skill" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Act_Cooks a dkg:Actor ; skos:prefLabel "Cooks" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Act_CommunityAdministrator a dkg:Actor ; skos:prefLabel "Community Administrator" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_Competition a dkg:WorkObject ; skos:prefLabel "Competition" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Cmd_Selects a dkg:Activity ; skos:prefLabel "selects" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_Recipe a dkg:WorkObject ; skos:prefLabel "Recipe" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_Preparation a dkg:WorkObject ; skos:prefLabel "Preparation" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Cmd_RegistersFor a dkg:Activity ; skos:prefLabel "registers for" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Cmd_Findes a dkg:Activity ; skos:prefLabel "findes" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Act_OtherCooks a dkg:Actor ; skos:prefLabel "Other cooks" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_Rating a dkg:WorkObject ; skos:prefLabel "Rating" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_Online a dkg:WorkObject ; skos:prefLabel "online" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Cmd_Rate a dkg:Activity ; skos:prefLabel "rate" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Cmd_Share a dkg:Activity ; skos:prefLabel "share" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Cmd_Crowns a dkg:Activity ; skos:prefLabel "crowns" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_Winner a dkg:WorkObject ; skos:prefLabel "Winner" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_HighestRate a dkg:WorkObject ; skos:prefLabel "Highest rate" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Con_MealPreparation a dkg:WorkObject ; skos:prefLabel "Meal Preparation" ; dkg:source :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Act_Grandma a dkg:Actor ; skos:prefLabel "Grandma" ; dkg:source :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+
+# --- questions the stories raise ---
+:Q_HelpRequestOrResponse a dkg:Question ; skos:prefLabel "Is 'Help' one work object or two — the request the Cook asks for and the response the responder provides?" ; rdfs:comment "Every story uses one pictogram for both." ; dkg:source :Art_StoryGrandma, :Art_StoryAskChef, :Art_StoryAskCommunity, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Q_PicturesTwoSenses a dkg:Question ; skos:prefLabel "Are the Pictures taken during trouble the same kind of thing as the Pictures shared with the Community?" ; rdfs:comment "Story Grandma qualifies the first use as 'Catastrophe Pictures'; story II uses plain 'Pictures' for both." ; dkg:source :Art_StoryGrandma, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Q_GrandmaVsGrandmaAvatar a dkg:Question ; skos:prefLabel "Is 'Grandma' in story II sentence 6 the same actor as 'Grandma Avatar'?" ; dkg:source :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact .
+:Q_CompetitionNumbering a dkg:Question ; skos:prefLabel "Competition story: sentences 3 and 4 each appear twice — are they parallel or was the numbering a slip?" ; dkg:source :Art_StoryCompetition ; dkg:confidence dkg:OnArtifact .
+:Q_CommunityAudienceOrResponder a dkg:Question ; skos:prefLabel "Is 'Community' the responder (story AskCommunity, sentence 4) the same thing as 'Community' the audience (every story, sentence 6)?" ; dkg:source :Art_StoryAskCommunity, :Art_StoryGrandma ; dkg:confidence dkg:OnArtifact .
+
+# --- merge ledger ---
+:Act_Grandma dkg:proposedSameAs :Act_GrandmaAvatar ; rdfs:comment "story II writes 'Grandma' once, 'Grandma Avatar' three times" .
+:Act_Cooks dkg:proposedSameAs :Act_OtherCooks, :Act_Cook ; rdfs:comment "Competition story: 'Cooks' (sentence 1) vs 'Other cooks' (4, 5)" .
+:Act_Cook dkg:proposedSameAs :Act_HomeCook, :KR_Cooks, :Act_CookAsAuthor ; rdfs:comment "operational 'Cook' vs Wardley 'Home cook', BMC 'Cooks', impact-map 'Cook as author'" .
+:Act_Chef dkg:proposedSameAs :Act_Chefs, :Act_ChefsAsSeniorPartner, :Cap_AskChef ; rdfs:comment "story 'Chef' vs BMC 'Chefs' vs impact-map 'Chefs as senior partner'" .
+:Act_Community dkg:proposedSameAs :CR_Community, :Cap_AskCommunity, :Cluster_Community ; rdfs:comment "story actor vs BMC relationship vs Wardley component vs brainstorm cluster" .
+:Act_GrandmaAvatar dkg:proposedSameAs :Del_GrandmaGrandpaAI, :Cap_AskGrandmaGrandpa, :Cap_GrandmaGrandpa_CM, :Idea_AskGrandma ; rdfs:comment "the stories name only Grandma; every strategy artifact says Grandma / Grandpa" .
+:Act_ParentsInLaw dkg:proposedSameAs :Act_YoungFamily ; rdfs:comment "guests, not a segment — weak" .
+:Con_CatastrophePictures dkg:proposedSameAs :Con_Pictures ; rdfs:comment "containment: the qualifier probably means a second concept; NOT merged" .
+:Con_IngredientsSubstitutes dkg:proposedSameAs :Con_Ingredients ; rdfs:comment "containment; NOT merged" .
+:Con_Competition dkg:proposedSameAs :Cap_Competitions, :Idea_SponsorContest ; rdfs:comment "story work object vs Wardley component vs brainstorm idea" .
+:Con_Rating dkg:proposedSameAs :Del_Rating, :Cap_Rating_CM, :Idea_Rating ; rdfs:comment "story work object vs deliverable/capability/idea" .
+:Con_Recipe dkg:proposedSameAs :KR_Recipes ; rdfs:comment "singular work object vs plural BMC resource" .
+:Con_Meal dkg:proposedSameAs :Cap_Meal ; rdfs:comment "story work object vs Wardley component 'Meal' (cross-class)" .
+:Con_MealPreparation dkg:proposedSameAs :Con_Preparation ; rdfs:comment "'Meal Preparation' (story II) vs 'Preparation' (Competition story)" .
+:Con_MealPlanning dkg:proposedSameAs :Cluster_Planner, :VP_Planner ; rdfs:comment "story work object 'Meal Planning' vs the strategy artifacts' 'Planner'" .
+:Con_Pictures dkg:proposedSameAs :KR_Media, :Cap_UploadMedia, :Idea_MakingPhotos ; rdfs:comment "story 'Pictures' vs BMC 'Media' vs Wardley 'Upload media' vs brainstorm 'Making Photos'" .
+:Cmd_Shares dkg:proposedSameAs :Idea_SharingOnInstagram, :CR_DailyForSharing ; rdfs:comment "the verb 'shares' vs the brainstorm/BMC sharing stickies" .
+
+
+##############################################################################
+# INGEST 7 — EventStorming board — 2026-09-10
+# Files: EventStormingWithBoundedContext.jpg (primary — seven distinct bubble
+# names) and EventStormingBoardWithBcs.jpg (same stickies; the two bubbles
+# labelled 'Cooking Help' read 'Cooking Assistance' there).
+# Colour/icon convention as read: orange = event · blue ⌘ = command · bright
+# yellow (person) = actor · green (eye) = read model · pale yellow (briefcase)
+# = business object · pink (gear) = external system. Sparkle icon on many
+# events and robot icon on 6 and 18: meaning unconfirmed, recorded only in
+# comments. NO state stickies. NO hotspots. NO policies. NO large-yellow
+# aggregates.
+# Same cluster drawn twice: Help requested/Help provided (7/8 and 15/16),
+# Pictures taken (14, 20). One node per command/event with two locators,
+# EXCEPT 'Pictures' as a business object, which is split (_14 evidence, _20
+# result) per the one-label-two-purposes rule. 'Prepare meal' is one command
+# sticky repeated under seven events (6, 11, 12, 13, 17, 18, 19).
+# Bubbles drawn twice with the same name (Meal Planning ×2, Meal Preparation
+# ×2, Media ×2) are one context node each with two locators.
+##############################################################################
+
+:Art_ES a dkg:EventStormingBoard ;
+    rdfs:label "Community Cooking EventStorming board, with bounded contexts (EventStormingWithBoundedContext.jpg + EventStormingBoardWithBcs.jpg)" ;
+    rdfs:comment "21 event stickies in three rows, 9 bubbles carrying 7 distinct names; no states, hotspots, policies or aggregates." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+# --- context bubbles ---
+:Ctx_CookProfile a dkg:BoundedContext ; skos:prefLabel "Cook Profile" ; dkg:source :Art_ES ; dkg:locator "bubble top-left" ; dkg:confidence dkg:OnArtifact .
+:Ctx_MealPlanning a dkg:BoundedContext ; skos:prefLabel "Meal Planning" ; rdfs:comment "drawn twice: the top bubble (events 2–6) and a second bubble beneath it (events 9–10)" ; dkg:source :Art_ES ; dkg:locator "bubble top-centre", "bubble centre-left" ; dkg:confidence dkg:OnArtifact .
+:Ctx_CookingAssistance a dkg:BoundedContext ; skos:prefLabel "Cooking Assistance" ; rdfs:comment "two bubbles: top-right (event 7) and middle-left (event 8). On EventStormingBoardWithBcs.jpg all four help bubbles carry this name." ; dkg:source :Art_ES ; dkg:locator "bubble top-right", "bubble middle-left" ; dkg:confidence dkg:OnArtifact .
+:Ctx_CookingHelp a dkg:BoundedContext ; skos:prefLabel "Cooking Help" ; skos:altLabel "Cooking Assistance" ; rdfs:comment "two bubbles: middle-right (event 15) and bottom-left (event 16). Named 'Cooking Help' on EventStormingWithBoundedContext.jpg and 'Cooking Assistance' on EventStormingBoardWithBcs.jpg." ; dkg:source :Art_ES ; dkg:locator "bubble middle-right", "bubble bottom-left" ; dkg:confidence dkg:OnArtifact .
+:Ctx_MealPreparation a dkg:BoundedContext ; skos:prefLabel "Meal Preparation" ; rdfs:comment "drawn twice: centre (events 11–13) and bottom-centre (events 17–19)" ; dkg:source :Art_ES ; dkg:locator "bubble centre", "bubble bottom-centre" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Media a dkg:BoundedContext ; skos:prefLabel "Media" ; rdfs:comment "drawn twice: right (event 14) and bottom (event 20)" ; dkg:source :Art_ES ; dkg:locator "bubble right", "bubble bottom-right-centre" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Sharing a dkg:BoundedContext ; skos:prefLabel "Sharing" ; dkg:source :Art_ES ; dkg:locator "bubble bottom-right" ; dkg:confidence dkg:OnArtifact .
+
+[] a dkg:spelling ; dkg:literal "Cooking Assistance" ; dkg:spelledOn :Art_ES ;
+   rdfs:comment "EventStormingBoardWithBcs.jpg labels the bubbles around events 15 and 16 'Cooking Assistance'; EventStormingWithBoundedContext.jpg labels them 'Cooking Help'. Two renderings of one wall disagree on whether help at the stove is the same context as help while planning." .
+:Ctx_CookingHelp dkg:proposedSameAs :Ctx_CookingAssistance ; rdfs:comment "same commands (Request help / Provide help), same objects (Help request / Help response), overlapping responders incl. Grandma Avatar; one rendering already uses one name for all four bubbles" .
+
+:Q_HelpOneContextOrTwo a dkg:Question ; skos:prefLabel "Are Cooking Assistance (planning-time help) and Cooking Help (cooking-time help) one bounded context or two?" ; rdfs:comment "The two board photos answer differently." ; dkg:source :Art_ES ; dkg:confidence dkg:OnArtifact .
+:Q_ESIcons a dkg:Question ; skos:prefLabel "What do the sparkle icon (many events) and the robot icon (Meal planning stalled, Meal rescued) mean on the board?" ; dkg:source :Art_ES ; dkg:confidence dkg:OnArtifact .
+:Q_PrepareMealOneCommand a dkg:Question ; skos:prefLabel "Is 'Prepare meal' really one command for seven events (6, 11, 12, 13, 17, 18, 19), or a placeholder?" ; dkg:source :Art_ES ; dkg:confidence dkg:OnArtifact .
+:Q_NoStatesNoHotspots a dkg:Question ; skos:prefLabel "The board has no state stickies and no hotspots — on a domain with 'stalled', 'unclear', 'catastrophe'. Were disagreements captured anywhere?" ; dkg:source :Art_ES ; dkg:confidence dkg:OnArtifact .
+:Q_PlanSetteledLabel a dkg:Question ; skos:prefLabel "Is event 10 'plan setteled' or 'Meal plan setteled'? The sticky is partly covered by the Menu read model." ; dkg:source :Art_ES ; dkg:confidence dkg:OnArtifact .
+
+# --- events ---
+:Ev_CookRegistered a dkg:DomainEvent ; skos:prefLabel "Cook registered" ; dkg:sequence 1 ; dkg:inContext :Ctx_CookProfile ; dkg:source :Art_ES ; dkg:locator "event 1" ; dkg:confidence dkg:OnArtifact .
+:Ev_DinnerPlanned a dkg:DomainEvent ; skos:prefLabel "Dinner planned" ; dkg:sequence 2 ; dkg:inContext :Ctx_MealPlanning ; dkg:source :Art_ES ; dkg:locator "event 2" ; dkg:confidence dkg:OnArtifact .
+:Ev_RecipesSearched a dkg:DomainEvent ; skos:prefLabel "Recipes searched" ; dkg:sequence 3 ; dkg:inContext :Ctx_MealPlanning ; rdfs:comment "loop with 4" ; dkg:source :Art_ES ; dkg:locator "event 3" ; dkg:confidence dkg:OnArtifact .
+:Ev_RecipeSelected a dkg:DomainEvent ; skos:prefLabel "Recipe selected" ; dkg:sequence 4 ; dkg:inContext :Ctx_MealPlanning ; rdfs:comment "loop with 3; command sticky reads 'Search recipes'" ; dkg:source :Art_ES ; dkg:locator "event 4" ; dkg:confidence dkg:OnArtifact .
+:Ev_IngredientsMissing a dkg:DomainEvent ; skos:prefLabel "Ingredients missing" ; dkg:sequence 5 ; dkg:inContext :Ctx_MealPlanning ; rdfs:comment "branch; stickies half outside the bubble" ; dkg:source :Art_ES ; dkg:locator "event 5" ; dkg:confidence dkg:OnArtifact .
+:Ev_MealPlanningStalled a dkg:DomainEvent ; skos:prefLabel "Meal planning stalled" ; dkg:sequence 6 ; dkg:inContext :Ctx_MealPlanning ; rdfs:comment "robot icon (unconfirmed); command sticky reads 'Prepare meal'" ; dkg:source :Art_ES ; dkg:locator "event 6" ; dkg:confidence dkg:OnArtifact .
+:Ev_HelpRequested a dkg:DomainEvent ; skos:prefLabel "Help requested" ; dkg:sequence 7 ; dkg:inContext :Ctx_CookingAssistance ; rdfs:comment "recurs: drawn at events 7 and 15", :Ctx_CookingHelp ; dkg:source :Art_ES ; dkg:locator "event 7", "event 15" ; dkg:confidence dkg:OnArtifact .
+:Ev_HelpProvided a dkg:DomainEvent ; skos:prefLabel "Help provided" ; dkg:sequence 8 ; dkg:inContext :Ctx_CookingAssistance ; rdfs:comment "recurs: drawn at events 8 and 16", :Ctx_CookingHelp ; dkg:source :Art_ES ; dkg:locator "event 8", "event 16" ; dkg:confidence dkg:OnArtifact .
+:Ev_IngredientsSubstituted a dkg:DomainEvent ; skos:prefLabel "Ingredients substituted" ; dkg:sequence 9 ; dkg:inContext :Ctx_MealPlanning ; rdfs:comment "second Meal Planning bubble" ; dkg:source :Art_ES ; dkg:locator "event 9" ; dkg:confidence dkg:OnArtifact .
+:Ev_PlanSetteled a dkg:DomainEvent ; skos:prefLabel "plan setteled" ; dkg:sequence 10 ; dkg:inContext :Ctx_MealPlanning ; rdfs:comment "sticky partly covered; likely 'Meal plan setteled'; diagram spelling" ; dkg:source :Art_ES ; dkg:locator "event 10" ; dkg:confidence dkg:OnArtifact .
+:Ev_MealPreparationStarted a dkg:DomainEvent ; skos:prefLabel "Meal preparation started" ; dkg:sequence 11 ; dkg:inContext :Ctx_MealPreparation ; dkg:source :Art_ES ; dkg:locator "event 11" ; dkg:confidence dkg:OnArtifact .
+:Ev_StepUnclear a dkg:DomainEvent ; skos:prefLabel "Step unclear" ; dkg:sequence 12 ; dkg:inContext :Ctx_MealPreparation ; rdfs:comment "loop" ; dkg:source :Art_ES ; dkg:locator "event 12" ; dkg:confidence dkg:OnArtifact .
+:Ev_CatastropheHappened a dkg:DomainEvent ; skos:prefLabel "Catastrophe happened" ; dkg:sequence 13 ; dkg:inContext :Ctx_MealPreparation ; rdfs:comment "branch" ; dkg:source :Art_ES ; dkg:locator "event 13" ; dkg:confidence dkg:OnArtifact .
+:Ev_PicturesTaken a dkg:DomainEvent ; skos:prefLabel "Pictures taken" ; dkg:sequence 14 ; dkg:inContext :Ctx_Media ; rdfs:comment "recurs: drawn at events 14 and 20" ; dkg:source :Art_ES ; dkg:locator "event 14", "event 20" ; dkg:confidence dkg:OnArtifact .
+:Ev_StepCompeted a dkg:DomainEvent ; skos:prefLabel "Step competed" ; dkg:sequence 17 ; dkg:inContext :Ctx_MealPreparation ; rdfs:comment "loop; diagram spelling; second Meal Preparation bubble" ; dkg:source :Art_ES ; dkg:locator "event 17" ; dkg:confidence dkg:OnArtifact .
+:Ev_MealRescued a dkg:DomainEvent ; skos:prefLabel "Meal rescued" ; dkg:sequence 18 ; dkg:inContext :Ctx_MealPreparation ; rdfs:comment "robot icon (unconfirmed)" ; dkg:source :Art_ES ; dkg:locator "event 18" ; dkg:confidence dkg:OnArtifact .
+:Ev_MealPrepared a dkg:DomainEvent ; skos:prefLabel "Meal prepared" ; dkg:sequence 19 ; dkg:inContext :Ctx_MealPreparation ; dkg:source :Art_ES ; dkg:locator "event 19" ; dkg:confidence dkg:OnArtifact .
+:Ev_ThanksGiven a dkg:DomainEvent ; skos:prefLabel "Thanks given" ; dkg:sequence 21 ; dkg:inContext :Ctx_Sharing ; dkg:source :Art_ES ; dkg:locator "event 21" ; dkg:confidence dkg:OnArtifact .
+:Ev_CookRegistered dkg:precedes :Ev_DinnerPlanned .
+:Ev_DinnerPlanned dkg:precedes :Ev_RecipesSearched .
+:Ev_RecipesSearched dkg:precedes :Ev_RecipeSelected .
+:Ev_RecipeSelected dkg:precedes :Ev_IngredientsMissing .
+:Ev_IngredientsMissing dkg:precedes :Ev_MealPlanningStalled .
+:Ev_MealPlanningStalled dkg:precedes :Ev_HelpRequested .
+:Ev_HelpRequested dkg:precedes :Ev_HelpProvided .
+:Ev_HelpProvided dkg:precedes :Ev_IngredientsSubstituted .
+:Ev_IngredientsSubstituted dkg:precedes :Ev_PlanSetteled .
+:Ev_PlanSetteled dkg:precedes :Ev_MealPreparationStarted .
+:Ev_MealPreparationStarted dkg:precedes :Ev_StepUnclear .
+:Ev_StepUnclear dkg:precedes :Ev_CatastropheHappened .
+:Ev_CatastropheHappened dkg:precedes :Ev_PicturesTaken .
+:Ev_PicturesTaken dkg:precedes :Ev_HelpRequested .
+:Ev_HelpRequested dkg:precedes :Ev_HelpProvided .
+:Ev_HelpProvided dkg:precedes :Ev_StepCompeted .
+:Ev_StepCompeted dkg:precedes :Ev_MealRescued .
+:Ev_MealRescued dkg:precedes :Ev_MealPrepared .
+:Ev_MealPrepared dkg:precedes :Ev_PicturesTaken .
+:Ev_PicturesTaken dkg:precedes :Ev_ThanksGiven .
+# --- commands ---
+:Cmd_RegisterCook a dkg:Command ; skos:prefLabel "Register cook" ; dkg:triggers :Ev_CookRegistered ; dkg:performedBy :Act_User ; dkg:reads :Con_User_ES ; dkg:produces :Con_Cook_ES ; dkg:source :Art_ES ; dkg:locator "event 1" ; dkg:confidence dkg:OnArtifact .
+:Cmd_PlanDinner a dkg:Command ; skos:prefLabel "Plan dinner" ; dkg:triggers :Ev_DinnerPlanned ; dkg:performedBy :Act_Cook ; dkg:reads :Con_Guests_ES ; dkg:produces :Con_Menu_ES ; dkg:source :Art_ES ; dkg:locator "event 2" ; dkg:confidence dkg:OnArtifact .
+:Cmd_SearchRecipes a dkg:Command ; skos:prefLabel "Search recipes" ; dkg:triggers :Ev_RecipesSearched, :Ev_RecipeSelected ; dkg:performedBy :Act_Cook ; dkg:reads :Con_Recipe, :Con_RecipeCatalog_ES ; rdfs:comment "one command sticky repeated under 2 events" ; dkg:source :Art_ES ; dkg:locator "event 3", "event 4" ; dkg:confidence dkg:OnArtifact .
+:Cmd_SearchIngredients a dkg:Command ; skos:prefLabel "Search Ingredients" ; dkg:triggers :Ev_IngredientsMissing ; dkg:performedBy :Act_Cook ; dkg:reads :Con_Recipe ; dkg:source :Art_ES ; dkg:locator "event 5" ; dkg:confidence dkg:OnArtifact .
+:Cmd_PrepareMeal a dkg:Command ; skos:prefLabel "Prepare meal" ; dkg:triggers :Ev_MealPlanningStalled, :Ev_MealPreparationStarted, :Ev_StepUnclear, :Ev_CatastropheHappened, :Ev_StepCompeted, :Ev_MealRescued, :Ev_MealPrepared ; dkg:performedBy :Act_Cook ; dkg:reads :Con_Catastrophe_ES, :Con_Guests_ES, :Con_HelpResponse_ES, :Con_Menu_ES, :Con_Recipe ; rdfs:comment "one command sticky repeated under 7 events" ; dkg:source :Art_ES ; dkg:locator "event 6", "event 11", "event 12", "event 13", "event 17", "event 18", "event 19" ; dkg:confidence dkg:OnArtifact .
+:Cmd_RequestHelp a dkg:Command ; skos:prefLabel "Request help" ; dkg:triggers :Ev_HelpRequested, :Ev_HelpRequested, :Ev_HelpProvided ; dkg:performedBy :Act_CommunityCook, :Act_Cook, :Act_GrandmaAvatar ; dkg:reads :Con_Catastrophe_ES, :Con_HelpRequest_ES, :Con_Ingredients, :Con_Menu_ES, :Con_Pictures_ES, :Con_Recipe ; dkg:produces :Con_HelpRequest_ES, :Con_HelpResponse_ES ; rdfs:comment "one command sticky repeated under 3 events" ; dkg:source :Art_ES ; dkg:locator "event 7", "event 15", "event 16" ; dkg:confidence dkg:OnArtifact .
+:Cmd_ProvideHelp a dkg:Command ; skos:prefLabel "Provide help" ; dkg:triggers :Ev_HelpProvided ; dkg:performedBy :Act_Chef, :Act_CommunityCook, :Act_GrandmaAvatar ; dkg:reads :Con_HelpRequest_ES ; dkg:produces :Con_HelpResponse_ES ; dkg:source :Art_ES ; dkg:locator "event 8" ; dkg:confidence dkg:OnArtifact .
+:Cmd_SubstituteIngredients a dkg:Command ; skos:prefLabel "Substitute ingredients" ; dkg:triggers :Ev_IngredientsSubstituted ; dkg:performedBy :Act_Cook ; dkg:reads :Con_HelpResponse_ES, :Con_Recipe ; dkg:produces :Con_Ingredients ; dkg:source :Art_ES ; dkg:locator "event 9" ; dkg:confidence dkg:OnArtifact .
+:Cmd_PlanMeal a dkg:Command ; skos:prefLabel "Plan meal" ; dkg:triggers :Ev_PlanSetteled ; dkg:performedBy :Act_Cook ; dkg:reads :Con_HelpResponse_ES, :Con_Menu_ES ; dkg:produces :Con_MealPlan_ES ; dkg:source :Art_ES ; dkg:locator "event 10" ; dkg:confidence dkg:OnArtifact .
+:Cmd_TakePictures a dkg:Command ; skos:prefLabel "Take pictures" ; dkg:triggers :Ev_PicturesTaken, :Ev_PicturesTaken ; dkg:performedBy :Act_Cook ; dkg:reads :Con_Catastrophe_ES ; dkg:produces :Con_Pictures14_ES, :Con_Pictures20_ES ; rdfs:comment "one command sticky repeated under 2 events" ; dkg:source :Art_ES ; dkg:locator "event 14", "event 20" ; dkg:confidence dkg:OnArtifact .
+:Cmd_ProvideThanks a dkg:Command ; skos:prefLabel "Provide thanks" ; dkg:triggers :Ev_ThanksGiven ; dkg:performedBy :Act_Cook ; dkg:reads :Con_HelpProvider_ES, :Con_Pictures_ES ; dkg:produces :Con_Thanks_ES ; dkg:source :Art_ES ; dkg:locator "event 21" ; dkg:confidence dkg:OnArtifact .
+# --- actors (Cook, Chef, Grandma Avatar auto-merge into the story nodes: exact label, same spine class) ---
+:Act_User a dkg:Actor ; skos:prefLabel "User" ; dkg:source :Art_ES ; dkg:locator "event 1" ; dkg:confidence dkg:OnArtifact .
+:Act_Cook dkg:source :Art_ES ; dkg:locator "event 2", "event 3", "event 4", "event 5", "event 6", "event 7", "event 9", "event 10", "event 11", "event 12", "event 13", "event 14", "event 15", "event 17", "event 18", "event 19", "event 20", "event 21" .
+:Act_CommunityCook a dkg:Actor ; skos:prefLabel "Community Cook" ; dkg:source :Art_ES ; dkg:locator "event 8", "event 16" ; dkg:confidence dkg:OnArtifact .
+:Act_Chef dkg:source :Art_ES ; dkg:locator "event 8" .
+:Act_GrandmaAvatar dkg:source :Art_ES ; dkg:locator "event 8", "event 16" ; a dkg:ExternalSystem ; rdfs:comment "pink gear sticky on the board: external system; a person-actor in the stories" .
+# --- read models (green) and business objects (pale yellow) ---
+:Con_User_ES a dkg:ReadModel ; skos:prefLabel "User" ; dkg:source :Art_ES ; dkg:locator "event 1" ; dkg:confidence dkg:OnArtifact .
+:Con_Guests_ES a dkg:ReadModel ; skos:prefLabel "Guests" ; dkg:source :Art_ES ; dkg:locator "event 2", "event 6" ; dkg:confidence dkg:OnArtifact .
+:Con_RecipeCatalog_ES a dkg:ReadModel ; skos:prefLabel "Recipe Catalog" ; dkg:source :Art_ES ; dkg:locator "event 3" ; dkg:confidence dkg:OnArtifact .
+:Con_Recipe a dkg:ReadModel ; dkg:source :Art_ES ; dkg:locator "event 4", "event 5", "event 9", "event 11", "event 12", "event 13", "event 15", "event 19" .
+:Con_Menu_ES a dkg:ReadModel, dkg:BusinessObject ; skos:prefLabel "Menu" ; dkg:source :Art_ES ; dkg:locator "event 6", "event 7", "event 10" ; dkg:confidence dkg:OnArtifact .
+:Con_Ingredients a dkg:ReadModel ; dkg:source :Art_ES ; dkg:locator "event 7" .
+:Con_HelpRequest_ES a dkg:ReadModel, dkg:BusinessObject ; skos:prefLabel "Help request" ; dkg:source :Art_ES ; dkg:locator "event 8", "event 16" ; dkg:confidence dkg:OnArtifact .
+:Con_HelpResponse_ES a dkg:ReadModel ; skos:prefLabel "Help Response" ; dkg:source :Art_ES ; dkg:locator "event 9", "event 10" ; dkg:confidence dkg:OnArtifact .
+:Con_Catastrophe_ES a dkg:ReadModel ; skos:prefLabel "Catastrophe" ; dkg:source :Art_ES ; dkg:locator "event 13", "event 14", "event 15" ; dkg:confidence dkg:OnArtifact .
+:Con_Pictures_ES a dkg:ReadModel ; skos:prefLabel "Pictures" ; dkg:source :Art_ES ; dkg:locator "event 15", "event 21" ; dkg:confidence dkg:OnArtifact .
+:Con_HelpResponse_ES a dkg:ReadModel, dkg:BusinessObject ; skos:prefLabel "Help response" ; dkg:source :Art_ES ; dkg:locator "event 17", "event 18" ; dkg:confidence dkg:OnArtifact .
+:Con_HelpProvider_ES a dkg:ReadModel ; skos:prefLabel "Help provider" ; dkg:source :Art_ES ; dkg:locator "event 21" ; dkg:confidence dkg:OnArtifact .
+:Con_Cook_ES a dkg:BusinessObject ; skos:prefLabel "Cook" ; dkg:source :Art_ES ; dkg:locator "event 1" ; dkg:confidence dkg:OnArtifact .
+:Con_Menu_ES dkg:locator "event 2" .
+:Con_HelpRequest_ES dkg:locator "event 7", "event 15" .
+:Con_HelpResponse_ES dkg:locator "event 8", "event 16" .
+:Con_Ingredients dkg:locator "event 9" .
+:Con_MealPlan_ES a dkg:BusinessObject ; skos:prefLabel "Meal plan" ; dkg:source :Art_ES ; dkg:locator "event 10" ; dkg:confidence dkg:OnArtifact .
+:Con_Pictures14_ES a dkg:BusinessObject ; skos:prefLabel "Pictures" ; dkg:source :Art_ES ; dkg:locator "event 14" ; dkg:confidence dkg:OnArtifact .
+:Con_Pictures20_ES a dkg:BusinessObject ; skos:prefLabel "Pictures" ; dkg:source :Art_ES ; dkg:locator "event 20" ; dkg:confidence dkg:OnArtifact .
+:Con_Thanks_ES a dkg:BusinessObject ; skos:prefLabel "Thanks" ; dkg:source :Art_ES ; dkg:locator "event 21" ; dkg:confidence dkg:OnArtifact .
+
+:Con_Pictures14_ES rdfs:comment "the 'Pictures' business object produced at event 14 — of the catastrophe, read by Help requested (15)" .
+:Con_Pictures20_ES rdfs:comment "the 'Pictures' business object produced at event 20 — of the finished meal, read by Thanks given (21). Same label as event 14's object; split per the one-label-two-purposes rule." .
+:Con_HelpResponse_ES skos:altLabel "Help Response" ; rdfs:comment "spelled 'Help Response' on the read-model stickies at 9 and 10, 'Help response' elsewhere" .
+:Con_Ingredients rdfs:comment "on the board: a green read model at event 7 and a pale-yellow business object at event 9 (produced by Substitute ingredients)" .
+:Con_User_ES dkg:renamedTo :Con_Cook_ES ; rdfs:comment "User goes in at Register cook, Cook comes out; 'User' never appears again on the board" .
+:Act_User dkg:renamedTo :Act_Cook .
+
+# --- merge ledger (beyond the auto-merges above) ---
+:Act_CommunityCook dkg:proposedSameAs :Act_Community ; rdfs:comment "board 'Community Cook' vs the stories' 'Community' (responder in AskCommunity)" .
+:Con_Pictures14_ES dkg:proposedSameAs :Con_CatastrophePictures ; rdfs:comment "board evidence photo vs story 'Catastrophe Pictures'" .
+:Con_Pictures20_ES dkg:proposedSameAs :Con_Pictures ; rdfs:comment "board result photo vs story 'Pictures' shared with Community" .
+:Con_Pictures_ES dkg:proposedSameAs :Con_Pictures14_ES, :Con_Pictures20_ES ; rdfs:comment "green 'Pictures' read models at 15 and 21 — which of the two produced objects each reads is the split question" .
+:Con_HelpRequest_ES dkg:proposedSameAs :Con_Help ; rdfs:comment "board splits the stories' one 'Help' into request and response" .
+:Con_HelpResponse_ES dkg:proposedSameAs :Con_Help .
+:Con_Thanks_ES dkg:proposedSameAs :Cmd_Thanks ; rdfs:comment "board business object vs story verb (cross-class)" .
+:Con_Menu_ES dkg:proposedSameAs :Con_Dinner, :Con_MealPlanning ; rdfs:comment "board 'Menu' vs story 'Dinner' / 'Meal Planning'" .
+:Con_MealPlan_ES dkg:proposedSameAs :Con_MealPlanning, :Del_Planner, :VP_Planner .
+:Con_Guests_ES dkg:proposedSameAs :Act_ParentsInLaw ; rdfs:comment "board read model vs story actor (cross-class)" .
+:Con_Catastrophe_ES dkg:proposedSameAs :Cmd_Burns ; rdfs:comment "board read model 'Catastrophe' vs story verb 'burns' (cross-class)" .
+:Con_RecipeCatalog_ES dkg:proposedSameAs :Cap_RecipeDatabase, :KR_Recipes ; rdfs:comment "board read model vs Wardley component vs BMC resource" .
+:Con_HelpProvider_ES dkg:proposedSameAs :Act_GrandmaAvatar, :Act_Chef, :Act_CommunityCook ; rdfs:comment "the board's read model over whoever answered" .
+:Con_Cook_ES dkg:proposedSameAs :Act_Cook ; rdfs:comment "the business object 'Cook' produced at registration vs the actor 'Cook'" .
+:Ev_CookRegistered dkg:proposedSameAs :Goal_BecomeAMember, :Cap_MemberManagement_CM ; rdfs:comment "event vs Wardley need vs capability (cross-class)" .
+:Ev_PicturesTaken dkg:proposedSameAs :Cmd_Takes .
+:Ev_ThanksGiven dkg:proposedSameAs :Cmd_Thanks .
+:Ev_HelpRequested dkg:proposedSameAs :Cmd_Asks, :Cmd_Needs .
+:Ev_HelpProvided dkg:proposedSameAs :Cmd_Provides .
+:Ev_MealRescued dkg:proposedSameAs :Cmd_Rescues .
+:Ev_CatastropheHappened dkg:proposedSameAs :Cmd_Burns .
+:Ev_IngredientsSubstituted dkg:proposedSameAs :Con_IngredientsSubstitutes .
+:Cmd_PrepareMeal dkg:proposedSameAs :Cmd_Prepares, :Con_MealPreparation .
+:Cmd_PlanDinner dkg:proposedSameAs :Cmd_Plans .
+:Cmd_ProvideHelp dkg:proposedSameAs :Cmd_Provides .
+:Cmd_RequestHelp dkg:proposedSameAs :Cmd_Asks .
+:Cmd_ProvideThanks dkg:proposedSameAs :Cmd_Thanks .
+:Cmd_TakePictures dkg:proposedSameAs :Cmd_Takes .
+:Cmd_SearchRecipes dkg:proposedSameAs :Cap_RecipeSearch, :Cap_AdvancedSearch ; rdfs:comment "board command vs BMC key activity vs Wardley component (cross-class)" .
+:Ctx_CookingAssistance dkg:proposedSameAs :Cap_CookingSupport, :Cap_CookingSupport_L1, :VP_CookingSupport ; rdfs:comment "bounded context vs key activity / capability / VP named 'Cooking Support' (cross-class)" .
+:Ctx_MealPlanning dkg:proposedSameAs :Cap_Planner_CM, :Con_MealPlanning .
+:Ctx_MealPreparation dkg:proposedSameAs :Con_MealPreparation, :Cap_Cooking_L1 .
+:Ctx_Sharing dkg:proposedSameAs :Cap_Sharing_L1, :CR_DailyForSharing ; rdfs:comment "exact label with the capability-map level-1 'Sharing' (cross-class)" .
+:Ctx_Media dkg:proposedSameAs :KR_Media, :Cap_MediaStorage .
+:Ctx_CookProfile dkg:proposedSameAs :Cap_MemberManagement_CM, :Cap_Onboarding_L1, :Cluster_Authentication .
+
+
+##############################################################################
+# INGEST 8 — Visual Glossary, VisualGlossaryEnhanced.jpg — 2026-09-10
+# 25 term boxes, 36 verb arrows, 7 is-a arrows. Cardinalities transcribed
+# verbatim at the arrowhead end; where no number is drawn, none is recorded.
+# Box colours (blue: Dinner/Menu/Course · green: Help provider/Chef/Help Meal
+# plan/Menu proposal · grey: Meal) and the ⊞ icon on seven boxes carry no
+# legend — recorded as a Question, NOT as bounded contexts.
+# Terms whose exact label already exists as a Concept auto-merge (source
+# added, dkg:Term type added); actor-named terms (Cook is the exception —
+# the board's business object 'Cook' already exists) get _VG nodes with
+# proposedSameAs to the story actors, because Actor and Concept are different
+# spine classes.
+##############################################################################
+
+:Art_VG a dkg:VisualGlossary ;
+    rdfs:label "Community Cooking visual glossary (VisualGlossaryEnhanced.jpg)" ;
+    rdfs:comment "25 terms, 36 relationships, 7 is-a edges; no entity/value-object markings; colour groups unlabelled." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+:Con_Dinner a dkg:Term ; dkg:source :Art_VG ; rdfs:comment "glossary: blue; ⊞" .
+:Con_Menu_ES a dkg:Term ; dkg:source :Art_VG ; rdfs:comment "glossary: blue; ⊞" .
+:Con_Course_VG a dkg:Term ; skos:prefLabel "Course" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact ; rdfs:comment "glossary: blue; ⊞" .
+:Con_Cook_ES a dkg:Term ; dkg:source :Art_VG .
+:Con_Meal a dkg:Term ; dkg:source :Art_VG ; rdfs:comment "glossary: grey box" .
+:Con_Recipe a dkg:Term ; dkg:source :Art_VG .
+:Con_Ingredient_VG a dkg:Term ; skos:prefLabel "Ingredient" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Step_VG a dkg:Term ; skos:prefLabel "Step" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Substitute_VG a dkg:Term ; skos:prefLabel "Substitute" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Community_VG a dkg:Term ; skos:prefLabel "Community" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_GrandmaAvatar_VG a dkg:Term ; skos:prefLabel "Grandma Avatar" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Chef_VG a dkg:Term ; skos:prefLabel "Chef" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact ; rdfs:comment "glossary: green; ⊞" .
+:Con_HelpProvider_ES a dkg:Term ; dkg:source :Art_VG ; rdfs:comment "glossary: green; ⊞" .
+:Con_HelpRequest_ES a dkg:Term ; dkg:source :Art_VG ; skos:altLabel "Help Request" .
+:Con_Help a dkg:Term ; dkg:source :Art_VG .
+:Con_Thanks_ES a dkg:Term ; dkg:source :Art_VG .
+:Con_Picture_VG a dkg:Term ; skos:prefLabel "Picture" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_MealPreparationCatastrophe_VG a dkg:Term ; skos:prefLabel "Meal Preparation Catastrophe" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_HelpForMealPreparationStep_VG a dkg:Term ; skos:prefLabel "Help for Meal Preparation Step" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_HelpWithIngredients_VG a dkg:Term ; skos:prefLabel "Help with Ingredients" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_HelpMealPlan_VG a dkg:Term ; skos:prefLabel "Help Meal plan" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact ; rdfs:comment "glossary: green; ⊞" .
+:Con_IngredientSubstitute_VG a dkg:Term ; skos:prefLabel "Ingredient Substitute" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_PreparationStepExplanation_VG a dkg:Term ; skos:prefLabel "Preparation Step Explanation" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_StepsToMitigateCatastrophe_VG a dkg:Term ; skos:prefLabel "Steps to Mitigate Catastrophe" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_MenuProposal_VG a dkg:Term ; skos:prefLabel "Menu proposal" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact ; rdfs:comment "glossary: green; ⊞" .
+# --- relationships (reified) + plain mentions ---
+:Rel_DinnerHasMenu a dkg:Relationship ; skos:prefLabel "Dinner has Menu" ; dkg:from :Con_Dinner ; dkg:verb "has" ; dkg:to :Con_Menu_ES ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Dinner dkg:mentions :Con_Menu_ES .
+:Rel_MenuHasCourse a dkg:Relationship ; skos:prefLabel "Menu has Course" ; dkg:from :Con_Menu_ES ; dkg:verb "has" ; dkg:to :Con_Course_VG ; dkg:cardinality "1..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Menu_ES dkg:mentions :Con_Course_VG .
+:Rel_CourseContainsMeal a dkg:Relationship ; skos:prefLabel "Course contains Meal" ; dkg:from :Con_Course_VG ; dkg:verb "contains" ; dkg:to :Con_Meal ; dkg:cardinality "1..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Course_VG dkg:mentions :Con_Meal .
+:Rel_CookPreparesMeal a dkg:Relationship ; skos:prefLabel "Cook prepares Meal" ; dkg:from :Con_Cook_ES ; dkg:verb "prepares" ; dkg:to :Con_Meal ; dkg:cardinality "0..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Cook_ES dkg:mentions :Con_Meal .
+:Rel_MealWithRecipe a dkg:Relationship ; skos:prefLabel "Meal with Recipe" ; dkg:from :Con_Meal ; dkg:verb "with" ; dkg:to :Con_Recipe ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Meal dkg:mentions :Con_Recipe .
+:Rel_RecipeContainsIngredient a dkg:Relationship ; skos:prefLabel "Recipe contains Ingredient" ; dkg:from :Con_Recipe ; dkg:verb "contains" ; dkg:to :Con_Ingredient_VG ; dkg:cardinality "1..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Recipe dkg:mentions :Con_Ingredient_VG .
+:Rel_RecipeContainsStep a dkg:Relationship ; skos:prefLabel "Recipe contains Step" ; dkg:from :Con_Recipe ; dkg:verb "contains" ; dkg:to :Con_Step_VG ; dkg:cardinality "1..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Recipe dkg:mentions :Con_Step_VG .
+:Rel_StepNeedsIngredient a dkg:Relationship ; skos:prefLabel "Step needs Ingredient" ; dkg:from :Con_Step_VG ; dkg:verb "needs" ; dkg:to :Con_Ingredient_VG ; rdfs:comment "no cardinality drawn" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Step_VG dkg:mentions :Con_Ingredient_VG .
+:Rel_SubstituteIsIngredient a dkg:Relationship ; skos:prefLabel "Substitute is Ingredient" ; dkg:from :Con_Substitute_VG ; dkg:verb "is" ; dkg:to :Con_Ingredient_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Substitute_VG dkg:mentions :Con_Ingredient_VG .
+:Rel_CommunityContainsCook a dkg:Relationship ; skos:prefLabel "Community contains Cook" ; dkg:from :Con_Community_VG ; dkg:verb "contains" ; dkg:to :Con_Cook_ES ; dkg:cardinality "1..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Community_VG dkg:mentions :Con_Cook_ES .
+:Rel_CookPostsHelpRequest a dkg:Relationship ; skos:prefLabel "Cook posts HelpRequest" ; dkg:from :Con_Cook_ES ; dkg:verb "posts" ; dkg:to :Con_HelpRequest_ES ; dkg:cardinality "0..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Cook_ES dkg:mentions :Con_HelpRequest_ES .
+:Rel_CookPostsThanks a dkg:Relationship ; skos:prefLabel "Cook posts Thanks" ; dkg:from :Con_Cook_ES ; dkg:verb "posts" ; dkg:to :Con_Thanks_ES ; dkg:cardinality "0..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Cook_ES dkg:mentions :Con_Thanks_ES .
+:Rel_ThanksToGrandmaAvatar a dkg:Relationship ; skos:prefLabel "Thanks to GrandmaAvatar" ; dkg:from :Con_Thanks_ES ; dkg:verb "to" ; dkg:to :Con_GrandmaAvatar_VG ; dkg:cardinality "0..1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Thanks_ES dkg:mentions :Con_GrandmaAvatar_VG .
+:Rel_ThanksToCommunity a dkg:Relationship ; skos:prefLabel "Thanks to Community" ; dkg:from :Con_Thanks_ES ; dkg:verb "to" ; dkg:to :Con_Community_VG ; dkg:cardinality "0..1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Thanks_ES dkg:mentions :Con_Community_VG .
+:Rel_ThanksForHelp a dkg:Relationship ; skos:prefLabel "Thanks for Help" ; dkg:from :Con_Thanks_ES ; dkg:verb "for" ; dkg:to :Con_Help ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Thanks_ES dkg:mentions :Con_Help .
+:Rel_ThanksContainsPicture a dkg:Relationship ; skos:prefLabel "Thanks contains Picture" ; dkg:from :Con_Thanks_ES ; dkg:verb "contains" ; dkg:to :Con_Picture_VG ; dkg:cardinality "0..10" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Thanks_ES dkg:mentions :Con_Picture_VG .
+:Rel_HelpRequestContainsPicture a dkg:Relationship ; skos:prefLabel "HelpRequest contains Picture" ; dkg:from :Con_HelpRequest_ES ; dkg:verb "contains" ; dkg:to :Con_Picture_VG ; dkg:cardinality "0..10" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest_ES dkg:mentions :Con_Picture_VG .
+:Rel_HelpContainsPicture a dkg:Relationship ; skos:prefLabel "Help contains Picture" ; dkg:from :Con_Help ; dkg:verb "contains" ; dkg:to :Con_Picture_VG ; dkg:cardinality "0..10" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_Picture_VG .
+:Rel_HelpRequestBelongsMeal a dkg:Relationship ; skos:prefLabel "HelpRequest belongs Meal" ; dkg:from :Con_HelpRequest_ES ; dkg:verb "belongs" ; dkg:to :Con_Meal ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest_ES dkg:mentions :Con_Meal .
+:Rel_HelpForHelpRequest a dkg:Relationship ; skos:prefLabel "Help for HelpRequest" ; dkg:from :Con_Help ; dkg:verb "for" ; dkg:to :Con_HelpRequest_ES ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_HelpRequest_ES .
+:Rel_HelpRequestAtGrandmaAvatar a dkg:Relationship ; skos:prefLabel "HelpRequest at GrandmaAvatar" ; dkg:from :Con_HelpRequest_ES ; dkg:verb "at" ; dkg:to :Con_GrandmaAvatar_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest_ES dkg:mentions :Con_GrandmaAvatar_VG .
+:Rel_HelpRequestAtCommunity a dkg:Relationship ; skos:prefLabel "HelpRequest at Community" ; dkg:from :Con_HelpRequest_ES ; dkg:verb "at" ; dkg:to :Con_Community_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest_ES dkg:mentions :Con_Community_VG .
+:Rel_CommunityProvidesHelp a dkg:Relationship ; skos:prefLabel "Community provides Help" ; dkg:from :Con_Community_VG ; dkg:verb "provides" ; dkg:to :Con_Help ; dkg:cardinality "0..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Community_VG dkg:mentions :Con_Help .
+:Rel_GrandmaAvatarProvidesHelp a dkg:Relationship ; skos:prefLabel "GrandmaAvatar provides Help" ; dkg:from :Con_GrandmaAvatar_VG ; dkg:verb "provides" ; dkg:to :Con_Help ; dkg:cardinality "0..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_GrandmaAvatar_VG dkg:mentions :Con_Help .
+:Rel_ChefProvidesHelp a dkg:Relationship ; skos:prefLabel "Chef provides Help" ; dkg:from :Con_Chef_VG ; dkg:verb "provides" ; dkg:to :Con_Help ; dkg:cardinality "0..*" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Chef_VG dkg:mentions :Con_Help .
+:Rel_HelpContainsIngredientSubstitute a dkg:Relationship ; skos:prefLabel "Help contains IngredientSubstitute" ; dkg:from :Con_Help ; dkg:verb "contains" ; dkg:to :Con_IngredientSubstitute_VG ; dkg:cardinality "1..3" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_IngredientSubstitute_VG .
+:Rel_HelpContainsPreparationStepExplanation a dkg:Relationship ; skos:prefLabel "Help contains PreparationStepExplanation" ; dkg:from :Con_Help ; dkg:verb "contains" ; dkg:to :Con_PreparationStepExplanation_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_PreparationStepExplanation_VG .
+:Rel_HelpContainsStepsToMitigateCatastrophe a dkg:Relationship ; skos:prefLabel "Help contains StepsToMitigateCatastrophe" ; dkg:from :Con_Help ; dkg:verb "contains" ; dkg:to :Con_StepsToMitigateCatastrophe_VG ; dkg:cardinality "1..10" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_StepsToMitigateCatastrophe_VG .
+:Rel_HelpContainsMenuProposal a dkg:Relationship ; skos:prefLabel "Help contains MenuProposal" ; dkg:from :Con_Help ; dkg:verb "contains" ; dkg:to :Con_MenuProposal_VG ; dkg:cardinality "1..3" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_MenuProposal_VG .
+:Rel_IngredientSubstituteBelongsToHelpWithIngredients a dkg:Relationship ; skos:prefLabel "IngredientSubstitute belongs to HelpWithIngredients" ; dkg:from :Con_IngredientSubstitute_VG ; dkg:verb "belongs to" ; dkg:to :Con_HelpWithIngredients_VG ; rdfs:comment "no cardinality drawn" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_IngredientSubstitute_VG dkg:mentions :Con_HelpWithIngredients_VG .
+:Rel_PreparationStepExplanationBelongsToHelpForMealPreparationStep a dkg:Relationship ; skos:prefLabel "PreparationStepExplanation belongs to HelpForMealPreparationStep" ; dkg:from :Con_PreparationStepExplanation_VG ; dkg:verb "belongs to" ; dkg:to :Con_HelpForMealPreparationStep_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_PreparationStepExplanation_VG dkg:mentions :Con_HelpForMealPreparationStep_VG .
+:Rel_StepsToMitigateCatastropheBelongsToMealPreparationCatastrophe a dkg:Relationship ; skos:prefLabel "StepsToMitigateCatastrophe belongs to MealPreparationCatastrophe" ; dkg:from :Con_StepsToMitigateCatastrophe_VG ; dkg:verb "belongs to" ; dkg:to :Con_MealPreparationCatastrophe_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_StepsToMitigateCatastrophe_VG dkg:mentions :Con_MealPreparationCatastrophe_VG .
+:Rel_MenuProposalBelongsToHelpMealPlan a dkg:Relationship ; skos:prefLabel "MenuProposal belongs to HelpMealPlan" ; dkg:from :Con_MenuProposal_VG ; dkg:verb "belongs to" ; dkg:to :Con_HelpMealPlan_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_MenuProposal_VG dkg:mentions :Con_HelpMealPlan_VG .
+:Rel_PreparationStepExplanationRefersToStep a dkg:Relationship ; skos:prefLabel "PreparationStepExplanation refers to Step" ; dkg:from :Con_PreparationStepExplanation_VG ; dkg:verb "refers to" ; dkg:to :Con_Step_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_PreparationStepExplanation_VG dkg:mentions :Con_Step_VG .
+:Rel_IngredientSubstituteRefersToSubstitute a dkg:Relationship ; skos:prefLabel "IngredientSubstitute refers to Substitute" ; dkg:from :Con_IngredientSubstitute_VG ; dkg:verb "refers to" ; dkg:to :Con_Substitute_VG ; dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Con_IngredientSubstitute_VG dkg:mentions :Con_Substitute_VG .
+# --- is-a ---
+:Con_Community_VG rdfs:subClassOf :Con_HelpProvider_ES .
+:Con_GrandmaAvatar_VG rdfs:subClassOf :Con_HelpProvider_ES .
+:Con_Chef_VG rdfs:subClassOf :Con_HelpProvider_ES .
+:Con_MealPreparationCatastrophe_VG rdfs:subClassOf :Con_HelpRequest_ES .
+:Con_HelpForMealPreparationStep_VG rdfs:subClassOf :Con_HelpRequest_ES .
+:Con_HelpWithIngredients_VG rdfs:subClassOf :Con_HelpRequest_ES .
+:Con_HelpMealPlan_VG rdfs:subClassOf :Con_HelpRequest_ES .
+
+# --- contradiction: whom Thanks may go to ---
+:As_ThanksToChef_Story a dkg:Assertion ; rdf:subject :Cmd_Thanks ; rdf:predicate dkg:actsOn ; rdf:object :Act_Chef ;
+    rdfs:comment "story AskChef, sentence 6: Cook thanks Chef" ; dkg:source :Art_StoryAskChef ; dkg:confidence dkg:OnArtifact .
+:As_ThanksToOnlyAvatarOrCommunity_VG a dkg:Assertion ; rdf:subject :Con_Thanks_ES ; rdf:predicate dkg:to ; rdf:object :Con_GrandmaAvatar_VG ;
+    rdfs:comment "glossary draws Thanks —to 0..1→ Grandma Avatar and Thanks —to 0..1→ Community; no 'to' arrow reaches Chef, although Chef is a Help provider" ;
+    dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact ; dkg:contradicts :As_ThanksToChef_Story .
+:As_ThanksToChef_Story dkg:contradicts :As_ThanksToOnlyAvatarOrCommunity_VG .
+
+# --- contradiction: whom a Help Request is at ---
+:As_RequestAtChef_Story a dkg:Assertion ; rdf:subject :Cmd_Asks ; rdf:predicate dkg:actsOn ; rdf:object :Act_Chef ;
+    rdfs:comment "story AskChef, sentence 3: Cook asks Chef for Help" ; dkg:source :Art_StoryAskChef ; dkg:confidence dkg:OnArtifact .
+:As_RequestAtAvatarAndCommunity_VG a dkg:Assertion ; rdf:subject :Con_HelpRequest_ES ; rdf:predicate dkg:to ; rdf:object :Con_Community_VG ;
+    rdfs:comment "glossary: Help Request —at 1→ Grandma Avatar AND —at 1→ Community; no 'at' arrow to Chef; both cardinalities are exactly 1" ;
+    dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact ; dkg:contradicts :As_RequestAtChef_Story .
+:As_RequestAtChef_Story dkg:contradicts :As_RequestAtAvatarAndCommunity_VG .
+
+# --- questions ---
+:Q_GlossaryColours a dkg:Question ; skos:prefLabel "What do the glossary's blue, green and grey boxes and the ⊞ icon mean — bounded contexts, or terms added in the 'enhanced' revision?" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Q_HelpRequestAtOneAndOne a dkg:Question ; skos:prefLabel "A Help Request is 'at 1 Grandma Avatar' and 'at 1 Community' — is every request addressed to both, and never to a Chef?" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Q_MealVsDinnerVsCourse a dkg:Question ; skos:prefLabel "Dinner has 1 Menu, Menu has 1..* Course, Course contains 1..* Meal, Meal with 1 Recipe — which of these does the board's 'Meal plan' correspond to?" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+:Q_HelpIsTheResponse a dkg:Question ; skos:prefLabel "In the glossary 'Help' is the response (provided, contains substitutes/explanations); in the stories 'Help' is also what the Cook asks for. Same term?" ; dkg:source :Art_VG ; dkg:confidence dkg:OnArtifact .
+
+# --- merge ledger ---
+:Con_Community_VG dkg:proposedSameAs :Act_Community, :Act_CommunityCook ; rdfs:comment "glossary term vs story/board actor (cross-class)" .
+:Con_GrandmaAvatar_VG dkg:proposedSameAs :Act_GrandmaAvatar ; rdfs:comment "glossary term vs story/board actor (cross-class)" .
+:Con_Chef_VG dkg:proposedSameAs :Act_Chef ; rdfs:comment "glossary term vs story/board actor (cross-class)" .
+:Con_Cook_ES dkg:proposedSameAs :Act_Cook ; rdfs:comment "glossary term 'Cook' merged into the board's business object 'Cook'; both are distinct from the actor" .
+:Con_Ingredient_VG dkg:proposedSameAs :Con_Ingredients ; rdfs:comment "singular term vs plural story/board object" .
+:Con_Picture_VG dkg:proposedSameAs :Con_Pictures, :Con_CatastrophePictures, :Con_Pictures14_ES, :Con_Pictures20_ES ; rdfs:comment "one glossary term for what the stories and board split into two" .
+:Con_Substitute_VG dkg:proposedSameAs :Con_IngredientsSubstitutes .
+:Con_IngredientSubstitute_VG dkg:proposedSameAs :Con_IngredientsSubstitutes, :Ev_IngredientsSubstituted .
+:Con_HelpWithIngredients_VG dkg:proposedSameAs :Sen_D_2 ; rdfs:comment "the glossary term names exactly story AskCommunity's sentence 2" .
+:Con_HelpMealPlan_VG dkg:proposedSameAs :Sen_C_2 ; rdfs:comment "the glossary term names exactly story AskChef's sentence 2" .
+:Con_HelpForMealPreparationStep_VG dkg:proposedSameAs :Sen_B_2a, :Ev_StepUnclear .
+:Con_MealPreparationCatastrophe_VG dkg:proposedSameAs :Ev_CatastropheHappened, :Con_Catastrophe_ES, :Cmd_Burns .
+:Con_Step_VG dkg:proposedSameAs :Ev_StepUnclear, :Ev_StepCompeted, :Idea_StepByStepCookingMode .
+:Con_MenuProposal_VG dkg:proposedSameAs :Del_AIProposals, :VP_AIProposals, :Cap_ProposalsBasedOnLarderEtc_CM ; rdfs:comment "the glossary's 'Menu proposal' is the only place a proposal is a domain noun" .
+:Con_Help dkg:proposedSameAs :Con_HelpResponse_ES ; rdfs:comment "glossary 'Help' behaves like the board's 'Help response'" .
+:Con_Course_VG rdfs:comment "no other artifact uses 'Course'" .
+
+
+##############################################################################
+# POST-INGEST — ledger completions and cross-artifact contradictions found
+# after all eight artifacts were in. 2026-09-10
+##############################################################################
+:Cmd_Share dkg:proposedSameAs :Cmd_Shares ; rdfs:comment "Competition story 'share' (plural actor) vs 'shares' elsewhere" .
+:Con_Recipe dkg:proposedSameAs :Con_RecipeCatalog_ES ; rdfs:comment "entry vs catalogue" .
+:Con_Rating dkg:proposedSameAs :Cap_RatingDatabase .
+:Con_MealPreparationSkill dkg:proposedSameAs :Con_MealPreparation, :Idea_CookingSkillLevel ; rdfs:comment "Competition story's 'Meal Preparation Skill' vs brainstorm 'Cooking skill level'" .
+:Act_CommunityCook rdfs:comment "board responder role; not proposed against 'Cook' — a different role on the same board (responder vs requester)" .
+:Con_Catastrophe_ES dkg:proposedSameAs :Con_CatastrophePictures ; rdfs:comment "read model 'Catastrophe' vs story 'Catastrophe Pictures' — containment, probably two concepts" .
+
+# Capability map calls Content Creation CORE; the Wardley map places every
+# content-creation component (Write recipe, Upload media) at COMMODITY.
+:As_ContentCreationCore_CM a dkg:Assertion ; rdf:subject :Cap_ContentCreation_CM ; rdf:predicate rdfs:comment ; rdf:object "core" ;
+    dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact ; dkg:contradicts :As_CreateContentCommodity_W .
+:As_CreateContentCommodity_W a dkg:Assertion ; rdf:subject :Cap_WriteRecipe ; rdf:predicate dkg:evolution ; rdf:object dkg:Commodity ;
+    rdfs:comment "Write recipe and Upload media, the components under the need 'Create content', sit in the Commodity band" ;
+    dkg:source :Art_Wardley ; dkg:confidence dkg:Inferred ; dkg:contradicts :As_ContentCreationCore_CM .
+
+# Capability map calls Grandma / Grandpa CORE; the impact map gives
+# 'Grandma / Grandpa AI' the LOWEST priority (3) of all deliverables.
+:As_GrandmaCore_CM a dkg:Assertion ; rdf:subject :Cap_GrandmaGrandpa_CM ; rdf:predicate rdfs:comment ; rdf:object "core" ;
+    dkg:source :Art_CapMap ; dkg:confidence dkg:OnArtifact ; dkg:contradicts :As_GrandmaPriority3_IM .
+:As_GrandmaPriority3_IM a dkg:Assertion ; rdf:subject :Del_GrandmaGrandpaAI ; rdf:predicate rdfs:comment ; rdf:object "priority 3" ;
+    rdfs:comment "the deliverable the four domain stories and the board revolve around carries the lowest priority number on the impact map" ;
+    dkg:source :Art_ImpactMap ; dkg:confidence dkg:OnArtifact ; dkg:contradicts :As_GrandmaCore_CM .
+
+# Board: Grandma Avatar is an EXTERNAL SYSTEM (pink gear). Stories: a person-
+# pictogram actor who is asked, provides, and is thanked.
+:As_AvatarExternalSystem_ES a dkg:Assertion ; rdf:subject :Act_GrandmaAvatar ; rdf:predicate rdf:type ; rdf:object dkg:ExternalSystem ;
+    dkg:source :Art_ES ; dkg:confidence dkg:OnArtifact ; dkg:contradicts :As_AvatarPersonActor_Story .
+:As_AvatarPersonActor_Story a dkg:Assertion ; rdf:subject :Act_GrandmaAvatar ; rdf:predicate rdf:type ; rdf:object dkg:Actor ;
+    rdfs:comment "drawn with the person pictogram in stories Grandma and GrandmaII; thanked in sentence 6 like a human responder" ;
+    dkg:source :Art_StoryGrandma, :Art_StoryGrandmaII ; dkg:confidence dkg:OnArtifact ; dkg:contradicts :As_AvatarExternalSystem_ES .

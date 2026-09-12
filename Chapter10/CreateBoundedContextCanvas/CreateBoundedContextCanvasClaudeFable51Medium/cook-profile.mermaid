@@ -1,0 +1,77 @@
+---
+config:
+  themeVariables:
+    fontSize: 22px
+    fontFamily: Arial
+  flowchart:
+    htmlLabels: true
+    padding: 12
+    nodeSpacing: 30
+    rankSpacing: 30
+    wrappingWidth: 380
+---
+%% Bounded Context Canvas — Cook Profile
+%% Source: Community Cooking context map + Visual Glossary · derived 2026-09-09 · provenance in the field tables below
+flowchart TB
+
+    classDef panel fill:#FFF9D6,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef head fill:#FDE68A,stroke:#B08900,stroke-width:2px,color:#1A1A1A
+    classDef collab fill:#EAF2FB,stroke:#6E9BD1,stroke-width:1px,color:#1A1A1A
+    classDef offboard fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+    classDef unknown fill:#F4F4F4,stroke:#B0B0B0,stroke-width:1px,color:#7A7A7A
+    classDef frame fill:none,stroke:none
+    classDef term fill:#FDF6C8,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef termgap fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+
+subgraph TOP[" "]
+direction LR
+
+subgraph IN["Inbound communication"]
+in_none["<i>nothing drawn on the map</i>"]
+end
+
+subgraph BCX["Cook Profile"]
+direction TB
+bc["<b>Cook Profile</b><br/>Establishes who a cook is: turns a user into a cook the community can address, thank and hold to account."]
+strat["<b>Strategic classification</b><br/>Domain — <i>unknown</i><br/>Business model — <i>unknown</i><br/>Evolution — <i>unknown</i>"]
+roles["<b>Domain roles</b><br/>Specification model"]
+subgraph LANG["Ubiquitous language"]
+t_cook["<b>Cook</b>"]
+t_community["<b>Community</b><br/><i>owned by nobody on the map</i>"]
+t_consent["<b>Consent</b><br/><i>not a glossary term; Consent Management's object</i>"]
+t_community -.->|"contains 1..*"| t_cook
+t_cook -.->|"gives ?"| t_consent
+end
+rules["<b>Business decisions</b><br/>One cook per user <i>(INV-PROF-01)</i><br/>Only the user themself registers <i>(INV-PROF-02)</i><br/>A cook carries a display identity before asking for help <i>(INV-PROF-03)</i>"]
+bc ~~~ strat
+strat ~~~ roles
+roles ~~~ LANG
+LANG ~~~ rules
+end
+
+subgraph OUT["Outbound communication"]
+out_consent_management["<b>Consent Management</b><br/>? · Consent"]
+end
+
+IN --> BCX
+BCX --> OUT
+end
+
+subgraph META["Assumptions · Verification metrics · Open questions"]
+assume["<b>Assumptions</b><br/>The Consent sticky on the only edge is taken at face value, typed ?<br/>The OHS box on this edge is conventional (arrow leaves it)"]
+metrics["<b>Verification metrics</b><br/><i>none supplied</i>"]
+quest["<b>Open questions</b><br/>Who reads Cook? Nothing on the map does<br/>What crosses to Consent Management — consent, or the cook?<br/><i>…and 1 more (see below)</i>"]
+assume ~~~ metrics
+metrics ~~~ quest
+end
+
+TOP ~~~ META
+
+class bc head
+class strat,roles,rules,assume,quest panel
+class t_cook term
+class t_community,t_consent termgap
+class metrics unknown
+class out_consent_management collab
+class in_none unknown
+class TOP frame

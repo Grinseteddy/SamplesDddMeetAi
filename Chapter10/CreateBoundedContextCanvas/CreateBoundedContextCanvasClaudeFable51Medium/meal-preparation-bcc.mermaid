@@ -1,0 +1,81 @@
+---
+config:
+  themeVariables:
+    fontSize: 22px
+    fontFamily: Arial
+  flowchart:
+    htmlLabels: true
+    padding: 12
+    nodeSpacing: 30
+    rankSpacing: 30
+    wrappingWidth: 380
+---
+%% Bounded Context Canvas — Meal Preparation
+%% Source: Community Cooking context map + Visual Glossary · derived 2026-09-09 · provenance in the field tables below
+flowchart TB
+
+    classDef panel fill:#FFF9D6,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef head fill:#FDE68A,stroke:#B08900,stroke-width:2px,color:#1A1A1A
+    classDef collab fill:#EAF2FB,stroke:#6E9BD1,stroke-width:1px,color:#1A1A1A
+    classDef offboard fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+    classDef unknown fill:#F4F4F4,stroke:#B0B0B0,stroke-width:1px,color:#7A7A7A
+    classDef frame fill:none,stroke:none
+    classDef term fill:#FDF6C8,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef termgap fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+
+subgraph TOP[" "]
+direction LR
+
+subgraph IN["Inbound communication"]
+in_cooking_assistance["<b>Cooking Assistance</b><br/>qry · Menu<br/>qry · Recipe"]
+in_sharing["<b>Sharing</b><br/>qry · Help response"]
+end
+
+subgraph BCX["Meal Preparation"]
+direction TB
+bc["<b>Meal Preparation</b><br/>Carries the cook through cooking the planned meal step by step in real time, and gets them out of trouble when a step is unclear or a catastrophe happens."]
+strat["<b>Strategic classification</b><br/>Domain — <i>supporting (proposed, hypothesis)</i><br/>Business model — <i>unknown</i><br/>Evolution — <i>unknown</i>"]
+roles["<b>Domain roles</b><br/>Execution model"]
+subgraph LANG["Ubiquitous language"]
+t_meal["<b>Meal</b><br/><i>grey in the glossary — unclaimed</i>"]
+t_recipe["<b>Recipe</b><br/><i>borrowed — Recipe Catalog, via Meal Planning</i>"]
+t_step["<b>Step</b><br/><i>borrowed — Recipe Catalog, by elimination</i>"]
+t_help["<b>Help</b><br/><i>borrowed — Cooking Assistance; here: advice to act on</i>"]
+t_prep["<b>Meal preparation</b><br/><i>undefined — the aggregate nobody has drawn</i>"]
+t_meal -->|"with 1"| t_recipe
+t_recipe -->|"contains 1..*"| t_step
+t_prep -.->|"cooks ?"| t_meal
+t_prep -.->|"acts on ?"| t_help
+end
+rules["<b>Business decisions</b><br/>Nothing to rescue — Meal rescued only from In catastrophe with a Help response <i>(INV-PREP-07)</i><br/>Advice alone is not a rescue; the cook confirms <i>(INV-PREP-08)</i><br/><i>…and 8 more (see below)</i>"]
+bc ~~~ strat
+strat ~~~ roles
+roles ~~~ LANG
+LANG ~~~ rules
+end
+
+subgraph OUT["Outbound communication"]
+out_meal_planning["<b>Meal Planning</b><br/>qry · Recipe<br/>qry · Menu"]
+out_cooking_assistance["<b>Cooking Assistance</b><br/>qry · Help response"]
+end
+
+IN --> BCX
+BCX --> OUT
+end
+
+subgraph META["Assumptions · Verification metrics · Open questions"]
+assume["<b>Assumptions</b><br/>Both arrows to Cooking Assistance are read as queries<br/>Sharing's pull of Help response from here is a pass-through, not ownership<br/><i>…and 2 more (see below)</i>"]
+metrics["<b>Verification metrics</b><br/><i>none supplied</i>"]
+quest["<b>Open questions</b><br/>What is the cook holding while cooking? No aggregate on any artifact<br/>Where did Step completed, Meal rescued and Meal prepared go? The bubble has no ending<br/><i>…and 4 more (see below)</i>"]
+assume ~~~ metrics
+metrics ~~~ quest
+end
+
+TOP ~~~ META
+
+class bc head
+class strat,roles,rules,assume,quest panel
+class t_meal,t_recipe,t_step,t_help,t_prep termgap
+class metrics unknown
+class in_cooking_assistance,in_sharing,out_meal_planning,out_cooking_assistance collab
+class TOP frame

@@ -1,0 +1,78 @@
+---
+config:
+  themeVariables:
+    fontSize: 22px
+    fontFamily: Arial
+  flowchart:
+    htmlLabels: true
+    padding: 12
+    nodeSpacing: 30
+    rankSpacing: 30
+    wrappingWidth: 380
+---
+%% Bounded Context Canvas — Consent Management
+%% Source: Community Cooking context map + Visual Glossary · derived 2026-09-09 · provenance in the field tables below
+flowchart TB
+
+    classDef panel fill:#FFF9D6,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef head fill:#FDE68A,stroke:#B08900,stroke-width:2px,color:#1A1A1A
+    classDef collab fill:#EAF2FB,stroke:#6E9BD1,stroke-width:1px,color:#1A1A1A
+    classDef offboard fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+    classDef unknown fill:#F4F4F4,stroke:#B0B0B0,stroke-width:1px,color:#7A7A7A
+    classDef frame fill:none,stroke:none
+    classDef term fill:#FDF6C8,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef termgap fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+
+subgraph TOP[" "]
+direction LR
+
+subgraph IN["Inbound communication"]
+in_cook_profile["<b>Cook Profile</b><br/>? · Consent"]
+in_sharing["<b>Sharing</b><br/>qry · Consent"]
+end
+
+subgraph BCX["Consent Management"]
+direction TB
+bc["<b>Consent Management</b><br/>Records what a cook has agreed may be shared, and answers whether something may be shown."]
+strat["<b>Strategic classification</b><br/>Domain — <i>unknown</i><br/>Business model — <i>compliance enforcer (proposed)</i><br/>Evolution — <i>unknown</i>"]
+roles["<b>Domain roles</b><br/>Approver"]
+subgraph LANG["Ubiquitous language"]
+t_consent["<b>Consent</b><br/><i>not a glossary term</i>"]
+t_cook["<b>Cook</b><br/><i>borrowed — Cook Profile</i>"]
+t_picture["<b>Picture</b><br/><i>borrowed — Media; what consent is about, presumably</i>"]
+t_cook -.->|"gives ?"| t_consent
+t_consent -.->|"covers ?"| t_picture
+end
+rules["<b>Business decisions</b><br/><i>none supplied — no invariant, no cardinality</i><br/>Guests consent before they are shown <i>(INV-MEDIA-03, proposed here)</i>"]
+bc ~~~ strat
+strat ~~~ roles
+roles ~~~ LANG
+LANG ~~~ rules
+end
+
+subgraph OUT["Outbound communication"]
+out_none["<i>nothing drawn on the map</i>"]
+end
+
+IN --> BCX
+BCX --> OUT
+end
+
+subgraph META["Assumptions · Verification metrics · Open questions"]
+assume["<b>Assumptions</b><br/>The Consent from Cook Profile is taken at face value, typed ?<br/>CF on Sharing means Sharing conforms to this context's model"]
+metrics["<b>Verification metrics</b><br/><i>none supplied</i>"]
+quest["<b>Open questions</b><br/>What is consent of — terms of use, guests in pictures, or both?<br/>Why does Media not consult this context?<br/><i>…and 1 more (see below)</i>"]
+assume ~~~ metrics
+metrics ~~~ quest
+end
+
+TOP ~~~ META
+
+class bc head
+class strat,roles,rules,assume,quest panel
+class t_consent term
+class t_cook,t_picture termgap
+class metrics unknown
+class in_cook_profile,in_sharing collab
+class out_none unknown
+class TOP frame

@@ -1,0 +1,78 @@
+---
+config:
+  themeVariables:
+    fontSize: 22px
+    fontFamily: Arial
+  flowchart:
+    htmlLabels: true
+    padding: 12
+    nodeSpacing: 30
+    rankSpacing: 30
+    wrappingWidth: 380
+---
+%% Bounded Context Canvas — Grandma Avatar AI
+%% Source: Community Cooking context map + Visual Glossary · derived 2026-09-09 · provenance in the field tables below
+flowchart TB
+
+    classDef panel fill:#FFF9D6,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef head fill:#FDE68A,stroke:#B08900,stroke-width:2px,color:#1A1A1A
+    classDef collab fill:#EAF2FB,stroke:#6E9BD1,stroke-width:1px,color:#1A1A1A
+    classDef offboard fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+    classDef unknown fill:#F4F4F4,stroke:#B0B0B0,stroke-width:1px,color:#7A7A7A
+    classDef frame fill:none,stroke:none
+    classDef term fill:#FDF6C8,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef termgap fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+
+subgraph TOP[" "]
+direction LR
+
+subgraph IN["Inbound communication"]
+in_cooking_assistance["<b>Cooking Assistance</b><br/><i>via ACL</i><br/>evt · Help request"]
+end
+
+subgraph BCX["Grandma Avatar AI"]
+direction TB
+bc["<b>Grandma Avatar AI</b><br/>Answers help requests as a machine responder, standing in for or alongside the human community, behind an anticorruption layer."]
+strat["<b>Strategic classification</b><br/>Domain — <i>unknown</i><br/>Business model — <i>unknown</i><br/>Evolution — <i>unknown</i>"]
+roles["<b>Domain roles</b><br/>Interchange · Gateway"]
+subgraph LANG["Ubiquitous language"]
+t_grandma["<b>Grandma Avatar</b>"]
+t_help_provider["<b>Help provider</b><br/><i>owned by nobody on the map</i>"]
+t_help_request["<b>Help Request</b><br/><i>contested — also on this bubble as a business object</i>"]
+t_help["<b>Help</b><br/><i>contested — map: Help response</i>"]
+t_grandma -.->|"is"| t_help_provider
+t_help_request -->|"at 1"| t_grandma
+t_grandma -->|"provides 0..*"| t_help
+end
+rules["<b>Business decisions</b><br/>An avatar answer is labelled machine-generated where shown <i>(INV-HELP-07 — enforced by Cooking Assistance, not here)</i><br/><i>none owned here (see below)</i>"]
+bc ~~~ strat
+strat ~~~ roles
+roles ~~~ LANG
+LANG ~~~ rules
+end
+
+subgraph OUT["Outbound communication"]
+out_cooking_assistance["<b>Cooking Assistance</b><br/><i>via ACL</i><br/>evt · Help response"]
+end
+
+IN --> BCX
+BCX --> OUT
+end
+
+subgraph META["Assumptions · Verification metrics · Open questions"]
+assume["<b>Assumptions</b><br/>The ACL on this bubble's own edge means this context translates, not Cooking Assistance<br/>The duplicated events and objects are read as a translated copy, not co-ownership"]
+metrics["<b>Verification metrics</b><br/><i>none supplied</i>"]
+quest["<b>Open questions</b><br/>Does the avatar own a Help request, or hold a translated copy?<br/>Who decides the avatar answers — is it told, or does it watch?<br/><i>…and 2 more (see below)</i>"]
+assume ~~~ metrics
+metrics ~~~ quest
+end
+
+TOP ~~~ META
+
+class bc head
+class strat,roles,rules,assume,quest panel
+class t_grandma term
+class t_help_provider,t_help_request,t_help termgap
+class metrics unknown
+class in_cooking_assistance,out_cooking_assistance collab
+class TOP frame

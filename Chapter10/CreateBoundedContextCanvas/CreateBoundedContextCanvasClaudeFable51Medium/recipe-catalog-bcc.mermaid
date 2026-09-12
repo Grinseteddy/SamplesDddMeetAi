@@ -1,0 +1,77 @@
+---
+config:
+  themeVariables:
+    fontSize: 22px
+    fontFamily: Arial
+  flowchart:
+    htmlLabels: true
+    padding: 12
+    nodeSpacing: 30
+    rankSpacing: 30
+    wrappingWidth: 380
+---
+%% Bounded Context Canvas — Recipe Catalog
+%% Source: Community Cooking context map + Visual Glossary · derived 2026-09-09 · provenance in the field tables below
+flowchart TB
+
+    classDef panel fill:#FFF9D6,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef head fill:#FDE68A,stroke:#B08900,stroke-width:2px,color:#1A1A1A
+    classDef collab fill:#EAF2FB,stroke:#6E9BD1,stroke-width:1px,color:#1A1A1A
+    classDef offboard fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+    classDef unknown fill:#F4F4F4,stroke:#B0B0B0,stroke-width:1px,color:#7A7A7A
+    classDef frame fill:none,stroke:none
+    classDef term fill:#FDF6C8,stroke:#C9B458,stroke-width:1px,color:#1A1A1A
+    classDef termgap fill:#FFFFFF,stroke:#B0B0B0,stroke-width:1px,stroke-dasharray:4 3,color:#5A5A5A
+
+subgraph TOP[" "]
+direction LR
+
+subgraph IN["Inbound communication"]
+in_meal_planning["<b>Meal Planning</b><br/>qry · Recipe"]
+end
+
+subgraph BCX["Recipe Catalog"]
+direction TB
+bc["<b>Recipe Catalog</b><br/>Holds the recipes, with their ingredients and steps, that every other context reads and none may change."]
+strat["<b>Strategic classification</b><br/>Domain — <i>generic (proposed)</i><br/>Business model — <i>unknown</i><br/>Evolution — <i>product / commodity (proposed)</i>"]
+roles["<b>Domain roles</b><br/>Specification model"]
+subgraph LANG["Ubiquitous language"]
+t_recipe["<b>Recipe</b>"]
+t_ingredient["<b>Ingredient</b><br/><i>map: Ingredients — contested with Meal Planning</i>"]
+t_step["<b>Step</b><br/><i>owned by elimination — on no map bubble</i>"]
+t_recipe -->|"contains 1..*"| t_ingredient
+t_recipe -->|"contains 1..*"| t_step
+t_step -.->|"needs ?"| t_ingredient
+end
+rules["<b>Business decisions</b><br/>A recipe has at least one ingredient <i>(given)</i><br/>A recipe has at least one step <i>(given)</i>"]
+bc ~~~ strat
+strat ~~~ roles
+roles ~~~ LANG
+LANG ~~~ rules
+end
+
+subgraph OUT["Outbound communication"]
+out_none["<i>nothing drawn on the map</i>"]
+end
+
+IN --> BCX
+BCX --> OUT
+end
+
+subgraph META["Assumptions · Verification metrics · Open questions"]
+assume["<b>Assumptions</b><br/>A bubble with no events is read as a supplier, not a lifecycle<br/>Step is assigned here by elimination<br/>The OHS is on this side, the one place the map is conventional"]
+metrics["<b>Verification metrics</b><br/><i>none supplied</i>"]
+quest["<b>Open questions</b><br/>Does anyone create, edit or retire a recipe? No event, no command<br/>Is this a context or an off-board catalogue behind an OHS?<br/><i>…and 2 more (see below)</i>"]
+assume ~~~ metrics
+metrics ~~~ quest
+end
+
+TOP ~~~ META
+
+class bc head
+class strat,roles,rules,assume,quest panel
+class t_recipe,t_ingredient,t_step term
+class metrics unknown
+class in_meal_planning collab
+class out_none unknown
+class TOP frame

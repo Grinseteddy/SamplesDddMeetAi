@@ -30,7 +30,27 @@ Besides AI examples, the repostory contains skills that are useful when creating
 
 **[Chapter 7—Visual Glossary](/Chapter07)**
 
-- 
+- [Check consistency between Visual Glossary and Domain Stories](./Chapter07/Skills/DomainStoryVsVisualGlossaryConsistencySkill/SKILL.md)
+- [Prototype out of Domain Story and Visual Glossary](./Chapter07/Skills/ProtypeSkillWithVisualGlossary/SKILL.md)
+- [Check consistency of a schema against Visual Glossary](./Chapter07/Skills/VisualGlossaryAgainstSchemaSkill/SKILL.md)
+- [Interpret Visual Glossary](./Chapter07/Skills/VisualGlossarySkill/SKILL.md)
+- [Update a Visual Glossary based on a schema](./Chapter07/Skills/VisualGlossaryUpdateSkill/SKILL.md)
+
+**[Chapter 8—Event Storming](/Chapter 8)**
+- [Seed events based on rough description](./Chapter08/Skills/EventSeederSkill/SKILL.md)
+- [Seed events based on Domain Stories](./Chapter08/Skills/EventSeederWithDomainStorySkill/SKILL.md)
+- [EventStorming interpreter](./Chapter08/Skills/EventStormingSkill/SKILL.md)
+- [Find Bounded Context in an EventStorming board](./Chapter08/Skills/FindBoundedContextsSkill/SKILL.md)
+- [Find Invariants](./Chapter08/Skills/FindInvariantsSkill/SKILL.md)
+
+**[Chapter 9—Event Modeling](/Chapter09)**
+- [Generate an Arazzo file from an Event Model](./Chapter09/Skills/ArazzoFromEventModel/SKILL.md)
+- [Create an Event Model based on Domain Stories with Bounded Contexts](./Chapter09/Skills/CreateEventModelSkill/SKILL.md)
+- [Create a prototype from Event Model, Domain Stories, and Visual Glossary](./Chapter09/Skills/CreatePrototypeFromEventModelDomainStoryVisualGlossary/SKILL.md)
+- [Create a screenflow from an Event Model](./Chapter09/Skills/CreateScreenflow/SKILL.md)
+- [Find invariants in an Event Model](./Chapter09/Skills/FindInvariantsInGivenModel/SKILL.md)
+
+**[Chapter 10—Context Map](./Chapter10)
 
 
 

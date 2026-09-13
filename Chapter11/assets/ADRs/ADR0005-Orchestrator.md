@@ -1,4 +1,4 @@
-ADR0004
+ADR0005
 
 # Orchestrator UI
 
@@ -11,38 +11,29 @@ ADR0004
 
 ## Context
 
-Most of the Bounded Contexts need user interactions that should be done synchronously via REST API.
+**Key Architectural Drivers**
+
+* **Guided Cooking Workflows**: Interactive capabilities like *Step-by-Step Cooking Mode* and the *Dinner Party Planner* depend on strict sequential progression. An orchestrator explicitly drives state transitions, active timers, and hands-free voice controls to ensure UI components remain synchronized while cooking.
+* **Catastrophe & Rescue Management**: Responding to a cooking failure (`StepUnclear` or `CatastropheHappened` $\rightarrow$ `TakePictures` $\rightarrow$ `RequestHelp` $\rightarrow$ `MealRescued`) requires conditional modal branching across `Meal Preparation`, `Cooking Assistance`, `Media`, and `Grandma Avatar AI`. A UI orchestrator dictates this multi-context dialog flow and manages real-time fallbacks seamlessly.
+* **Unified View Aggregation & Gating**: The primary cooking UI synthesizes live data from the `Recipe Catalog` (ingredients and steps), `Meal Preparation` (active state), and `Cooking Assistance` (AI or Chef responses). Central orchestration aggregates these views cleanly while enforcing rules from `Consent Management` and the `Paywall for Premium Content`.
+* **Choreography for Decoupled Extras**: Passive UI elements—such as toast messages from `Notification`, dynamic community feed updates (`Sharing`), and targeted promotions from `Ads Management`—subscribe to events like `MealPrepared` or `ThanksGiven` via lightweight UI choreography to avoid coupling with the main cooking pipeline.
 
 ## Options considered
 
-### Synchronous via REST API
+### Orchestrator
 
-We will use REST APIs for synchronous communication with UI.
+We will use an orchestrator so that the AppShell can hold the process status between the micro-UIs, whereas the micro-UIs can be independent.
 
-Advantages: It is supported by principles (see [AP0006](./LarderArchitecturalPrinciples.md/#ap0006-synchronous-communication-for-uis))
-Advantages: Skills are available to implement REST APIs.
+### Choreography
 
-### Synchronous via GraphQL
-
-We will use GraphQL for user interfaces.
-
-Advantages: It is supported by principles (see [AP0006](./LarderArchitecturalPrinciples.md/#ap0006-synchronous-communication-for-uis))
-Disadvantages: It contradicts a fine-grained control of access rights (see [AP0008](./LarderArchitecturalPrinciples.md/#ap0008-fine-grained-access-rights)).
-
-### Using of asynchronous communication with WebHooks
-
-We use asynchronous communication via WebHooks for UI.
-
-Disadvantage: It contradicts [AP0006](./LarderArchitecturalPrinciples.md/#ap0006-synchronous-communication-for-uis).
-Disadvantage: It requires high efforts on server and client side.
-
+Centralizing interactive user flows through a UI orchestrator while leveraging event-driven choreography for ambient widgets gives Larder a deterministic, hands-free kitchen experience without compromising the modularity of its social and community features.
 
 ## Consequences
 
-| Consequence    | Synchronous REST | Synchronous GraphQL | Asynchronous WebHooks |
-|----------------|------------------|---------------------|-----------------------|
-| Implementation | ☑️ Small effort  | ☑️ Small effort     | ‼️ High effort        |
-| Security       | ☑️ Fine grained  | ‼️ Coarse grained   | ☑️ Fine grained       |
+| Consequence       | Orchestration                         | Choreography                                               | 
+|-------------------|---------------------------------------|------------------------------------------------------------|
+| Implementation    | ! Larger effort in AppShell           | ‼️ Extrem high effort to hold the process in each micro UI | 
+| Team independence | ‼️ All teams depend on AppShell team. | Fine                                                       | 
 
 ## Advice
 

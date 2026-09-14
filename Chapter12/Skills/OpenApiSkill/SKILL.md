@@ -3,15 +3,14 @@ name: openapi-spec-author
 description: >-
   Author OpenAPI 3.1.0 API specifications in YAML following a consistent,
   componentized house style (the same style as the bundled Catalog Management
-  example). Use this skill whenever the user wants to create, write, draft,
-  design, scaffold, or extend an OpenAPI / Swagger specification, design a REST
-  API contract, turn a feature or data model into API endpoints, or produce an
-  api.yaml / openapi.yaml file — even if they don't say "OpenAPI 3.1.0"
-  explicitly. Also use it when adding endpoints or schemas to an existing spec
-  so the additions match the house conventions, and when the user asks to
-  validate or lint a spec. Produces a single YAML file that passes Spectral
-  linting.
-author: Anengret Junker
+  example). Use to create, write, draft, design, scaffold, or extend an
+  OpenAPI/Swagger spec, design a REST API contract, turn a feature or data
+  model into endpoints, or produce an api.yaml/openapi.yaml — even without
+  saying "OpenAPI 3.1.0". Also covers adding to an existing spec, and
+  validating/linting one. Also derives specs from DDD modeling artifacts —
+  EventStorming boards, Domain Stories, Visual Glossaries, or their
+  interpreter briefs — scoped to one or all bounded contexts/modules.
+  Produces YAML file(s) that pass Spectral linting.
 ---
 
 # OpenAPI 3.1.0 Spec Author
@@ -44,14 +43,47 @@ If the user already gave a data model, feature description, or existing spec,
 extract the resources from that instead of interrogating them. Ask only what you
 genuinely can't infer.
 
-### 2. Read the conventions
+**If the input is an EventStorming board** (a photo/screenshot of stickies, a
+Miro/Mural export, a plain sticky list, or an Event Storming Brief already
+produced by the `event-storming-interpreter` skill) instead of a plain
+description, read `references/eventstorming-mapping.md` before doing
+anything else — it governs how aggregates, commands, read models, actors,
+and state machines translate into resources, operations, query endpoints,
+scopes, and status fields. That file also covers what to do with domain
+events (usually not exposed directly) and cross-context arrows (documented,
+not modeled as synchronous calls).
+
+**If the input is a Domain Story and/or a Visual Glossary** (diagrams,
+transcriptions, or the Prototype Brief / Glossary Brief from
+`domain-story-interpreter` / `visual-glossary-interpreter`), read
+`references/domain-story-glossary-mapping.md` instead — it's a different
+notation pair from EventStorming (verbs from the story, nouns and
+cardinalities from the glossary) and covers what to do when only one of the
+two is supplied, and how to reconcile them when both are.
+
+### 2. Choose the scope: one API or several
+
+This matters most for diagram-shaped input (EventStorming, Domain Story,
+Visual Glossary), where a bounded context / module is the natural unit of an
+API, but it applies to any request that spans more than one obvious service.
+Confirm with the user:
+- **All bounded contexts / modules** — one `.yaml` per context; repeat steps
+  3–6 below once per context.
+- **One named bounded context / module** — a single `.yaml` for just that
+  one.
+
+If there's only one context in play (a single-service description, or a
+diagram with one context / no drawn grouping), skip the question and
+proceed with that single scope.
+
+### 3. Read the conventions
 
 Before writing, read `references/conventions.md` — it is the authoritative,
 detailed specification of the house style (naming, componentization rules,
 schema design, the standard response set, security patterns). The summary in
 this file is a reminder, not a substitute.
 
-### 3. Write the spec
+### 4. Write the spec
 
 Start from `assets/skeleton.yaml` and build outward. Write the file in this
 order so structure stays clean:
@@ -67,7 +99,7 @@ The single most important convention: **componentize and reuse via `$ref`.**
 Parameters, request bodies, responses, and any reused schema live under
 `components` and are referenced from the paths — exactly as in the example.
 
-### 4. Validate and lint
+### 5. Validate and lint
 
 Always validate the finished spec. Read `references/validation.md` for the exact
 commands. In short: lint with Spectral using the bundled ruleset:
@@ -81,10 +113,15 @@ Fix every **error** and review **warnings** (resolve them unless there's a
 deliberate reason). Re-run until clean. If Spectral can't be installed, fall
 back to the Python structural validator described in `references/validation.md`.
 
-### 5. Present
+### 6. Present
 
-Save the final `.yaml` to the outputs directory and present it. Briefly note the
-resources covered and the result of the lint run.
+Save the final `.yaml` (or one per bounded context, if scoped to several) to
+the outputs directory and present it/them. Briefly note the resources
+covered and the result of the lint run per file. When generating several
+files, also restate anything flagged in
+`references/eventstorming-mapping.md` §6–9 that the user should resolve
+(unexposed commands, events not modeled, cross-context integration notes,
+hotspots).
 
 ## House style at a glance
 
@@ -137,6 +174,14 @@ the current version with a matching `default`, referenced by every operation.
 ## Bundled resources
 
 - `references/conventions.md` — full house-style specification. Read before writing.
+- `references/eventstorming-mapping.md` — how to derive resources, operations,
+  query endpoints, scopes, and status fields from an EventStorming board or
+  brief, and how to scope generation to one or all bounded contexts. Read
+  when the input is board-shaped.
+- `references/domain-story-glossary-mapping.md` — how to derive operations
+  from a Domain Story's use cases and schemas/cardinalities from a Visual
+  Glossary's terms, separately or reconciled together. Read when the input
+  is a domain story and/or a visual glossary.
 - `references/validation.md` — how to install and run Spectral (and fallbacks).
 - `assets/example-catalog-management.yaml` — gold-standard example to mirror.
 - `assets/skeleton.yaml` — minimal starting template with the right structure.

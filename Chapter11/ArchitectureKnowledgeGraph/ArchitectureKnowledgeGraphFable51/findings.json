@@ -1,0 +1,68 @@
+{
+  "errors": [],
+  "findings": {
+    "never_cited_principles": [
+      "Prin_AP0003_UsingDDD",
+      "Prin_AP0005b_MicroUIs"
+    ],
+    "dead_letter_principles": [
+      "Prin_AP0004_UsingResiduality",
+      "Prin_AP0005a_AutomaticTesting",
+      "Prin_AP0007_Monitoring"
+    ],
+    "decisions_citing_no_principle": [
+      "D_ADR0005 (engages principles incidentally)",
+      "D_SADR0001 (engages no principle at all)",
+      "D_SADR0002 (engages no principle at all)",
+      "D_SADR0003 (engages no principle at all)",
+      "D_SADR0004 (engages no principle at all)",
+      "D_SADR0005 (engages no principle at all)",
+      "D_SADR0006 (engages no principle at all)",
+      "D_SADR0007 (engages no principle at all)"
+    ],
+    "unacknowledged_overrides": [
+      "D_ADR0005 → Prin_AP0005b_MicroUIs — AP0005 rationale: 'The teams developing the Bounded Contexts must be as independent as possible.' ADR0005 consequences: 'All teams depend on AppShell team.' The ADR records the consequence but never names the principle it cuts against, gives no reason for accepting the loss of independence, and is the only ADR of five that cites no principle at all. The statement's letter (contexts publish micro-UIs, which the orchestrator ingests) is kept; the rationale is contradicted."
+    ],
+    "source_defects": [
+      "Art_Principles_Larder: Two entries carry the ID AP0005: 'AP0005—Automatic Testing' and 'AP0005 —Micro-UIs'. Kept verbatim in dkg:principleId; disambiguated only in the IRIs :Prin_AP0005a_AutomaticTesting / :Prin_AP0005b_MicroUIs.",
+      "Art_Principles_Larder: AP0007 Monitoring carries the Implications line 'Using a large monolithic frontend would us slow down.' — identical to AP0005 Micro-UIs and unrelated to monitoring. Copy-paste; emitted verbatim on :Prin_AP0007_Monitoring.",
+      "Prin_AP0005a_AutomaticTesting: Shares the ID AP0005 with the Micro-UIs entry that follows it in the document.",
+      "Prin_AP0005b_MicroUIs: Shares the ID AP0005 with the Automatic Testing entry that precedes it in the document.",
+      "Prin_AP0007_Monitoring: Implications line is a verbatim copy of AP0005 Micro-UIs' Implications and does not concern monitoring.",
+      "D_ADR0001: The bolded Decision line reads 'We will implement Larder as Monolith.', but the Options section marks the plain 'Monolith' option as contradicting AP0001, lists ten modules under 'Modular monolith', and ADR0002's Context speaks of 'the modular monolith'. Cross-check done on the modular-monolith reading; consequences listed are the Modular Monolith column.",
+      "D_ADR0002: Decision line 'one database instance' fits both option 1 (one instance, schema per context) and option 3 (one database for all); read as option 1, the only one not marked as contradicting AP0001.",
+      "D_ADR0002: Consequences table column headers are 'Modular Monolith | Microservices | Monolith' — copied from ADR0001 and not the three database options this ADR compares.",
+      "D_ADR0002: Option 'One database for all' has a truncated sentence: 'Disadvantage: The Domain Models are easily (contradicts AP0001).'",
+      "D_ADR0005: The 'Choreography' option's text describes a hybrid ('Centralizing interactive user flows through a UI orchestrator while leveraging event-driven choreography for ambient widgets'), i.e. the chosen design, not the alternative it is meant to be.",
+      "D_ADR0005: Decision line typo: 'for the UI or Larder' (of Larder)."
+    ],
+    "supersessions": [
+      "D_SADR0003 supersedes D_SADR0002"
+    ]
+  },
+  "principles": [
+    "Prin_AP0001_MonolithBeforeMicroservices",
+    "Prin_AP0002_AsyncBetweenContexts",
+    "Prin_AP0003_UsingDDD",
+    "Prin_AP0004_UsingResiduality",
+    "Prin_AP0005a_AutomaticTesting",
+    "Prin_AP0005b_MicroUIs",
+    "Prin_AP0006_SyncForUIs",
+    "Prin_AP0007_Monitoring",
+    "Prin_AP0008_FineGrainedAccessRights"
+  ],
+  "decisions": [
+    "D_ADR0001",
+    "D_ADR0002",
+    "D_ADR0003",
+    "D_ADR0004",
+    "D_ADR0005",
+    "D_SADR0001",
+    "D_SADR0002",
+    "D_SADR0003",
+    "D_SADR0004",
+    "D_SADR0005",
+    "D_SADR0006",
+    "D_SADR0007"
+  ]
+}

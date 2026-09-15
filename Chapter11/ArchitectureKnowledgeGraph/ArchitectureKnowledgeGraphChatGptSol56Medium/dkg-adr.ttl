@@ -1,0 +1,31 @@
+@prefix dkg: <https://w3id.org/dkg/ns#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/adr-ns> a owl:Ontology ;
+    owl:imports <https://w3id.org/dkg/ns> ;
+    rdfs:label "ADR and architectural principles extension" .
+
+dkg:PrinciplesDocument a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:ADRDocument a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:Principle a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:decisionId a owl:DatatypeProperty ; rdfs:domain dkg:Decision .
+dkg:principleId a owl:DatatypeProperty ; rdfs:domain dkg:Principle .
+dkg:statement a owl:DatatypeProperty ; rdfs:domain dkg:Principle .
+dkg:rationale a owl:DatatypeProperty .
+dkg:implication a owl:DatatypeProperty ; rdfs:domain dkg:Principle .
+dkg:scope a owl:DatatypeProperty ; rdfs:domain dkg:Principle .
+dkg:amendedAt a owl:DatatypeProperty ; rdfs:range xsd:date .
+dkg:testable a owl:DatatypeProperty ; rdfs:domain dkg:Principle ; rdfs:range xsd:boolean .
+dkg:sourceFormat a owl:DatatypeProperty ; rdfs:domain dkg:Decision .
+dkg:decidedOption a owl:DatatypeProperty ; rdfs:domain dkg:Decision .
+dkg:consequence a owl:DatatypeProperty ; rdfs:domain dkg:Decision .
+dkg:cites a owl:ObjectProperty ; rdfs:domain dkg:Decision ; rdfs:range dkg:Principle .
+dkg:honors a owl:ObjectProperty ; rdfs:domain dkg:Decision ; rdfs:range dkg:Principle .
+dkg:overrides a owl:ObjectProperty ; rdfs:domain dkg:Decision ; rdfs:range dkg:Principle .
+dkg:inTensionWith a owl:ObjectProperty ; rdfs:domain dkg:Principle ; rdfs:range dkg:Principle .
+dkg:citedBy a owl:DatatypeProperty ; rdfs:domain dkg:Assertion .
+dkg:acknowledged a owl:DatatypeProperty ; rdfs:domain dkg:Assertion ; rdfs:range xsd:boolean .
+dkg:defect a owl:DatatypeProperty .

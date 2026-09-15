@@ -1,0 +1,59 @@
+{
+  "errors": [],
+  "findings": {
+    "never_cited_principles": [
+      "Prin_AP0003",
+      "Prin_MicroUIs"
+    ],
+    "dead_letter_principles": [
+      "Prin_AP0004",
+      "Prin_AP0007",
+      "Prin_Testing"
+    ],
+    "decisions_citing_no_principle": [
+      "D_ADR0005 (engages principles incidentally)",
+      "D_SADR0001 (engages no principle at all)",
+      "D_SADR0002 (engages no principle at all)",
+      "D_SADR0003 (engages no principle at all)",
+      "D_SADR0004 (engages principles incidentally)",
+      "D_SADR0005 (engages no principle at all)",
+      "D_SADR0006 (engages no principle at all)",
+      "D_SADR0007 (engages no principle at all)"
+    ],
+    "source_defects": [
+      "Prin_AP0007: The Monitoring implications line is identical to Micro-UIs implications: \"Using a large monolithic frontend would us slow down.\" It does not explain monitoring.",
+      "D_ADR0001: Decision says \"We will implement Larder as Monolith\", but Context defines Bounded Context modules and the Modular monolith option specifies schema isolation; the Monolith option explicitly says enhancements are difficult. The chosen deployment type is ambiguous.",
+      "D_ADR0002: Context says \"modular monolith\" although ADR0001 operative decision says \"Monolith\"; the Consequences columns are copied from deployment alternatives and do not correspond to the database options.",
+      "D_ADR0005: The Choreography option describes \"Centralizing interactive user flows through a UI orchestrator\" and thus does not describe choreography as a distinct alternative.",
+      "Art_Principles_Larder: Two distinct entries carry the exact ID AP0005: Automatic Testing and Micro-UIs. Both retain dkg:principleId \"AP0005\"; graph IRIs disambiguate them."
+    ],
+    "supersessions": [
+      "D_SADR0003 supersedes D_SADR0002"
+    ]
+  },
+  "principles": [
+    "Prin_AP0001",
+    "Prin_AP0002",
+    "Prin_AP0003",
+    "Prin_AP0004",
+    "Prin_AP0006",
+    "Prin_AP0007",
+    "Prin_AP0008",
+    "Prin_MicroUIs",
+    "Prin_Testing"
+  ],
+  "decisions": [
+    "D_ADR0001",
+    "D_ADR0002",
+    "D_ADR0003",
+    "D_ADR0004",
+    "D_ADR0005",
+    "D_SADR0001",
+    "D_SADR0002",
+    "D_SADR0003",
+    "D_SADR0004",
+    "D_SADR0005",
+    "D_SADR0006",
+    "D_SADR0007"
+  ]
+}

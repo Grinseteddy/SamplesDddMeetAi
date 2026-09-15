@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ADR & Principles browser</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --ink:#1b1f24; --muted:#6b7280; --rule:#e5e7eb; --bg:#ffffff; --side:#f7f8fa;
+          --ok:#1a7f4b; --okbg:#e6f4ec; --bad:#b42318; --badbg:#fdecea; --warn:#9a6700; --warnbg:#fff4d6;
+          --cite:#1f5fbf; --citebg:#e8effb; --dead:#6b7280; --deadbg:#f1f2f4; --defect:#7a2e9e; --defectbg:#f3e8fa; }
+  * { box-sizing:border-box }
+  body { margin:0; font:14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:var(--bg); display:grid; grid-template-columns:280px 1fr; min-height:100vh }
+  aside { background:var(--side); border-right:1px solid var(--rule); padding:16px; overflow:auto; position:sticky; top:0; height:100vh }
+  main { padding:24px 32px; max-width:1100px }
+  h1 { font-size:16px; margin:0 0 12px } h2 { font-size:15px; margin:22px 0 8px } h3 { font-size:13px; color:var(--muted); font-weight:600; margin:18px 0 6px; text-transform:uppercase; letter-spacing:.04em }
+  .side-sec { margin-top:14px } .side-sec h3 { margin:0 0 4px }
+  .nav a { display:block; padding:4px 8px; border-radius:6px; color:var(--ink); text-decoration:none; font-size:13px; cursor:pointer }
+  .nav a:hover { background:#e9ecf0 } .nav a.active { background:#dfe6ef; font-weight:600 }
+  .nav .sub { color:var(--muted); font-size:11.5px; margin-left:2px }
+  .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; border:1px solid var(--rule); background:#fff; margin:2px 4px 2px 0; cursor:pointer; white-space:nowrap }
+  .pill:hover { border-color:#9aa3ad }
+  .pill.ok { background:var(--okbg); border-color:#bfe3cf; color:var(--ok) }
+  .pill.bad { background:var(--badbg); border-color:#f3c2bd; color:var(--bad) }
+  .pill.warn { background:var(--warnbg); border-color:#f0dfa8; color:var(--warn) }
+  .pill.cite { background:var(--citebg); border-color:#c4d4f2; color:var(--cite) }
+  .pill.dead { background:var(--deadbg); color:var(--dead) }
+  .pill.defect { background:var(--defectbg); border-color:#dcc4ea; color:var(--defect) }
+  .tag { font-size:11px; color:var(--muted); margin-right:6px }
+  .card { border:1px solid var(--rule); border-radius:10px; padding:14px 16px; margin:10px 0; background:#fff }
+  .card.bad { border-color:#f3c2bd; background:#fff9f8 } .card.warn { border-color:#f0dfa8; background:#fffdf5 } .card.defect { border-color:#dcc4ea; background:#fcf8fe }
+  .kv { display:grid; grid-template-columns:150px 1fr; gap:4px 14px; font-size:13px } .kv dt { color:var(--muted) } .kv dd { margin:0 }
+  blockquote { margin:6px 0; padding:6px 12px; border-left:3px solid var(--rule); color:#374151; font-size:13px }
+  table { border-collapse:collapse; width:100%; font-size:13px; margin:8px 0 } th, td { border-bottom:1px solid var(--rule); padding:7px 8px; text-align:left; vertical-align:top } th { color:var(--muted); font-weight:500; font-size:11.5px }
+  .muted { color:var(--muted) } .small { font-size:12px } .num { font-variant-numeric:tabular-nums }
+  .stat { display:inline-block; min-width:120px; padding:10px 14px; border:1px solid var(--rule); border-radius:10px; margin:4px 8px 4px 0; cursor:pointer } .stat b { display:block; font-size:22px } .stat.bad b { color:var(--bad) } .stat.ok b { color:var(--ok) } .stat.warn b { color:var(--warn) } .stat.dead b { color:var(--dead) } .stat.defect b { color:var(--defect) }
+  .matrix td.c { text-align:center } .matrix .cell { display:inline-block; width:22px; height:22px; border-radius:6px; line-height:22px; font-size:12px; cursor:pointer } .matrix .h { background:var(--okbg); color:var(--ok) } .matrix .o { background:var(--badbg); color:var(--bad) } .matrix .oa { background:var(--warnbg); color:var(--warn) } .matrix .ci { outline:2px solid var(--cite) } .matrix th.rot { writing-mode:vertical-rl; transform:rotate(180deg); height:130px; font-size:11px }
+  .crumbs { font-size:12px; color:var(--muted); margin-bottom:8px } .crumbs a { color:var(--cite); cursor:pointer }
+  input[type=file] { font-size:12px; width:100% } .drop { border:1px dashed #b7c0cb; border-radius:8px; padding:10px; font-size:12px; color:var(--muted); text-align:center }
+  .legend span { margin-right:10px } .status { font-size:11px; padding:1px 6px; border-radius:4px; background:#eef0f3; color:#374151 }
+  .status.superseded { text-decoration:line-through; color:var(--muted) }
+  #panel { position:fixed; right:0; top:0; bottom:0; width:360px; background:#fff; border-left:1px solid var(--rule); box-shadow:-6px 0 18px rgba(0,0,0,.06); padding:18px; overflow:auto; transform:translateX(100%); transition:transform .15s } #panel.open { transform:none } #panel .close { float:right; cursor:pointer; color:var(--muted) }
+  pre { white-space:pre-wrap; font-size:12px; background:#f7f8fa; padding:8px; border-radius:6px }
+</style>
+</head>
+<body>
+<aside>
+  <h1>ADR &amp; Principles</h1>
+  <div class="drop">Open a graph (<code>.ttl</code>) written by <code>adr-and-principles-ingester</code><br><input type="file" id="file" accept=".ttl,.turtle,text/turtle"></div>
+  <div class="muted small" id="loaded" style="margin-top:6px"></div>
+  <div class="side-sec"><h3>Views</h3><div class="nav" id="nav-views"></div></div>
+  <div class="side-sec"><h3>Principles</h3><div class="nav" id="nav-prin"></div></div>
+  <div class="side-sec"><h3>Decisions</h3><div class="nav" id="nav-dec"></div></div>
+  <div class="side-sec"><h3>Artifacts</h3><div class="nav" id="nav-art"></div></div>
+  <div class="side-sec legend small muted"><span class="pill ok">honors</span><span class="pill bad">overrides · unacknowledged</span><span class="pill warn">overrides · acknowledged</span><span class="pill cite">cites</span><span class="pill dead">dead letter</span><span class="pill defect">defect</span></div>
+</aside>
+<main id="main"></main>
+<div id="panel"><span class="close" onclick="closePanel()">✕</span><div id="panel-body"></div></div>
+
+<script type="text/turtle" id="sample" data-name="larder-adr.ttl">
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix :     <https://w3id.org/dkg/graph/larder#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/graph/larder>
+    a owl:Ontology ;
+    owl:imports <https://w3id.org/dkg/ns> , <https://w3id.org/dkg/ns/adr> ;
+    rdfs:label "Larder — ADR & Principles knowledge graph (seed, 2026-09-15)" ;
+    rdfs:comment "Seeded from LarderArchitecturalPrinciples.md, ADR0001–ADR0005 and SadrsLarder.md. Uses the project's base IRI and the :D_SADR000n / :Ctx_ / :Act_ / :Con_ slugging of the existing project graph so it merges by concatenation." .
+
+##############################################################################
+# 1. Artifacts
+##############################################################################
+
+:Art_Principles_Larder a dkg:PrinciplesDocument , dkg:Artifact ;
+    rdfs:label "LarderArchitecturalPrinciples.md" ;
+    rdfs:comment "9 entries under 8 IDs (AP0005 used twice). All Adopted, all last amended 2026-09-10." ;
+    dkg:ingestedAt "2026-09-15"^^xsd:date ;
+    dkg:defect "Two entries carry the ID AP0005: 'AP0005—Automatic Testing' and 'AP0005 —Micro-UIs'. Kept verbatim in dkg:principleId; disambiguated only in the IRIs :Prin_AP0005a_AutomaticTesting / :Prin_AP0005b_MicroUIs." ;
+    dkg:defect "AP0007 Monitoring carries the Implications line 'Using a large monolithic frontend would us slow down.' — identical to AP0005 Micro-UIs and unrelated to monitoring. Copy-paste; emitted verbatim on :Prin_AP0007_Monitoring." .
+
+:Art_ADR_ADR0001 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0001-Monolith.md" ;
+    rdfs:comment "Full-form: Decision / Context / Options considered (3) / Consequences table / Advice ('see meeting protocol')." ;
+    dkg:ingestedAt "2026-09-15"^^xsd:date .
+
+:Art_ADR_ADR0002 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0002-Database.md" ;
+    rdfs:comment "Full-form, same shape as ADR0001." ;
+    dkg:ingestedAt "2026-09-15"^^xsd:date .
+
+:Art_ADR_ADR0003 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0003-AsynchronousCommunication.md" ;
+    rdfs:comment "Full-form. Context references an image ../09_ContextMap.jpg that was not supplied." ;
+    dkg:ingestedAt "2026-09-15"^^xsd:date .
+
+:Art_ADR_ADR0004 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0004-SynchronousCommunicationViaMicroUi.md" ;
+    rdfs:comment "Full-form. Filename says 'MicroUi', title says 'per UI'; body is about REST vs GraphQL vs WebHooks." ;
+    dkg:ingestedAt "2026-09-15"^^xsd:date .
+
+:Art_ADR_ADR0005 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0005-Orchestrator.md" ;
+    rdfs:comment "Full-form; the only ADR with prose Key Architectural Drivers and the only one citing no principle." ;
+    dkg:ingestedAt "2026-09-15"^^xsd:date .
+
+:Art_ADRLog_SadrsLarder a dkg:ADRLog , dkg:Artifact ;
+    rdfs:label "SadrsLarder.md — small ADR log" ;
+    rdfs:comment "7 rows, SADR0001–SADR0007, one author (Junker), 2026-09-07 to 2026-09-11. Same IRIs as the project's existing graph." ;
+    dkg:ingestedAt "2026-09-15"^^xsd:date .
+
+##############################################################################
+# 2. Domain nodes the principles and decisions mention
+#    (slugged as the existing project graph slugs them, so they merge by IRI)
+##############################################################################
+
+:Ctx_RecipeCatalog a dkg:BoundedContext ; skos:prefLabel "Recipe Catalog" ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_MealPlanning a dkg:BoundedContext ; skos:prefLabel "Meal Planning" ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_CookProfile a dkg:BoundedContext ; skos:prefLabel "Cook Profile" ;
+    rdfs:comment "ADR0001: 'as ACL to the external used IAM'" ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_GrandmaAvatarAI a dkg:BoundedContext ; skos:prefLabel "Grandma Avatar AI" ;
+    rdfs:comment "ADR0001: 'as ACL to the external used AI'. ADR0003 calls the same thing 'Grandma Avatar'. The module wraps the external system :Act_GrandmaAvatar; the two are related, not the same node (context vs external system)." ;
+    dkg:mentions :Act_GrandmaAvatar ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0003 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Notification a dkg:BoundedContext ; skos:prefLabel "Notification" ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0003 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_CookingAssistance a dkg:BoundedContext ; skos:prefLabel "Cooking Assistance" ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0003 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Media a dkg:BoundedContext ; skos:prefLabel "Media" ;
+    rdfs:comment "ADR0001: 'as specific implementation to an external used bucket'" ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_ConsentManagement a dkg:BoundedContext ; skos:prefLabel "Consent Management" ;
+    rdfs:comment "ADR0001: 'as ACL to an external used Consent Management'" ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_MealPreparation a dkg:BoundedContext ; skos:prefLabel "Meal Preparation" ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Sharing a dkg:BoundedContext ; skos:prefLabel "Sharing" ;
+    dkg:source :Art_ADR_ADR0001 , :Art_ADR_ADR0005 ; dkg:locator "Modular monolith, module list" ; dkg:confidence dkg:OnArtifact .
+
+# Named only in ADR0005's drivers; absent from ADR0001's module list and from every DDD artifact in the project.
+:Ctx_PaywallForPremiumContent a dkg:BoundedContext ; skos:prefLabel "Paywall for Premium Content" ;
+    rdfs:comment "Appears only in ADR0005 'Unified View Aggregation & Gating'. Not in ADR0001's ten modules." ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "Context, Key Architectural Drivers, third bullet" ; dkg:confidence dkg:OnArtifact .
+:Ctx_AdsManagement a dkg:BoundedContext ; skos:prefLabel "Ads Management" ;
+    rdfs:comment "Appears only in ADR0005 'Choreography for Decoupled Extras'. Not in ADR0001's ten modules." ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "Context, Key Architectural Drivers, fourth bullet" ; dkg:confidence dkg:OnArtifact .
+
+:Act_Chef a dkg:Actor ; skos:prefLabel "Chef" ;
+    dkg:source :Art_ADRLog_SadrsLarder , :Art_ADR_ADR0005 ; dkg:locator "SADR0001" ; dkg:confidence dkg:OnArtifact .
+:Act_Community a dkg:Actor ; skos:prefLabel "Community" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001" ; dkg:confidence dkg:OnArtifact .
+:Act_GrandmaAvatar a dkg:ExternalSystem ; skos:prefLabel "Grandma Avatar" ;
+    dkg:source :Art_ADRLog_SadrsLarder , :Art_ADR_ADR0003 ; dkg:locator "SADR0001; ADR0003 Context" ; dkg:confidence dkg:OnArtifact .
+
+:Con_MealPlan a dkg:Concept ; skos:prefLabel "Menu" ; skos:altLabel "Meal plan" ;
+    rdfs:comment "Renamed by SADR0003 (Adopted, supersedes SADR0002): 'Menu is used for Menu and Meal plan'. IRI keeps the board's wording." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0002, SADR0003" ; dkg:confidence dkg:OnArtifact .
+:Con_Menu a dkg:Concept ; skos:prefLabel "Menu" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0003" ; dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest a dkg:Concept ; skos:prefLabel "Help request" ;
+    rdfs:comment "SADR0004 splits the one-word 'Help' into Help request (what the Cook asks for) and Help response (what is provided)." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004" ; dkg:confidence dkg:OnArtifact .
+:Con_HelpResponse a dkg:Concept ; skos:prefLabel "Help response" ; skos:altLabel "Help" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004" ; dkg:confidence dkg:OnArtifact .
+:Con_UserInterface a dkg:Concept ; skos:prefLabel "UI" ; skos:altLabel "micro-UI" , "User Interface" ;
+    dkg:source :Art_Principles_Larder , :Art_ADR_ADR0004 , :Art_ADR_ADR0005 ; dkg:locator "AP0005 Micro-UIs, AP0006" ; dkg:confidence dkg:OnArtifact .
+:Con_AppShell a dkg:Concept ; skos:prefLabel "AppShell" ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "Decision" ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+# 3. Principles
+##############################################################################
+
+:Prin_AP0001_MonolithBeforeMicroservices a dkg:Principle ;
+    skos:prefLabel "Monolith before Microservices" ;
+    dkg:principleId "AP0001" ;
+    dkg:statement "We will always start with a deployment monolith before cutting services out. However, the modules are modular regarding DDD principles." ;
+    dkg:rationale "In the beginning, we do not know exactly the load and performance issues the single services have to face. Therefore, we will cut later with more experience." ;
+    dkg:implication "We will have later costs for cutting out services. The teams need to be disciplined to follow the strict boundaries of the Bounded Contexts." ;
+    dkg:scope "deployment shape; 'the modules are modular regarding DDD principles'" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0001" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0002_AsyncBetweenContexts a dkg:Principle ;
+    skos:prefLabel "Asynchronous Communication before Synchronous" ;
+    dkg:principleId "AP0002" ;
+    dkg:statement "For communication between Bounded Contexts asynchronous communication is preferred." ;
+    dkg:rationale "Asynchronous communication guarantees the loose coupling between Bounded Contexts." ;
+    dkg:implication "Loose coupling guarantees that we can later maintain and operate our application without large downtimes." ;
+    dkg:scope "between Bounded Contexts" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0002" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0003_UsingDDD a dkg:Principle ;
+    skos:prefLabel "Using DDD" ;
+    dkg:principleId "AP0003" ;
+    dkg:statement "For design of our functional architecture, we will apply the principles of DDD." ;
+    dkg:rationale "Architecture coming out of the blue does not support the business requirements functionally." ;
+    dkg:implication "We need to support the functions required by business. Moreover, we need to support the maintenance of those functions for the upcoming years." ;
+    dkg:scope "functional architecture" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    rdfs:comment "Close call on testability. Checkable in a weak sense: a decision that cuts modules along something other than Bounded Contexts, or names a module no DDD artifact has, would fail it. Kept testable on that reading (dkg:Inferred judgement)." ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0003" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0004_UsingResiduality a dkg:Principle ;
+    skos:prefLabel "Using Residuality" ;
+    dkg:principleId "AP0004" ;
+    dkg:statement "For design of our technical architecture, we will apply the principles of Residuality Theory." ;
+    dkg:rationale "Stressing an architecture with randomly selected stressors creates more sustaining architectures." ;
+    dkg:implication "We do not know what future brings, therefore, we need the robust and best equipped architecture." ;
+    dkg:scope "technical architecture" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    rdfs:comment "Testable as a process rule: an ADR either records the stressors it was tested against or it does not. None of the five does." ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0004" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0005a_AutomaticTesting a dkg:Principle ;
+    skos:prefLabel "Automatic Testing" ;
+    dkg:principleId "AP0005" ;
+    dkg:statement "We can test our system by 95% automatically." ;
+    dkg:rationale "Manual tests are too slow to allow us to test our system manually." ;
+    dkg:implication "We need to follow a Test-Driven-Approach consequently." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    dkg:defect "Shares the ID AP0005 with the Micro-UIs entry that follows it in the document." ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0005 (first occurrence)" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0005b_MicroUIs a dkg:Principle ;
+    skos:prefLabel "Micro-UIs" ;
+    dkg:principleId "AP0005" ;
+    dkg:statement "The Bounded Context publish their own UI as micro-UIs." ;
+    dkg:rationale "The teams developing the Bounded Contexts must be as independent as possible. The UIs are part of the Bounded Contexts projects. The micro UIs can use a common platform, so that they appear out of one hand." ;
+    dkg:implication "Using a large monolithic frontend would us slow down." ;
+    dkg:scope "UIs of Bounded Contexts" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    dkg:defect "Shares the ID AP0005 with the Automatic Testing entry that precedes it in the document." ;
+    dkg:mentions :Con_UserInterface ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0005 (second occurrence)" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0006_SyncForUIs a dkg:Principle ;
+    skos:prefLabel "Synchronous communication for UIs" ;
+    dkg:principleId "AP0006" ;
+    dkg:statement "UI communication is done synchronously." ;
+    dkg:rationale "UIs require synchronous communication." ;
+    dkg:implication "UIs must communicate with humans, who expect to get immediate answers." ;
+    dkg:scope "UI communication" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    dkg:mentions :Con_UserInterface ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0006" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0007_Monitoring a dkg:Principle ;
+    skos:prefLabel "Monitoring" ;
+    dkg:principleId "AP0007" ;
+    dkg:statement "The system can be monitored to identify system-critical states reliable and fast." ;
+    dkg:rationale "The operation of the software must be almost completely automated. We need to get a reliable alarm system based on a reliable monitoring system" ;
+    dkg:implication "Using a large monolithic frontend would us slow down." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    dkg:defect "Implications line is a verbatim copy of AP0005 Micro-UIs' Implications and does not concern monitoring." ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0007" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0008_FineGrainedAccessRights a dkg:Principle ;
+    skos:prefLabel "Fine grained access rights" ;
+    dkg:principleId "AP0008" ;
+    dkg:statement "Domain artifacts are controlled by a fine-grained access control." ;
+    dkg:rationale "The software will increase with time, and we need to respect the personal and author rights of our users." ;
+    dkg:implication "With more coarse grained rights, we could contradict legal regulations." ;
+    dkg:scope "domain artifacts" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ;
+    dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0008" ; dkg:confidence dkg:OnArtifact .
+
+# Principle-vs-principle: AP0002 (async) and AP0006 (sync) look opposed but are
+# scoped apart — "between Bounded Contexts" vs "UI communication". No
+# dkg:inTensionWith is emitted; the near-miss is reported, not recorded.
+
+##############################################################################
+# 4. Questions the full-form ADRs answer (minted from their Context sections)
+##############################################################################
+
+:Q_DeploymentShape_ADR0001 a dkg:Question ;
+    skos:prefLabel "Which deployment shape do Larder's Bounded Contexts take — modular monolith, microservices, or monolith?" ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:Q_DatabaseArrangement_ADR0002 a dkg:Question ;
+    skos:prefLabel "How are the modules' databases arranged — one instance with a schema per Bounded Context, one instance per context, or one shared database?" ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:Q_AssistanceBordersCommunication_ADR0003 a dkg:Question ;
+    skos:prefLabel "How do Cooking Assistance ↔ Notification and Cooking Assistance ↔ Grandma Avatar communicate?" ;
+    rdfs:comment "Restates the sync-vs-async border questions the project's architecture-question agenda already raised; wire dkg:proposedSameAs to them on merge." ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:locator "Context" ; dkg:confidence dkg:OnArtifact .
+
+:Q_UICommunication_ADR0004 a dkg:Question ;
+    skos:prefLabel "How do the user interfaces communicate with the Bounded Contexts?" ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:Q_MicroUIComposition_ADR0005 a dkg:Question ;
+    skos:prefLabel "How are the Bounded Contexts' micro-UIs composed into one application — orchestrated by an AppShell or choreographed?" ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+# Open — raised by ADR0005, answered by nothing
+:Q_OrchestratorAggregationReadsWhat a dkg:Question ;
+    skos:prefLabel "When the orchestrator 'synthesizes live data' from Recipe Catalog, Meal Preparation and Cooking Assistance, does it read published read models or query each context live? Live queries would engage AP0002." ;
+    dkg:mentions :Ctx_RecipeCatalog , :Ctx_MealPreparation , :Ctx_CookingAssistance ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "Context, 'Unified View Aggregation & Gating'" ; dkg:confidence dkg:Implied .
+
+# Open — raised by ADR0005's module list
+:Q_ModulesOnlyInADR0005 a dkg:Question ;
+    skos:prefLabel "Paywall for Premium Content and Ads Management appear only in ADR0005. Are they Bounded Contexts (then ADR0001's module list is short), features of existing ones, or out of scope?" ;
+    dkg:mentions :Ctx_PaywallForPremiumContent , :Ctx_AdsManagement ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "Context, Key Architectural Drivers" ; dkg:confidence dkg:Implied .
+
+##############################################################################
+# 5. Decisions — full-form ADRs
+##############################################################################
+
+:D_ADR0001 a dkg:Decision ;
+    skos:prefLabel "Using Monolith" ;
+    dkg:decisionId "ADR0001" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker, Architect" ;
+    dkg:decidedOption "We will implement Larder as Monolith." ;
+    dkg:rationale "We defined Bounded Contexts of the Larder application. Those Bounded Contexts are modules in our application." ;
+    dkg:consideredOption "Modular monolith" , "Microservices" , "Monolith" ;
+    dkg:consequence "Implementation: Higher effort" , "Maintenance: Higher effort" , "Operation: Small effort" , "Enhancements: Small effort" ;
+    dkg:sourceFormat "full-form" ;
+    dkg:defect "The bolded Decision line reads 'We will implement Larder as Monolith.', but the Options section marks the plain 'Monolith' option as contradicting AP0001, lists ten modules under 'Modular monolith', and ADR0002's Context speaks of 'the modular monolith'. Cross-check done on the modular-monolith reading; consequences listed are the Modular Monolith column." ;
+    dkg:cites :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:honors :Prin_AP0001_MonolithBeforeMicroservices , :Prin_AP0003_UsingDDD ;
+    dkg:answers :Q_DeploymentShape_ADR0001 ;
+    dkg:mentions :Ctx_RecipeCatalog , :Ctx_MealPlanning , :Ctx_CookProfile , :Ctx_GrandmaAvatarAI , :Ctx_Notification ,
+                 :Ctx_CookingAssistance , :Ctx_Media , :Ctx_ConsentManagement , :Ctx_MealPreparation , :Ctx_Sharing ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "ADR0001" ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0001_honors_AP0001 a dkg:Assertion ;
+    rdf:subject :D_ADR0001 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "Modular monolith option: 'Advantages: Easy to maintain and to operate (see AP0001)'; both alternatives marked '(contradicts AP0001)'. Holds only on the modular-monolith reading — see the Decision's dkg:defect." ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0001_honors_AP0003 a dkg:Assertion ;
+    rdf:subject :D_ADR0001 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0003_UsingDDD ;
+    dkg:citedBy "incidental" ;
+    rdfs:comment "Context: 'Those Bounded Contexts are modules in our application.' The modules are cut along the DDD contexts; AP0003 is not named." ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:confidence dkg:Implied .
+
+:D_ADR0002 a dkg:Decision ;
+    skos:prefLabel "Using One Database Instance" ;
+    dkg:decisionId "ADR0002" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker, Architect" ;
+    dkg:decidedOption "We will use one database instance for Larder." ;
+    dkg:rationale "The Bounded Contexts modules in the modular monolith need databases." ;
+    dkg:consideredOption "One database instance with schemas per Bounded Context" , "One database instance per Bounded Contexts" , "One database for all" ;
+    dkg:consequence "Implementation: More discipline" , "Maintenance: Easier" , "Operation: Secure" , "Enhancements: Small effort" ;
+    dkg:sourceFormat "full-form" ;
+    dkg:defect "Decision line 'one database instance' fits both option 1 (one instance, schema per context) and option 3 (one database for all); read as option 1, the only one not marked as contradicting AP0001." ;
+    dkg:defect "Consequences table column headers are 'Modular Monolith | Microservices | Monolith' — copied from ADR0001 and not the three database options this ADR compares." ;
+    dkg:defect "Option 'One database for all' has a truncated sentence: 'Disadvantage: The Domain Models are easily (contradicts AP0001).'" ;
+    dkg:cites :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:honors :Prin_AP0001_MonolithBeforeMicroservices , :Prin_AP0003_UsingDDD ;
+    dkg:answers :Q_DatabaseArrangement_ADR0002 ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:locator "ADR0002" ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0002_honors_AP0001 a dkg:Assertion ;
+    rdf:subject :D_ADR0002 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "Option 1: 'Advantages: Easy to maintain and to operate (see AP0001)'; options 2 and 3 each '(contradicts AP0001)'." ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0002_honors_AP0003 a dkg:Assertion ;
+    rdf:subject :D_ADR0002 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0003_UsingDDD ;
+    dkg:citedBy "incidental" ;
+    rdfs:comment "'decoupled schemas … its own database user who can only access the belonging schema' keeps each context's model private — the storage-level form of a Bounded Context. AP0003 not named." ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:confidence dkg:Implied .
+
+:D_ADR0003 a dkg:Decision ;
+    skos:prefLabel "Using Asynchronous Communication" ;
+    dkg:decisionId "ADR0003" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker, Architect" ;
+    dkg:decidedOption "We will use asynchronous communication with RabbitMQ." ;
+    dkg:rationale "Cooking Assistance and Notification and Cooking Assistance and Grandma Avatar need asynchronous communication based on the DDD analysis. (references ../09_ContextMap.jpg, not supplied)" ;
+    dkg:consideredOption "Asynchronous communication via RabbitMQ" , "Asynchronous communication via Kafka" , "Using of synchronous communication" ;
+    dkg:consequence "Implementation: Medium effort" , "Available skills: Available" , "Functional: suited" ;
+    dkg:sourceFormat "full-form" ;
+    dkg:cites :Prin_AP0002_AsyncBetweenContexts ;
+    dkg:honors :Prin_AP0002_AsyncBetweenContexts , :Prin_AP0003_UsingDDD ;
+    dkg:answers :Q_AssistanceBordersCommunication_ADR0003 ;
+    dkg:mentions :Ctx_CookingAssistance , :Ctx_Notification , :Ctx_GrandmaAvatarAI , :Act_GrandmaAvatar ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:locator "ADR0003" ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0003_honors_AP0002 a dkg:Assertion ;
+    rdf:subject :D_ADR0003 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0002_AsyncBetweenContexts ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "'Advantages: It is supported by principles (see AP0002)'; the synchronous option 'contradicts AP0002'. Scope matches: the borders named are between Bounded Contexts." ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0003_honors_AP0003 a dkg:Assertion ;
+    rdf:subject :D_ADR0003 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0003_UsingDDD ;
+    dkg:citedBy "incidental" ;
+    rdfs:comment "Context: 'need asynchronous communication based on the DDD analysis'; synchronous option 'contradicts the business analysis (see Context Map)'. Reasons from the DDD artifacts without naming AP0003." ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:confidence dkg:Implied .
+
+:D_ADR0004 a dkg:Decision ;
+    skos:prefLabel "Synchronous Communication per UI" ;
+    dkg:decisionId "ADR0004" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker, Architect" ;
+    dkg:decidedOption "We will use synchronous communication for User Interfaces." ;
+    dkg:rationale "Most of the Bounded Contexts need user interactions that should be done synchronously via REST API." ;
+    dkg:consideredOption "Synchronous via REST API" , "Synchronous via GraphQL" , "Using of asynchronous communication with WebHooks" ;
+    dkg:consequence "Implementation: Small effort" , "Security: Fine grained" ;
+    dkg:sourceFormat "full-form" ;
+    dkg:cites :Prin_AP0006_SyncForUIs , :Prin_AP0008_FineGrainedAccessRights ;
+    dkg:honors :Prin_AP0006_SyncForUIs , :Prin_AP0008_FineGrainedAccessRights ;
+    dkg:answers :Q_UICommunication_ADR0004 ;
+    dkg:mentions :Con_UserInterface ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:locator "ADR0004" ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0004_honors_AP0006 a dkg:Assertion ;
+    rdf:subject :D_ADR0004 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0006_SyncForUIs ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "'Advantages: It is supported by principles (see AP0006)'; the WebHooks option 'contradicts AP0006'." ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0004_honors_AP0008 a dkg:Assertion ;
+    rdf:subject :D_ADR0004 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0008_FineGrainedAccessRights ;
+    dkg:citedBy "by-elimination" ;
+    rdfs:comment "AP0008 is cited only against the losing GraphQL option ('contradicts a fine-grained control of access rights'). The winning REST option is never said to honor it; the Consequences row 'Security: Fine grained' is the only positive evidence." ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:confidence dkg:OnArtifact .
+
+:D_ADR0005 a dkg:Decision ;
+    skos:prefLabel "Orchestrator UI" ;
+    dkg:decisionId "ADR0005" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker, Architect" ;
+    dkg:decidedOption "We will use an orchestrator for the UI or Larder. It ingests the micro UIs of the Bounded Context and provides an AppShell." ;
+    dkg:rationale "Key Architectural Drivers: Guided Cooking Workflows (strict sequential progression, timers, hands-free voice); Catastrophe & Rescue Management (conditional modal branching across Meal Preparation, Cooking Assistance, Media, Grandma Avatar AI); Unified View Aggregation & Gating (live data from Recipe Catalog, Meal Preparation, Cooking Assistance; rules from Consent Management and Paywall); Choreography for Decoupled Extras (Notification toasts, Sharing feed, Ads Management subscribe to MealPrepared / ThanksGiven)." ;
+    dkg:consideredOption "Orchestrator" , "Choreography" ;
+    dkg:consequence "Implementation: Larger effort in AppShell" , "Team independence: All teams depend on AppShell team." ;
+    dkg:sourceFormat "full-form" ;
+    dkg:defect "The 'Choreography' option's text describes a hybrid ('Centralizing interactive user flows through a UI orchestrator while leveraging event-driven choreography for ambient widgets'), i.e. the chosen design, not the alternative it is meant to be." ;
+    dkg:defect "Decision line typo: 'for the UI or Larder' (of Larder)." ;
+    dkg:overrides :Prin_AP0005b_MicroUIs ;
+    dkg:answers :Q_MicroUIComposition_ADR0005 ;
+    dkg:raises :Q_OrchestratorAggregationReadsWhat , :Q_ModulesOnlyInADR0005 ;
+    dkg:mentions :Con_UserInterface , :Con_AppShell , :Ctx_MealPreparation , :Ctx_CookingAssistance , :Ctx_Media , :Ctx_GrandmaAvatarAI ,
+                 :Ctx_RecipeCatalog , :Ctx_ConsentManagement , :Ctx_Notification , :Ctx_Sharing , :Ctx_PaywallForPremiumContent , :Ctx_AdsManagement , :Act_Chef ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "ADR0005" ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0005_overrides_AP0005b a dkg:Assertion ;
+    rdf:subject :D_ADR0005 ; rdf:predicate dkg:overrides ; rdf:object :Prin_AP0005b_MicroUIs ;
+    dkg:acknowledged false ;
+    rdfs:comment "AP0005 rationale: 'The teams developing the Bounded Contexts must be as independent as possible.' ADR0005 consequences: 'All teams depend on AppShell team.' The ADR records the consequence but never names the principle it cuts against, gives no reason for accepting the loss of independence, and is the only ADR of five that cites no principle at all. The statement's letter (contexts publish micro-UIs, which the orchestrator ingests) is kept; the rationale is contradicted." ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:confidence dkg:Implied .
+
+##############################################################################
+# 6. Decisions — small ADR log (transcribed per ingest-small-adr.md)
+##############################################################################
+
+:Q_HelpRequestAddressedToWhom_SADR0001 a dkg:Question ;
+    skos:prefLabel "A Help Request is 'at 1 Grandma Avatar' and 'at 1 Community' — is every request addressed to both, and never to a Chef?" ;
+    rdfs:comment "Restates a glossary-brief open question; wire dkg:proposedSameAs to it on merge." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0001 a dkg:Decision ;
+    skos:prefLabel "Chef needs to be accessed exclusively" ;
+    dkg:decisionId "SADR0001" ;
+    dkg:decidedAt "2026-09-07"^^xsd:date ; dkg:status "Adopted" ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Chef needs to be accessed exclusively" ;
+    dkg:consideredOption "Chef is accessed exclusively" , "Chef is accessed besides Grandma Avatar and Community" ;
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_HelpRequestAddressedToWhom_SADR0001 ;
+    dkg:mentions :Act_Chef , :Act_GrandmaAvatar , :Act_Community , :Con_HelpRequest ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001" ; dkg:confidence dkg:OnArtifact .
+
+:Q_MealPlanCorresponds_SADR0002 a dkg:Question ;
+    skos:prefLabel "Dinner has 1 Menu, Menu has 1..* Course, Course contains 1..* Meal, Meal with 1 Recipe — which of these does the board's 'Meal plan' correspond to?" ;
+    rdfs:comment "Restates the pivotal-event cut's 'Meal plan is read by nobody' question in glossary terms; wire dkg:proposedSameAs on merge." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0002, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0002 a dkg:Decision ;
+    skos:prefLabel "Meal Plan" ;
+    dkg:decisionId "SADR0002" ;
+    dkg:decidedAt "2026-09-08"^^xsd:date ; dkg:status "Superseded" ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Meal plan is used for Menu and Meal plan" ;
+    dkg:consideredOption "Meal plan or Menu as term" ;   # one cell, not split
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_MealPlanCorresponds_SADR0002 ;
+    dkg:mentions :Con_MealPlan , :Con_Menu ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0002" ; dkg:confidence dkg:OnArtifact .
+
+:Q_MealPlanCorresponds_SADR0003 a dkg:Question ;
+    skos:prefLabel "Dinner has 1 Menu, Menu has 1..* Course, Course contains 1..* Meal, Meal with 1 Recipe — which of these does the board's 'Meal plan' correspond to?" ;
+    dkg:proposedSameAs :Q_MealPlanCorresponds_SADR0002 ;
+    rdfs:comment "Identical Question text to SADR0002 — the log re-deciding the same doubt." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0003, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0003 a dkg:Decision ;
+    skos:prefLabel "Menu" ;
+    dkg:decisionId "SADR0003" ;
+    dkg:decidedAt "2026-09-09"^^xsd:date ; dkg:status "Adopted" ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Menu is used for Menu and Meal plan" ;
+    dkg:consideredOption "Meal plan or Menu as term in Meal planning, Meal preparation, Cooking Assistance" ;   # one cell, not split
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_MealPlanCorresponds_SADR0003 , :Q_MealPlanCorresponds_SADR0002 ;
+    dkg:supersedes :D_SADR0002 ;
+    dkg:mentions :Con_MealPlan , :Con_Menu , :Ctx_MealPlanning , :Ctx_MealPreparation , :Ctx_CookingAssistance ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0003" ; dkg:confidence dkg:OnArtifact .
+
+:Q_HelpSameTerm_SADR0004 a dkg:Question ;
+    skos:prefLabel "In the glossary 'Help' is the response (provided, contains substitutes/explanations); in the stories 'Help' is also what the Cook asks for. Same term?" ;
+    rdfs:comment "Restates the one-word-two-concepts finding on 'Help' from the context cut / glossary consistency work; wire dkg:proposedSameAs on merge." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0004 a dkg:Decision ;
+    skos:prefLabel "Help" ;
+    dkg:decisionId "SADR0004" ;
+    dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:status "Adopted" ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Help response / Help request" ;
+    dkg:consideredOption "Help or Help response for given Help; Help request for asking for help" ;   # one cell, not split
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_HelpSameTerm_SADR0004 ;
+    dkg:mentions :Con_HelpRequest , :Con_HelpResponse ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004" ; dkg:confidence dkg:OnArtifact .
+
+:Q_GlossaryLegend_SADR0005 a dkg:Question ;
+    skos:prefLabel "What do the glossary's blue, green and grey boxes and the ⊞ icon mean — bounded contexts, or terms added in the 'enhanced' revision?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0005, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0005 a dkg:Decision ;
+    skos:prefLabel "Visual Glossary with Legend" ;
+    dkg:decisionId "SADR0005" ;
+    dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:status "Adopted" ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Each Visual Glossary needs a legend about the meaning of icons and colors" ;
+    dkg:consideredOption "Global legend" , "local legend" ;
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_GlossaryLegend_SADR0005 ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0005" ; dkg:confidence dkg:OnArtifact .
+
+:Q_BrainstormLegend_SADR0006 a dkg:Question ;
+    skos:prefLabel "What does the blue sticky colour on the brainstorm mean?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0006, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0006 a dkg:Decision ;
+    skos:prefLabel "Brainstorming with Legend" ;
+    dkg:decisionId "SADR0006" ;
+    dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:status "Adopted" ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Each Brainstorming result needs a legend about the meaning of icons and colors" ;
+    dkg:consideredOption "Global legend" , "local legend" ;
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_BrainstormLegend_SADR0006 ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0006" ; dkg:confidence dkg:OnArtifact .
+
+:Q_CapabilityMapLegend_SADR0007 a dkg:Question ;
+    skos:prefLabel "What do the small ▲ on Member management and ▶ beside Planner mean on the capability map?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0007, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0007 a dkg:Decision ;
+    skos:prefLabel "Capability Map with Legend" ;
+    dkg:decisionId "SADR0007" ;
+    dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:status "Adopted" ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "The Capability Map needs a legend" ;
+    dkg:consideredOption "Global legend" , "local legend" ;
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_CapabilityMapLegend_SADR0007 ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0007" ; dkg:confidence dkg:OnArtifact .
+
+# Note: the three SADR0005–0007 rows do not name a decided option among
+# 'Global legend | local legend'; each records only that a legend is needed.
+# Emitted as written. No small-log row duplicates a full-form ADR.
+
+</script>
+<script>
+/* =========================== Turtle parser =========================== */
+const DKG = 'https://w3id.org/dkg/ns#', RDF_ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+      RDFS_ = 'http://www.w3.org/2000/01/rdf-schema#', SKOS_ = 'http://www.w3.org/2004/02/skos/core#';
+function parseTurtle(text) {
+  const prefixes = {}; let base = ''; const triples = [];
+  let i = 0; const n = text.length;
+  const ws = () => { for (;;) { while (i < n && /\s/.test(text[i])) i++; if (text[i] === '#') { while (i < n && text[i] !== '\n') i++; } else break; } };
+  const err = m => { throw new Error(m + ' at ' + i + ': ' + text.slice(i, i + 40)); };
+  function iriRef() { const e = text.indexOf('>', i); const v = text.slice(i + 1, e); i = e + 1; return { t: 'iri', v: v.startsWith('#') ? base + v : (/^[a-z][a-z0-9+.-]*:/i.test(v) ? v : base + v) }; }
+  function pname() { let s = i; while (i < n && /[A-Za-z0-9_\-.:\u00C0-\uFFFF%]/.test(text[i])) i++; let tok = text.slice(s, i); if (tok.endsWith('.')) { tok = tok.slice(0, -1); i--; }
+    const c = tok.indexOf(':'); if (c < 0) { if (tok === 'true' || tok === 'false') return { t: 'lit', v: tok, dt: 'http://www.w3.org/2001/XMLSchema#boolean' }; err('bad token ' + tok); }
+    const p = tok.slice(0, c), l = tok.slice(c + 1); if (!(p in prefixes)) err('unknown prefix ' + p); return { t: 'iri', v: prefixes[p] + l }; }
+  function literal() { let q = text.startsWith('"""', i) ? '"""' : text.startsWith("'''", i) ? "'''" : text[i]; i += q.length; let s = ''; 
+    for (;;) { if (text.startsWith(q, i)) { i += q.length; break; } let ch = text[i++]; if (ch === '\\') { const e = text[i++]; s += ({ n: '\n', t: '\t', r: '\r', '"': '"', "'": "'", '\\': '\\' })[e] ?? (e === 'u' ? (() => { const h = text.substr(i, 4); i += 4; return String.fromCharCode(parseInt(h, 16)); })() : e); } else s += ch; }
+    const lit = { t: 'lit', v: s }; if (text[i] === '@') { let s2 = ++i; while (/[A-Za-z0-9-]/.test(text[i])) i++; lit.lang = text.slice(s2, i); }
+    else if (text.startsWith('^^', i)) { i += 2; lit.dt = (text[i] === '<' ? iriRef() : pname()).v; } return lit; }
+  function term() { ws(); const c = text[i];
+    if (c === '<') return iriRef(); if (c === '"' || c === "'") return literal();
+    if (/[-+0-9.]/.test(c)) { let s = i; while (/[-+0-9.eE]/.test(text[i])) i++; let v = text.slice(s, i); if (v.endsWith('.') ) { v = v.slice(0,-1); i--; } return { t: 'lit', v, dt: /[.eE]/.test(v) ? 'http://www.w3.org/2001/XMLSchema#decimal' : 'http://www.w3.org/2001/XMLSchema#integer' }; }
+    if (c === '[') { i++; ws(); if (text[i] === ']') { i++; return { t: 'bnode', v: '_:b' + (triples.length) + Math.random() }; } const b = { t: 'bnode', v: '_:b' + triples.length + '_' + Math.random().toString(36).slice(2) }; predObjList(b); ws(); if (text[i] !== ']') err('] expected'); i++; return b; }
+    if (c === '(') { i++; const items = []; for (;;) { ws(); if (text[i] === ')') { i++; break; } items.push(term()); } let head = { t: 'iri', v: RDF_ + 'nil' };
+      for (let k = items.length - 1; k >= 0; k--) { const b = { t: 'bnode', v: '_:l' + Math.random().toString(36).slice(2) }; triples.push([b, { t: 'iri', v: RDF_ + 'first' }, items[k]]); triples.push([b, { t: 'iri', v: RDF_ + 'rest' }, head]); head = b; } return head; }
+    if (text.startsWith('a', i) && /\s/.test(text[i + 1] || ' ')) { i++; return { t: 'iri', v: RDF_ + 'type' }; }
+    return pname(); }
+  function predObjList(subj) { for (;;) { ws(); if (text[i] === ']' || text[i] === '.' || i >= n) return; const p = term(); for (;;) { const o = term(); triples.push([subj, p, o]); ws(); if (text[i] === ',') { i++; continue; } break; } ws(); if (text[i] === ';') { i++; ws(); if (text[i] === ';') continue; continue; } return; } }
+  for (;;) { ws(); if (i >= n) break;
+    if (text.startsWith('@prefix', i) || /^prefix\s/i.test(text.slice(i, i + 7))) { i += 7; ws(); const e = text.indexOf(':', i); const p = text.slice(i, e).trim(); i = e + 1; ws(); const ref = iriRef(); prefixes[p] = ref.v; ws(); if (text[i] === '.') i++; continue; }
+    if (text.startsWith('@base', i) || /^base\s/i.test(text.slice(i, i + 5))) { i += 5; ws(); base = iriRef().v; ws(); if (text[i] === '.') i++; continue; }
+    const s = term(); predObjList(s); ws(); if (text[i] === '.') i++; else err('. expected'); }
+  return { triples, prefixes };
+}
+
+/* =========================== Graph model =========================== */
+const state = { nodes: new Map(), principles: [], decisions: [], artifacts: [], questions: [], assertions: [], fileName: '', view: null };
+const local = iri => iri.includes('#') ? iri.split('#').pop() : iri.split('/').pop();
+const P = s => DKG + s;
+function build(text, name) {
+  const { triples } = parseTurtle(text);
+  const nodes = new Map();
+  const get = id => { if (!nodes.has(id)) nodes.set(id, { id, types: new Set(), lits: [], out: [], in: [] }); return nodes.get(id); };
+  for (const [s, p, o] of triples) { const sn = get(s.v); if (o.t === 'lit') sn.lits.push({ p: p.v, v: o.v, dt: o.dt }); else { const on = get(o.v); sn.out.push({ p: p.v, o: o.v }); on.in.push({ p: p.v, s: s.v }); if (p.v === RDF_ + 'type') sn.types.add(o.v); } }
+  const subclass = new Map(); for (const [s, p, o] of triples) if (p.v === RDFS_ + 'subClassOf' && o.t !== 'lit') { if (!subclass.has(s.v)) subclass.set(s.v, new Set()); subclass.get(s.v).add(o.v); }
+  const isA = (nd, cls) => { const seen = new Set(); const st = [...nd.types]; while (st.length) { const t = st.pop(); if (t === P(cls)) return true; if (seen.has(t)) continue; seen.add(t); for (const sup of (subclass.get(t) || [])) st.push(sup); } return false; };
+  Object.assign(state, { nodes, fileName: name, isA });
+  state.principles = [...nodes.values()].filter(x => isA(x, 'Principle')).sort((a, b) => local(a.id).localeCompare(local(b.id)));
+  state.decisions = [...nodes.values()].filter(x => isA(x, 'Decision')).sort((a, b) => (lit(a, 'decidedAt') || '').localeCompare(lit(b, 'decidedAt') || '') || local(a.id).localeCompare(local(b.id)));
+  state.artifacts = [...nodes.values()].filter(x => isA(x, 'Artifact') || [...x.types].some(t => /PrinciplesDocument|ADRDocument|ADRLog/.test(t)));
+  state.questions = [...nodes.values()].filter(x => isA(x, 'Question'));
+  state.assertions = [...nodes.values()].filter(x => x.types.has(P('Assertion')));
+  state.reif = new Map(); for (const a of state.assertions) { const s = a.out.find(e => e.p === RDF_ + 'subject')?.o, p = a.out.find(e => e.p === RDF_ + 'predicate')?.o, o = a.out.find(e => e.p === RDF_ + 'object')?.o; if (s && p && o) state.reif.set(s + '|' + p + '|' + o, a); }
+}
+const lit = (nd, prop, ns = DKG) => nd?.lits.find(l => l.p === ns + prop)?.v;
+const lits = (nd, prop, ns = DKG) => nd ? nd.lits.filter(l => l.p === ns + prop).map(l => l.v) : [];
+const label = nd => lit(nd, 'prefLabel', SKOS_) || lit(nd, 'label', RDFS_) || local(nd.id);
+const outs = (nd, prop) => nd.out.filter(e => e.p === P(prop)).map(e => state.nodes.get(e.o));
+const ins = (nd, prop) => nd.in.filter(e => e.p === P(prop)).map(e => state.nodes.get(e.s));
+const reif = (s, p, o) => state.reif.get(s.id + '|' + P(p) + '|' + o.id);
+const ack = (d, p) => { const a = reif(d, 'overrides', p); const v = a && lit(a, 'acknowledged'); return v === undefined ? null : v === 'true'; };
+const citedBy = (d, p) => { const a = reif(d, 'honors', p); return (a && lit(a, 'citedBy')) || 'unspecified'; };
+const isActive = d => /^(adopted|accepted)$/i.test(lit(d, 'status') || '');
+
+/* =========================== Findings =========================== */
+function findings() {
+  const f = { unack: [], ack: [], dead: [], uncited: [], untestable: [], noPrin: [], tensions: [], defects: [], conflicts: [], openQ: [] };
+  for (const p of state.principles) {
+    const t = lit(p, 'testable'); if (t === 'false') { f.untestable.push(p); continue; }
+    const eng = [...ins(p, 'honors'), ...ins(p, 'overrides'), ...ins(p, 'cites')];
+    if (!eng.length) f.dead.push(p); else if (!ins(p, 'cites').length) f.uncited.push(p);
+    for (const q of outs(p, 'inTensionWith')) f.tensions.push([p, q]);
+    for (const d of lits(p, 'defect')) f.defects.push([p, d]);
+  }
+  for (const d of state.decisions) {
+    for (const p of outs(d, 'overrides')) (ack(d, p) ? f.ack : f.unack).push([d, p]);
+    if (!outs(d, 'cites').length) f.noPrin.push([d, outs(d, 'honors').length + outs(d, 'overrides').length > 0]);
+    for (const x of lits(d, 'defect')) f.defects.push([d, x]);
+  }
+  for (const a of state.artifacts) for (const x of lits(a, 'defect')) f.defects.push([a, x]);
+  const byQ = new Map(); for (const d of state.decisions) for (const q of outs(d, 'answers')) { if (!byQ.has(q.id)) byQ.set(q.id, []); byQ.get(q.id).push(d); }
+  for (const [qid, ds] of byQ) { const act = ds.filter(isActive); if (act.length > 1 && new Set(act.map(d => lit(d, 'decidedOption'))).size > 1) f.conflicts.push([state.nodes.get(qid), act]); }
+  for (const q of state.questions) if (!ins(q, 'answers').length) f.openQ.push(q);
+  return f;
+}
+
+/* =========================== Rendering =========================== */
+const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt !== undefined) e.textContent = txt; return e; };
+function pill(nd, cls, extra) { const p = el('span', 'pill ' + (cls || ''), label(nd) + (extra ? ' · ' + extra : '')); p.title = local(nd.id); p.onclick = e => { e.stopPropagation(); go(nd); }; return p; }
+function short(s, n = 160) { return s && s.length > n ? s.slice(0, n - 1) + '…' : s; }
+function statusTag(d) { const s = lit(d, 'status') || '—'; return el('span', 'status ' + s.toLowerCase(), s); }
+
+function renderOverview() {
+  const m = document.getElementById('main'); m.innerHTML = '';
+  const f = findings();
+  m.appendChild(el('h1', null, 'Overview — ' + (state.fileName || 'no graph loaded')));
+  m.appendChild(el('div', 'muted small', `${state.principles.length} principles · ${state.decisions.length} decisions · ${state.artifacts.length} artifacts · ${state.questions.length} questions · ${state.assertions.length} assertions`));
+  const stats = el('div'); const stat = (n, t, cls, view) => { const s = el('div', 'stat ' + cls); s.appendChild(el('b', null, String(n))); s.appendChild(el('span', 'small', t)); s.onclick = () => setView(view); stats.appendChild(s); };
+  stat(f.unack.length, 'unacknowledged overrides', 'bad', 'conflicts'); stat(f.ack.length, 'acknowledged exceptions', 'warn', 'conflicts'); stat(f.tensions.length, 'principle tensions', 'warn', 'gaps');
+  stat(f.dead.length, 'dead-letter principles', 'dead', 'gaps'); stat(f.noPrin.filter(x => !x[1]).length + f.noPrin.filter(x => x[1]).length, 'decisions citing no principle', 'dead', 'gaps');
+  stat(f.defects.length, 'source defects', 'defect', 'gaps'); stat(f.openQ.length, 'open questions', 'warn', 'questions');
+  m.appendChild(stats);
+  m.appendChild(el('h2', null, 'Conflicts')); if (!f.unack.length && !f.ack.length) m.appendChild(el('p', 'muted', 'No decision overrides a principle.'));
+  for (const [d, p] of f.unack) m.appendChild(conflictCard(d, p, false)); for (const [d, p] of f.ack) m.appendChild(conflictCard(d, p, true));
+  m.appendChild(el('h2', null, 'Compliance matrix')); m.appendChild(matrix());
+}
+function conflictCard(d, p, isAck) {
+  const c = el('div', 'card ' + (isAck ? 'warn' : 'bad')); const h = el('div'); h.appendChild(pill(d)); h.appendChild(el('span', 'tag', isAck ? 'overrides — acknowledged exception' : 'overrides — UNACKNOWLEDGED')); h.appendChild(pill(p)); c.appendChild(h);
+  const a = reif(d, 'overrides', p); if (a) { const cm = lit(a, 'comment', RDFS_); if (cm) c.appendChild(el('blockquote', null, cm)); c.appendChild(el('div', 'muted small', 'confidence: ' + local(a.out.find(e => e.p === P('confidence'))?.o || '—'))); }
+  const st = lit(p, 'statement'); if (st) { const q = el('blockquote', null, 'Principle: ' + st); c.appendChild(q); } const op = lit(d, 'decidedOption'); if (op) c.appendChild(el('blockquote', null, 'Decision: ' + op));
+  return c;
+}
+function matrix() {
+  const prins = state.principles.filter(p => lit(p, 'testable') !== 'false'); const decs = state.decisions.filter(d => d.out.some(e => /honors|overrides|cites/.test(e.p)));
+  const wrap = el('div'); if (!decs.length) { wrap.appendChild(el('p', 'muted', 'No decision engages a principle.')); return wrap; }
+  const t = el('table', 'matrix'); const hr = el('tr'); hr.appendChild(el('th', null, 'decision \\ principle')); for (const p of prins) { const th = el('th', 'rot', lit(p, 'principleId') || local(p.id)); th.title = label(p); th.style.cursor = 'pointer'; th.onclick = () => go(p); hr.appendChild(th); } t.appendChild(hr);
+  for (const d of decs) { const tr = el('tr'); const td0 = el('td'); td0.appendChild(pill(d)); tr.appendChild(td0);
+    for (const p of prins) { const td = el('td', 'c'); const h = outs(d, 'honors').includes(p), o = outs(d, 'overrides').includes(p), c = outs(d, 'cites').includes(p);
+      if (h || o) { const cls = o ? (ack(d, p) ? 'oa' : 'o') : 'h'; const cell = el('span', 'cell ' + cls + (c ? ' ci' : ''), o ? (h ? '±' : '✗') : '✓'); cell.title = (h ? 'honors (' + citedBy(d, p) + ') ' : '') + (o ? 'overrides (' + (ack(d, p) ? 'acknowledged' : 'unacknowledged') + ') ' : '') + (c ? '· cited by ID' : ''); cell.onclick = () => openPanel(d, p); td.appendChild(cell); }
+      else if (c) { const cell = el('span', 'cell ci', '·'); cell.title = 'cited (for or against an option) without a verdict'; td.appendChild(cell); }
+      tr.appendChild(td); } t.appendChild(tr); }
+  wrap.appendChild(t); wrap.appendChild(el('div', 'muted small', '✓ honors · ✗ overrides · ± both · blue ring = cited by ID in the ADR. Empty = silent or not applicable (no triple, by design).')); return wrap;
+}
+function renderPrinciple(p) {
+  const m = document.getElementById('main'); m.innerHTML = ''; crumbs(m, 'Principles', label(p));
+  const h = el('h1', null, (lit(p, 'principleId') ? lit(p, 'principleId') + ' — ' : '') + label(p)); m.appendChild(h);
+  const badges = el('div'); if (lit(p, 'testable') === 'false') badges.appendChild(el('span', 'pill dead', 'unfalsifiable as written')); const eng = [...ins(p, 'honors'), ...ins(p, 'overrides'), ...ins(p, 'cites')]; if (!eng.length && lit(p, 'testable') !== 'false') badges.appendChild(el('span', 'pill dead', 'dead letter — no decision engages it')); for (const d of lits(p, 'defect')) badges.appendChild(el('span', 'pill defect', 'defect: ' + short(d, 90))); m.appendChild(badges);
+  const dl = el('dl', 'kv'); const row = (k, v) => { if (!v) return; dl.appendChild(el('dt', null, k)); const dd = el('dd'); if (typeof v === 'string') dd.textContent = v; else dd.appendChild(v); dl.appendChild(dd); };
+  row('Statement', lit(p, 'statement')); row('Rationale', lit(p, 'rationale')); row('Implications', lit(p, 'implication')); row('Scope', lit(p, 'scope')); row('Testable', lit(p, 'testable')); row('Status', lit(p, 'status')); row('Last amended', lit(p, 'amendedAt')); row('Source', srcLine(p)); row('Comment', lit(p, 'comment', RDFS_)); m.appendChild(dl);
+  m.appendChild(el('h2', null, 'Decisions')); const groups = [['cites', 'cite', 'cited by'], ['honors', 'ok', 'honored by'], ['overrides', 'bad', 'overridden by']];
+  for (const [prop, cls, ttl] of groups) { const ds = ins(p, prop); if (!ds.length) continue; const div = el('div'); div.appendChild(el('span', 'tag', ttl)); for (const d of ds) div.appendChild(pill(d, prop === 'overrides' ? (ack(d, p) ? 'warn' : 'bad') : cls, prop === 'honors' ? citedBy(d, p) : prop === 'overrides' ? (ack(d, p) ? 'acknowledged' : 'unacknowledged') : '')); m.appendChild(div); }
+  const tens = [...outs(p, 'inTensionWith'), ...ins(p, 'inTensionWith')]; if (tens.length) { m.appendChild(el('h2', null, 'In tension with')); const div = el('div'); tens.forEach(q => div.appendChild(pill(q, 'warn'))); m.appendChild(div); }
+  const qs = ins(p, 'mentions').filter(x => state.isA(x, 'Question')); if (qs.length) { m.appendChild(el('h2', null, 'Questions that mention this principle')); for (const q of qs) m.appendChild(questionRow(q)); }
+  for (const a of [...ins(p, 'honors'), ...ins(p, 'overrides')]) { /* assertion evidence */ }
+  const ev = state.assertions.filter(a => a.out.some(e => e.p === RDF_ + 'object' && e.o === p.id)); if (ev.length) { m.appendChild(el('h2', null, 'Evidence')); for (const a of ev) m.appendChild(assertionCard(a)); }
+}
+function assertionCard(a) { const s = state.nodes.get(a.out.find(e => e.p === RDF_ + 'subject')?.o), pr = a.out.find(e => e.p === RDF_ + 'predicate')?.o, o = state.nodes.get(a.out.find(e => e.p === RDF_ + 'object')?.o); const isO = pr === P('overrides'); const ak = lit(a, 'acknowledged');
+  const c = el('div', 'card ' + (isO ? (ak === 'true' ? 'warn' : 'bad') : '')); const h = el('div'); if (s) h.appendChild(pill(s)); h.appendChild(el('span', 'tag', local(pr) + (isO ? (ak === 'true' ? ' · acknowledged' : ' · unacknowledged') : ' · ' + (lit(a, 'citedBy') || '')))); if (o) h.appendChild(pill(o)); c.appendChild(h);
+  const cm = lit(a, 'comment', RDFS_); if (cm) c.appendChild(el('blockquote', null, cm)); c.appendChild(el('div', 'muted small', 'confidence: ' + local(a.out.find(e => e.p === P('confidence'))?.o || '—') + ' · ' + local(a.id))); return c; }
+function srcLine(nd) { const d = el('span'); for (const a of outs(nd, 'source')) d.appendChild(pill(a)); const loc = lit(nd, 'locator'); if (loc) d.appendChild(el('span', 'muted small', ' at ' + loc)); const c = nd.out.find(e => e.p === P('confidence')); if (c) d.appendChild(el('span', 'muted small', ' · ' + local(c.o))); return d; }
+function questionRow(q) { const c = el('div', 'card'); const h = el('div'); h.appendChild(el('span', 'tag', 'question')); h.appendChild(el('span', null, label(q))); c.appendChild(h); const ans = ins(q, 'answers'); const d = el('div'); if (!ans.length) d.appendChild(el('span', 'pill warn', 'open — no decision answers this')); else { d.appendChild(el('span', 'tag', 'answered by')); for (const x of ans) d.appendChild(pill(x, isActive(x) ? 'ok' : 'dead', lit(x, 'status'))); } c.appendChild(d); const cm = lit(q, 'comment', RDFS_); if (cm) c.appendChild(el('div', 'muted small', cm)); return c; }
+function renderDecision(d) {
+  const m = document.getElementById('main'); m.innerHTML = ''; crumbs(m, 'Decisions', label(d));
+  const h = el('h1', null, (lit(d, 'decisionId') ? lit(d, 'decisionId') + ' — ' : '') + label(d) + ' '); h.appendChild(statusTag(d)); m.appendChild(h);
+  const badges = el('div'); for (const x of lits(d, 'defect')) badges.appendChild(el('span', 'pill defect', 'defect: ' + short(x, 110))); if (!outs(d, 'cites').length) badges.appendChild(el('span', 'pill dead', 'cites no principle by ID')); m.appendChild(badges);
+  const dl = el('dl', 'kv'); const row = (k, v) => { if (!v || (Array.isArray(v) && !v.length)) return; dl.appendChild(el('dt', null, k)); const dd = el('dd'); if (typeof v === 'string') dd.textContent = v; else if (Array.isArray(v)) { const ul = el('ul'); ul.style.margin = '0'; ul.style.paddingLeft = '16px'; v.forEach(x => ul.appendChild(el('li', null, x))); dd.appendChild(ul); } else dd.appendChild(v); dl.appendChild(dd); };
+  row('Decision', lit(d, 'decidedOption')); row('Context / rationale', lit(d, 'rationale')); row('Options considered', lits(d, 'consideredOption')); row('Consequences (chosen)', lits(d, 'consequence')); row('Decided', [lit(d, 'decidedAt'), lit(d, 'decidedBy')].filter(Boolean).join(' · ')); row('Format', lit(d, 'sourceFormat')); row('Source', srcLine(d)); row('Comment', lit(d, 'comment', RDFS_)); m.appendChild(dl);
+  m.appendChild(el('h2', null, 'Against the principles'));
+  const rows = [['cites', 'cite', 'cites'], ['honors', 'ok', 'honors'], ['overrides', 'bad', 'overrides']]; let any = false;
+  for (const [prop, cls, ttl] of rows) { const ps = outs(d, prop); if (!ps.length) continue; any = true; const div = el('div'); div.appendChild(el('span', 'tag', ttl)); for (const p of ps) div.appendChild(pill(p, prop === 'overrides' ? (ack(d, p) ? 'warn' : 'bad') : cls, prop === 'honors' ? citedBy(d, p) : prop === 'overrides' ? (ack(d, p) ? 'acknowledged' : 'unacknowledged') : '')); m.appendChild(div); }
+  if (!any) m.appendChild(el('p', 'muted', 'No principle engages this decision (silent / not applicable — no triples by design).'));
+  const ev = state.assertions.filter(a => a.out.some(e => e.p === RDF_ + 'subject' && e.o === d.id)); if (ev.length) { m.appendChild(el('h2', null, 'Evidence')); for (const a of ev) m.appendChild(assertionCard(a)); }
+  const qs = outs(d, 'answers'); m.appendChild(el('h2', null, 'Questions it answers')); if (!qs.length) m.appendChild(el('p', 'muted', 'Answers nothing the graph had raised — a finding.')); for (const q of qs) m.appendChild(questionRow(q));
+  const sup = outs(d, 'supersedes'), supBy = ins(d, 'supersedes'); if (sup.length || supBy.length) { m.appendChild(el('h2', null, 'History')); const div = el('div'); sup.forEach(x => { div.appendChild(el('span', 'tag', 'supersedes')); div.appendChild(pill(x, 'dead', lit(x, 'status'))); }); supBy.forEach(x => { div.appendChild(el('span', 'tag', 'superseded by')); div.appendChild(pill(x, 'ok', lit(x, 'status'))); }); m.appendChild(div); }
+}
+function renderArtifact(a) {
+  const m = document.getElementById('main'); m.innerHTML = ''; crumbs(m, 'Artifacts', label(a));
+  m.appendChild(el('h1', null, label(a))); m.appendChild(el('div', 'muted small', [...a.types].map(local).join(', ') + (lit(a, 'ingestedAt') ? ' · ingested ' + lit(a, 'ingestedAt') : '')));
+  const cm = lit(a, 'comment', RDFS_); if (cm) m.appendChild(el('p', null, cm)); for (const x of lits(a, 'defect')) { const c = el('div', 'card defect'); c.appendChild(el('span', 'tag', 'defect')); c.appendChild(el('span', null, x)); m.appendChild(c); }
+  const mine = ins(a, 'source'); const ps = mine.filter(x => state.isA(x, 'Principle')), ds = mine.filter(x => state.isA(x, 'Decision')), qs = mine.filter(x => state.isA(x, 'Question')), as = mine.filter(x => x.types.has(P('Assertion')));
+  if (ps.length) { m.appendChild(el('h2', null, 'Principles')); m.appendChild(principleTable(ps)); }
+  if (ds.length) { m.appendChild(el('h2', null, 'Decisions')); m.appendChild(decisionTable(ds)); }
+  if (qs.length) { m.appendChild(el('h2', null, 'Questions raised here')); qs.forEach(q => m.appendChild(questionRow(q))); }
+  if (as.length) { m.appendChild(el('h2', null, 'Assertions sourced here')); as.forEach(x => m.appendChild(assertionCard(x))); }
+}
+function principleTable(ps) { const t = el('table'); const hr = el('tr'); ['ID', 'Principle', 'Scope', 'Testable', 'Cited', 'Honored', 'Overridden'].forEach(x => hr.appendChild(el('th', null, x))); t.appendChild(hr);
+  for (const p of ps) { const tr = el('tr'); tr.appendChild(el('td', 'num', lit(p, 'principleId') || '')); const td = el('td'); td.appendChild(pill(p, (!ins(p, 'honors').length && !ins(p, 'overrides').length && !ins(p, 'cites').length && lit(p, 'testable') !== 'false') ? 'dead' : '')); if (lits(p, 'defect').length) td.appendChild(el('span', 'pill defect', 'defect')); const st = el('div', 'muted small', short(lit(p, 'statement'), 140)); td.appendChild(st); tr.appendChild(td); tr.appendChild(el('td', 'small', lit(p, 'scope') || '')); tr.appendChild(el('td', null, lit(p, 'testable') || '—'));
+    for (const prop of ['cites', 'honors', 'overrides']) { const c = el('td'); ins(p, prop).forEach(d => c.appendChild(pill(d, prop === 'overrides' ? (ack(d, p) ? 'warn' : 'bad') : prop === 'honors' ? 'ok' : 'cite'))); tr.appendChild(c); } t.appendChild(tr); } return t; }
+function decisionTable(ds) { const t = el('table'); const hr = el('tr'); ['ID', 'Decision', 'Status', 'Date', 'Cites', 'Honors', 'Overrides', 'Answers'].forEach(x => hr.appendChild(el('th', null, x))); t.appendChild(hr);
+  for (const d of ds) { const tr = el('tr'); tr.appendChild(el('td', 'num', lit(d, 'decisionId') || '')); const td = el('td'); td.appendChild(pill(d)); if (lits(d, 'defect').length) td.appendChild(el('span', 'pill defect', 'defect')); td.appendChild(el('div', 'muted small', short(lit(d, 'decidedOption'), 120))); tr.appendChild(td); const s = el('td'); s.appendChild(statusTag(d)); tr.appendChild(s); tr.appendChild(el('td', 'small num', lit(d, 'decidedAt') || ''));
+    for (const prop of ['cites', 'honors', 'overrides']) { const c = el('td'); outs(d, prop).forEach(p => c.appendChild(pill(p, prop === 'overrides' ? (ack(d, p) ? 'warn' : 'bad') : prop === 'honors' ? 'ok' : 'cite', prop === 'honors' ? citedBy(d, p) : ''))); tr.appendChild(c); }
+    const q = el('td', 'small'); outs(d, 'answers').forEach(x => { const s2 = el('div', null, short(label(x), 90)); s2.style.cursor = 'pointer'; s2.onclick = () => openPanel(x); q.appendChild(s2); }); tr.appendChild(q); t.appendChild(tr); } return t; }
+function renderList(kind) { const m = document.getElementById('main'); m.innerHTML = ''; if (kind === 'principles') { m.appendChild(el('h1', null, 'Principles')); m.appendChild(principleTable(state.principles)); } else { m.appendChild(el('h1', null, 'Decisions')); m.appendChild(decisionTable(state.decisions)); } }
+function renderGaps() { const m = document.getElementById('main'); m.innerHTML = ''; const f = findings(); m.appendChild(el('h1', null, 'Governance gaps'));
+  const sec = (t, items, fn, empty) => { m.appendChild(el('h2', null, t + ' (' + items.length + ')')); if (!items.length) { m.appendChild(el('p', 'muted', empty)); return; } items.forEach(x => m.appendChild(fn(x))); };
+  sec('Source defects', f.defects, ([nd, txt]) => { const c = el('div', 'card defect'); c.appendChild(pill(nd, 'defect')); c.appendChild(el('div', 'small', txt)); return c; }, 'None recorded.');
+  sec('Principle tensions', f.tensions, ([p, q]) => { const c = el('div', 'card warn'); c.appendChild(pill(p, 'warn')); c.appendChild(el('span', 'tag', '↔')); c.appendChild(pill(q, 'warn')); return c; }, 'No two principles pull opposite ways as written.');
+  sec('Dead-letter principles', f.dead, p => { const c = el('div', 'card'); c.appendChild(pill(p, 'dead')); c.appendChild(el('div', 'muted small', short(lit(p, 'statement'), 200))); return c; }, 'Every testable principle is engaged by at least one decision.');
+  sec('Principles honored but never cited by ID', f.uncited, p => { const c = el('div', 'card'); c.appendChild(pill(p)); const d = el('div'); ins(p, 'honors').forEach(x => d.appendChild(pill(x, 'ok', citedBy(x, p)))); ins(p, 'overrides').forEach(x => d.appendChild(pill(x, ack(x, p) ? 'warn' : 'bad'))); c.appendChild(d); return c; }, 'None.');
+  sec('Untestable principles', f.untestable, p => { const c = el('div', 'card'); c.appendChild(pill(p, 'dead')); c.appendChild(el('div', 'small', lit(p, 'statement') || '')); return c; }, 'None.');
+  sec('Decisions citing no principle', f.noPrin, ([d, eng]) => { const c = el('div', 'card'); c.appendChild(pill(d, eng ? 'warn' : '')); c.appendChild(el('span', 'tag', eng ? 'engages principles incidentally, names none' : 'engages no principle at all')); return c; }, 'Every decision cites at least one principle.');
+  sec('Active decisions answering one question two ways', f.conflicts, ([q, ds]) => { const c = el('div', 'card bad'); c.appendChild(el('div', 'small', label(q))); ds.forEach(d => c.appendChild(pill(d, 'bad'))); return c; }, 'None.'); }
+function renderConflicts() { const m = document.getElementById('main'); m.innerHTML = ''; const f = findings(); m.appendChild(el('h1', null, 'Conflicts')); if (!f.unack.length && !f.ack.length) m.appendChild(el('p', 'muted', 'No decision overrides a principle.')); m.appendChild(el('h2', null, 'Unacknowledged (' + f.unack.length + ')')); f.unack.forEach(([d, p]) => m.appendChild(conflictCard(d, p, false))); m.appendChild(el('h2', null, 'Acknowledged exceptions (' + f.ack.length + ')')); f.ack.forEach(([d, p]) => m.appendChild(conflictCard(d, p, true))); }
+function renderQuestions() { const m = document.getElementById('main'); m.innerHTML = ''; m.appendChild(el('h1', null, 'Questions')); const f = findings(); m.appendChild(el('h2', null, 'Open (' + f.openQ.length + ')')); f.openQ.forEach(q => m.appendChild(questionRow(q))); const closed = state.questions.filter(q => ins(q, 'answers').length); m.appendChild(el('h2', null, 'Answered (' + closed.length + ')')); closed.forEach(q => m.appendChild(questionRow(q))); }
+function crumbs(m, a, b) { const c = el('div', 'crumbs'); const l = el('a', null, a); l.onclick = () => setView(a.toLowerCase()); c.appendChild(l); c.appendChild(document.createTextNode(' › ' + b)); m.appendChild(c); }
+function openPanel(nd, other) { const b = document.getElementById('panel-body'); b.innerHTML = ''; b.appendChild(el('h2', null, label(nd))); b.appendChild(el('div', 'muted small', [...nd.types].map(local).join(', ') + ' · ' + local(nd.id)));
+  if (other) { const a = reif(nd, 'honors', other) || reif(nd, 'overrides', other); b.appendChild(el('h3', null, 'Verdict')); if (a) b.appendChild(assertionCard(a)); else { const d = el('div'); d.appendChild(pill(other)); b.appendChild(d); } }
+  b.appendChild(el('h3', null, 'Literals')); const pre = el('pre'); pre.textContent = nd.lits.map(l => local(l.p) + ': ' + l.v).join('\n'); b.appendChild(pre);
+  const links = el('div'); b.appendChild(el('h3', null, 'Links')); for (const e of nd.out) { const o = state.nodes.get(e.o); if (!o || e.p === RDF_ + 'type') continue; links.appendChild(el('span', 'tag', local(e.p) + ' →')); links.appendChild(pill(o)); links.appendChild(el('br')); } for (const e of nd.in) { const s = state.nodes.get(e.s); if (!s) continue; links.appendChild(el('span', 'tag', '← ' + local(e.p))); links.appendChild(pill(s)); links.appendChild(el('br')); } b.appendChild(links);
+  const full = el('a', null, 'open full page'); full.style.cursor = 'pointer'; full.style.color = 'var(--cite)'; full.onclick = () => { closePanel(); go(nd); }; b.appendChild(full); document.getElementById('panel').classList.add('open'); }
+function closePanel() { document.getElementById('panel').classList.remove('open'); }
+function go(nd) { closePanel(); state.view = { kind: 'node', id: nd.id }; if (state.isA(nd, 'Principle')) renderPrinciple(nd); else if (state.isA(nd, 'Decision')) renderDecision(nd); else if (state.artifacts.includes(nd)) renderArtifact(nd); else openPanel(nd); highlight(); try { window.scrollTo(0, 0) } catch (_) {}; }
+function setView(v) { closePanel(); state.view = { kind: 'view', id: v }; ({ overview: renderOverview, principles: () => renderList('principles'), decisions: () => renderList('decisions'), conflicts: renderConflicts, gaps: renderGaps, questions: renderQuestions, artifacts: () => renderList('decisions') })[v]?.(); highlight(); try { window.scrollTo(0, 0) } catch (_) {}; }
+function highlight() { document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('active', a.dataset.id === state.view?.id)); }
+function nav() { const nv = document.getElementById('nav-views'); nv.innerHTML = ''; [['overview', 'Overview & matrix'], ['conflicts', 'Conflicts'], ['gaps', 'Governance gaps'], ['questions', 'Questions'], ['principles', 'All principles'], ['decisions', 'All decisions']].forEach(([id, t]) => { const a = el('a', null, t); a.dataset.id = id; a.onclick = () => setView(id); nv.appendChild(a); });
+  const f = findings(); const np = document.getElementById('nav-prin'); np.innerHTML = ''; for (const p of state.principles) { const a = el('a'); a.dataset.id = p.id; a.appendChild(el('span', null, (lit(p, 'principleId') || local(p.id)) + ' ')); a.appendChild(el('span', 'sub', short(label(p), 34))); if (f.dead.includes(p)) a.appendChild(el('span', 'sub', ' ∅')); if (ins(p, 'overrides').some(d => !ack(d, p))) a.appendChild(el('span', 'sub', ' ✗')); a.onclick = () => go(p); np.appendChild(a); }
+  const nd = document.getElementById('nav-dec'); nd.innerHTML = ''; for (const d of state.decisions) { const a = el('a'); a.dataset.id = d.id; a.appendChild(el('span', null, (lit(d, 'decisionId') || local(d.id)) + ' ')); a.appendChild(el('span', 'sub', short(label(d), 34))); if (outs(d, 'overrides').some(p => !ack(d, p))) a.appendChild(el('span', 'sub', ' ✗')); if (!isActive(d)) a.style.opacity = .6; a.onclick = () => go(d); nd.appendChild(a); }
+  const na = document.getElementById('nav-art'); na.innerHTML = ''; for (const x of state.artifacts) { const a = el('a', null, short(label(x), 40)); a.dataset.id = x.id; a.onclick = () => go(x); na.appendChild(a); } }
+function loadText(text, name) { build(text, name); document.getElementById('loaded').textContent = name + ' — ' + state.principles.length + ' principles, ' + state.decisions.length + ' decisions'; nav(); setView('overview'); }
+document.getElementById('file').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => loadText(t, f.name)); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+/* An embedded sample can be placed in a <script type="text/turtle" id="sample"> element; it loads on open. */
+(function () { const s = document.getElementById('sample'); if (s && s.textContent.trim()) loadText(s.textContent, s.dataset.name || 'embedded graph'); else { document.getElementById('main').innerHTML = '<h1>ADR &amp; Principles browser</h1><p class="muted">Open a <code>.ttl</code> written by <code>adr-and-principles-ingester</code> (or any graph in the dkg vocabulary that carries <code>dkg:Principle</code> and <code>dkg:Decision</code> nodes). Everything shown is derived from the triples — verdicts, evidence, dead letters, defects — nothing is stored in this page.</p>'; nav(); } })();
+</script>
+</body>
+</html>

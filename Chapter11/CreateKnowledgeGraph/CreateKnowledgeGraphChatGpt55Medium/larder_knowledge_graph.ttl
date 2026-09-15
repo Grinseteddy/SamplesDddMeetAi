@@ -1,0 +1,3507 @@
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/ns> a owl:Ontology ;
+                          rdfs:label "Domain Knowledge Graph vocabulary" ;
+                          rdfs:comment """A small vocabulary for holding the results of collaborative
+modelling workshops — brainstorms, Business Model Canvases, Wardley Maps, Impact
+Maps, Domain Stories, Visual Glossaries, EventStorming boards and Event Models —
+in ONE browsable graph. The IRI is an identifier, not a promise that it
+resolves. Point it at your own namespace if you have one; change it here and
+nowhere else.""" .
+
+##############################################################################
+# 1. The spine — the classes that make cross-artifact browsing possible
+#
+# Everything a workshop produces lands in one of these. Artifact-specific
+# classes below are subclasses, so a query over the spine sees the whole graph
+# and a query over a subclass sees one artifact's contribution.
+##############################################################################
+
+dkg:Node a owl:Class ;
+         rdfs:label "Node" ;
+         rdfs:comment "Anything the graph holds. Every Node carries at least one dkg:source and exactly one dkg:confidence." .
+
+dkg:Concept a owl:Class ; rdfs:subClassOf dkg:Node ;
+            rdfs:label "Concept" ;
+            rdfs:comment "A domain noun. THE merge target: when two artifacts say the same word, they meet here. Terms, work objects, aggregates and business objects are all Concepts." .
+
+dkg:Actor a owl:Class ; rdfs:subClassOf dkg:Node ;
+          rdfs:label "Actor" ;
+          rdfs:comment "A person, role, team, customer segment or system that does something or is done to. Merge target across BMC segments, impact-map actors, story actors and board actors." .
+
+dkg:Capability a owl:Class ; rdfs:subClassOf dkg:Node ;
+               rdfs:label "Capability" ;
+               rdfs:comment "Something the business can do. Wardley components and BMC key activities land here." .
+
+dkg:Activity a owl:Class ; rdfs:subClassOf dkg:Node ;
+             rdfs:label "Activity" ;
+             rdfs:comment "A verb performed by an Actor on a Concept. Domain-story activities, commands." .
+
+dkg:Occurrence a owl:Class ; rdfs:subClassOf dkg:Node ;
+               rdfs:label "Occurrence" ;
+               rdfs:comment "Something that happened, in the past tense. Domain events." .
+
+dkg:Goal a owl:Class ; rdfs:subClassOf dkg:Node ;
+         rdfs:label "Goal" ;
+         rdfs:comment "A measurable business outcome. Impact-map WHY, Wardley user need, North Star." .
+
+dkg:Deliverable a owl:Class ; rdfs:subClassOf dkg:Node ;
+                rdfs:label "Deliverable" ;
+                rdfs:comment "Something a team could build or do. Impact-map WHAT, and where brainstorm ideas usually settle." .
+
+dkg:BoundedContext a owl:Class ; rdfs:subClassOf dkg:Node ;
+                   rdfs:label "Bounded Context" ;
+                   rdfs:comment "A boundary inside which one model and one language hold. Board bubbles, story lanes, Event Model swimlanes." .
+
+dkg:Question a owl:Class ; rdfs:subClassOf dkg:Node ;
+             rdfs:label "Question" ;
+             rdfs:comment "Something the artifacts do not settle. Hotspots, open questions, contested calls. First-class: a graph that cannot hold doubt will launder it." .
+
+dkg:Rule a owl:Class ; rdfs:subClassOf dkg:Node ;
+         rdfs:label "Rule" ;
+         rdfs:comment "An invariant, guard or policy the business would state as a rule." .
+
+##############################################################################
+# 2. Provenance
+##############################################################################
+
+dkg:Artifact a owl:Class ;
+             rdfs:label "Artifact" ;
+             rdfs:comment "One source document, board, photo or session — the thing a statement came from." .
+
+dkg:Brainstorm             a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:BusinessModelCanvas    a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:WardleyMap             a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:ImpactMap              a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:DomainStory            a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:VisualGlossary         a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:EventStormingBoard     a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:EventModel             a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:CapabilityMap          a owl:Class ; rdfs:subClassOf dkg:Artifact .
+dkg:CoreDomainChart        a owl:Class ; rdfs:subClassOf dkg:Artifact .
+
+dkg:source a owl:ObjectProperty ;
+           rdfs:label "source" ; rdfs:range dkg:Artifact ;
+           rdfs:comment "REQUIRED on every Node. Repeat it: a Concept that three artifacts mention carries three sources, and that count is the browsable measure of corroboration." .
+
+dkg:locator a owl:DatatypeProperty ;
+            rdfs:label "locator" ;
+            rdfs:comment "Where in the artifact: a sentence number, sticky position, event number, canvas block. Makes a finding checkable against the wall." .
+
+dkg:ingestedAt a owl:DatatypeProperty ; rdfs:range xsd:date .
+
+# Confidence — deliberately the same three words the rest of this toolkit uses.
+dkg:confidence a owl:ObjectProperty ; rdfs:label "confidence" .
+dkg:OnArtifact a dkg:ConfidenceLevel ; rdfs:label "on-artifact" ;
+               rdfs:comment "A sticky, box or arrow says so. Transcription, not interpretation." .
+dkg:Implied    a dkg:ConfidenceLevel ; rdfs:label "implied" ;
+               rdfs:comment "Not written, but the artifact does not make sense otherwise." .
+dkg:Inferred   a dkg:ConfidenceLevel ; rdfs:label "inferred" ;
+               rdfs:comment "Domain knowledge from outside the artifacts. Needs a human to confirm before anyone builds on it." .
+
+##############################################################################
+# 3. Statements about statements — reification for provenance and disagreement
+##############################################################################
+#
+# Direct triples are the default. Reify ONLY when (a) the edge is asserted by
+# more than one artifact, (b) two artifacts disagree, or (c) the edge is
+# contested. Reifying everything makes the graph unreadable and browsing is the
+# point. Standard rdf:Statement is reused rather than reinvented.
+
+dkg:Assertion a owl:Class ; rdfs:subClassOf rdf:Statement ;
+              rdfs:label "Assertion" ;
+              rdfs:comment "A reified edge carrying its own dkg:source, dkg:confidence and optionally dkg:contradicts." .
+
+dkg:contradicts a owl:ObjectProperty ; rdfs:range dkg:Assertion ;
+                rdfs:label "contradicts" ;
+                rdfs:comment "Two artifacts assert incompatible things. NEVER resolve this silently — a contradiction between a Wardley Map and an EventStorming board is a finding worth more than the graph itself." .
+
+##############################################################################
+# 4. Identity and language
+##############################################################################
+
+# Merged nodes keep every spelling ever seen:
+#   skos:prefLabel  the agreed ubiquitous term (or the newest artifact's)
+#   skos:altLabel   every other spelling, one per artifact
+#   dkg:spelledOn   which artifact used which spelling
+dkg:spelling a owl:Class ; rdfs:label "Spelling" ;
+             rdfs:comment "A label as one artifact wrote it, with the artifact that wrote it. Use when a rename is itself the finding (Catastrophe/Catastrophe, Cook/User)." .
+dkg:spelledOn a owl:ObjectProperty ; rdfs:range dkg:Artifact .
+dkg:literal   a owl:DatatypeProperty .
+
+dkg:proposedSameAs a owl:ObjectProperty ; rdfs:label "proposed same as" ;
+                   rdfs:comment "A merge candidate NOT yet confirmed by a human. Never collapse two IRIs on this basis; the merge ledger exists so the room decides." .
+
+dkg:renamedTo a owl:ObjectProperty ; rdfs:label "renamed to" ;
+              rdfs:comment "A noun re-modelled across a boundary: User renamedTo Cook. Boundary evidence, not a synonym." .
+
+##############################################################################
+# 5. The cross-artifact spine properties — what makes this a map and not a pile
+##############################################################################
+
+dkg:mentions a owl:ObjectProperty ;
+             rdfs:label "mentions" ;
+             rdfs:comment "Any Node → Concept. The cheapest and most useful edge in the graph: it is what lets you ask 'everything that touches Meal plan' across a canvas, a story and a board." .
+
+dkg:supports a owl:ObjectProperty ;
+             rdfs:label "supports" ;
+             rdfs:comment "Capability/Deliverable → Goal or ValueProposition. The strategy-to-build trace." .
+
+dkg:realises a owl:ObjectProperty ;
+             rdfs:label "realises" ;
+             rdfs:comment "Deliverable → Impact. Impact-map WHAT to HOW." .
+
+dkg:dependsOn a owl:ObjectProperty ;
+              rdfs:label "depends on" ;
+              rdfs:comment "Wardley value-chain edge, and any other 'needs this to work'." .
+
+dkg:inContext a owl:ObjectProperty ; rdfs:range dkg:BoundedContext ;
+              rdfs:label "in context" ;
+              rdfs:comment "A Node belongs inside a boundary. A Node with two of these is a straddler — query for it." .
+
+dkg:performedBy a owl:ObjectProperty ; rdfs:range dkg:Actor ;
+                rdfs:label "performed by" .
+
+dkg:actsOn a owl:ObjectProperty ; rdfs:range dkg:Concept ;
+           rdfs:label "acts on" .
+
+dkg:precedes a owl:ObjectProperty ;
+             rdfs:label "precedes" ;
+             rdfs:comment "Sequence: story sentence n → n+1, event n → n+1. Ordering is evidence; keep it." .
+
+dkg:raises a owl:ObjectProperty ; rdfs:range dkg:Question ;
+           rdfs:label "raises" .
+
+dkg:sequence a owl:DatatypeProperty ; rdfs:range xsd:integer .
+
+##############################################################################
+# 6. Artifact-specific classes
+##############################################################################
+
+# --- Brainstorm -------------------------------------------------------------
+dkg:Idea a owl:Class ; rdfs:subClassOf dkg:Deliverable ;
+         rdfs:comment "One sticky from an ideation session. Stays an Idea until another artifact picks it up — an Idea nothing ever references again is the brainstorm's own answer about itself." .
+dkg:Cluster a owl:Class ; rdfs:subClassOf dkg:Node ;
+            rdfs:comment "A group of ideas the room drew. The room's own clustering, not a re-clustering." .
+dkg:inCluster a owl:ObjectProperty ; rdfs:range dkg:Cluster .
+dkg:votes a owl:DatatypeProperty ; rdfs:range xsd:integer ;
+          rdfs:comment "Dot-vote count if the board has one. Do not invent a score." .
+
+# --- Business Model Canvas --------------------------------------------------
+dkg:CustomerSegment      a owl:Class ; rdfs:subClassOf dkg:Actor .
+dkg:ValueProposition     a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:Channel              a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:CustomerRelationship a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:RevenueStream        a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:KeyResource          a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:KeyActivity          a owl:Class ; rdfs:subClassOf dkg:Capability .
+dkg:KeyPartner           a owl:Class ; rdfs:subClassOf dkg:Actor .
+dkg:CostStructure        a owl:Class ; rdfs:subClassOf dkg:Node .
+dkg:servesSegment  a owl:ObjectProperty ; rdfs:range dkg:CustomerSegment .
+dkg:deliveredVia   a owl:ObjectProperty ; rdfs:range dkg:Channel .
+dkg:paidBy         a owl:ObjectProperty ; rdfs:range dkg:RevenueStream .
+
+# --- Wardley Map ------------------------------------------------------------
+dkg:UserNeed  a owl:Class ; rdfs:subClassOf dkg:Goal .
+dkg:Component a owl:Class ; rdfs:subClassOf dkg:Capability .
+dkg:evolution a owl:ObjectProperty ; rdfs:label "evolution" .
+dkg:Genesis a dkg:EvolutionStage ; rdfs:label "genesis" .
+dkg:CustomBuilt a dkg:EvolutionStage ; rdfs:label "custom-built" .
+dkg:Product a dkg:EvolutionStage ; rdfs:label "product" .
+dkg:Commodity a dkg:EvolutionStage ; rdfs:label "commodity" .
+dkg:visibility a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+               rdfs:comment "Height on the value chain, 0..1. Record only if the map is measured rather than sketched." .
+dkg:movesTo a owl:ObjectProperty ; rdfs:range dkg:EvolutionStage ;
+            rdfs:comment "A drawn movement arrow. A prediction the graph can later be checked against." .
+
+# --- Impact Map -------------------------------------------------------------
+dkg:Impact a owl:Class ; rdfs:subClassOf dkg:Node ;
+           rdfs:comment "A behaviour change in an Actor — HOW. Not a feature." .
+dkg:impactedActor a owl:ObjectProperty ; rdfs:range dkg:Actor .
+dkg:towardsGoal   a owl:ObjectProperty ; rdfs:range dkg:Goal .
+dkg:metric a owl:DatatypeProperty ;
+           rdfs:comment "The Goal's measure. A Goal with no metric is a wish — leave the property off and let the query find it." .
+
+# --- Domain Story -----------------------------------------------------------
+dkg:Sentence   a owl:Class ; rdfs:subClassOf dkg:Node ;
+               rdfs:comment "One numbered actor → activity → work-object sentence." .
+dkg:WorkObject a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:Lane       a owl:Class ; rdfs:subClassOf dkg:BoundedContext .
+
+# --- Visual Glossary --------------------------------------------------------
+dkg:Term          a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:Entity        a owl:Class ; rdfs:subClassOf dkg:Term .
+dkg:ValueObject   a owl:Class ; rdfs:subClassOf dkg:Term .
+dkg:AggregateRoot a owl:Class ; rdfs:subClassOf dkg:Entity .
+dkg:Relationship  a owl:Class ; rdfs:subClassOf dkg:Node ;
+                  rdfs:comment "A labelled, counted edge between two Terms, reified because the cardinality and the verb both matter." .
+dkg:from a owl:ObjectProperty .
+dkg:to   a owl:ObjectProperty .
+dkg:verb a owl:DatatypeProperty .
+dkg:cardinality a owl:DatatypeProperty ;
+                rdfs:comment "Verbatim: '1', '0..1', '1..*', '0..25'. Never normalise a range the glossary drew." .
+dkg:cardinalityGiven a owl:DatatypeProperty ; rdfs:range xsd:boolean ;
+                     rdfs:comment "true = the glossary drew this number. false = derived. Confusing the two turns a guess into a business rule." .
+
+# --- EventStorming / Event Model --------------------------------------------
+dkg:DomainEvent    a owl:Class ; rdfs:subClassOf dkg:Occurrence .
+dkg:Command        a owl:Class ; rdfs:subClassOf dkg:Activity .
+dkg:Aggregate      a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:ReadModel      a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:BusinessObject a owl:Class ; rdfs:subClassOf dkg:Concept .
+dkg:Policy         a owl:Class ; rdfs:subClassOf dkg:Rule .
+dkg:ExternalSystem a owl:Class ; rdfs:subClassOf dkg:Actor .
+dkg:Hotspot        a owl:Class ; rdfs:subClassOf dkg:Question .
+dkg:PivotalEvent   a owl:Class ; rdfs:subClassOf dkg:DomainEvent .
+dkg:Slice          a owl:Class ; rdfs:subClassOf dkg:Node ;
+                   rdfs:comment "Event Model vertical slice: state change, state view, automation or translation." .
+dkg:sliceKind a owl:DatatypeProperty .
+dkg:Swimlane a owl:Class ; rdfs:subClassOf dkg:BoundedContext .
+
+dkg:triggers  a owl:ObjectProperty ; rdfs:comment "Command → DomainEvent, or Policy → Command." .
+dkg:emittedBy a owl:ObjectProperty ; rdfs:range dkg:Aggregate .
+dkg:reads     a owl:ObjectProperty ; rdfs:range dkg:ReadModel .
+dkg:produces  a owl:ObjectProperty ; rdfs:range dkg:BusinessObject .
+dkg:reactsTo  a owl:ObjectProperty ; rdfs:domain dkg:Policy ; rdfs:range dkg:Occurrence .
+dkg:hasState  a owl:DatatypeProperty ;
+              rdfs:comment "A status word from a state sticky. Only from a sticky — a reconstructed state machine is dkg:Inferred and belongs in the invariant sheet, not silently here." .
+
+##############################################################################
+# Ingest: Brainstorming convergence board — 2026-09-10
+##############################################################################
+@prefix larder: <urn:larder:> .
+
+larder:brainstorm-2026-09-10 a dkg:Artifact, dkg:Brainstorm ;
+    skos:prefLabel "Brainstorming convergence board" ;
+    rdfs:comment "Brainstorm / ideation board transcribed from 01_BrainstormingConvergence.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:cluster-larder a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Larder" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — centre" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:cluster-shopping a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Shopping" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — upper-left of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-special a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Special" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — left of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-community a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Community" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — left of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-authen-tication a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Authen-tication" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — lower-left of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-content-creation a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Content Creation" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — lower-left" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-content-rating a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Content Rating" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — below centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-planner a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Planner" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — lower-right of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-helper a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Helper" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — upper-middle" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-creator-support a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Creator Support" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — upper-right of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-cooking-support a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Cooking Support" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — right of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:cluster-recipe-search a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Recipe Search" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "green sticky — lower-right of centre" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-larder .
+
+larder:idea-kitchen-tools a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Kitchen tools" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — upper-left; linked to Shopping" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-shopping .
+
+larder:idea-necessary-stuff a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Necessary stuff" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — upper; linked to Shopping" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-shopping .
+
+larder:idea-order-ingredients-directly a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Order ingredients directly" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — far upper-left; linked to Shopping" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-shopping .
+
+larder:idea-larder-tracker a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Larder tracker" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — left; linked to Shopping" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-shopping .
+
+larder:idea-historical-recipes a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Historical recipes" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — left; linked to Special" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-special .
+
+larder:idea-cooking-club a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Cooking Club" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — upper-left; linked to Community" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-community .
+
+larder:idea-sponsor-contest a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Sponsor contest" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — left; linked to Community" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-community .
+
+larder:idea-sharing-on-instagram a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Sharing on Instagram" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — lower-left; linked to Community" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-community .
+
+larder:idea-grill-master a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Grill master" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — below; linked to Community" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-community .
+
+larder:idea-login-with-social-account a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Login with social account" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — left; linked to Authen-tication" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-authen-tication .
+
+larder:idea-cooking-videos a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Cooking Videos" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — lower-left; linked to Content Creation" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-content-creation .
+
+larder:idea-making-photos a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Making Photos" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — lower-left; linked to Content Creation" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-content-creation .
+
+larder:idea-remix-of-recipes a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Remix of recipes" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Content Creation" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-content-creation .
+
+larder:idea-store-recipes a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Store recipes" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Content Creation" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-content-creation .
+
+larder:idea-comments a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Comments" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — below-left; linked to Content Rating" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-content-rating .
+
+larder:idea-followers a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Followers" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — below; linked to Content Rating" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-content-rating .
+
+larder:idea-rating a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Rating" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — below-right; linked to Content Rating" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-content-rating .
+
+larder:idea-dinner-party-planner a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Dinner-party planner" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — below-left; linked to Planner" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-planner .
+
+larder:idea-cooking-calendar a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Cooking Calendar" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — below; linked to Planner" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-planner .
+
+larder:idea-food-pairing a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Food pairing" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — below-right; linked to Planner" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-planner .
+
+larder:idea-voice-control a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Voice control" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — above; linked to Helper" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-helper .
+
+larder:idea-timer a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Timer" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — upper-right; linked to Helper" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-helper .
+
+larder:idea-cookbook-publishing a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Cookbook publishing" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — above-right; linked to Creator Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-creator-support .
+
+larder:idea-smart-kitchen a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Smart kitchen" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — upper-right; linked to Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-cooking-support .
+
+larder:idea-cooking-skill-learning a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Cooking skill learning" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — upper-right; linked to Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-cooking-support .
+
+larder:idea-famous-chefs-as-partner a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Famous chefs as partner" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-cooking-support .
+
+larder:idea-step-by-step-cooking-mode a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Step-by-step cooking mode" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-cooking-support .
+
+larder:idea-cooking-skill-level a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Cooking skill level" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-cooking-support .
+
+larder:idea-grandpa-shows-how-to-do-it a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Grandpa shows how to do it" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-cooking-support .
+
+larder:idea-ask-grandma a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Ask grandma" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-cooking-support .
+
+larder:idea-search-with-things-i-already-have a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Search with things I already have" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+larder:idea-search-with-cooking-time a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Search with cooking time" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+larder:idea-meal-chooser a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Meal Chooser" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+larder:idea-left-over-optimi-zations a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Left over optimi-zations" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — lower-right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+larder:idea-budget a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Budget" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — lower-right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+larder:idea-aller-genes a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Aller-genes" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — lower-right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+larder:idea-dietary-require-ments a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Dietary require-ments" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "yellow sticky — lower-right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+larder:idea-fridge-photo-recipe-generation a dkg:Deliverable, dkg:Idea ;
+    skos:prefLabel "Fridge-photo recipe generation" ;
+    dkg:source larder:brainstorm-2026-09-10 ;
+    dkg:locator "blue sticky — bottom-right; linked to Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:cluster-recipe-search .
+
+##############################################################################
+# Ingest: Business Model Canvas — 2026-09-10
+##############################################################################
+
+larder:business-model-canvas-2026-09-10 a dkg:Artifact, dkg:BusinessModelCanvas ;
+    skos:prefLabel "Larder Business Model Canvas" ;
+    rdfs:comment "Business Model Canvas transcribed from 02_BusinessModelCanvasEnhanced.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:bmc-key-partner-kitchen-ware-retailer a dkg:Actor, dkg:KeyPartner ;
+    skos:prefLabel "Kitchen ware retailer" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key partners / sticky: Kitchen ware retailer" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-key-partner-grocery-stores a dkg:Actor, dkg:KeyPartner ;
+    skos:prefLabel "Grocery stores" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key partners / sticky: Grocery stores" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-key-partner-photo-book-service a dkg:Actor, dkg:KeyPartner ;
+    skos:prefLabel "Photo book service" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key partners / sticky: Photo book service" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-key-partner-chefs a dkg:Actor, dkg:KeyPartner ;
+    skos:prefLabel "Chefs" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key partners / sticky: Chefs" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:idea-famous-chefs-as-partner .
+
+larder:bmc-key-activity-content-creation a dkg:Capability, dkg:KeyActivity ;
+    skos:prefLabel "Content Creation" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key activities / sticky: Content Creation" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:cluster-content-creation .
+
+larder:bmc-key-activity-content-rating a dkg:Capability, dkg:KeyActivity ;
+    skos:prefLabel "Content Rating" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key activities / sticky: Content Rating" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:cluster-content-rating .
+
+larder:bmc-key-activity-cooking-support a dkg:Capability, dkg:KeyActivity ;
+    skos:prefLabel "Cooking Support" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key activities / sticky: Cooking Support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:cluster-cooking-support .
+
+larder:bmc-key-activity-recipe-search a dkg:Capability, dkg:KeyActivity ;
+    skos:prefLabel "Recipe Search" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key activities / sticky: Recipe Search" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:cluster-recipe-search .
+
+larder:bmc-key-resource-cooks a dkg:Node, dkg:KeyResource ;
+    skos:prefLabel "Cooks" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key resources / sticky: Cooks" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-key-resource-media a dkg:Node, dkg:KeyResource ;
+    skos:prefLabel "Media" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key resources / sticky: Media" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-key-resource-recipes a dkg:Node, dkg:KeyResource ;
+    skos:prefLabel "Recipes" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key resources / sticky: Recipes" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-key-resource-ai-search-support a dkg:Node, dkg:KeyResource ;
+    skos:prefLabel "AI search support" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key resources / sticky: AI search support" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-value-proposition-easy-to-find-recipes a dkg:Node, dkg:ValueProposition ;
+    skos:prefLabel "Easy to find recipes" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key propositions / sticky: Easy to find recipes" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-value-proposition-cooking-support a dkg:Node, dkg:ValueProposition ;
+    skos:prefLabel "Cooking support" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key propositions / sticky: Cooking support" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:cluster-cooking-support ;
+    dkg:proposedSameAs larder:bmc-key-activity-cooking-support .
+
+larder:bmc-value-proposition-recipes-for-specialized-nutrition-requirements a dkg:Node, dkg:ValueProposition ;
+    skos:prefLabel "Recipes for specialized nutrition requirements" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key propositions / sticky: Recipes for specialized nutrition requirements" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-value-proposition-ai-pro-posals a dkg:Node, dkg:ValueProposition ;
+    skos:prefLabel "AI pro-posals" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key propositions / sticky: AI pro-posals" ;
+    dkg:confidence dkg:OnArtifact .
+
+# Auto-merge: exact label + same spine class from BMC `Key propositions`
+larder:cluster-planner a dkg:ValueProposition ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Key propositions / sticky: Planner" .
+
+larder:bmc-customer-relationship-daily-for-sharing a dkg:Node, dkg:CustomerRelationship ;
+    skos:prefLabel "Daily for sharing" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Customer relationships / sticky: Daily for sharing" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-customer-relationship-weekly-for-creating a dkg:Node, dkg:CustomerRelationship ;
+    skos:prefLabel "Weekly for creating" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Customer relationships / sticky: Weekly for creating" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-customer-relationship-com-munity a dkg:Node, dkg:CustomerRelationship ;
+    skos:prefLabel "Com-munity" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Customer relationships / sticky: Com-munity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:cluster-community .
+
+larder:bmc-channel-app a dkg:Node, dkg:Channel ;
+    skos:prefLabel "App" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Channels / sticky: App" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-customer-segment-singles a dkg:Actor, dkg:CustomerSegment ;
+    skos:prefLabel "Singles" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Customer segments / sticky: Singles" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-customer-segment-young-families a dkg:Actor, dkg:CustomerSegment ;
+    skos:prefLabel "Young families" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Customer segments / sticky: Young families" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-cost-software-develop-ment a dkg:Node, dkg:CostStructure ;
+    skos:prefLabel "Software develop-ment" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Cost Structure / sticky: Software develop-ment" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-cost-software-main-tenance a dkg:Node, dkg:CostStructure ;
+    skos:prefLabel "Software main-tenance" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Cost Structure / sticky: Software main-tenance" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-cost-cloud-service a dkg:Node, dkg:CostStructure ;
+    skos:prefLabel "Cloud service" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Cost Structure / sticky: Cloud service" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-cost-licenses a dkg:Node, dkg:CostStructure ;
+    skos:prefLabel "Licenses" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Cost Structure / sticky: Licenses" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-cost-marke-ting a dkg:Node, dkg:CostStructure ;
+    skos:prefLabel "Marke-ting" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Cost Structure / sticky: Marke-ting" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-revenue-monthly-member-fee a dkg:Node, dkg:RevenueStream ;
+    skos:prefLabel "Monthly member fee" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Revenue Streams / sticky: Monthly member fee" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:bmc-revenue-ads-by-partners a dkg:Node, dkg:RevenueStream ;
+    skos:prefLabel "Ads by partners" ;
+    dkg:source larder:business-model-canvas-2026-09-10 ;
+    dkg:locator "Business Model Canvas / Revenue Streams / sticky: Ads by partners" ;
+    dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+# Ingest: Capability Map — 2026-09-10
+##############################################################################
+
+larder:capability-map-2026-09-10 a dkg:Artifact, dkg:CapabilityMap ;
+    skos:prefLabel "Larder Capability Map" ;
+    rdfs:comment "Capability Map transcribed from 03_CapabilityMapStep3.jpg. Legend: blue=Core, green=Supporting, yellow=Generic." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:capability-lane-onboarding a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Onboarding" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / lane heading: Onboarding" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:capability-lane-cooking a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Cooking" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / lane heading: Cooking" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:capability-lane-cooking-support a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Cooking Support" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / lane heading: Cooking Support" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:capability-lane-sharing a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Sharing" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / lane heading: Sharing" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:capability-lane-rating a dkg:Node, dkg:Cluster ;
+    skos:prefLabel "Rating" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / lane heading: Rating" ;
+    dkg:confidence dkg:OnArtifact .
+
+larder:capability-famous-chefs-partner a dkg:Capability ;
+    skos:prefLabel "Famous chefs partner" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Onboarding / Core: Famous chefs partner" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-onboarding ;
+    dkg:proposedSameAs <urn:larder:idea-famous-chefs-as-partner> .
+
+larder:capability-member-management a dkg:Capability ;
+    skos:prefLabel "Member management" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Onboarding / Generic: Member management" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-onboarding .
+
+larder:capability-ads-management a dkg:Capability ;
+    skos:prefLabel "Ads management" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Onboarding / Generic: Ads management" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-onboarding .
+
+larder:capability-meal-chooser a dkg:Capability ;
+    skos:prefLabel "Meal Chooser" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking / Supporting: Meal Chooser" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking ;
+    dkg:proposedSameAs <urn:larder:idea-meal-chooser> .
+
+larder:capability-proposals-based-on-larder-etc a dkg:Capability ;
+    skos:prefLabel "Proposals based on larder, etc." ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking / Core: Proposals based on larder, etc." ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking ;
+    dkg:proposedSameAs <urn:larder:bmc-value-proposition-ai-pro-posals> .
+
+larder:capability-planner a dkg:Capability ;
+    skos:prefLabel "Planner" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking / Supporting: Planner" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking ;
+    dkg:proposedSameAs <urn:larder:cluster-planner> .
+
+larder:capability-community-engagement a dkg:Capability ;
+    skos:prefLabel "Community Engagement" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking / Core: Community Engagement" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking ;
+    dkg:proposedSameAs <urn:larder:cluster-community> .
+
+larder:capability-nutrition-requirement-management a dkg:Capability ;
+    skos:prefLabel "Nutrition requirement management" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking Support / Supporting: Nutrition requirement management" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking-support ;
+    dkg:proposedSameAs <urn:larder:bmc-value-proposition-recipes-for-specialized-nutrition-requirements> ;
+    dkg:proposedSameAs <urn:larder:idea-dietary-require-ments> ;
+    dkg:proposedSameAs <urn:larder:idea-aller-genes> .
+
+larder:capability-direct-ordering a dkg:Capability ;
+    skos:prefLabel "Direct ordering" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking Support / Generic: Direct ordering" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking-support ;
+    dkg:proposedSameAs <urn:larder:idea-order-ingredients-directly> .
+
+larder:capability-kitchen-tool-ordering a dkg:Capability ;
+    skos:prefLabel "Kitchen tool ordering" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking Support / Generic: Kitchen tool ordering" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking-support ;
+    dkg:proposedSameAs <urn:larder:idea-kitchen-tools> .
+
+larder:capability-cooking-aids a dkg:Capability ;
+    skos:prefLabel "Cooking aids" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking Support / Generic: Cooking aids" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking-support ;
+    dkg:proposedSameAs <urn:larder:cluster-helper> .
+
+larder:capability-grandma-grandpa a dkg:Capability ;
+    skos:prefLabel "Grandma / Grandpa" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Cooking Support / Core: Grandma / Grandpa" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-cooking-support ;
+    dkg:proposedSameAs <urn:larder:idea-ask-grandma> ;
+    dkg:proposedSameAs <urn:larder:idea-grandpa-shows-how-to-do-it> .
+
+# Auto-merge: exact label, same Capability spine
+<urn:larder:bmc-key-activity-content-creation> a dkg:Capability ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Sharing / Core: Content Creation" ;
+    dkg:inCluster larder:capability-lane-sharing .
+
+larder:capability-cookbook-publishing a dkg:Capability ;
+    skos:prefLabel "Cookbook publishing" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Sharing / Supporting: Cookbook publishing" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-sharing ;
+    dkg:proposedSameAs <urn:larder:idea-cookbook-publishing> .
+
+larder:capability-paywall-for-premium-content a dkg:Capability ;
+    skos:prefLabel "Paywall for premium content" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Sharing / Generic: Paywall for premium content" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-sharing .
+
+larder:capability-rating a dkg:Capability ;
+    skos:prefLabel "Rating" ;
+    dkg:source larder:capability-map-2026-09-10 ;
+    dkg:locator "Capability Map / Rating / Supporting: Rating" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inCluster larder:capability-lane-rating ;
+    dkg:proposedSameAs <urn:larder:idea-rating> .
+
+##############################################################################
+# Ingest: Impact Map — 2026-09-10
+##############################################################################
+
+larder:impact-map-2026-09-10 a dkg:Artifact, dkg:ImpactMap ;
+    skos:prefLabel "Larder Impact Map" ;
+    rdfs:comment "Impact Map transcribed from 04_ImpactMappingWithAiStep3.jpg. Blue numbers beside deliverables are preserved in locators; their meaning is not inferred." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years a dkg:Goal ;
+    skos:prefLabel "Larder - recipe sharing platform with min. 2,500 paying members in two years" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / GOAL column" ;
+    dkg:metric "min. 2,500 paying members in two years" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:impact-actor-single> a dkg:Actor ;
+    skos:prefLabel "Single" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Single" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-customer-segment-singles> .
+
+<urn:larder:impact-actor-young-family> a dkg:Actor ;
+    skos:prefLabel "Young family" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Young family" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-customer-segment-young-families> .
+
+<urn:larder:impact-actor-cook-as-author> a dkg:Actor ;
+    skos:prefLabel "Cook as author" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Cook as author" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-cooks> .
+
+# Auto-merge: exact label + Actor spine
+<urn:larder:bmc-key-partner-kitchen-ware-retailer> a dkg:Actor ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Kitchen ware retailer" .
+
+<urn:larder:impact-actor-chefs-as-senior-partner> a dkg:Actor ;
+    skos:prefLabel "Chefs as senior partner" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Chefs as senior partner" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-partner-chefs> ;
+    dkg:proposedSameAs <urn:larder:capability-famous-chefs-partner> ;
+    dkg:proposedSameAs <urn:larder:idea-famous-chefs-as-partner> .
+
+<urn:larder:impact-actor-grocery-store> a dkg:Actor ;
+    skos:prefLabel "Grocery store" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Grocery store" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-partner-grocery-stores> .
+
+# Auto-merge: exact label + Actor spine
+<urn:larder:bmc-key-partner-photo-book-service> a dkg:Actor ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Photo book service" .
+
+<urn:larder:impact-actor-propects> a dkg:Actor ;
+    skos:prefLabel "Propects" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Propects" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:impact-actor-convertable> a dkg:Actor ;
+    skos:prefLabel "Convertable" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / ACTORS / Convertable" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:impact-follows-dietry-plans> a dkg:Impact ;
+    skos:prefLabel "follows dietry plans" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / follows dietry plans" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-shop-easily-ingredients-and-tools-with-discount> a dkg:Impact ;
+    skos:prefLabel "Shop easily ingredients and tools with discount" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Shop easily ingredients and tools with discount" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-use-of-community-shared-recipes> a dkg:Impact ;
+    skos:prefLabel "Use of community shared recipes" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Use of community shared recipes" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-find-easily-recipes> a dkg:Impact ;
+    skos:prefLabel "Find easily recipes" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Find easily recipes" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-supports-unexperienced-members> a dkg:Impact ;
+    skos:prefLabel "supports unexperienced members" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / supports unexperienced members" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-use-effective-limited-budget> a dkg:Impact ;
+    skos:prefLabel "Use effective limited budget" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Use effective limited budget" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-learn-cooking> a dkg:Impact ;
+    skos:prefLabel "Learn cooking" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Learn cooking" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-publish-their-own-cookbook> a dkg:Impact ;
+    skos:prefLabel "Publish their own cookbook" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Publish their own cookbook" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-cookbooks-make-curious> a dkg:Impact ;
+    skos:prefLabel "Cookbooks make curious" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Cookbooks make curious" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-follow-cooks> a dkg:Impact ;
+    skos:prefLabel "Follow cooks" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / Follow cooks" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-convert-to-paid-plan> a dkg:Impact ;
+    skos:prefLabel "convert to paid plan" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / convert to paid plan" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-paid-member-renews> a dkg:Impact ;
+    skos:prefLabel "paid member renews" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / paid member renews" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-see-premium-content> a dkg:Impact ;
+    skos:prefLabel "see premium content" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / see premium content" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-pay-for-ads> a dkg:Impact ;
+    skos:prefLabel "pay for ads" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / IMPACT / pay for ads" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:towardsGoal larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years .
+
+<urn:larder:impact-deliverable-nutrition-requirement-management> a dkg:Deliverable ;
+    skos:prefLabel "Nutrition requirement management" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Nutrition requirement management / blue number 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-nutrition-requirement-management> .
+
+<urn:larder:impact-deliverable-direct-ordering> a dkg:Deliverable ;
+    skos:prefLabel "Direct ordering" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Direct ordering / blue number 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-direct-ordering> .
+
+<urn:larder:impact-deliverable-kitchen-tool-ordering> a dkg:Deliverable ;
+    skos:prefLabel "Kitchen tool ordering" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Kitchen tool ordering / blue number 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-kitchen-tool-ordering> .
+
+<urn:larder:impact-deliverable-cooking-club> a dkg:Deliverable ;
+    skos:prefLabel "Cooking club" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Cooking club / blue number 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:idea-cooking-club> .
+
+<urn:larder:impact-deliverable-content> a dkg:Deliverable ;
+    skos:prefLabel "Content" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Content / blue number 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-content-creation> ;
+    dkg:proposedSameAs <urn:larder:cluster-content-creation> .
+
+# Auto-merge: exact label + Deliverable spine
+<urn:larder:idea-rating> a dkg:Deliverable ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Rating / blue number 1" .
+
+# Auto-merge: exact label + Deliverable spine
+<urn:larder:idea-meal-chooser> a dkg:Deliverable ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Meal Chooser / blue number 2" .
+
+<urn:larder:impact-deliverable-ai-proposals> a dkg:Deliverable ;
+    skos:prefLabel "AI proposals" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / AI proposals / blue number 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-value-proposition-ai-pro-posals> ;
+    dkg:proposedSameAs <urn:larder:capability-proposals-based-on-larder-etc> .
+
+# Auto-merge: exact label + Deliverable spine
+<urn:larder:idea-timer> a dkg:Deliverable ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Timer / blue number 3" .
+
+<urn:larder:impact-deliverable-grandma-grandpa-ai> a dkg:Deliverable ;
+    skos:prefLabel "Grandma / Grandpa AI" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Grandma / Grandpa AI / blue number 3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-grandma-grandpa> ;
+    dkg:proposedSameAs <urn:larder:idea-ask-grandma> ;
+    dkg:proposedSameAs <urn:larder:idea-grandpa-shows-how-to-do-it> .
+
+<urn:larder:impact-deliverable-planner> a dkg:Deliverable ;
+    skos:prefLabel "Planner" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Planner / blue number 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:cluster-planner> ;
+    dkg:proposedSameAs <urn:larder:capability-planner> .
+
+<urn:larder:impact-deliverable-famous-chefs-partner> a dkg:Deliverable ;
+    skos:prefLabel "Famous chefs partner" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Famous chefs partner / blue number 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-famous-chefs-partner> ;
+    dkg:proposedSameAs <urn:larder:idea-famous-chefs-as-partner> .
+
+# Auto-merge: exact label + Deliverable spine
+<urn:larder:idea-cookbook-publishing> a dkg:Deliverable ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Cookbook publishing / blue number 1" .
+
+<urn:larder:impact-deliverable-member-management> a dkg:Deliverable ;
+    skos:prefLabel "Member management" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Member management / blue number 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-member-management> .
+
+<urn:larder:impact-deliverable-paywall-for-premium-content> a dkg:Deliverable ;
+    skos:prefLabel "Paywall for premium content" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Paywall for premium content / blue number 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-paywall-for-premium-content> .
+
+<urn:larder:impact-deliverable-ads-management> a dkg:Deliverable ;
+    skos:prefLabel "Ads management" ;
+    dkg:source larder:impact-map-2026-09-10 ;
+    dkg:locator "Impact Map / DELIVERABLES / Ads management / blue number 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-ads-management> .
+
+<urn:larder:impact-deliverable-nutrition-requirement-management> dkg:realises <urn:larder:impact-follows-dietry-plans> .
+<urn:larder:impact-deliverable-direct-ordering> dkg:realises <urn:larder:impact-shop-easily-ingredients-and-tools-with-discount> .
+<urn:larder:impact-deliverable-kitchen-tool-ordering> dkg:realises <urn:larder:impact-shop-easily-ingredients-and-tools-with-discount> .
+<urn:larder:idea-cookbook-publishing> dkg:realises <urn:larder:impact-publish-their-own-cookbook> .
+<urn:larder:impact-deliverable-member-management> dkg:realises <urn:larder:impact-convert-to-paid-plan> .
+<urn:larder:impact-deliverable-paywall-for-premium-content> dkg:realises <urn:larder:impact-see-premium-content> .
+<urn:larder:impact-deliverable-ads-management> dkg:realises <urn:larder:impact-pay-for-ads> .
+<urn:larder:impact-deliverable-member-management> dkg:realises <urn:larder:impact-paid-member-renews> .
+
+##############################################################################
+# Ingest: Wardley Map — 2026-09-10
+##############################################################################
+
+larder:wardley-map-2026-09-10 a dkg:Artifact, dkg:WardleyMap ;
+    skos:prefLabel "Larder Wardley Map" ;
+    rdfs:comment "Wardley Map transcribed from 05_WardleyMapEvolution.jpg. Evolution stage is read from horizontal position; numeric visibility is omitted because the vertical axis is unmeasured." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+# Auto-merge: exact label + Actor spine
+<urn:larder:bmc-customer-segment-young-families> a dkg:Actor ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user anchor: Young families" .
+
+# Auto-merge: exact label + Actor spine
+<urn:larder:bmc-customer-segment-singles> a dkg:Actor ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user anchor: Singles" .
+
+<urn:larder:wardley-actor-home-cook> a dkg:Actor ;
+    skos:prefLabel "Home cook" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user anchor: Home cook" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:impact-actor-cook-as-author> .
+
+<urn:larder:wardley-actor-prospect> a dkg:Actor ;
+    skos:prefLabel "Prospect" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user anchor: Prospect" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:impact-actor-propects> .
+
+<urn:larder:wardley-user-need-better-cooking-skills> a dkg:Goal, dkg:UserNeed ;
+    skos:prefLabel "Better cooking skills" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user need: Better cooking skills" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:impact-learn-cooking> .
+
+<urn:larder:wardley-user-need-efficient-usage-of-groceries> a dkg:Goal, dkg:UserNeed ;
+    skos:prefLabel "Efficient usage of groceries" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user need: Efficient usage of groceries" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:impact-use-effective-limited-budget> .
+
+<urn:larder:wardley-user-need-create-content> a dkg:Goal, dkg:UserNeed ;
+    skos:prefLabel "Create content" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user need: Create content" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-content-creation> ;
+    dkg:proposedSameAs <urn:larder:cluster-content-creation> .
+
+<urn:larder:wardley-user-need-rate-content> a dkg:Goal, dkg:UserNeed ;
+    skos:prefLabel "Rate content" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user need: Rate content" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs larder:wardley-component-rate-content ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-content-rating> ;
+    dkg:proposedSameAs <urn:larder:cluster-content-rating> .
+
+<urn:larder:wardley-user-need-search-recipes-with-nutrition-meals> a dkg:Goal, dkg:UserNeed ;
+    skos:prefLabel "Search recipes with nutrition, meals, ..." ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user need: Search recipes with nutrition, meals, ..." ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-recipe-search> ;
+    dkg:proposedSameAs <urn:larder:cluster-recipe-search> ;
+    dkg:proposedSameAs <urn:larder:impact-find-easily-recipes> .
+
+<urn:larder:wardley-user-need-support-cooking> a dkg:Goal, dkg:UserNeed ;
+    skos:prefLabel "Support cooking" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user need: Support cooking" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-cooking-support> ;
+    dkg:proposedSameAs <urn:larder:cluster-cooking-support> .
+
+<urn:larder:wardley-user-need-become-a-member> a dkg:Goal, dkg:UserNeed ;
+    skos:prefLabel "Become a member" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / user need: Become a member" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:impact-convert-to-paid-plan> ;
+    dkg:proposedSameAs <urn:larder:impact-goal-larder-recipe-sharing-platform-with-min-2-500-paying-members-in-two-years> .
+
+<urn:larder:wardley-component-ask-grandma-grandpa> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Ask Grandma / Grandpa" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Ask Grandma / Grandpa / evolution: CustomBuilt" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:CustomBuilt ;
+    dkg:proposedSameAs <urn:larder:capability-grandma-grandpa> .
+
+<urn:larder:wardley-component-ask-chef> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Ask chef" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Ask chef / evolution: CustomBuilt" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:CustomBuilt ;
+    dkg:proposedSameAs <urn:larder:capability-famous-chefs-partner> ;
+    dkg:proposedSameAs <urn:larder:bmc-key-partner-chefs> .
+
+<urn:larder:wardley-component-competitions> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Competitions" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Competitions / evolution: CustomBuilt" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:CustomBuilt ;
+    dkg:proposedSameAs <urn:larder:idea-sponsor-contest> .
+
+<urn:larder:wardley-component-ask-community> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Ask community" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Ask community / evolution: CustomBuilt" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:CustomBuilt ;
+    dkg:proposedSameAs <urn:larder:capability-community-engagement> ;
+    dkg:proposedSameAs <urn:larder:cluster-community> .
+
+<urn:larder:wardley-component-refri-gerator> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Refri-gerator" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Refri-gerator / evolution: Product" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Product ;
+    dkg:proposedSameAs <urn:larder:idea-fridge-photo-recipe-generation> .
+
+<urn:larder:wardley-component-nutrition> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Nutrition" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Nutrition / evolution: Product" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Product ;
+    dkg:proposedSameAs <urn:larder:capability-nutrition-requirement-management> .
+
+<urn:larder:wardley-component-meal> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Meal" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Meal / evolution: Product" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Product ;
+    dkg:proposedSameAs <urn:larder:idea-meal-chooser> .
+
+<urn:larder:wardley-component-write-recipe> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Write recipe" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Write recipe / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-content-creation> .
+
+<urn:larder:wardley-component-upload-media> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Upload media" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Upload media / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-media> .
+
+<urn:larder:wardley-component-timer> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Timer" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Timer / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:idea-timer> .
+
+<urn:larder:wardley-component-free-hand-control> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Free hand control" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Free hand control / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:idea-voice-control> .
+
+# Auto-merge: exact label + Capability spine
+<urn:larder:capability-member-management> a dkg:Capability, dkg:Component ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Member Management / evolution: Commodity" ;
+    dkg:evolution dkg:Commodity .
+
+<urn:larder:wardley-component-advanced-search> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Advanced Search" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Advanced Search / evolution: CustomBuilt" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:CustomBuilt ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-recipe-search> .
+
+# Auto-merge: exact label + Capability spine
+# Correction within Wardley ingest: `Rate content` has no pre-existing Capability node.
+# It is a new Wardley Component; cross-role similarities remain merge proposals.
+larder:wardley-component-rate-content a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Rate content" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Rate content / evolution: Product" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Product ;
+    dkg:proposedSameAs larder:bmc-key-activity-content-rating ;
+    dkg:proposedSameAs larder:cluster-content-rating ;
+    dkg:proposedSameAs larder:idea-rating .
+
+<urn:larder:wardley-component-specific-ai> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Specific AI" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Specific AI / evolution: CustomBuilt" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:CustomBuilt ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-ai-search-support> ;
+    dkg:proposedSameAs <urn:larder:capability-proposals-based-on-larder-etc> .
+
+<urn:larder:wardley-component-recipe-database> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Recipe database" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Recipe database / evolution: Product" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Product ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-recipes> .
+
+<urn:larder:wardley-component-rating-database> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Rating Database" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Rating Database / evolution: Product" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Product ;
+    dkg:proposedSameAs <urn:larder:bmc-key-activity-content-rating> .
+
+<urn:larder:wardley-component-remote-meeting> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Remote meeting" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Remote meeting / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:idea-cooking-club> .
+
+<urn:larder:wardley-component-chat> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Chat" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Chat / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:cluster-community> .
+
+<urn:larder:wardley-component-gen-ai> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Gen AI" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Gen AI / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-ai-search-support> .
+
+<urn:larder:wardley-component-media-storage> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Media Storage" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Media Storage / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-media> .
+
+<urn:larder:wardley-component-idm> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "IDM" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: IDM / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:bmc-channel-app> .
+
+<urn:larder:wardley-component-cloud> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Cloud" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Cloud / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:bmc-cost-cloud-service> .
+
+<urn:larder:wardley-component-mobile> a dkg:Capability, dkg:Component ;
+    skos:prefLabel "Mobile" ;
+    dkg:source larder:wardley-map-2026-09-10 ;
+    dkg:locator "Wardley Map / component: Mobile / evolution: Commodity" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:evolution dkg:Commodity ;
+    dkg:proposedSameAs <urn:larder:bmc-channel-app> .
+
+<urn:larder:bmc-customer-segment-young-families> dkg:mentions <urn:larder:wardley-user-need-better-cooking-skills> .
+<urn:larder:bmc-customer-segment-young-families> dkg:mentions <urn:larder:wardley-user-need-efficient-usage-of-groceries> .
+<urn:larder:bmc-customer-segment-young-families> dkg:mentions <urn:larder:wardley-user-need-search-recipes-with-nutrition-meals> .
+<urn:larder:bmc-customer-segment-singles> dkg:mentions <urn:larder:wardley-user-need-better-cooking-skills> .
+<urn:larder:bmc-customer-segment-singles> dkg:mentions <urn:larder:wardley-user-need-search-recipes-with-nutrition-meals> .
+<urn:larder:wardley-actor-home-cook> dkg:mentions <urn:larder:wardley-user-need-create-content> .
+<urn:larder:wardley-actor-home-cook> dkg:mentions <urn:larder:wardley-user-need-rate-content> .
+<urn:larder:wardley-actor-home-cook> dkg:mentions <urn:larder:wardley-user-need-support-cooking> .
+<urn:larder:wardley-actor-prospect> dkg:mentions <urn:larder:wardley-user-need-become-a-member> .
+
+<urn:larder:wardley-user-need-better-cooking-skills> dkg:dependsOn <urn:larder:wardley-component-ask-grandma-grandpa> .
+<urn:larder:wardley-user-need-better-cooking-skills> dkg:dependsOn <urn:larder:wardley-component-ask-chef> .
+<urn:larder:wardley-user-need-better-cooking-skills> dkg:dependsOn <urn:larder:wardley-component-advanced-search> .
+<urn:larder:wardley-user-need-efficient-usage-of-groceries> dkg:dependsOn <urn:larder:wardley-component-refri-gerator> .
+<urn:larder:wardley-user-need-efficient-usage-of-groceries> dkg:dependsOn <urn:larder:wardley-component-nutrition> .
+<urn:larder:wardley-user-need-create-content> dkg:dependsOn <urn:larder:wardley-component-write-recipe> .
+<urn:larder:wardley-user-need-create-content> dkg:dependsOn <urn:larder:wardley-component-upload-media> .
+<urn:larder:wardley-user-need-rate-content> dkg:dependsOn larder:wardley-component-rate-content .
+<urn:larder:wardley-user-need-search-recipes-with-nutrition-meals> dkg:dependsOn <urn:larder:wardley-component-advanced-search> .
+<urn:larder:wardley-user-need-search-recipes-with-nutrition-meals> dkg:dependsOn <urn:larder:wardley-component-nutrition> .
+<urn:larder:wardley-user-need-search-recipes-with-nutrition-meals> dkg:dependsOn <urn:larder:wardley-component-meal> .
+<urn:larder:wardley-user-need-support-cooking> dkg:dependsOn <urn:larder:wardley-component-timer> .
+<urn:larder:wardley-user-need-support-cooking> dkg:dependsOn <urn:larder:wardley-component-free-hand-control> .
+<urn:larder:wardley-user-need-become-a-member> dkg:dependsOn <urn:larder:capability-member-management> .
+
+<urn:larder:wardley-component-ask-grandma-grandpa> dkg:dependsOn <urn:larder:wardley-component-specific-ai> .
+<urn:larder:wardley-component-ask-chef> dkg:dependsOn <urn:larder:wardley-component-remote-meeting> .
+<urn:larder:wardley-component-ask-chef> dkg:dependsOn <urn:larder:wardley-component-chat> .
+<urn:larder:wardley-component-ask-community> dkg:dependsOn <urn:larder:wardley-component-remote-meeting> .
+<urn:larder:wardley-component-ask-community> dkg:dependsOn <urn:larder:wardley-component-chat> .
+<urn:larder:wardley-component-advanced-search> dkg:dependsOn <urn:larder:wardley-component-recipe-database> .
+<urn:larder:wardley-component-advanced-search> dkg:dependsOn <urn:larder:wardley-component-gen-ai> .
+larder:wardley-component-rate-content dkg:dependsOn <urn:larder:wardley-component-rating-database> .
+<urn:larder:wardley-component-write-recipe> dkg:dependsOn <urn:larder:wardley-component-recipe-database> .
+<urn:larder:wardley-component-upload-media> dkg:dependsOn <urn:larder:wardley-component-media-storage> .
+<urn:larder:wardley-component-remote-meeting> dkg:dependsOn <urn:larder:wardley-component-cloud> .
+<urn:larder:wardley-component-chat> dkg:dependsOn <urn:larder:wardley-component-cloud> .
+<urn:larder:wardley-component-gen-ai> dkg:dependsOn <urn:larder:wardley-component-cloud> .
+<urn:larder:wardley-component-media-storage> dkg:dependsOn <urn:larder:wardley-component-cloud> .
+<urn:larder:wardley-component-timer> dkg:dependsOn <urn:larder:wardley-component-mobile> .
+<urn:larder:wardley-component-free-hand-control> dkg:dependsOn <urn:larder:wardley-component-mobile> .
+<urn:larder:capability-member-management> dkg:dependsOn <urn:larder:wardley-component-idm> .
+<urn:larder:wardley-component-idm> dkg:dependsOn <urn:larder:wardley-component-cloud> .
+<urn:larder:wardley-component-recipe-database> dkg:dependsOn <urn:larder:wardley-component-cloud> .
+<urn:larder:wardley-component-rating-database> dkg:dependsOn <urn:larder:wardley-component-cloud> .
+
+##############################################################################
+# Ingest: Domain Stories — 2026-09-10
+##############################################################################
+
+<urn:larder:domain-story-ask-chef> a dkg:Artifact, dkg:DomainStory ;
+    skos:prefLabel "Domain Story — Ask Chef" ;
+    rdfs:comment "Domain Story transcribed from 06a_DomainStoryAskChef.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+<urn:larder:story-actor-cook> a dkg:Actor ;
+    skos:prefLabel "Cook" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 1 / subject" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:story-work-object-dinner> a dkg:WorkObject ;
+    skos:prefLabel "Dinner" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 1 / object" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:story-actor-parents-in-law> a dkg:Actor ;
+    skos:prefLabel "Parents in Law" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 1 / relation with: Parents in Law" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:domain-story-ask-chef-sentence-1> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook plans Dinner with Parents in Law" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 1 ;
+    dkg:verb "plans" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-dinner> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-dinner> ;
+    dkg:mentions <urn:larder:story-actor-parents-in-law> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 2 / subject" .
+
+<urn:larder:story-work-object-help> a dkg:WorkObject ;
+    skos:prefLabel "Help" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 2 / object" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:story-work-object-meal-planning> a dkg:WorkObject ;
+    skos:prefLabel "Meal Planning" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 2 / relation for: Meal Planning" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:cluster-planner> ;
+    dkg:proposedSameAs <urn:larder:capability-planner> .
+
+<urn:larder:domain-story-ask-chef-sentence-2> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook needs Help for Meal Planning" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 2 ;
+    dkg:verb "needs" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-meal-planning> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 3 / subject" .
+
+<urn:larder:story-actor-chef> a dkg:Actor ;
+    skos:prefLabel "Chef" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 3 / object" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-partner-chefs> ;
+    dkg:proposedSameAs <urn:larder:wardley-component-ask-chef> .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 3 / relation for: Help" .
+
+<urn:larder:domain-story-ask-chef-sentence-3> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook asks Chef for Help" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 3 ;
+    dkg:verb "asks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-chef> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-chef> ;
+    dkg:mentions <urn:larder:story-work-object-help> .
+
+<urn:larder:story-actor-chef> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 4 / subject" .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 4 / object" .
+
+<urn:larder:story-work-object-dinner> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 4 / relation to plan: Dinner" .
+
+<urn:larder:domain-story-ask-chef-sentence-4> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Chef provides Help to plan Dinner" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 4" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 4 ;
+    dkg:verb "provides" ;
+    dkg:from <urn:larder:story-actor-chef> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:performedBy <urn:larder:story-actor-chef> ;
+    dkg:actsOn <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-dinner> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 5 / subject" .
+
+<urn:larder:story-work-object-meal> a dkg:WorkObject ;
+    skos:prefLabel "Meal" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 5 / object" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:wardley-component-meal> ;
+    dkg:proposedSameAs <urn:larder:idea-meal-chooser> .
+
+<urn:larder:story-work-object-pictures> a dkg:WorkObject ;
+    skos:prefLabel "Pictures" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 5 / relation and takes: Pictures" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:idea-making-photos> .
+
+<urn:larder:domain-story-ask-chef-sentence-5> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal and takes Pictures" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 5" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 5 ;
+    dkg:verb "prepares" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 6 / subject" .
+
+<urn:larder:story-actor-chef> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 6 / object" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 6 / relation and shares: Pictures" .
+
+<urn:larder:story-actor-community> a dkg:Actor ;
+    skos:prefLabel "Community" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 6 / relation with: Community" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:cluster-community> ;
+    dkg:proposedSameAs <urn:larder:capability-community-engagement> .
+
+<urn:larder:domain-story-ask-chef-sentence-6> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook thanks Chef and shares Pictures with Community" ;
+    dkg:source <urn:larder:domain-story-ask-chef> ;
+    dkg:locator "06a_DomainStoryAskChef.jpg / sentence 6" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 6 ;
+    dkg:verb "thanks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-chef> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-chef> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> ;
+    dkg:mentions <urn:larder:story-actor-community> .
+
+<urn:larder:domain-story-ask-chef-sentence-1> dkg:precedes <urn:larder:domain-story-ask-chef-sentence-2> .
+<urn:larder:domain-story-ask-chef-sentence-2> dkg:precedes <urn:larder:domain-story-ask-chef-sentence-3> .
+<urn:larder:domain-story-ask-chef-sentence-3> dkg:precedes <urn:larder:domain-story-ask-chef-sentence-4> .
+<urn:larder:domain-story-ask-chef-sentence-4> dkg:precedes <urn:larder:domain-story-ask-chef-sentence-5> .
+<urn:larder:domain-story-ask-chef-sentence-5> dkg:precedes <urn:larder:domain-story-ask-chef-sentence-6> .
+
+<urn:larder:domain-story-ask-community> a dkg:Artifact, dkg:DomainStory ;
+    skos:prefLabel "Domain Story — Ask Community" ;
+    rdfs:comment "Domain Story transcribed from 06b_DomainStoryAskCommunity.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 1 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 1 / object" .
+
+<urn:larder:domain-story-ask-community-sentence-1> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 1 ;
+    dkg:verb "prepares" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 2 / subject" .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 2 / object" .
+
+<urn:larder:story-work-object-ingredients> a dkg:WorkObject ;
+    skos:prefLabel "Ingredients" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 2 / relation with: Ingredients" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:idea-order-ingredients-directly> .
+
+<urn:larder:domain-story-ask-community-sentence-2> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook needs Help with Ingredients" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 2 ;
+    dkg:verb "needs" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-ingredients> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 3 / subject" .
+
+<urn:larder:story-actor-com-munity> a dkg:Actor ;
+    skos:prefLabel "Com-munity" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 3 / object" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-customer-relationship-com-munity> ;
+    dkg:proposedSameAs <urn:larder:cluster-community> .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 3 / relation for: Help" .
+
+<urn:larder:story-work-object-ingredients> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 3 / relation with: Ingredients" .
+
+<urn:larder:domain-story-ask-community-sentence-3> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook asks Com-munity for Help with Ingredients" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 3 ;
+    dkg:verb "asks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-com-munity> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-com-munity> ;
+    dkg:mentions <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-ingredients> .
+
+<urn:larder:story-actor-com-munity> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 4 / subject" .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 4 / object" .
+
+<urn:larder:story-work-object-ingredients-substitutes> a dkg:WorkObject ;
+    skos:prefLabel "Ingredients Substitutes" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 4 / relation with: Ingredients Substitutes" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:domain-story-ask-community-sentence-4> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Com-munity provides Help with Ingredients Substitutes" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 4" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 4 ;
+    dkg:verb "provides" ;
+    dkg:from <urn:larder:story-actor-com-munity> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:performedBy <urn:larder:story-actor-com-munity> ;
+    dkg:actsOn <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-ingredients-substitutes> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 5 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 5 / object" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 5 / relation and takes: Pictures" .
+
+<urn:larder:domain-story-ask-community-sentence-5> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal and takes Pictures" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 5" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 5 ;
+    dkg:verb "prepares" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 6 / subject" .
+
+<urn:larder:story-actor-com-munity> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 6 / object" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 6 / relation and shares: Pictures" .
+
+<urn:larder:story-actor-community> dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 6 / relation with: Community" .
+
+<urn:larder:domain-story-ask-community-sentence-6> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook thanks Com-munity and shares Pictures with Community" ;
+    dkg:source <urn:larder:domain-story-ask-community> ;
+    dkg:locator "06b_DomainStoryAskCommunity.jpg / sentence 6" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 6 ;
+    dkg:verb "thanks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-com-munity> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-com-munity> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> ;
+    dkg:mentions <urn:larder:story-actor-community> .
+
+<urn:larder:domain-story-ask-community-sentence-1> dkg:precedes <urn:larder:domain-story-ask-community-sentence-2> .
+<urn:larder:domain-story-ask-community-sentence-2> dkg:precedes <urn:larder:domain-story-ask-community-sentence-3> .
+<urn:larder:domain-story-ask-community-sentence-3> dkg:precedes <urn:larder:domain-story-ask-community-sentence-4> .
+<urn:larder:domain-story-ask-community-sentence-4> dkg:precedes <urn:larder:domain-story-ask-community-sentence-5> .
+<urn:larder:domain-story-ask-community-sentence-5> dkg:precedes <urn:larder:domain-story-ask-community-sentence-6> .
+
+<urn:larder:domain-story-competition> a dkg:Artifact, dkg:DomainStory ;
+    skos:prefLabel "Domain Story — Competition" ;
+    rdfs:comment "Domain Story transcribed from 06c_DomainStoryCompetition.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 1 / subject" .
+
+<urn:larder:story-work-object-meal-preparation-skill> a dkg:WorkObject ;
+    skos:prefLabel "Meal Preparation Skill" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 1 / object" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:story-actor-cooks> a dkg:Actor ;
+    skos:prefLabel "Cooks" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 1 / relation with other: Cooks" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:domain-story-competition-sentence-1> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook what to compare Meal Preparation Skill with other Cooks" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 1 ;
+    dkg:verb "what to compare" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal-preparation-skill> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal-preparation-skill> ;
+    dkg:mentions <urn:larder:story-actor-cooks> .
+
+<urn:larder:story-actor-community-administrator> a dkg:Actor ;
+    skos:prefLabel "Community Administrator" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 2 / subject" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:story-work-object-competition> a dkg:WorkObject ;
+    skos:prefLabel "Competition" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 2 / object" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:wardley-component-competitions> ;
+    dkg:proposedSameAs <urn:larder:idea-sponsor-contest> .
+
+<urn:larder:domain-story-competition-sentence-2> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Community Administrator plans Competition" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 2 ;
+    dkg:verb "plans" ;
+    dkg:from <urn:larder:story-actor-community-administrator> ;
+    dkg:to <urn:larder:story-work-object-competition> ;
+    dkg:performedBy <urn:larder:story-actor-community-administrator> ;
+    dkg:actsOn <urn:larder:story-work-object-competition> .
+
+<urn:larder:story-actor-community-administrator> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 3 / subject" .
+
+<urn:larder:story-work-object-recipe> a dkg:WorkObject ;
+    skos:prefLabel "Recipe" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 3 / object" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-recipes> .
+
+<urn:larder:story-work-object-preparation> a dkg:WorkObject ;
+    skos:prefLabel "Preparation" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 3 / relation for: Preparation" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:domain-story-competition-sentence-3> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Community Administrator selects Recipe for Preparation" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 3 ;
+    dkg:verb "selects" ;
+    dkg:from <urn:larder:story-actor-community-administrator> ;
+    dkg:to <urn:larder:story-work-object-recipe> ;
+    dkg:performedBy <urn:larder:story-actor-community-administrator> ;
+    dkg:actsOn <urn:larder:story-work-object-recipe> ;
+    dkg:mentions <urn:larder:story-work-object-preparation> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 3 / subject" .
+
+<urn:larder:story-work-object-competition> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 3 / object" .
+
+<urn:larder:domain-story-competition-sentence-3-2> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook registers for Competition" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 3 occurrence 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 3 ;
+    dkg:verb "registers for" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-competition> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-competition> .
+
+<urn:larder:story-actor-community-administrator> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4 / subject" .
+
+<urn:larder:story-actor-other-cooks> a dkg:Actor ;
+    skos:prefLabel "Other cooks" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4 / object" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:story-work-object-rating> a dkg:WorkObject ;
+    skos:prefLabel "Rating" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4 / relation for: Rating" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:idea-rating> ;
+    dkg:proposedSameAs <urn:larder:wardley-component-rate-content> .
+
+<urn:larder:domain-story-competition-sentence-4> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Community Administrator findes Other cooks for Rating" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 4 ;
+    dkg:verb "findes" ;
+    dkg:from <urn:larder:story-actor-community-administrator> ;
+    dkg:to <urn:larder:story-actor-other-cooks> ;
+    dkg:performedBy <urn:larder:story-actor-community-administrator> ;
+    dkg:actsOn <urn:larder:story-actor-other-cooks> ;
+    dkg:mentions <urn:larder:story-work-object-rating> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4 / object" .
+
+<urn:larder:story-work-object-online> a dkg:WorkObject ;
+    skos:prefLabel "online" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4 / relation and shares: online" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:domain-story-competition-sentence-4-2> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal and shares online" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 4 occurrence 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 4 ;
+    dkg:verb "prepares" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> ;
+    dkg:mentions <urn:larder:story-work-object-online> .
+
+<urn:larder:story-actor-other-cooks> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 5 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 5 / object" .
+
+<urn:larder:story-work-object-online> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 5 / relation and share: online" .
+
+<urn:larder:domain-story-competition-sentence-5> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Other cooks rate Meal and share online" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 5" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 5 ;
+    dkg:verb "rate" ;
+    dkg:from <urn:larder:story-actor-other-cooks> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-other-cooks> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> ;
+    dkg:mentions <urn:larder:story-work-object-online> .
+
+<urn:larder:story-actor-community-administrator> dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 6 / subject" .
+
+<urn:larder:story-actor-winner> a dkg:Actor ;
+    skos:prefLabel "Winner" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 6 / object" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:story-work-object-highest-rate> a dkg:WorkObject ;
+    skos:prefLabel "Highest rate" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 6 / relation with: Highest rate" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:domain-story-competition-sentence-6> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Community Administrator crowns Winner with Highest rate" ;
+    dkg:source <urn:larder:domain-story-competition> ;
+    dkg:locator "06c_DomainStoryCompetition.jpg / sentence 6" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 6 ;
+    dkg:verb "crowns" ;
+    dkg:from <urn:larder:story-actor-community-administrator> ;
+    dkg:to <urn:larder:story-actor-winner> ;
+    dkg:performedBy <urn:larder:story-actor-community-administrator> ;
+    dkg:actsOn <urn:larder:story-actor-winner> ;
+    dkg:mentions <urn:larder:story-work-object-highest-rate> .
+
+<urn:larder:domain-story-competition-sentence-1> dkg:precedes <urn:larder:domain-story-competition-sentence-2> .
+<urn:larder:domain-story-competition-sentence-2> dkg:precedes <urn:larder:domain-story-competition-sentence-3> .
+<urn:larder:domain-story-competition-sentence-3> dkg:precedes <urn:larder:domain-story-competition-sentence-3-2> .
+<urn:larder:domain-story-competition-sentence-3-2> dkg:precedes <urn:larder:domain-story-competition-sentence-4> .
+<urn:larder:domain-story-competition-sentence-4> dkg:precedes <urn:larder:domain-story-competition-sentence-4-2> .
+<urn:larder:domain-story-competition-sentence-4-2> dkg:precedes <urn:larder:domain-story-competition-sentence-5> .
+<urn:larder:domain-story-competition-sentence-5> dkg:precedes <urn:larder:domain-story-competition-sentence-6> .
+
+<urn:larder:domain-story-grandma> a dkg:Artifact, dkg:DomainStory ;
+    skos:prefLabel "Domain Story — Grandma" ;
+    rdfs:comment "Domain Story transcribed from 06d_DomainStoryGrandma.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 1 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 1 / object" .
+
+<urn:larder:domain-story-grandma-sentence-1> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 1 ;
+    dkg:verb "prepares" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 2 / subject" .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 2 / object" .
+
+<urn:larder:story-work-object-meal-preparation> a dkg:WorkObject ;
+    skos:prefLabel "Meal Preparation" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 2 / relation for: Meal Preparation" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:wardley-user-need-better-cooking-skills> .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 2 / relation and takes: Pictures" .
+
+<urn:larder:domain-story-grandma-sentence-2> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook needs Help for Meal Preparation and takes Pictures" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 2 ;
+    dkg:verb "needs" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-meal-preparation> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 3 / subject" .
+
+<urn:larder:story-actor-grandma-avatar> a dkg:Actor ;
+    skos:prefLabel "Grandma Avatar" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 3 / object" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-grandma-grandpa> ;
+    dkg:proposedSameAs <urn:larder:impact-deliverable-grandma-grandpa-ai> .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 3 / relation for: Help" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 3 / relation with: Pictures" .
+
+<urn:larder:domain-story-grandma-sentence-3> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook asks Grandma Avatar for Help with Pictures" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 3 ;
+    dkg:verb "asks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-grandma-avatar> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-grandma-avatar> ;
+    dkg:mentions <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> .
+
+<urn:larder:story-actor-grandma-avatar> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 4 / subject" .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 4 / object" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 4 / relation to prepare: Meal" .
+
+<urn:larder:domain-story-grandma-sentence-4> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Grandma Avatar provides Help to prepare Meal" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 4" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 4 ;
+    dkg:verb "provides" ;
+    dkg:from <urn:larder:story-actor-grandma-avatar> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:performedBy <urn:larder:story-actor-grandma-avatar> ;
+    dkg:actsOn <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-meal> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 5 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 5 / object" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 5 / relation and takes: Pictures" .
+
+<urn:larder:domain-story-grandma-sentence-5> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal and takes Pictures" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 5" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 5 ;
+    dkg:verb "prepares" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 6 / subject" .
+
+<urn:larder:story-actor-grandma> a dkg:Actor ;
+    skos:prefLabel "Grandma" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 6 / object" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:idea-ask-grandma> ;
+    dkg:proposedSameAs <urn:larder:capability-grandma-grandpa> .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 6 / relation and shares: Pictures" .
+
+<urn:larder:story-actor-community> dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 6 / relation with: Community" .
+
+<urn:larder:domain-story-grandma-sentence-6> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook thanks Grandma and shares Pictures with Community" ;
+    dkg:source <urn:larder:domain-story-grandma> ;
+    dkg:locator "06d_DomainStoryGrandma.jpg / sentence 6" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 6 ;
+    dkg:verb "thanks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-grandma> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-grandma> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> ;
+    dkg:mentions <urn:larder:story-actor-community> .
+
+<urn:larder:domain-story-grandma-sentence-1> dkg:precedes <urn:larder:domain-story-grandma-sentence-2> .
+<urn:larder:domain-story-grandma-sentence-2> dkg:precedes <urn:larder:domain-story-grandma-sentence-3> .
+<urn:larder:domain-story-grandma-sentence-3> dkg:precedes <urn:larder:domain-story-grandma-sentence-4> .
+<urn:larder:domain-story-grandma-sentence-4> dkg:precedes <urn:larder:domain-story-grandma-sentence-5> .
+<urn:larder:domain-story-grandma-sentence-5> dkg:precedes <urn:larder:domain-story-grandma-sentence-6> .
+
+<urn:larder:domain-story-grandma-ii> a dkg:Artifact, dkg:DomainStory ;
+    skos:prefLabel "Domain Story — Grandma II" ;
+    rdfs:comment "Domain Story transcribed from 06e_DomainStoryGrandmaII.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 1 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 1 / object" .
+
+<urn:larder:domain-story-grandma-ii-sentence-1> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 1 ;
+    dkg:verb "prepares" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 2 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 2 / object" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 2 / relation and takes: Pictures" .
+
+<urn:larder:domain-story-grandma-ii-sentence-2> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook burns Meal and takes Pictures" ;
+    dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 2" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 2 ;
+    dkg:verb "burns" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 3 / subject" .
+
+<urn:larder:story-actor-grandma-avatar> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 3 / object" .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 3 / relation for: Help" .
+
+<urn:larder:story-work-object-catastrophe-pictures> a dkg:WorkObject ;
+    skos:prefLabel "Catastrophe Pictures" ;
+    dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 3 / relation with: Catastrophe Pictures" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:domain-story-grandma-ii-sentence-3> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook asks Grandma Avatar for Help with Catastrophe Pictures" ;
+    dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 3 ;
+    dkg:verb "asks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-grandma-avatar> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-grandma-avatar> ;
+    dkg:mentions <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-catastrophe-pictures> .
+
+<urn:larder:story-actor-grandma-avatar> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 4 / subject" .
+
+<urn:larder:story-work-object-help> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 4 / object" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 4 / relation to rescue: Meal" .
+
+<urn:larder:domain-story-grandma-ii-sentence-4> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Grandma Avatar provides Help to rescue Meal" ;
+    dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 4" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 4 ;
+    dkg:verb "provides" ;
+    dkg:from <urn:larder:story-actor-grandma-avatar> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:performedBy <urn:larder:story-actor-grandma-avatar> ;
+    dkg:actsOn <urn:larder:story-work-object-help> ;
+    dkg:mentions <urn:larder:story-work-object-meal> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 5 / subject" .
+
+<urn:larder:story-work-object-meal> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 5 / object" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 5 / relation and takes: Pictures" .
+
+<urn:larder:domain-story-grandma-ii-sentence-5> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook rescues Meal and takes Pictures" ;
+    dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 5" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 5 ;
+    dkg:verb "rescues" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-work-object-meal> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> .
+
+<urn:larder:story-actor-cook> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 6 / subject" .
+
+<urn:larder:story-actor-grandma-avatar> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 6 / object" .
+
+<urn:larder:story-work-object-pictures> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 6 / relation and shares: Pictures" .
+
+<urn:larder:story-actor-community> dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 6 / relation with: Community" .
+
+<urn:larder:domain-story-grandma-ii-sentence-6> a dkg:Node, dkg:Sentence ;
+    skos:prefLabel "Cook thanks Grandma Avatar and shares Pictures with Community" ;
+    dkg:source <urn:larder:domain-story-grandma-ii> ;
+    dkg:locator "06e_DomainStoryGrandmaII.jpg / sentence 6" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:sequence 6 ;
+    dkg:verb "thanks" ;
+    dkg:from <urn:larder:story-actor-cook> ;
+    dkg:to <urn:larder:story-actor-grandma-avatar> ;
+    dkg:performedBy <urn:larder:story-actor-cook> ;
+    dkg:actsOn <urn:larder:story-actor-grandma-avatar> ;
+    dkg:mentions <urn:larder:story-work-object-pictures> ;
+    dkg:mentions <urn:larder:story-actor-community> .
+
+<urn:larder:domain-story-grandma-ii-sentence-1> dkg:precedes <urn:larder:domain-story-grandma-ii-sentence-2> .
+<urn:larder:domain-story-grandma-ii-sentence-2> dkg:precedes <urn:larder:domain-story-grandma-ii-sentence-3> .
+<urn:larder:domain-story-grandma-ii-sentence-3> dkg:precedes <urn:larder:domain-story-grandma-ii-sentence-4> .
+<urn:larder:domain-story-grandma-ii-sentence-4> dkg:precedes <urn:larder:domain-story-grandma-ii-sentence-5> .
+<urn:larder:domain-story-grandma-ii-sentence-5> dkg:precedes <urn:larder:domain-story-grandma-ii-sentence-6> .
+
+##############################################################################
+# Ingest: EventStorming Board — 2026-09-10
+##############################################################################
+
+<urn:larder:eventstorming-board-2026-09-10> a dkg:Artifact, dkg:EventStormingBoard ;
+    skos:prefLabel "Larder EventStorming Board" ;
+    rdfs:comment "EventStorming board transcribed from 07_EventStormingBoardWithBcs.jpg." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+<urn:larder:es-context-cook-profile> a dkg:BoundedContext ;
+    skos:prefLabel "Cook Profile" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / bounded context: Cook Profile" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:es-context-meal-planning> a dkg:BoundedContext ;
+    skos:prefLabel "Meal Planning" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / bounded context: Meal Planning" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-meal-planning> .
+
+<urn:larder:es-context-cooking-assistance> a dkg:BoundedContext ;
+    skos:prefLabel "Cooking Assistance" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / bounded context: Cooking Assistance" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:es-context-meal-preparation> a dkg:BoundedContext ;
+    skos:prefLabel "Meal Preparation" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / bounded context: Meal Preparation" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-meal-preparation> .
+
+<urn:larder:es-context-media> a dkg:BoundedContext ;
+    skos:prefLabel "Media" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / bounded context: Media" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-media> .
+
+<urn:larder:es-context-sharing> a dkg:BoundedContext ;
+    skos:prefLabel "Sharing" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / bounded context: Sharing" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:capability-lane-sharing> .
+
+<urn:larder:es-command-register-cook> a dkg:Command ;
+    skos:prefLabel "Register cook" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cook Profile / Command: Register cook" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cook-profile> .
+
+<urn:larder:es-domainevent-cook-registered> a dkg:DomainEvent ;
+    skos:prefLabel "Cook registered" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cook Profile / DomainEvent: Cook registered" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cook-profile> .
+
+<urn:larder:story-actor-cook> a dkg:Actor ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cook Profile / Actor: Cook" ;
+    dkg:inContext <urn:larder:es-context-cook-profile> .
+
+<urn:larder:es-actor-user> a dkg:Actor ;
+    skos:prefLabel "User" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cook Profile / Actor: User" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cook-profile> .
+
+<urn:larder:es-readmodel-user> a dkg:ReadModel ;
+    skos:prefLabel "User" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cook Profile / ReadModel: User" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cook-profile> .
+
+<urn:larder:es-aggregate-cook> a dkg:Aggregate ;
+    skos:prefLabel "Cook" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cook Profile / Aggregate: Cook" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cook-profile> .
+
+<urn:larder:es-command-plan-dinner> a dkg:Command ;
+    skos:prefLabel "Plan dinner" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / Command: Plan dinner" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-command-search-recipes> a dkg:Command ;
+    skos:prefLabel "Search recipes" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / Command: Search recipes" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-command-search-ingredients> a dkg:Command ;
+    skos:prefLabel "Search Ingredients" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / Command: Search Ingredients" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-command-prepare-meal> a dkg:Command ;
+    skos:prefLabel "Prepare meal" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / Command: Prepare meal" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-domainevent-dinner-planned> a dkg:DomainEvent ;
+    skos:prefLabel "Dinner planned" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / DomainEvent: Dinner planned" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-domainevent-recipes-searched> a dkg:DomainEvent ;
+    skos:prefLabel "Recipes searched" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / DomainEvent: Recipes searched" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-domainevent-recipe-selected> a dkg:DomainEvent ;
+    skos:prefLabel "Recipe selected" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / DomainEvent: Recipe selected" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-domainevent-ingredients-missing> a dkg:DomainEvent ;
+    skos:prefLabel "Ingredients missing" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / DomainEvent: Ingredients missing" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-domainevent-meal-planning-stalled> a dkg:DomainEvent ;
+    skos:prefLabel "Meal planning stalled" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / DomainEvent: Meal planning stalled" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:story-actor-cook> dkg:inContext <urn:larder:es-context-meal-planning> ;
+    dkg:locator "EventStorming Board / Meal Planning / Actor: Cook" .
+
+<urn:larder:es-readmodel-guests> a dkg:ReadModel ;
+    skos:prefLabel "Guests" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / ReadModel: Guests" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-readmodel-recipe-catalog> a dkg:ReadModel ;
+    skos:prefLabel "Recipe Catalog" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / ReadModel: Recipe Catalog" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> ;
+    dkg:proposedSameAs <urn:larder:bmc-key-resource-recipes> .
+
+<urn:larder:story-work-object-recipe> a dkg:ReadModel ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / ReadModel: Recipe" ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-readmodel-menu> a dkg:ReadModel ;
+    skos:prefLabel "Menu" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / ReadModel: Menu" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-aggregate-menu> a dkg:Aggregate ;
+    skos:prefLabel "Menu" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Planning / Aggregate: Menu" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-planning> .
+
+<urn:larder:es-command-request-help> a dkg:Command ;
+    skos:prefLabel "Request help" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Command: Request help" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-command-provide-help> a dkg:Command ;
+    skos:prefLabel "Provide help" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Command: Provide help" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-command-substitute-ingredients> a dkg:Command ;
+    skos:prefLabel "Substitute ingredients" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Command: Substitute ingredients" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-command-plan-meal> a dkg:Command ;
+    skos:prefLabel "Plan meal" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Command: Plan meal" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-domainevent-help-requested> a dkg:DomainEvent ;
+    skos:prefLabel "Help requested" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / DomainEvent: Help requested" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-domainevent-help-provided> a dkg:DomainEvent ;
+    skos:prefLabel "Help provided" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / DomainEvent: Help provided" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-domainevent-ingredients-substituted> a dkg:DomainEvent ;
+    skos:prefLabel "Ingredients substituted" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / DomainEvent: Ingredients substituted" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-domainevent-plan-settled> a dkg:DomainEvent ;
+    skos:prefLabel "plan settled" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / DomainEvent: plan settled" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:story-actor-cook> dkg:inContext <urn:larder:es-context-cooking-assistance> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Actor: Cook" .
+
+<urn:larder:es-actor-com-munity-cook> a dkg:Actor ;
+    skos:prefLabel "Com munity Cook" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Actor: Com munity Cook" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> ;
+    dkg:proposedSameAs <urn:larder:story-actor-com-munity> ;
+    dkg:proposedSameAs <urn:larder:story-actor-community> ;
+    dkg:proposedSameAs <urn:larder:capability-community-engagement> .
+
+<urn:larder:story-actor-chef> a dkg:Actor ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Actor: Chef" ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:story-work-object-ingredients> a dkg:ReadModel ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / ReadModel: Ingredients" ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-readmodel-menu> dkg:inContext <urn:larder:es-context-cooking-assistance> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / ReadModel: Menu" .
+
+<urn:larder:es-readmodel-help-request> a dkg:ReadModel ;
+    skos:prefLabel "Help request" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / ReadModel: Help request" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> ;
+    dkg:proposedSameAs <urn:larder:story-work-object-help> .
+
+<urn:larder:story-work-object-recipe> dkg:inContext <urn:larder:es-context-cooking-assistance> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / ReadModel: Recipe" .
+
+<urn:larder:es-readmodel-help-response> a dkg:ReadModel ;
+    skos:prefLabel "Help Response" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / ReadModel: Help Response" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> ;
+    dkg:proposedSameAs <urn:larder:story-work-object-help> .
+
+<urn:larder:es-aggregate-help-request> a dkg:Aggregate ;
+    skos:prefLabel "Help request" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Aggregate: Help request" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-aggregate-help-response> a dkg:Aggregate ;
+    skos:prefLabel "Help response" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Aggregate: Help response" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:story-work-object-ingredients> a dkg:Aggregate ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Aggregate: Ingredients" ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-aggregate-meal-plan> a dkg:Aggregate ;
+    skos:prefLabel "Meal plan" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / Aggregate: Meal plan" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> ;
+    dkg:proposedSameAs <urn:larder:story-work-object-meal-planning> ;
+    dkg:proposedSameAs <urn:larder:cluster-planner> ;
+    dkg:proposedSameAs <urn:larder:capability-planner> .
+
+<urn:larder:story-actor-grandma-avatar> a dkg:ExternalSystem ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Cooking Assistance / ExternalSystem: Grandma Avatar" ;
+    dkg:inContext <urn:larder:es-context-cooking-assistance> .
+
+<urn:larder:es-command-prepare-meal> dkg:inContext <urn:larder:es-context-meal-preparation> ;
+    dkg:locator "EventStorming Board / Meal Preparation / Command: Prepare meal" .
+
+<urn:larder:es-domainevent-meal-preparation-started> a dkg:DomainEvent ;
+    skos:prefLabel "Meal preparation started" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / DomainEvent: Meal preparation started" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> .
+
+<urn:larder:es-domainevent-step-unclear> a dkg:DomainEvent ;
+    skos:prefLabel "Step unclear" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / DomainEvent: Step unclear" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> .
+
+<urn:larder:es-domainevent-catastrophe-happened> a dkg:DomainEvent ;
+    skos:prefLabel "Catastrophe happened" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / DomainEvent: Catastrophe happened" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> .
+
+<urn:larder:es-domainevent-step-competed> a dkg:DomainEvent ;
+    skos:prefLabel "Step competed" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / DomainEvent: Step competed" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> .
+
+<urn:larder:es-domainevent-meal-rescued> a dkg:DomainEvent ;
+    skos:prefLabel "Meal rescued" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / DomainEvent: Meal rescued" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> .
+
+<urn:larder:es-domainevent-meal-prepared> a dkg:DomainEvent ;
+    skos:prefLabel "Meal prepared" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / DomainEvent: Meal prepared" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> .
+
+<urn:larder:story-actor-cook> dkg:inContext <urn:larder:es-context-meal-preparation> ;
+    dkg:locator "EventStorming Board / Meal Preparation / Actor: Cook" .
+
+<urn:larder:story-work-object-recipe> dkg:inContext <urn:larder:es-context-meal-preparation> ;
+    dkg:locator "EventStorming Board / Meal Preparation / ReadModel: Recipe" .
+
+<urn:larder:es-readmodel-catastrophe> a dkg:ReadModel ;
+    skos:prefLabel "Catastrophe" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / ReadModel: Catastrophe" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> ;
+    dkg:proposedSameAs <urn:larder:story-work-object-catastrophe-pictures> .
+
+<urn:larder:es-readmodel-help-response> a dkg:ReadModel ;
+    skos:prefLabel "Help response" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Meal Preparation / ReadModel: Help response" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-meal-preparation> ;
+    dkg:proposedSameAs <urn:larder:story-work-object-help> .
+
+<urn:larder:es-command-take-pictures> a dkg:Command ;
+    skos:prefLabel "Take pictures" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Media / Command: Take pictures" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-media> .
+
+<urn:larder:es-domainevent-pictures-taken> a dkg:DomainEvent ;
+    skos:prefLabel "Pictures taken" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Media / DomainEvent: Pictures taken" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-media> .
+
+<urn:larder:story-actor-cook> dkg:inContext <urn:larder:es-context-media> ;
+    dkg:locator "EventStorming Board / Media / Actor: Cook" .
+
+<urn:larder:es-readmodel-catastrophe> dkg:inContext <urn:larder:es-context-media> ;
+    dkg:locator "EventStorming Board / Media / ReadModel: Catastrophe" .
+
+<urn:larder:story-work-object-recipe> dkg:inContext <urn:larder:es-context-media> ;
+    dkg:locator "EventStorming Board / Media / ReadModel: Recipe" .
+
+<urn:larder:story-work-object-pictures> a dkg:ReadModel ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Media / ReadModel: Pictures" ;
+    dkg:inContext <urn:larder:es-context-media> .
+
+<urn:larder:story-work-object-pictures> a dkg:Aggregate ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Media / Aggregate: Pictures" ;
+    dkg:inContext <urn:larder:es-context-media> .
+
+<urn:larder:es-command-provide-thanks> a dkg:Command ;
+    skos:prefLabel "Provide thanks" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Sharing / Command: Provide thanks" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-sharing> .
+
+<urn:larder:es-domainevent-thanks-given> a dkg:DomainEvent ;
+    skos:prefLabel "Thanks given" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Sharing / DomainEvent: Thanks given" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-sharing> .
+
+<urn:larder:story-actor-cook> dkg:inContext <urn:larder:es-context-sharing> ;
+    dkg:locator "EventStorming Board / Sharing / Actor: Cook" .
+
+<urn:larder:es-readmodel-help-provider> a dkg:ReadModel ;
+    skos:prefLabel "Help provider" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Sharing / ReadModel: Help provider" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-sharing> ;
+    dkg:proposedSameAs <urn:larder:story-actor-chef> ;
+    dkg:proposedSameAs <urn:larder:story-actor-grandma-avatar> .
+
+<urn:larder:story-work-object-pictures> dkg:inContext <urn:larder:es-context-sharing> ;
+    dkg:locator "EventStorming Board / Sharing / ReadModel: Pictures" .
+
+<urn:larder:es-aggregate-thanks> a dkg:Aggregate ;
+    skos:prefLabel "Thanks" ;
+    dkg:source <urn:larder:eventstorming-board-2026-09-10> ;
+    dkg:locator "EventStorming Board / Sharing / Aggregate: Thanks" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:inContext <urn:larder:es-context-sharing> .
+
+<urn:larder:es-command-register-cook> dkg:triggers <urn:larder:es-domainevent-cook-registered> .
+<urn:larder:es-command-plan-dinner> dkg:triggers <urn:larder:es-domainevent-dinner-planned> .
+<urn:larder:es-command-search-recipes> dkg:triggers <urn:larder:es-domainevent-recipes-searched> .
+<urn:larder:es-command-search-recipes> dkg:triggers <urn:larder:es-domainevent-recipe-selected> .
+<urn:larder:es-command-search-ingredients> dkg:triggers <urn:larder:es-domainevent-ingredients-missing> .
+<urn:larder:es-command-prepare-meal> dkg:triggers <urn:larder:es-domainevent-meal-planning-stalled> .
+<urn:larder:es-command-request-help> dkg:triggers <urn:larder:es-domainevent-help-requested> .
+<urn:larder:es-command-provide-help> dkg:triggers <urn:larder:es-domainevent-help-provided> .
+<urn:larder:es-command-substitute-ingredients> dkg:triggers <urn:larder:es-domainevent-ingredients-substituted> .
+<urn:larder:es-command-plan-meal> dkg:triggers <urn:larder:es-domainevent-plan-settled> .
+<urn:larder:es-command-prepare-meal> dkg:triggers <urn:larder:es-domainevent-meal-preparation-started> .
+<urn:larder:es-command-prepare-meal> dkg:triggers <urn:larder:es-domainevent-step-unclear> .
+<urn:larder:es-command-prepare-meal> dkg:triggers <urn:larder:es-domainevent-catastrophe-happened> .
+<urn:larder:es-command-prepare-meal> dkg:triggers <urn:larder:es-domainevent-step-competed> .
+<urn:larder:es-command-prepare-meal> dkg:triggers <urn:larder:es-domainevent-meal-rescued> .
+<urn:larder:es-command-prepare-meal> dkg:triggers <urn:larder:es-domainevent-meal-prepared> .
+<urn:larder:es-command-take-pictures> dkg:triggers <urn:larder:es-domainevent-pictures-taken> .
+<urn:larder:es-command-provide-thanks> dkg:triggers <urn:larder:es-domainevent-thanks-given> .
+
+<urn:larder:es-command-plan-dinner> dkg:reads <urn:larder:es-readmodel-guests> .
+<urn:larder:es-command-search-recipes> dkg:reads <urn:larder:es-readmodel-recipe-catalog> .
+<urn:larder:es-command-search-recipes> dkg:reads <urn:larder:story-work-object-recipe> .
+<urn:larder:es-command-search-ingredients> dkg:reads <urn:larder:story-work-object-recipe> .
+<urn:larder:es-command-prepare-meal> dkg:reads <urn:larder:story-work-object-recipe> .
+<urn:larder:es-command-prepare-meal> dkg:reads <urn:larder:es-readmodel-help-response> .
+<urn:larder:es-command-request-help> dkg:reads <urn:larder:story-work-object-ingredients> .
+<urn:larder:es-command-request-help> dkg:reads <urn:larder:es-readmodel-menu> .
+<urn:larder:es-command-request-help> dkg:reads <urn:larder:es-readmodel-help-request> .
+<urn:larder:es-command-request-help> dkg:reads <urn:larder:es-readmodel-catastrophe> .
+<urn:larder:es-command-request-help> dkg:reads <urn:larder:story-work-object-recipe> .
+<urn:larder:es-command-request-help> dkg:reads <urn:larder:story-work-object-pictures> .
+<urn:larder:es-command-provide-help> dkg:reads <urn:larder:es-readmodel-help-request> .
+<urn:larder:es-command-substitute-ingredients> dkg:reads <urn:larder:story-work-object-recipe> .
+<urn:larder:es-command-substitute-ingredients> dkg:reads <urn:larder:es-readmodel-menu> .
+<urn:larder:es-command-substitute-ingredients> dkg:reads <urn:larder:es-readmodel-help-response> .
+<urn:larder:es-command-plan-meal> dkg:reads <urn:larder:es-readmodel-menu> .
+<urn:larder:es-command-plan-meal> dkg:reads <urn:larder:es-readmodel-help-response> .
+<urn:larder:es-command-take-pictures> dkg:reads <urn:larder:es-readmodel-catastrophe> .
+<urn:larder:es-command-take-pictures> dkg:reads <urn:larder:story-work-object-recipe> .
+<urn:larder:es-command-take-pictures> dkg:reads <urn:larder:story-work-object-pictures> .
+<urn:larder:es-command-provide-thanks> dkg:reads <urn:larder:es-readmodel-help-provider> .
+<urn:larder:es-command-provide-thanks> dkg:reads <urn:larder:story-work-object-pictures> .
+
+<urn:larder:es-command-register-cook> dkg:performedBy <urn:larder:es-actor-user> .
+<urn:larder:es-command-plan-dinner> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-search-recipes> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-search-ingredients> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-prepare-meal> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-request-help> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-provide-help> dkg:performedBy <urn:larder:es-actor-com-munity-cook> .
+<urn:larder:es-command-provide-help> dkg:performedBy <urn:larder:story-actor-chef> .
+<urn:larder:es-command-provide-help> dkg:performedBy <urn:larder:story-actor-grandma-avatar> .
+<urn:larder:es-command-substitute-ingredients> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-plan-meal> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-take-pictures> dkg:performedBy <urn:larder:story-actor-cook> .
+<urn:larder:es-command-provide-thanks> dkg:performedBy <urn:larder:story-actor-cook> .
+
+<urn:larder:es-command-register-cook> dkg:actsOn <urn:larder:es-aggregate-cook> .
+<urn:larder:es-command-plan-dinner> dkg:actsOn <urn:larder:es-aggregate-menu> .
+<urn:larder:es-command-search-recipes> dkg:actsOn <urn:larder:es-aggregate-menu> .
+<urn:larder:es-command-search-ingredients> dkg:actsOn <urn:larder:es-aggregate-menu> .
+<urn:larder:es-command-request-help> dkg:actsOn <urn:larder:es-aggregate-help-request> .
+<urn:larder:es-command-provide-help> dkg:actsOn <urn:larder:es-aggregate-help-response> .
+<urn:larder:es-command-substitute-ingredients> dkg:actsOn <urn:larder:story-work-object-ingredients> .
+<urn:larder:es-command-plan-meal> dkg:actsOn <urn:larder:es-aggregate-meal-plan> .
+<urn:larder:es-command-take-pictures> dkg:actsOn <urn:larder:story-work-object-pictures> .
+<urn:larder:es-command-provide-thanks> dkg:actsOn <urn:larder:es-aggregate-thanks> .
+
+##############################################################################
+# Ingest: Visual Glossary — 2026-09-10
+##############################################################################
+
+<urn:larder:visual-glossary-2026-09-10> a dkg:Artifact, dkg:VisualGlossary ;
+    skos:prefLabel "Larder Visual Glossary" ;
+    rdfs:comment "Visual Glossary transcribed from 08_VisualGlossaryEnhanced.jpg. Visible [+] markers are treated as AggregateRoot markers; all relationship verbs and cardinalities are preserved verbatim." ;
+    dkg:ingestedAt "2026-09-10"^^xsd:date .
+
+<urn:larder:story-work-object-dinner> a dkg:AggregateRoot ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Dinner / [+]" .
+
+<urn:larder:es-readmodel-menu> a dkg:AggregateRoot ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Menu / [+]" .
+
+<urn:larder:vg-term-course> a dkg:AggregateRoot ;
+    skos:prefLabel "Course" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Course / [+]" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:es-readmodel-help-provider> a dkg:AggregateRoot ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Help provider / [+]" .
+
+<urn:larder:vg-term-chef> a dkg:AggregateRoot ;
+    skos:prefLabel "Chef" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Chef / [+]" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-actor-chef> ;
+    dkg:proposedSameAs <urn:larder:bmc-key-partner-chefs> .
+
+<urn:larder:vg-term-help-meal-plan> a dkg:AggregateRoot ;
+    skos:prefLabel "Help Meal plan" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Help Meal plan / [+]" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-meal-planning> ;
+    dkg:proposedSameAs <urn:larder:es-aggregate-meal-plan> .
+
+<urn:larder:vg-term-menu-proposal> a dkg:AggregateRoot ;
+    skos:prefLabel "Menu proposal" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Menu proposal / [+]" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:es-aggregate-cook> a dkg:Term ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Cook" .
+
+<urn:larder:vg-term-community> a dkg:Term ;
+    skos:prefLabel "Community" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Community" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-actor-community> ;
+    dkg:proposedSameAs <urn:larder:cluster-community> .
+
+<urn:larder:vg-term-grandma-avatar> a dkg:Term ;
+    skos:prefLabel "Grandma Avatar" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Grandma Avatar" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-actor-grandma-avatar> .
+
+<urn:larder:story-work-object-meal> a dkg:Term ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Meal" .
+
+<urn:larder:vg-term-help-request> a dkg:Term ;
+    skos:prefLabel "Help Request" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Help Request" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:es-readmodel-help-request> ;
+    dkg:proposedSameAs <urn:larder:es-aggregate-help-request> .
+
+<urn:larder:story-work-object-help> a dkg:Term ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Help" .
+
+<urn:larder:vg-term-picture> a dkg:Term ;
+    skos:prefLabel "Picture" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Picture" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-pictures> .
+
+<urn:larder:es-aggregate-thanks> a dkg:Term ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Thanks" .
+
+<urn:larder:story-work-object-recipe> a dkg:Term ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Recipe" .
+
+<urn:larder:vg-term-meal-preparation-catastrophe> a dkg:Term ;
+    skos:prefLabel "Meal Preparation Catastrophe" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Meal Preparation Catastrophe" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-catastrophe-pictures> ;
+    dkg:proposedSameAs <urn:larder:es-readmodel-catastrophe> .
+
+<urn:larder:vg-term-help-for-meal-preparation-step> a dkg:Term ;
+    skos:prefLabel "Help for Meal Preparation Step" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Help for Meal Preparation Step" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-meal-preparation> .
+
+<urn:larder:vg-term-help-with-ingredients> a dkg:Term ;
+    skos:prefLabel "Help with Ingredients" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Help with Ingredients" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:vg-term-ingredient-substitute> a dkg:Term ;
+    skos:prefLabel "Ingredient Substitute" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Ingredient Substitute" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-ingredients-substitutes> .
+
+<urn:larder:vg-term-preparation-step-explanation> a dkg:Term ;
+    skos:prefLabel "Preparation Step Explanation" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Preparation Step Explanation" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:vg-term-steps-to-mitigate-catastrophe> a dkg:Term ;
+    skos:prefLabel "Steps to Mitigate Catastrophe" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Steps to Mitigate Catastrophe" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:vg-term-ingredient> a dkg:Term ;
+    skos:prefLabel "Ingredient" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Ingredient" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:proposedSameAs <urn:larder:story-work-object-ingredients> .
+
+<urn:larder:vg-term-step> a dkg:Term ;
+    skos:prefLabel "Step" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Step" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:vg-term-substitute> a dkg:Term ;
+    skos:prefLabel "Substitute" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / term: Substitute" ;
+    dkg:confidence dkg:OnArtifact .
+
+<urn:larder:vg-relationship-01-dinner-has-menu> a dkg:Relationship ;
+    skos:prefLabel "Dinner has Menu" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Dinner --has--> Menu / cardinality 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-dinner> ;
+    dkg:to <urn:larder:es-readmodel-menu> ;
+    dkg:verb "has" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1" .
+
+<urn:larder:vg-relationship-02-menu-has-course> a dkg:Relationship ;
+    skos:prefLabel "Menu has Course" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Menu --has--> Course / cardinality 1..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:es-readmodel-menu> ;
+    dkg:to <urn:larder:vg-term-course> ;
+    dkg:verb "has" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..*" .
+
+<urn:larder:vg-relationship-03-course-contains-meal> a dkg:Relationship ;
+    skos:prefLabel "Course contains Meal" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Course --contains--> Meal / cardinality 1..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-course> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..*" .
+
+<urn:larder:vg-relationship-04-cook-prepares-meal> a dkg:Relationship ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Cook --prepares--> Meal / cardinality 0..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:es-aggregate-cook> ;
+    dkg:to <urn:larder:story-work-object-meal> ;
+    dkg:verb "prepares" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..*" .
+
+<urn:larder:vg-relationship-05-community-contains-cook> a dkg:Relationship ;
+    skos:prefLabel "Community contains Cook" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Community --contains--> Cook / cardinality 1..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-community> ;
+    dkg:to <urn:larder:es-aggregate-cook> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..*" .
+
+<urn:larder:vg-relationship-06-cook-posts-help-request> a dkg:Relationship ;
+    skos:prefLabel "Cook posts Help Request" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Cook --posts--> Help Request / cardinality 0..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:es-aggregate-cook> ;
+    dkg:to <urn:larder:vg-term-help-request> ;
+    dkg:verb "posts" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..*" .
+
+<urn:larder:vg-relationship-07-cook-posts-thanks> a dkg:Relationship ;
+    skos:prefLabel "Cook posts Thanks" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Cook --posts--> Thanks / cardinality 0..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:es-aggregate-cook> ;
+    dkg:to <urn:larder:es-aggregate-thanks> ;
+    dkg:verb "posts" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..*" .
+
+<urn:larder:vg-relationship-08-meal-with-recipe> a dkg:Relationship ;
+    skos:prefLabel "Meal with Recipe" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Meal --with--> Recipe / cardinality 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-meal> ;
+    dkg:to <urn:larder:story-work-object-recipe> ;
+    dkg:verb "with" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1" .
+
+<urn:larder:vg-relationship-09-recipe-contains-ingredient> a dkg:Relationship ;
+    skos:prefLabel "Recipe contains Ingredient" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Recipe --contains--> Ingredient / cardinality 1..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-recipe> ;
+    dkg:to <urn:larder:vg-term-ingredient> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..*" .
+
+<urn:larder:vg-relationship-10-recipe-contains-step> a dkg:Relationship ;
+    skos:prefLabel "Recipe contains Step" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Recipe --contains--> Step / cardinality 1..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-recipe> ;
+    dkg:to <urn:larder:vg-term-step> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..*" .
+
+<urn:larder:vg-relationship-11-step-needs-ingredient> a dkg:Relationship ;
+    skos:prefLabel "Step needs Ingredient" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Step --needs--> Ingredient" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-step> ;
+    dkg:to <urn:larder:vg-term-ingredient> ;
+    dkg:verb "needs" ;
+    dkg:cardinalityGiven false .
+
+<urn:larder:vg-relationship-12-substitute-is-ingredient> a dkg:Relationship ;
+    skos:prefLabel "Substitute is Ingredient" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Substitute --is--> Ingredient / cardinality 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-substitute> ;
+    dkg:to <urn:larder:vg-term-ingredient> ;
+    dkg:verb "is" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1" .
+
+<urn:larder:vg-relationship-13-community-provides-help> a dkg:Relationship ;
+    skos:prefLabel "Community provides Help" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Community --provides--> Help / cardinality 0..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-community> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:verb "provides" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..*" .
+
+<urn:larder:vg-relationship-14-grandma-avatar-provides-help> a dkg:Relationship ;
+    skos:prefLabel "Grandma Avatar provides Help" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Grandma Avatar --provides--> Help / cardinality 0..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-grandma-avatar> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:verb "provides" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..*" .
+
+<urn:larder:vg-relationship-15-chef-provides-help> a dkg:Relationship ;
+    skos:prefLabel "Chef provides Help" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Chef --provides--> Help / cardinality 0..*" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-chef> ;
+    dkg:to <urn:larder:story-work-object-help> ;
+    dkg:verb "provides" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..*" .
+
+<urn:larder:vg-relationship-16-grandma-avatar-is-help-provider> a dkg:Relationship ;
+    skos:prefLabel "Grandma Avatar is Help provider" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Grandma Avatar --is--> Help provider" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-grandma-avatar> ;
+    dkg:to <urn:larder:es-readmodel-help-provider> ;
+    dkg:verb "is" ;
+    dkg:cardinalityGiven false .
+
+<urn:larder:vg-relationship-17-chef-is-help-provider> a dkg:Relationship ;
+    skos:prefLabel "Chef is Help provider" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Chef --is--> Help provider" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-chef> ;
+    dkg:to <urn:larder:es-readmodel-help-provider> ;
+    dkg:verb "is" ;
+    dkg:cardinalityGiven false .
+
+<urn:larder:vg-relationship-18-help-for-help-request> a dkg:Relationship ;
+    skos:prefLabel "Help for Help Request" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help --for--> Help Request / cardinality 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-help> ;
+    dkg:to <urn:larder:vg-term-help-request> ;
+    dkg:verb "for" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1" .
+
+<urn:larder:vg-relationship-19-help-request-contains-picture> a dkg:Relationship ;
+    skos:prefLabel "Help Request contains Picture" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help Request --contains--> Picture / cardinality 0..10" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-help-request> ;
+    dkg:to <urn:larder:vg-term-picture> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..10" .
+
+<urn:larder:vg-relationship-20-help-contains-picture> a dkg:Relationship ;
+    skos:prefLabel "Help contains Picture" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help --contains--> Picture / cardinality 0..10" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-help> ;
+    dkg:to <urn:larder:vg-term-picture> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "0..10" .
+
+<urn:larder:vg-relationship-21-meal-preparation-catastrophe-is-help-request> a dkg:Relationship ;
+    skos:prefLabel "Meal Preparation Catastrophe is Help Request" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Meal Preparation Catastrophe --is--> Help Request" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-meal-preparation-catastrophe> ;
+    dkg:to <urn:larder:vg-term-help-request> ;
+    dkg:verb "is" ;
+    dkg:cardinalityGiven false .
+
+<urn:larder:vg-relationship-22-help-for-meal-preparation-step-is-help-request> a dkg:Relationship ;
+    skos:prefLabel "Help for Meal Preparation Step is Help Request" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help for Meal Preparation Step --is--> Help Request" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-help-for-meal-preparation-step> ;
+    dkg:to <urn:larder:vg-term-help-request> ;
+    dkg:verb "is" ;
+    dkg:cardinalityGiven false .
+
+<urn:larder:vg-relationship-23-help-with-ingredients-is-help-request> a dkg:Relationship ;
+    skos:prefLabel "Help with Ingredients is Help Request" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help with Ingredients --is--> Help Request" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-help-with-ingredients> ;
+    dkg:to <urn:larder:vg-term-help-request> ;
+    dkg:verb "is" ;
+    dkg:cardinalityGiven false .
+
+<urn:larder:vg-relationship-24-help-meal-plan-is-help-request> a dkg:Relationship ;
+    skos:prefLabel "Help Meal plan is Help Request" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help Meal plan --is--> Help Request" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-help-meal-plan> ;
+    dkg:to <urn:larder:vg-term-help-request> ;
+    dkg:verb "is" ;
+    dkg:cardinalityGiven false .
+
+<urn:larder:vg-relationship-25-help-contains-ingredient-substitute> a dkg:Relationship ;
+    skos:prefLabel "Help contains Ingredient Substitute" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help --contains--> Ingredient Substitute / cardinality 1..3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-help> ;
+    dkg:to <urn:larder:vg-term-ingredient-substitute> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..3" .
+
+<urn:larder:vg-relationship-26-help-contains-preparation-step-explanation> a dkg:Relationship ;
+    skos:prefLabel "Help contains Preparation Step Explanation" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help --contains--> Preparation Step Explanation / cardinality 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-help> ;
+    dkg:to <urn:larder:vg-term-preparation-step-explanation> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1" .
+
+<urn:larder:vg-relationship-27-help-contains-steps-to-mitigate-catastrophe> a dkg:Relationship ;
+    skos:prefLabel "Help contains Steps to Mitigate Catastrophe" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help --contains--> Steps to Mitigate Catastrophe / cardinality 1..10" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-help> ;
+    dkg:to <urn:larder:vg-term-steps-to-mitigate-catastrophe> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..10" .
+
+<urn:larder:vg-relationship-28-help-contains-menu-proposal> a dkg:Relationship ;
+    skos:prefLabel "Help contains Menu proposal" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Help --contains--> Menu proposal / cardinality 1..3" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:story-work-object-help> ;
+    dkg:to <urn:larder:vg-term-menu-proposal> ;
+    dkg:verb "contains" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1..3" .
+
+<urn:larder:vg-relationship-29-preparation-step-explanation-refers-to-step> a dkg:Relationship ;
+    skos:prefLabel "Preparation Step Explanation refers to Step" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Preparation Step Explanation --refers to--> Step / cardinality 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-preparation-step-explanation> ;
+    dkg:to <urn:larder:vg-term-step> ;
+    dkg:verb "refers to" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1" .
+
+<urn:larder:vg-relationship-30-ingredient-substitute-refers-to-substitute> a dkg:Relationship ;
+    skos:prefLabel "Ingredient Substitute refers to Substitute" ;
+    dkg:source <urn:larder:visual-glossary-2026-09-10> ;
+    dkg:locator "Visual Glossary / relationship: Ingredient Substitute --refers to--> Substitute / cardinality 1" ;
+    dkg:confidence dkg:OnArtifact ;
+    dkg:from <urn:larder:vg-term-ingredient-substitute> ;
+    dkg:to <urn:larder:vg-term-substitute> ;
+    dkg:verb "refers to" ;
+    dkg:cardinalityGiven true ;
+    dkg:cardinality "1" .
+

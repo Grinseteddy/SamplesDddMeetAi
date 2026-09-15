@@ -15,6 +15,7 @@ description: >-
   decision against our principles", "which principles have we never used",
   "does ADR-014 contradict ADR-009". Extends domain-knowledge-graph's
   small-ADR ingestion.
+author: Annegret Junker
 ---
 
 # ADR & Principles Ingester

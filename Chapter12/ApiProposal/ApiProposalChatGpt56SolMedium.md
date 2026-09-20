@@ -4,6 +4,15 @@
 
 Propose APIs based on the Context Map and the Domain Stories, Visual Glossary and architecture knowledge graph.
 
+[Graph](../assets/KnowledgeGraphWithJwt/graph.ttl)
+[Domain Graph](../assets/KnowledgeGraphWithJwt/dkg-adr.ttl)
+
+![](../assets/09_ContextMap.jpg)
+![](../assets/06a_DomainStoryAskChef.jpg)
+![](../assets/06b_DomainStoryAskCommunity.jpg)
+![](../assets/06e_DomainStoryGrandmaII.jpg)
+![](../assets/06d_DomainStoryGrandma.jpg)
+
 # Answer
 
 The graph fixes asynchronous messaging as RabbitMQ, but leaves synchronous bounded-context transport open. Please choose REST, gRPC, or GraphQL so I can complete the API proposal. REST best aligns with ADR0004.

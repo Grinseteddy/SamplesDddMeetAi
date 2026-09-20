@@ -1,0 +1,30 @@
+ flowchart LR
+%% solid = synchronous, dashed = asynchronous
+    classDef ctx fill:#EAF2FB,stroke:#6E9BD1,color:#1A1A1A
+    classDef adapter fill:#FFF4D6,stroke:#C7931A,color:#1A1A1A
+
+    RecipeCatalog["Recipe Catalog"]:::ctx
+    MealPlanning["Meal Planning"]:::ctx
+    CookingAssistance["Cooking Assistance"]:::ctx
+    MealPreparation["Meal Preparation"]:::ctx
+    Media["Media"]:::ctx
+    Sharing["Sharing"]:::ctx
+    CookProfile["Cook Profile"]:::ctx
+    ConsentManagement["Consent Management"]:::ctx
+    Notification["Notification"]:::ctx
+    GrandmaAvatarAI["Grandma Avatar AI · ACL"]:::adapter
+
+    MealPlanning -->|"REST: GET /recipes/{recipeId}"| RecipeCatalog
+    CookingAssistance -->|"REST: GET /menus · /recipes · /ingredients"| MealPlanning
+    MealPlanning -->|"REST: GET /help-responses/{helpRequestId}"| CookingAssistance
+    MealPreparation -->|"REST: GET /menus · /recipes"| MealPlanning
+    CookingAssistance -->|"REST: GET /menus · /recipes"| MealPreparation
+    MealPreparation -->|"REST: GET /help-responses/{helpRequestId}"| CookingAssistance
+    CookingAssistance -->|"REST: GET /pictures"| Media
+    Sharing -->|"REST: GET /pictures"| Media
+    Sharing -->|"REST: GET /help-responses/{helpRequestId}"| MealPreparation
+    CookProfile -->|"REST: POST /consents"| ConsentManagement
+    Sharing -->|"REST: GET /consents/{cookId}"| ConsentManagement
+    CookingAssistance -.->|"RabbitMQ: help.requested · help.provided"| Notification
+    CookingAssistance -.->|"RabbitMQ: grandma-avatar.help-requested"| GrandmaAvatarAI
+    GrandmaAvatarAI -.->|"RabbitMQ: help.provided"| CookingAssistance

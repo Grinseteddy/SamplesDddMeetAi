@@ -1,0 +1,470 @@
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix :     <https://w3id.org/dkg/graph/larder#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/graph/larder>
+    a owl:Ontology ;
+    owl:imports <https://w3id.org/dkg/ns>, <https://w3id.org/dkg/ns/adr> ;
+    rdfs:label "Larder — ADR & Principles knowledge graph" .
+
+##############################################################################
+# 0. Artifacts
+##############################################################################
+
+:Art_Principles_Larder a dkg:PrinciplesDocument , dkg:Artifact ;
+    rdfs:label "LarderArchitecturalPrinciples.md" ;
+    rdfs:comment "9 entries under 8 stated IDs (AP0001-AP0008); AP0005 is used twice for two unrelated principles (Automatic Testing, Micro-UIs) — see dkg:defect." ;
+    dkg:defect "Two principles both carry the id 'AP0005': 'We can test our system by 95% automatically' (Automatic Testing) and 'The Bounded Context publish their own UI as micro-UIs' (Micro-UIs). Disambiguated here as AP0005a and AP0005b; principleId kept verbatim as 'AP0005' on both." ;
+    dkg:defect "AP0005 (Micro-UIs) and AP0007 (Monitoring) carry an identical Implications sentence, 'Using a large monolithic frontend would us slow down.', which is on-topic for AP0005 but not for AP0007 (Monitoring) — a copy-paste, emitted verbatim on both rather than corrected." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Art_ADR_ADR0001 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0001-Monolith.md" ;
+    rdfs:comment "Adopted 2026-09-10, Annegret Junker." ;
+    dkg:defect "The bolded Decision reads 'We will implement Larder as Monolith' (the plain-Monolith option), but the Context ('We defined Bounded Contexts of the Larder application. Those Bounded Contexts are modules in our application.'), the ten-module list, the per-module database-user note, and the explicit AP0001 citation all sit under the 'Modular monolith' option heading. The cross-check below is run on the Modular Monolith reading, per the skill's rule for a Decision line that contradicts its own Options section; dkg:decidedOption is kept verbatim as written." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Art_ADR_ADR0002 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0002-Database.md" ;
+    rdfs:comment "Adopted 2026-09-10, Annegret Junker." ;
+    dkg:defect "The Consequences table is headed 'Modular Monolith | Microservices | Monolith' — copied verbatim from ADR0001 — but this ADR's own three options are 'One database instance with schemas per Bounded Context', 'One database instance per Bounded Contexts', 'One database for all', which do not line up one-to-one with those column headers." ;
+    dkg:defect "The 'One database for all' option reads: 'Disadvantage: The Domain Models are easily (contradicts (see AP0001)).' — grammatically incomplete as written (missing the predicate after 'easily'); emitted verbatim." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Art_ADR_ADR0003 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0003-AsynchronousCommunication.md" ;
+    rdfs:comment "Adopted 2026-09-10, Annegret Junker. References an external Context Map image (../09_ContextMap.jpg), not itself ingested here." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Art_ADR_ADR0004 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0004-SynchronousCommunicationViaMicroUi.md" ;
+    rdfs:comment "Adopted 2026-09-10, Annegret Junker." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Art_ADR_ADR0005 a dkg:ADRDocument , dkg:Artifact ;
+    rdfs:label "ADR0005-Orchestrator.md" ;
+    rdfs:comment "Adopted 2026-09-10, Annegret Junker. Cites no principle by id anywhere in the document." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Art_ADRLog_SadrsLarder a dkg:ADRLog , dkg:Artifact ;
+    rdfs:label "SadrsLarder.md — small ADR log" ;
+    rdfs:comment "8 rows under 7 nominal ids; SADR0001-SADR0006 unique, SADR0007 used twice — see dkg:defect. One author (Junker) throughout." ;
+    dkg:defect "Two rows both carry the id 'SADR0007': 'Capability Map with Legend' (2026-09-11) and 'JWT with cookId' (2026-09-20). Disambiguated here as SADR0007a and SADR0007b; decisionId kept verbatim as 'SADR0007' on both." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+##############################################################################
+# 1. Principles Register
+##############################################################################
+
+:Prin_AP0001_MonolithBeforeMicroservices a dkg:Principle ;
+    skos:prefLabel "Monolith before Microservices" ; dkg:principleId "AP0001" ;
+    dkg:statement "We will always start with a deployment monolith before cutting services out. However, the modules are modular regarding DDD principles." ;
+    dkg:rationale "In the beginning, we do not know exactly the load and performance issues the single services have to face. Therefore, we will cut later with more experience." ;
+    dkg:implication "We will have later costs for cutting out services. The teams need to be disciplined to follow the strict boundaries of the Bounded Contexts." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0001" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0002_AsyncBeforeSync a dkg:Principle ;
+    skos:prefLabel "Asynchronous Communication before Synchronous" ; dkg:principleId "AP0002" ;
+    dkg:statement "For communication between Bounded Contexts asynchronous communication is preferred." ;
+    dkg:rationale "Asynchronous communication guarantees the loose coupling between Bounded Contexts." ;
+    dkg:implication "Loose coupling guarantees that we can later maintain and operate our application without large downtimes." ;
+    dkg:scope "between Bounded Contexts" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0002" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0003_UsingDDD a dkg:Principle ;
+    skos:prefLabel "Using DDD" ; dkg:principleId "AP0003" ;
+    dkg:statement "For design of our functional architecture, we will apply the principles of DDD." ;
+    dkg:rationale "Architecture coming out of the blue does not support the business requirements functionally." ;
+    dkg:implication "We need to support the functions required by business. Moreover, we need to support the maintenance of those functions for the upcoming years." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    rdfs:comment "Borderline testability, like AP0004: 'apply the principles of DDD' names a methodology but no concrete practice. Called testable here because both full-form ADRs in this batch ground themselves explicitly in bounded-context / DDD-analysis language, which gives the cross-check something concrete to point at." ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0003" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0004_UsingResiduality a dkg:Principle ;
+    skos:prefLabel "Using Residuality" ; dkg:principleId "AP0004" ;
+    dkg:statement "For design of our technical architecture, we will apply the principles of Residuality Theory." ;
+    dkg:rationale "Stressing an architecture with randomly selected stressors creates more sustaining architectures." ;
+    dkg:implication "We do not know what future brings, therefore, we need the robust and best equipped architecture." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    rdfs:comment "Borderline testability, like AP0003 — see that node's comment. No decision in this batch engages stressor analysis at all; flagged as a dead letter in the report rather than forced to a verdict here." ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0004" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0005a_AutomaticTesting a dkg:Principle ;
+    skos:prefLabel "Automatic Testing" ; dkg:principleId "AP0005" ;
+    dkg:statement "We can test our system by 95% automatically." ;
+    dkg:rationale "Manual tests are too slow to allow us to test our system manually." ;
+    dkg:implication "We need to follow a Test-Driven-Approach consequently." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0005 (first occurrence, Automatic Testing)" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0005b_MicroUIs a dkg:Principle ;
+    skos:prefLabel "Micro-UIs" ; dkg:principleId "AP0005" ;
+    dkg:statement "The Bounded Context publish their own UI as micro-UIs." ;
+    dkg:rationale "The teams developing the Bounded Contexts must be as independent as possible. The UIs are part of the Bounded Contexts projects. The micro UIs can use a common platform, so that they appear out of one hand." ;
+    dkg:implication "Using a large monolithic frontend would us slow down." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0005 (second occurrence, Micro-UIs)" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0006_SyncForUIs a dkg:Principle ;
+    skos:prefLabel "Synchronous communication for UIs" ; dkg:principleId "AP0006" ;
+    dkg:statement "UI communication is done synchronously." ;
+    dkg:rationale "UIs require synchronous communication." ;
+    dkg:implication "UIs must communicate with humans, who expect to get immediate answers." ;
+    dkg:scope "UI communication" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0006" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0007_Monitoring a dkg:Principle ;
+    skos:prefLabel "Monitoring" ; dkg:principleId "AP0007" ;
+    dkg:statement "The system can be monitored to identify system-critical states reliable and fast." ;
+    dkg:rationale "The operation of the software must be almost completely automated. We need to get a reliable alarm system based on a reliable monitoring system" ;
+    dkg:implication "Using a large monolithic frontend would us slow down." ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    rdfs:comment "Implication field is copy-pasted from AP0005b — see dkg:defect on the artifact. Statement kept verbatim regardless." ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0007" ; dkg:confidence dkg:OnArtifact .
+
+:Prin_AP0008_FineGrainedAccessRights a dkg:Principle ;
+    skos:prefLabel "Fine grained access rights" ; dkg:principleId "AP0008" ;
+    dkg:statement "Domain artifacts are controlled by a fine-grained access control." ;
+    dkg:rationale "The software will increase with time, and we need to respect the personal and author rights of our users." ;
+    dkg:implication "With more coarse grained rights, we could contradict legal regulations." ;
+    dkg:scope "domain artifacts" ;
+    dkg:status "Adopted" ; dkg:amendedAt "2026-09-10"^^xsd:date ; dkg:testable true ;
+    dkg:source :Art_Principles_Larder ; dkg:locator "AP0008" ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+# 2. Domain nouns minted from the ADRs (first ingest for this project's graph)
+##############################################################################
+
+:Ctx_RecipeCatalog a dkg:BoundedContext ; skos:prefLabel "Recipe Catalog" ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "ADR0001, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_MealPlanning a dkg:BoundedContext ; skos:prefLabel "Meal Planning" ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "ADR0001, module list" ; dkg:confidence dkg:OnArtifact .
+:Ctx_CookProfile a dkg:BoundedContext ; skos:prefLabel "Cook Profile" ;
+    rdfs:comment "Listed as an ACL to the external IAM used." ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "ADR0001, module list" ; dkg:confidence dkg:OnArtifact .
+:Act_GrandmaAvatar a dkg:Actor , dkg:ExternalSystem ; skos:prefLabel "Grandma Avatar" ;
+    rdfs:comment "Listed in ADR0001 as 'Grandma Avatar AI', an ACL to the external AI used; also named in ADR0003's Context and ADR0005's Context, and in the SADR log." ;
+    dkg:source :Art_ADR_ADR0001, :Art_ADR_ADR0003, :Art_ADR_ADR0005, :Art_ADRLog_SadrsLarder ;
+    dkg:locator "ADR0001 module list; ADR0003 Context; ADR0005 Context; SADR0001" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Notification a dkg:BoundedContext ; skos:prefLabel "Notification" ;
+    dkg:source :Art_ADR_ADR0001, :Art_ADR_ADR0003 ; dkg:locator "ADR0001 module list; ADR0003 Context" ; dkg:confidence dkg:OnArtifact .
+:Ctx_CookingAssistance a dkg:BoundedContext ; skos:prefLabel "Cooking Assistance" ;
+    dkg:source :Art_ADR_ADR0001, :Art_ADR_ADR0003, :Art_ADR_ADR0005 ;
+    dkg:locator "ADR0001 module list; ADR0003 Context; ADR0005 Context/drivers" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Media a dkg:BoundedContext ; skos:prefLabel "Media" ;
+    rdfs:comment "Listed as a specific implementation to an external bucket." ;
+    dkg:source :Art_ADR_ADR0001, :Art_ADR_ADR0005 ; dkg:locator "ADR0001 module list; ADR0005 drivers" ; dkg:confidence dkg:OnArtifact .
+:Ctx_ConsentManagement a dkg:BoundedContext ; skos:prefLabel "Consent Management" ;
+    rdfs:comment "Listed as an ACL to an external Consent Management system." ;
+    dkg:source :Art_ADR_ADR0001, :Art_ADR_ADR0005 ; dkg:locator "ADR0001 module list; ADR0005 drivers" ; dkg:confidence dkg:OnArtifact .
+:Ctx_MealPreparation a dkg:BoundedContext ; skos:prefLabel "Meal Preparation" ;
+    dkg:source :Art_ADR_ADR0001, :Art_ADR_ADR0005 ; dkg:locator "ADR0001 module list; ADR0005 drivers" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Sharing a dkg:BoundedContext ; skos:prefLabel "Sharing" ;
+    dkg:source :Art_ADR_ADR0001, :Art_ADR_ADR0005 ; dkg:locator "ADR0001 module list; ADR0005 drivers" ; dkg:confidence dkg:OnArtifact .
+
+:Act_Chef a dkg:Actor ; skos:prefLabel "Chef" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001" ; dkg:confidence dkg:OnArtifact .
+:Act_Community a dkg:Actor ; skos:prefLabel "Community" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001" ; dkg:confidence dkg:OnArtifact .
+:Act_Cook a dkg:Actor ; skos:prefLabel "Cook" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0007 (second occurrence)" ; dkg:confidence dkg:OnArtifact .
+
+:Con_MealPlan a dkg:Concept ; skos:prefLabel "Menu" ; skos:altLabel "Meal plan" ;
+    rdfs:comment "SADR0003 (Adopted) settled the term as 'Menu', superseding SADR0002's 'Meal plan'. IRI kept from the first minting; prefLabel follows the surviving decision, per ontology.md §6 (renames change the label, not the IRI)." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0002, SADR0003" ; dkg:confidence dkg:OnArtifact .
+:Con_Menu a dkg:Concept ; skos:prefLabel "Menu" ;
+    rdfs:comment "Kept as a distinct node from :Con_MealPlan because the log's own Question treats 'Menu' and 'Meal plan' as two candidate referents inside a Dinner > Menu > Course > Meal structure, not as one straddling concept; SADR0003 settles which *word* wins, not that the two are one thing." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0002, SADR0003" ; dkg:confidence dkg:Implied .
+
+:Con_Help a dkg:Concept ; skos:prefLabel "Help" ;
+    rdfs:comment "The pre-split, one-word term the SADR0004 Question describes as ambiguous between response and request." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004" ; dkg:confidence dkg:Implied .
+:Con_HelpRequest a dkg:Concept ; skos:prefLabel "Help request" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001, SADR0004" ; dkg:confidence dkg:OnArtifact .
+:Con_HelpResponse a dkg:Concept ; skos:prefLabel "Help response" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004" ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+# 3. Decisions — full-form ADRs
+##############################################################################
+
+:Q_ADR0001_DeploymentShape a dkg:Question ;
+    skos:prefLabel "Which deployment shape (module / Bounded-Context structure) will Larder use?" ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:D_ADR0001 a dkg:Decision ;
+    skos:prefLabel "Using Monolith" ; dkg:decisionId "ADR0001" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker" ;
+    dkg:decidedOption "We will implement Larder as Monolith." ;
+    dkg:consideredOption "Modular monolith", "Microservices", "Monolith" ;
+    dkg:consequence "Implementation: Higher effort", "Maintenance: Higher effort", "Operation: Small effort", "Enhancements: Small effort" ;
+    dkg:rationale "We defined Bounded Contexts of the Larder application. Those Bounded Contexts are modules in our application." ;
+    dkg:sourceFormat "full-form" ; dkg:answers :Q_ADR0001_DeploymentShape ;
+    dkg:cites :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:mentions :Ctx_RecipeCatalog, :Ctx_MealPlanning, :Ctx_CookProfile, :Act_GrandmaAvatar,
+        :Ctx_Notification, :Ctx_CookingAssistance, :Ctx_Media, :Ctx_ConsentManagement,
+        :Ctx_MealPreparation, :Ctx_Sharing ;
+    dkg:defect "Decision line names plain 'Monolith'; the rest of the document argues 'Modular monolith' — see the Artifact's dkg:defect. Cross-check run on the Modular Monolith reading." ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:locator "ADR0001" ; dkg:confidence dkg:OnArtifact .
+
+:D_ADR0001 dkg:honors :Prin_AP0001_MonolithBeforeMicroservices, :Prin_AP0003_UsingDDD .
+
+:As_ADR0001_honors_AP0001 a dkg:Assertion ; rdf:subject :D_ADR0001 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "Modular monolith option: 'Advantages: Easy to maintain and to operate (see AP0001)'." ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0001_honors_AP0003 a dkg:Assertion ; rdf:subject :D_ADR0001 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0003_UsingDDD ;
+    dkg:citedBy "incidental" ;
+    rdfs:comment "Context: 'We defined Bounded Contexts of the Larder application. Those Bounded Contexts are modules in our application.' — DDD language throughout, but AP0003 is never cited by number." ;
+    dkg:source :Art_ADR_ADR0001 ; dkg:confidence dkg:Implied .
+
+##############################################################################
+
+:Q_ADR0002_DatabaseTopology a dkg:Question ;
+    skos:prefLabel "Which database topology will the Bounded Context modules use?" ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:D_ADR0002 a dkg:Decision ;
+    skos:prefLabel "Using One Database Instance" ; dkg:decisionId "ADR0002" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker" ;
+    dkg:decidedOption "We will use one database instance for Larder." ;
+    dkg:consideredOption "One database instance with schemas per Bounded Context", "One database instance per Bounded Contexts", "One database for all" ;
+    dkg:consequence "Implementation: More discipline", "Maintenance: Easier", "Operation: Secure", "Enhancements: Small effort" ;
+    dkg:rationale "The Bounded Contexts modules in the modular monolith need databases." ;
+    dkg:sourceFormat "full-form" ; dkg:answers :Q_ADR0002_DatabaseTopology ;
+    dkg:cites :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:defect "Consequences table headers and content do not match this ADR's own three options — see the Artifact's dkg:defect." ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:locator "ADR0002" ; dkg:confidence dkg:OnArtifact .
+
+:D_ADR0002 dkg:honors :Prin_AP0001_MonolithBeforeMicroservices, :Prin_AP0003_UsingDDD .
+
+:As_ADR0002_honors_AP0001 a dkg:Assertion ; rdf:subject :D_ADR0002 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0001_MonolithBeforeMicroservices ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "Chosen option: 'Advantages: Easy to maintain and to operate (see AP0001)'." ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0002_honors_AP0003 a dkg:Assertion ; rdf:subject :D_ADR0002 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0003_UsingDDD ;
+    dkg:citedBy "incidental" ;
+    rdfs:comment "One schema per Bounded Context module, with its own database user, mirrors the same DDD module boundaries ADR0001 draws; AP0003 is not cited by number." ;
+    dkg:source :Art_ADR_ADR0002 ; dkg:confidence dkg:Implied .
+
+##############################################################################
+
+:Q_ADR0003_CommStyle a dkg:Question ;
+    skos:prefLabel "Which communication style will Cooking Assistance use with Notification and with Grandma Avatar?" ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:D_ADR0003 a dkg:Decision ;
+    skos:prefLabel "Using Asynchronous Communication" ; dkg:decisionId "ADR0003" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker" ;
+    dkg:decidedOption "We will use asynchronous communication with RabbitMQ." ;
+    dkg:consideredOption "Asynchronous communication via RabbitMQ", "Asynchronous communication via Kafka", "Using of synchronous communication" ;
+    dkg:consequence "Implementation: Medium effort", "Available skills: Available", "Functional: suited" ;
+    dkg:rationale "Cooking Assistance and Notification and Cooking Assistance and Grandma Avatar need asynchronous communication based on the DDD analysis." ;
+    dkg:sourceFormat "full-form" ; dkg:answers :Q_ADR0003_CommStyle ;
+    dkg:cites :Prin_AP0002_AsyncBeforeSync ;
+    dkg:mentions :Ctx_CookingAssistance, :Ctx_Notification, :Act_GrandmaAvatar ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:locator "ADR0003" ; dkg:confidence dkg:OnArtifact .
+
+:D_ADR0003 dkg:honors :Prin_AP0002_AsyncBeforeSync, :Prin_AP0003_UsingDDD .
+
+:As_ADR0003_honors_AP0002 a dkg:Assertion ; rdf:subject :D_ADR0003 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0002_AsyncBeforeSync ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "'Advantages: It is supported by principles (see AP0002)'." ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0003_honors_AP0003 a dkg:Assertion ; rdf:subject :D_ADR0003 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0003_UsingDDD ;
+    dkg:citedBy "incidental" ;
+    rdfs:comment "Context: '…need asynchronous communication based on the DDD analysis', referencing the project's own Context Map image; AP0003 is not cited by number." ;
+    dkg:source :Art_ADR_ADR0003 ; dkg:confidence dkg:Implied .
+
+##############################################################################
+
+:Q_ADR0004_UICommStyle a dkg:Question ;
+    skos:prefLabel "Which communication style will Bounded Contexts use for their user interfaces?" ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:D_ADR0004 a dkg:Decision ;
+    skos:prefLabel "Synchronous Communication per UI" ; dkg:decisionId "ADR0004" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker" ;
+    dkg:decidedOption "We will use synchronous communication for User Interfaces." ;
+    dkg:consideredOption "Synchronous via REST API", "Synchronous via GraphQL", "Using of asynchronous communication with WebHooks" ;
+    dkg:consequence "Implementation: Small effort", "Security: Fine grained" ;
+    dkg:rationale "Most of the Bounded Contexts need user interactions that should be done synchronously via REST API." ;
+    dkg:sourceFormat "full-form" ; dkg:answers :Q_ADR0004_UICommStyle ;
+    dkg:cites :Prin_AP0006_SyncForUIs, :Prin_AP0008_FineGrainedAccessRights ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:locator "ADR0004" ; dkg:confidence dkg:OnArtifact .
+
+:D_ADR0004 dkg:honors :Prin_AP0006_SyncForUIs, :Prin_AP0008_FineGrainedAccessRights .
+
+:As_ADR0004_honors_AP0006 a dkg:Assertion ; rdf:subject :D_ADR0004 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0006_SyncForUIs ;
+    dkg:citedBy "explicit" ;
+    rdfs:comment "REST option: 'Advantages: It is supported by principles (see AP0006)'." ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:confidence dkg:OnArtifact .
+
+:As_ADR0004_honors_AP0008 a dkg:Assertion ; rdf:subject :D_ADR0004 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0008_FineGrainedAccessRights ;
+    dkg:citedBy "by-elimination" ;
+    rdfs:comment "AP0008 is cited as a disadvantage of the rejected GraphQL option ('It contradicts a fine-grained control of access rights (see AP0008)'); REST's own Consequences row shows Security = 'Fine grained'. REST honors AP0008 only because the alternative was marked as contradicting it, not because REST cites AP0008 for itself." ;
+    dkg:source :Art_ADR_ADR0004 ; dkg:confidence dkg:Implied .
+
+##############################################################################
+
+:Q_ADR0005_UIComposition a dkg:Question ;
+    skos:prefLabel "How will the micro-UIs of the Bounded Contexts be composed into one application?" ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "Context" ; dkg:confidence dkg:Implied .
+
+:D_ADR0005 a dkg:Decision ;
+    skos:prefLabel "Orchestrator UI" ; dkg:decisionId "ADR0005" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-10"^^xsd:date ; dkg:decidedBy "Annegret Junker" ;
+    dkg:decidedOption "We will use an orchestrator for the UI or Larder. It ingests the micro UIs of the Bounded Context and provides an AppShell." ;
+    dkg:consideredOption "Orchestrator", "Choreography" ;
+    dkg:consequence "Implementation: Larger effort in AppShell", "Team independence: All teams depend on AppShell team." ;
+    dkg:rationale "Guided Cooking Workflows and Catastrophe & Rescue Management need an orchestrator to drive state transitions and conditional modal branching across Meal Preparation, Cooking Assistance, Media and Grandma Avatar AI; Unified View Aggregation & Gating synthesizes live data from Recipe Catalog, Meal Preparation and Cooking Assistance while enforcing rules from Consent Management and a Paywall; Choreography for Decoupled Extras lets passive elements (Notification toasts, Sharing feed updates, Ads promotions) subscribe to events like MealPrepared or ThanksGiven." ;
+    dkg:sourceFormat "full-form" ; dkg:answers :Q_ADR0005_UIComposition ;
+    dkg:mentions :Ctx_MealPreparation, :Ctx_CookingAssistance, :Ctx_Media, :Act_GrandmaAvatar,
+        :Ctx_ConsentManagement, :Ctx_RecipeCatalog, :Ctx_Notification, :Ctx_Sharing ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:locator "ADR0005" ; dkg:confidence dkg:OnArtifact .
+
+:D_ADR0005 dkg:overrides :Prin_AP0005b_MicroUIs ; dkg:honors :Prin_AP0002_AsyncBeforeSync .
+
+:As_ADR0005_overrides_AP0005b a dkg:Assertion ; rdf:subject :D_ADR0005 ; rdf:predicate dkg:overrides ; rdf:object :Prin_AP0005b_MicroUIs ;
+    dkg:acknowledged false ;
+    rdfs:comment "AP0005b's rationale: 'The teams developing the Bounded Contexts must be as independent as possible.' ADR0005's own Consequences table: 'Team independence: All teams depend on AppShell team.' The document cites no principle by id anywhere, so the override reads as made without checking AP0005 rather than as a deliberate, named exception." ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:confidence dkg:Implied .
+
+:As_ADR0005_honors_AP0002 a dkg:Assertion ; rdf:subject :D_ADR0005 ; rdf:predicate dkg:honors ; rdf:object :Prin_AP0002_AsyncBeforeSync ;
+    dkg:citedBy "incidental" ;
+    rdfs:comment "'Choreography for Decoupled Extras' driver: passive UI elements 'subscribe to events like MealPrepared or ThanksGiven via lightweight UI choreography to avoid coupling with the main cooking pipeline' — event-driven, decoupled, and explicitly framed as avoiding coupling, though AP0002 is never cited by id." ;
+    dkg:source :Art_ADR_ADR0005 ; dkg:confidence dkg:Implied .
+
+##############################################################################
+# 4. Decisions — small-ADR log (SadrsLarder.md)
+##############################################################################
+
+:Q_HelpRequestAddressedToWhom_SADR0001 a dkg:Question ;
+    skos:prefLabel "A Help Request is 'at 1 Grandma Avatar' and 'at 1 Community' — is every request addressed to both, and never to a Chef?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0001 a dkg:Decision ;
+    skos:prefLabel "Chef needs to be accessed exclusively" ; dkg:decisionId "SADR0001" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-07"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Chef needs to be accessed exclusively" ;
+    dkg:consideredOption "Chef is accessed exclusively", "Chef is accessed besides Grandma Avatar and Community" ;
+    dkg:sourceFormat "small-log" ; dkg:answers :Q_HelpRequestAddressedToWhom_SADR0001 ;
+    dkg:mentions :Act_Chef, :Act_GrandmaAvatar, :Act_Community, :Con_HelpRequest ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0001" ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+
+:Q_MealPlanCorresponds_SADR0002 a dkg:Question ;
+    skos:prefLabel "Dinner has 1 Menu, Menu has 1..* Course, Course contains 1..* Meal, Meal with 1 Recipe — which of these does the board's 'Meal plan' correspond to?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0002, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0002 a dkg:Decision ;
+    skos:prefLabel "Meal Plan" ; dkg:decisionId "SADR0002" ;
+    dkg:status "Superseded" ; dkg:decidedAt "2026-09-08"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Meal plan is used for Menu and Meal plan" ;
+    dkg:consideredOption "Meal plan or Menu as term" ;
+    dkg:sourceFormat "small-log" ; dkg:answers :Q_MealPlanCorresponds_SADR0002 ;
+    dkg:mentions :Con_MealPlan, :Con_Menu ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0002" ; dkg:confidence dkg:OnArtifact .
+
+:Q_MealPlanCorresponds_SADR0003 a dkg:Question ;
+    skos:prefLabel "Dinner has 1 Menu, Menu has 1..* Course, Course contains 1..* Meal, Meal with 1 Recipe — which of these does the board's 'Meal plan' correspond to?" ;
+    dkg:proposedSameAs :Q_MealPlanCorresponds_SADR0002 ;
+    rdfs:comment "Restates SADR0002's Question verbatim; not merged, per merging.md — two rows asking the same thing is itself a signal (the first answer did not stick)." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0003, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0003 a dkg:Decision ;
+    skos:prefLabel "Menu" ; dkg:decisionId "SADR0003" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-09"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Menu is used for Menu and Meal plan" ;
+    dkg:consideredOption "Meal plan or Menu as term in Meal planning, Meal preparation, Cooking Assistance" ;
+    dkg:sourceFormat "small-log" ;
+    dkg:answers :Q_MealPlanCorresponds_SADR0003, :Q_MealPlanCorresponds_SADR0002 ;
+    dkg:supersedes :D_SADR0002 ;
+    dkg:mentions :Con_MealPlan, :Con_Menu, :Ctx_MealPlanning, :Ctx_MealPreparation, :Ctx_CookingAssistance ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0003" ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+
+:Q_HelpSameTerm_SADR0004 a dkg:Question ;
+    skos:prefLabel "In the glossary 'Help' is the response (provided, contains substitutes/explanations); in the stories 'Help' is also what the Cook asks for. Same term?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0004 a dkg:Decision ;
+    skos:prefLabel "Help" ; dkg:decisionId "SADR0004" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Help response / Help request" ;
+    dkg:consideredOption "Help or Help response for given Help; Help request for asking for help" ;
+    dkg:sourceFormat "small-log" ; dkg:answers :Q_HelpSameTerm_SADR0004 ;
+    dkg:mentions :Con_Help, :Con_HelpRequest, :Con_HelpResponse ;
+    rdfs:comment "A split, not a rename: the one-word 'Help' becomes two terms for two senses (per ingest-small-adr.md's own reading of this exact row), so no dkg:renamedTo is emitted — both new Concepts carry this Decision as an added dkg:source instead." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0004" ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+
+:Q_GlossaryLegendMeaning_SADR0005 a dkg:Question ;
+    skos:prefLabel "What do the glossary's blue, green and grey boxes and the ⊞ icon mean — bounded contexts, or terms added in the 'enhanced' revision?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0005, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0005 a dkg:Decision ;
+    skos:prefLabel "Visual Glossary with Legend" ; dkg:decisionId "SADR0005" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Each Visual Glossary needs a legend about the meaning of icons and colors" ;
+    dkg:consideredOption "Global legend or local legend" ;
+    dkg:sourceFormat "small-log" ; dkg:answers :Q_GlossaryLegendMeaning_SADR0005 ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0005" ; dkg:confidence dkg:OnArtifact .
+
+:Q_BrainstormLegendMeaning_SADR0006 a dkg:Question ;
+    skos:prefLabel "What does the blue sticky colour on the brainstorm mean?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0006, Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0006 a dkg:Decision ;
+    skos:prefLabel "Brainstorming with Legend" ; dkg:decisionId "SADR0006" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "Each Brainstorming result needs a legend about the meaning of icons and colors" ;
+    dkg:consideredOption "Global legend or local legend" ;
+    dkg:sourceFormat "small-log" ; dkg:answers :Q_BrainstormLegendMeaning_SADR0006 ;
+    dkg:proposedSameAs :D_SADR0005 ;
+    rdfs:comment "Same underlying decision as SADR0005 and SADR0007a — a documentation convention decided three times, once per artifact type. Proposed, not merged: each row is about a different artifact type and the log records all three separately." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0006" ; dkg:confidence dkg:OnArtifact .
+
+:Q_CapabilityMapLegendMeaning_SADR0007a a dkg:Question ;
+    skos:prefLabel "What do the small ▲ on Member management and ▶ beside Planner mean on the capability map?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0007 (first occurrence), Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0007a a dkg:Decision ;
+    skos:prefLabel "Capability Map with Legend" ; dkg:decisionId "SADR0007" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-11"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "The Capability Map needs a legend" ;
+    dkg:consideredOption "Global legend or local legend" ;
+    dkg:sourceFormat "small-log" ; dkg:answers :Q_CapabilityMapLegendMeaning_SADR0007a ;
+    dkg:proposedSameAs :D_SADR0005 ;
+    dkg:defect "Shares id 'SADR0007' with the unrelated 'JWT with cookId' row — see the Artifact's dkg:defect. Disambiguated as SADR0007a." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0007 (first occurrence)" ; dkg:confidence dkg:OnArtifact .
+
+##############################################################################
+
+:Q_CookIdToBoundedContexts_SADR0007b a dkg:Question ;
+    skos:prefLabel "How to provide cookId to Bounded Contexts?" ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0007 (second occurrence), Question" ; dkg:confidence dkg:OnArtifact .
+
+:D_SADR0007b a dkg:Decision ;
+    skos:prefLabel "JWT with cookId" ; dkg:decisionId "SADR0007" ;
+    dkg:status "Adopted" ; dkg:decidedAt "2026-09-20"^^xsd:date ; dkg:decidedBy "Junker" ;
+    dkg:decidedOption "JWT Token contains identity of Cook as cookId" ;
+    dkg:consideredOption "JWT", "header", "property in each request" ;
+    dkg:sourceFormat "small-log" ; dkg:answers :Q_CookIdToBoundedContexts_SADR0007b ;
+    dkg:mentions :Act_Cook, :Ctx_CookProfile ;
+    dkg:defect "Shares id 'SADR0007' with the unrelated 'Capability Map with Legend' row — see the Artifact's dkg:defect. Disambiguated as SADR0007b." ;
+    rdfs:comment "Not scored against any Principle: carrying cookId in a JWT is a mechanism choice orthogonal to sync-vs-async transport, UI-vs-BC scope, and access-rights granularity as those principles are actually worded here — scoring it would be keyword overlap ('token' near 'access control'), not content. Kept Silent rather than forced. Concretely, this is the project's first answer to how identity crosses into every Bounded Context — see report §7." ;
+    dkg:source :Art_ADRLog_SadrsLarder ; dkg:locator "SADR0007 (second occurrence)" ; dkg:confidence dkg:OnArtifact .

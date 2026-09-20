@@ -1,0 +1,94 @@
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+##############################################################################
+# dkg-adr — extension of the domain-knowledge-graph vocabulary for
+# Architectural Principles and full-form ADRs.
+#
+# Everything here lives in the SAME dkg: namespace so a graph that already
+# holds dkg:Decision rows from a small-ADR log (ingest-small-adr.md) can take
+# full-form ADRs and principles without a second namespace. Load this file
+# together with the base dkg.ttl; nothing here redefines a base term.
+##############################################################################
+
+<https://w3id.org/dkg/ns/adr> a owl:Ontology ;
+    owl:imports <https://w3id.org/dkg/ns> ;
+    rdfs:label "dkg — ADR & Principles extension" .
+
+# --- Artifacts ---------------------------------------------------------------
+
+dkg:PrinciplesDocument a owl:Class ; rdfs:subClassOf dkg:Artifact ;
+    rdfs:comment "A document of standing architectural guidelines — principles, tenets, guardrails, a charter. One artifact per file." .
+
+dkg:ADRDocument a owl:Class ; rdfs:subClassOf dkg:Artifact ;
+    rdfs:comment "One full-form ADR (Nygard or MADR shape: Status / Context / Decision / Consequences, often Options considered). One artifact per file — unlike dkg:ADRLog, where one artifact holds many rows." .
+
+# --- Principle ---------------------------------------------------------------
+
+dkg:Principle a owl:Class ; rdfs:subClassOf dkg:Node ;
+    rdfs:label "Principle" ;
+    rdfs:comment "A standing architectural guideline. Distinct from dkg:Rule (a business invariant the software refuses on) and from dkg:Decision (one settled question). Some principles are not testable as written — record that with dkg:testable rather than forcing a verdict." .
+
+dkg:principleId a owl:DatatypeProperty ; rdfs:domain dkg:Principle ;
+    rdfs:comment "The document's own identifier, verbatim (AP0002, P-7, 'Tenet 3'). If two principles share one ID in the source, keep the shared value here and disambiguate only in the IRI — the collision is a finding about the document, not something to hide by renumbering." .
+
+dkg:statement a owl:DatatypeProperty ; rdfs:domain dkg:Principle ;
+    rdfs:comment "The principle's operative sentence, verbatim or lightly trimmed." .
+
+dkg:rationale a owl:DatatypeProperty ;
+    rdfs:comment "The 'why' as the document states it. On a Principle: its Rational/Rationale field. On a Decision: the Context or Decision Drivers prose, trimmed." .
+
+dkg:implication a owl:DatatypeProperty ; rdfs:domain dkg:Principle ;
+    rdfs:comment "The document's own Implications / Consequences field for the principle, verbatim." .
+
+dkg:scope a owl:DatatypeProperty ; rdfs:domain dkg:Principle ;
+    rdfs:comment "Where the principle applies, if the document says ('between Bounded Contexts', 'UI communication only'). Silently treating a scoped principle as universal is the most common misreading." .
+
+dkg:testable a owl:DatatypeProperty ; rdfs:domain dkg:Principle ; rdfs:range xsd:boolean ;
+    rdfs:comment "true = a decision's content could be checked against this principle either way. false = unfalsifiable as written ('be pragmatic'). Untestable principles are excluded from the compliance matrix; a principle that rubber-stamps everything is worse than none." .
+
+dkg:amendedAt a owl:DatatypeProperty ; rdfs:range xsd:date ;
+    rdfs:comment "Last-amended date from the principles document, if given." .
+
+# --- Full-form ADR fields on dkg:Decision -------------------------------------
+# dkg:Decision, dkg:status, dkg:decidedOption, dkg:consideredOption,
+# dkg:decidedAt, dkg:decidedBy, dkg:answers, dkg:supersedes come from the base
+# vocabulary and are reused unchanged. Full-form ADRs add:
+
+dkg:decisionId a owl:DatatypeProperty ; rdfs:domain dkg:Decision ;
+    rdfs:comment "The ADR's own identifier, verbatim (ADR0003, ADR-014). Match on this on re-ingest, never on title." .
+
+dkg:consequence a owl:DatatypeProperty ; rdfs:domain dkg:Decision ;
+    rdfs:comment "One consequence the ADR records for the CHOSEN option, verbatim. Multi-valued. Consequences of rejected options are not emitted — they are argument, not record." .
+
+dkg:sourceFormat a owl:DatatypeProperty ; rdfs:domain dkg:Decision ;
+    rdfs:comment "'full-form' or 'small-log'. Lets a report say which shape recorded a decision without walking back to the artifact." .
+
+# --- The cross-check edges ----------------------------------------------------
+
+dkg:honors a owl:ObjectProperty ; rdfs:domain dkg:Decision ; rdfs:range dkg:Principle ;
+    rdfs:label "honors" ;
+    rdfs:comment "The decision's content follows the principle. Reify (dkg:Assertion) when it matters whether the ADR CITED the principle or merely complies incidentally; the plain edge is always also asserted so the graph stays traversable." .
+
+dkg:overrides a owl:ObjectProperty ; rdfs:domain dkg:Decision ; rdfs:range dkg:Principle ;
+    rdfs:label "overrides" ;
+    rdfs:comment "The decision's content does something the principle rules out. Both acknowledged exceptions (the ADR states the override) and unacknowledged conflicts use this one property so one query finds them all; dkg:acknowledged tells them apart." .
+
+dkg:cites a owl:ObjectProperty ; rdfs:domain dkg:Decision ; rdfs:range dkg:Principle ;
+    rdfs:label "cites" ;
+    rdfs:comment "The ADR names this principle explicitly — for OR against an option. Purely a fact about the document. A Decision with honors/overrides edges and no cites edge was made without consulting the charter by name; a Principle with no cites edge from any Decision has never been invoked in writing." .
+
+dkg:acknowledged a owl:DatatypeProperty ; rdfs:range xsd:boolean ;
+    rdfs:comment "On a dkg:Assertion reifying an overrides edge: true = the ADR states the override and gives a reason; false = the ADR contradicts the principle without mentioning it. The false case is the finding the whole cross-check exists to surface." .
+
+dkg:citedBy a owl:DatatypeProperty ;
+    rdfs:comment "On a dkg:Assertion reifying an honors edge: 'explicit' (the ADR names the principle as its reason) or 'incidental' (the decision complies without saying so) or 'by-elimination' (the winning option honors it only because the ADR marked every alternative as contradicting it)." .
+
+dkg:inTensionWith a owl:ObjectProperty ; rdfs:domain dkg:Principle ; rdfs:range dkg:Principle ;
+    rdfs:label "in tension with" ;
+    rdfs:comment "Two principles that pull opposite ways on the same kind of decision, as written. Symmetric in meaning; emit once. A governance gap, not a modelling error — every decision between them is a coin flip dressed as a principle until the tension is resolved by a Decision that dkg:answers the Question it raises." .
+
+dkg:defect a owl:DatatypeProperty ;
+    rdfs:comment "On an Artifact or a node: a drafting error in the source that the ingest preserved rather than corrected — a duplicated ID, a copy-pasted field, a Decision line that contradicts the document's own Options section. One triple per defect, verbatim evidence in the literal." .

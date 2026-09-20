@@ -20,7 +20,7 @@
 
 ### Synchronous protocol
 
-e.g. httpn with REST gRPC, GraphQL
+e.g. https with REST gRPC, GraphQL
 
 ### Architectural approach
 

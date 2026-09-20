@@ -1,20 +1,20 @@
 ---
-name: context-map-api-proposer
+name: "context-map-api-proposer"
 description: >-
-  Turn a Context Map and the Domain Stories belonging to it into a rough API
-  landscape proposal: classify each border crossing as synchronous or
-  asynchronous with evidence, sketch each context's operations and channels
-  at outline depth, and propose the Arazzo files needed for cross-context
-  user journeys, each rendered as a Mermaid flowchart (sync/async landscape)
-  plus per-journey sequence diagrams. Checks an architecture knowledge graph
-  (.ttl, from domain-knowledge-graph or adr-and-principles-ingester) for
-  decisions and principles that already settle a border's sync/async call or
-  technology, and only then asks once which synchronous technology (REST,
-  gRPC, GraphQL) and asynchronous technology (Kafka, RabbitMQ) to sketch
-  toward. Use whenever someone has a context map and domain stories and
-  wants API proposals, an API landscape, a diagram of it, "what APIs do we
-  need", or Arazzo files. A Visual Glossary, if supplied, sets exact term
-  spellings and cardinality-driven field shape.
+  Turn a domain knowledge graph (.ttl from domain-knowledge-graph) — or a
+  Context Map plus its Domain Stories as images or text, or both together —
+  into a rough API landscape proposal: classify each border crossing sync or
+  async with evidence, sketch each context's operations and channels at
+  outline depth, and propose the Arazzo files for cross-context journeys, with
+  a Mermaid landscape flowchart and per-journey sequence diagrams. From a
+  graph, a bundled script derives the borders, journeys, term spellings,
+  cardinalities, and the decisions and principles that already settle a
+  border; only then does it ask which sync (REST, gRPC, GraphQL) and async
+  (Kafka, RabbitMQ) technology to sketch toward. Use whenever someone has a
+  knowledge graph, a context map, domain stories, or photos of them and wants
+  API proposals, an API landscape, "what APIs do we need", or Arazzo files —
+  even if they only attach a .ttl and say "APIs?". A Visual Glossary, in the
+  graph or as an image, sets term spellings and field shape.
 ---
 
 # Context Map API Proposer
@@ -25,6 +25,12 @@ enough to propose an API: the map gives you the border without the traffic,
 the story gives you the traffic without the border. Put together, they tell
 you which contexts need a synchronous interface, which need an asynchronous
 one, and which user journeys will need to call several APIs in sequence.
+
+Those two things can arrive as **pictures and text** (a context map, the
+stories, maybe a glossary) or already merged into **one domain knowledge
+graph** — or as a graph with a few pictures that were never ingested. The
+workflow and the report are the same either way; only where Step 1's ledger
+comes from changes.
 
 **This skill proposes; it does not specify.** The output is deliberately
 rough — operation names, rough inputs/outputs, a one-line technology sketch —
@@ -49,18 +55,62 @@ Four commitments keep the sketch trustworthy:
   rendering of the ledgers already built, never a second, independent pass —
   a node or edge that isn't backed by a row in §1–5 doesn't get drawn.
 
-## Inputs (both required)
+## Inputs — three lanes, same workflow
+
+| Lane | You were given | Borders come from | Stories come from | Names and shapes come from |
+|---|---|---|---|---|
+| **Artifact** | a Context Map + Domain Stories, as images, exports or text | the map | the stories | a Visual Glossary, if supplied |
+| **Graph** | a domain knowledge graph (`.ttl`) | derived from the graph | the graph's `dkg:DomainStory` artifacts | the graph's glossary terms |
+| **Mixed** | a graph **and** images not yet in it | graph first, images added, disagreements kept | both | both |
+
+Pick the lane from what is actually in front of you — a `.ttl` upload, an
+image, pasted sentences — and say which lane you are in. If nothing was
+supplied, ask once: *"Do you have a domain knowledge graph (.ttl), or the
+context map and domain stories as pictures/text — or both?"* Never ask a
+graph-lane user for a context map, stories or a glossary before running the
+extractor: the graph may already hold all three, and its §0 tells you exactly
+which it lacks.
+
+### Graph lane
+
+**Read `references/domain-knowledge-graph.md` first**, then run:
+
+```bash
+pip install rdflib --break-system-packages
+python3 scripts/graph_inputs.py <graph.ttl> --json /tmp/graph_inputs.json
+```
+
+The graph vocabulary has **no context-map class** — the map is implicit in
+what the graph's canvases, boards, event models, stories and glossaries say
+crosses between contexts. The script makes it explicit as ranked border
+candidates (B1 canvas message → B5 glossary reference only), and also prints
+the journeys, the terminology and cardinalities, the current decisions and
+testable principles, the open questions, and **what the graph cannot supply**.
+That last list is not boilerplate: every line of it goes into the report's
+Coverage gaps. Show the user the contexts and border candidates before
+classifying anything — a wrong border is cheapest to catch there.
+
+One graph does every job at once here: it is the map, the stories, the
+glossary *and* the architecture knowledge graph described below. Don't ask
+for any of them separately unless the extractor says it is missing.
+
+### Artifact lane
 
 - **The Context Map.** Needs, per border: the two contexts, what crosses,
   the mechanism if the map states one, and the staleness window if it states
   one — the shape `event-storming-context-mapper` or
   `domain-story-context-finder` produce. A team-drawn map with the same
-  fields works too. If the map doesn't state a mechanism for a border, that's
-  fine — Step 2 has a fallback — but say so rather than inventing one.
+  fields works too, as a photo, a Miro export or text. If the map doesn't
+  state a mechanism for a border, that's fine — Step 2 has a fallback — but
+  say so rather than inventing one.
 - **The Domain Stories belonging to the map's contexts.** Numbered
   actor→activity→work-object sentences (pictures, egon.io exports, or plain
   text), covering as many border crossings as exist. Coverage need not be
   complete — say which borders have no story evidence rather than declining.
+
+Transcribe an image before using it — contexts, arrows and labels for a map,
+numbered sentences for a story — and show the transcription, so a misread
+arrowhead is caught before it becomes an operation.
 
 **If there's no context map yet**, stop and get one first:
 `event-storming-context-mapper` from an EventStorming board, or
@@ -75,7 +125,21 @@ strawman stories from the map's own contexts rather than proceeding on the
 map alone; if the user wants to proceed anyway, mark every operation in the
 output `(no story evidence)` and say the sketch is border-only.
 
-**Bonus inputs, worth one ask each:**
+### Mixed lane
+
+A graph plus a photo — typically a context map nobody ingested, a new story,
+or a redrawn glossary. Run the extractor, check each image against the
+graph's artifact list (already ingested → work from the graph), then build
+the ledger graph-first and add what the images contribute, with a `Source`
+column (`graph` / `image` / `both`). **Where graph and image disagree, keep
+both in the row and flag it** — neither wins by default; ask when it changes
+a verdict. An un-ingested context map is the best image to have beside a
+graph: its mechanism and staleness labels are what the vocabulary cannot
+hold. Offer `domain-knowledge-graph` to ingest the images afterwards; never
+write to the `.ttl` from here (`references/domain-knowledge-graph.md` §8).
+
+**Bonus inputs in the artifact lane, worth one ask each** (the graph lane
+already has whichever of these were ingested):
 
 | If you also have | It sharpens |
 |---|---|
@@ -86,6 +150,10 @@ output `(no story evidence)` and say the sketch is border-only.
 
 ### Using a Visual Glossary, when one exists
 
+*(Graph lane: the extractor's §4 is the glossary — same rules, plus the
+graph-only distinctions in `references/domain-knowledge-graph.md` §6: derived
+cardinalities, non-glossary concepts, and terms renamed across a border.)*
+
 If a Visual Glossary exists for the map's contexts, it's the authority on
 **naming and field shape** — read `references/visual-glossary.md` before
 Step 4 for how it overrides the map's/stories' own wording, turns
@@ -94,6 +162,9 @@ cardinality into singular-vs-array shape, and distinguishes an entity
 Ask once whether one exists, even if nobody mentioned it.
 
 ### Using an architecture knowledge graph, when one exists
+
+*(Graph lane: this is the same file — the extractor's §5 already lists its
+current Decisions and testable Principles. The rules below apply unchanged.)*
 
 If a `.ttl` architecture knowledge graph exists — built by
 `domain-knowledge-graph` and/or grown by `adr-and-principles-ingester` —
@@ -122,6 +193,17 @@ Type each crossing the same way `bounded-context-canvas-author` does: **cmd**
 (an instruction that can be refused), **qry** (a question answered with data,
 no state change), **evt** (a fact already true). When the map genuinely
 doesn't say, write `?` and resolve it in Step 2 rather than guessing here.
+
+**Graph lane:** the ledger is the extractor's §2, one row per border
+candidate, with three columns added — `Rung` (B1–B5), `Border confidence`
+(the graph's `on-artifact` / `implied` / `inferred` for *the border existing*,
+which is a different question from sync/async confidence) and `Story
+sentences`. `Evidence` cites the node and its locator as printed. Keep every
+`?` type as `?` here. Resolve pending context merges before going on — a row
+noted `NOT A BORDER if … is confirmed` links two names the graph suspects are
+one context; ask once, and never sketch an API between them unasked.
+`Map's stated mechanism` and `Staleness` will mostly read *(not in graph)* —
+leave them that way. **Mixed lane:** add `Source`.
 
 Drop the `Glossary term` column entirely when no glossary was supplied; when
 one was, fill it with the glossary's own spelling of the crossing's subject
@@ -153,6 +235,13 @@ applies, and record which rung settled it:
    `(default)`: qry → sync, evt → async, cmd → sync. A `cmd` default is the
    weakest of the lot — commands are frequently fire-and-forget in
    practice — so flag it hardest in the open questions.
+
+**Graph lane:** same rungs, read from the extractor — rung 1 from its §5
+(current decisions, testable principles only), rung 4 from its §3 (the row
+after a filled `Crosses` cell). Rung 2 fires only where a comment or canvas
+assumption states a mechanism in words: `messageKind evt` types the message,
+it does not put it on a broker. Rung 3 is usually silent. A `?`-typed row gets
+its type here, marked `inferred`. Details: reference §5.
 
 Give every row in the ledger a `Verdict` (sync/async/out-of-scope) and a
 `Confidence` (`graph`/`principle-default`/`stated`/`inferred`/`default`). A
@@ -208,7 +297,12 @@ status codes, or error shapes; that precision is the next skill's job, not
 this one's. Field **shape** (singular vs array, and whether it's optional)
 follows the glossary's cardinality rules above when a glossary exists;
 otherwise take the shape straight from the crossing or the story's work
-object and mark it `(unconfirmed shape)`. When an architecture knowledge
+object and mark it `(unconfirmed shape)`. In the graph lane, append
+`(inferred border)` to every row sketched from a border the graph holds only
+as `inferred`, `(derived cardinality)` where the shape rests on a cardinality
+the glossary's ingester derived rather than the team drew, and — where the
+graph records a term renamed across this border — name the field in the
+provider's term with `(consumer calls this <other term>)`. When an architecture knowledge
 graph exists, check the operation against its testable Principles and
 append `(principle conflict: P<id>)` to the row rather than adjusting the
 sketch to quietly comply.
@@ -254,6 +348,13 @@ For each journey:
 | Contexts touched, in order | from the story's sequence |
 | Step sketch | one line per border crossed, each tagged `sync step` or `async wait` from the Step 2 verdict |
 | Arazzo version to aim for | `1.0.1` if every step is sync; `1.1.0` if any step is an async wait |
+
+**Graph lane:** the extractor's §3 has one block per story with each
+sentence's context and crossing already marked; cite the ledger row in each
+step-sketch line. Recount crossings after any context merge was confirmed —
+a journey can drop to zero — and say when a sentence was placed only
+`(via actor's lane)`. §7's rules per context are the failure cases worth
+naming beside a journey.
 
 A journey that never leaves one context needs **no** Arazzo file — that
 traffic is just that context's own API from Step 4, not a cross-context
@@ -336,7 +437,8 @@ sequenceDiagram
 # API Proposal — <context map / system name>
 
 ## 0. Inputs
-Context map source, domain stories supplied and which borders they cover,
+Lane (artifact / graph / mixed). Graph lane: the file, the artifacts it holds
+by type (extractor §0), and any image checked against it. Context map source, domain stories supplied and which borders they cover,
 whether a Visual Glossary was supplied (and whether it needed
 `visual-glossary-interpreter` first), bonus inputs used, technologies
 confirmed (or defaulted) in Step 3.
@@ -376,6 +478,10 @@ with the Principle's statement quoted, and any contradiction between two
 Accepted Decisions surfaced instead of silently resolved.
 
 ## 9. Coverage gaps
+Graph lane: every line of the extractor's "cannot supply" list, one-sided
+canvas messages, story-only and glossary-only borders, `(inferred border)`
+rows, pending merges left unanswered, and the graph's own open questions
+that touch a border. Mixed lane: every graph-vs-image disagreement.
 Borders with no story evidence, `(default)`-confidence verdicts,
 `(unconfirmed shape)` fields, contexts with no domain story at all, and
 single-context journeys explicitly excluded from §5.
@@ -443,6 +549,19 @@ whole ledger at once.
   in the row and in §8; don't just pick the compliant option and erase the
   fact that the map/story pointed the other way.
 
+- **Asking a graph-lane user for the map, stories and glossary anyway**, or
+  reading the Turtle by eye. Run the extractor first; ask only for what its
+  §0 says is missing. By hand, on a real graph, borders get missed silently.
+- **Treating every graph border as equally drawn.** A B1 message on both
+  canvases and a B5 glossary arrow are different strengths of claim — and
+  neither `on-artifact` nor `messageKind evt` is a sync/async verdict.
+- **Sketching an API between two names for one context.** A
+  `dkg:proposedSameAs` between a story lane and a board bubble is a question
+  for the room before it is a border.
+- **Letting the graph silently beat the image, or the image the graph**, or
+  writing the answer back into the `.ttl` yourself. Disagreements are
+  findings; updates go through `domain-knowledge-graph`.
+
 ## Working with neighboring skills
 
 - **No context map yet** → `event-storming-context-mapper` (from a board) or
@@ -475,8 +594,15 @@ whole ledger at once.
   reads in Step 2–3, and to get the full compliance matrix this skill's
   §8 only samples the API-relevant slice of.
 - **No graph at all yet, or the team wants full cross-artifact
-  traceability** → `domain-knowledge-graph`, which this skill's graph
-  reads are compatible with directly.
+  traceability** → `domain-knowledge-graph`, which builds the `.ttl` this
+  skill's graph lane runs on.
+- **Mixed lane left images un-ingested, or the room confirmed a pending
+  merge** → `domain-knowledge-graph` to ingest or record it, so the next run
+  is graph-only and the merge is not asked again.
+- **The graph has contexts but no border on any rung** →
+  `bounded-context-canvas-author` (its message tables become B1 rows once
+  ingested), or `event-storming-context-mapper` for a drawn map to use in the
+  mixed lane.
 - **A `(principle conflict: P<id>)` flag needs a real decision, not just a
   flag** → write the resolution up as a small-ADR row and re-ingest with
   `adr-and-principles-ingester`, which closes the loop the same way it
@@ -499,6 +625,13 @@ distinction behind the cmd/qry split used in the border ledger.
 *The Arazzo Specification*, OpenAPI Initiative — v1.0.1 (2025-01-16) and
 v1.1.0 (2026-05-17), https://spec.openapis.org/arazzo/latest.html — the
 target format for the files proposed in §5.
+
+`references/domain-knowledge-graph.md` — the graph and mixed lanes: running
+`scripts/graph_inputs.py`, the B1–B5 border rungs and what each may claim,
+graph confidence vs verdict confidence, graph-only terminology rules, mixed
+lane reconciliation, what a graph cannot supply, and a worked example on
+`assets/example-graph.ttl`. Read it whenever a `.ttl` is an input, before
+Step 1.
 
 `references/architecture-graph.md` — how to load a `.ttl` architecture
 knowledge graph, match its Decisions and Principles to a border or a

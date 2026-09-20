@@ -1,0 +1,150 @@
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix :     <https://w3id.org/dkg/graph/bicycle-sharing#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# A deliberately small graph that exercises every rung graph_inputs.py reads:
+#   B1 paired message, B1 one-sided message, B1 to an off-board system,
+#   B3 policy reacting across a border, B4 story-only handoff, B5 glossary
+#   reference, a pending context merge, a rename across a border, a derived
+#   cardinality, a current and a superseded decision, a testable and an
+#   untestable principle.
+
+<https://w3id.org/dkg/graph/bicycle-sharing>
+    a owl:Ontology ; owl:imports <https://w3id.org/dkg/ns> ;
+    rdfs:label "Bicycle Sharing — domain knowledge graph" .
+
+# --- artifacts ---------------------------------------------------------------
+:Art_ESBoard a dkg:EventStormingBoard ; rdfs:label "EventStorming board" ; dkg:ingestedAt "2026-06-02"^^xsd:date .
+:Art_StoryRent a dkg:DomainStory ; rdfs:label "Story A — Rider rents a bicycle" ; dkg:ingestedAt "2026-06-09"^^xsd:date .
+:Art_Glossary a dkg:VisualGlossary ; rdfs:label "Visual Glossary" ; dkg:ingestedAt "2026-06-16"^^xsd:date .
+:Art_BCC_Dist a dkg:BoundedContextCanvas ; rdfs:label "Canvas — Bicycle distribution" ; dkg:ingestedAt "2026-07-01"^^xsd:date .
+:Art_BCC_Rack a dkg:BoundedContextCanvas ; rdfs:label "Canvas — Rack management" ; dkg:ingestedAt "2026-07-01"^^xsd:date .
+:Art_ADRLog a dkg:ADRLog ; rdfs:label "Small ADR log" ; dkg:ingestedAt "2026-07-20"^^xsd:date .
+:Art_Principles a dkg:PrinciplesDocument , dkg:Artifact ; rdfs:label "principles.md" ; dkg:ingestedAt "2026-07-20"^^xsd:date .
+
+# --- contexts ----------------------------------------------------------------
+:Ctx_BicycleDistribution a dkg:BoundedContext ; skos:prefLabel "Bicycle distribution" ;
+                         dkg:source :Art_ESBoard , :Art_StoryRent , :Art_BCC_Dist ; dkg:locator "bubble 1" ; dkg:confidence dkg:OnArtifact .
+:Ctx_RackManagement a dkg:BoundedContext ; skos:prefLabel "Rack management" ;
+                    dkg:source :Art_ESBoard , :Art_BCC_Rack ; dkg:locator "bubble 2" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Docking a dkg:Lane ; skos:prefLabel "Docking" ;
+             dkg:proposedSameAs :Ctx_RackManagement ;
+             dkg:source :Art_StoryRent ; dkg:locator "lane 2" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Billing a dkg:BoundedContext ; skos:prefLabel "Billing" ;
+             dkg:source :Art_ESBoard , :Art_StoryRent ; dkg:locator "bubble 3" ; dkg:confidence dkg:OnArtifact .
+:Act_PaymentProvider a dkg:ExternalSystem ; skos:prefLabel "Payment provider" ;
+                     dkg:source :Art_ESBoard ; dkg:locator "pink sticky, right edge" ; dkg:confidence dkg:OnArtifact .
+
+# --- glossary ----------------------------------------------------------------
+:Con_Bicycle a dkg:Entity ; skos:prefLabel "Bicycle" ; skos:altLabel "Bike" ;
+             dkg:inContext :Ctx_RackManagement ;
+             dkg:source :Art_Glossary , :Art_ESBoard , :Art_StoryRent ; dkg:locator "term box 1" ; dkg:confidence dkg:OnArtifact .
+:Con_Rack a dkg:AggregateRoot ; skos:prefLabel "Rack" ; dkg:inContext :Ctx_RackManagement ;
+          dkg:source :Art_Glossary ; dkg:locator "term box 2" ; dkg:confidence dkg:OnArtifact .
+:Con_Reservation a dkg:Entity ; skos:prefLabel "Reservation" ; skos:altLabel "Booking" ;
+                 dkg:inContext :Ctx_BicycleDistribution ;
+                 dkg:source :Art_Glossary , :Art_StoryRent ; dkg:locator "term box 3" ; dkg:confidence dkg:OnArtifact .
+:Con_Rider a dkg:Entity ; skos:prefLabel "Rider" ; dkg:inContext :Ctx_BicycleDistribution ;
+           dkg:renamedTo :Con_Customer ;
+           dkg:source :Art_Glossary , :Art_StoryRent ; dkg:locator "term box 4" ; dkg:confidence dkg:OnArtifact .
+:Con_Customer a dkg:Entity ; skos:prefLabel "Customer" ; dkg:inContext :Ctx_Billing ;
+              dkg:source :Art_Glossary ; dkg:locator "term box 7" ; dkg:confidence dkg:OnArtifact .
+:Con_Fare a dkg:ValueObject ; skos:prefLabel "Fare" ; dkg:inContext :Ctx_Billing ;
+          dkg:source :Art_Glossary ; dkg:locator "term box 8" ; dkg:confidence dkg:OnArtifact .
+:Con_Ride a dkg:Entity ; skos:prefLabel "Ride" ; dkg:inContext :Ctx_Billing ;
+          dkg:source :Art_Glossary ; dkg:locator "term box 6" ; dkg:confidence dkg:OnArtifact .
+
+:Rel_RackHoldsBicycle a dkg:Relationship ;
+                      dkg:from :Con_Rack ; dkg:verb "holds" ; dkg:to :Con_Bicycle ;
+                      dkg:cardinality "0..25" ; dkg:cardinalityGiven true ; dkg:inContext :Ctx_RackManagement ;
+                      dkg:source :Art_Glossary ; dkg:locator "arrow 1" ; dkg:confidence dkg:OnArtifact .
+:Rel_ReservationForBicycle a dkg:Relationship ;
+                           dkg:from :Con_Reservation ; dkg:verb "is for" ; dkg:to :Con_Bicycle ;
+                           dkg:cardinality "1" ; dkg:cardinalityGiven true ; dkg:inContext :Ctx_BicycleDistribution ;
+                           dkg:source :Art_Glossary ; dkg:locator "arrow 2" ; dkg:confidence dkg:OnArtifact .
+:Rel_RideCostsFare a dkg:Relationship ;
+                   dkg:from :Con_Ride ; dkg:verb "costs" ; dkg:to :Con_Fare ;
+                   dkg:cardinality "1..*" ; dkg:cardinalityGiven false ; dkg:inContext :Ctx_Billing ;
+                   dkg:source :Art_Glossary ; dkg:locator "arrow 5" ; dkg:confidence dkg:Implied .
+
+# --- canvas messages (B1) ----------------------------------------------------
+:Msg_Out_RackManagement_ReserveABicycle a dkg:Message ; skos:prefLabel "Reserve a bicycle" ;
+                                        dkg:messageKind "cmd" ; dkg:carries "Rider, Rack" ;
+                                        dkg:from :Ctx_BicycleDistribution ; dkg:to :Ctx_RackManagement ;
+                                        dkg:mentions :Con_Reservation ; dkg:inContext :Ctx_BicycleDistribution ;
+                                        dkg:source :Art_BCC_Dist ; dkg:locator "Outbound communication, row 1" ; dkg:confidence dkg:Implied .
+:Msg_In_BicycleDistribution_ReserveABicycle a dkg:Message ; skos:prefLabel "Reserve a bicycle" ;
+                                            dkg:messageKind "cmd" ;
+                                            dkg:from :Ctx_BicycleDistribution ; dkg:to :Ctx_RackManagement ;
+                                            dkg:mentions :Con_Reservation ; dkg:inContext :Ctx_RackManagement ;
+                                            dkg:source :Art_BCC_Rack ; dkg:locator "Inbound communication, row 1" ; dkg:confidence dkg:Implied .
+:Msg_Out_BicycleDistribution_BicycleUnlocked a dkg:Message ; skos:prefLabel "Bicycle unlocked" ;
+                                             dkg:messageKind "evt" ;
+                                             dkg:from :Ctx_RackManagement ; dkg:to :Ctx_BicycleDistribution ;
+                                             dkg:mentions :Con_Bicycle ; dkg:inContext :Ctx_RackManagement ;
+                                             dkg:source :Art_BCC_Rack ; dkg:locator "Outbound communication, row 2" ; dkg:confidence dkg:Implied .
+:Msg_Out_PaymentProvider_ChargeFare a dkg:Message ; skos:prefLabel "Charge fare" ;
+                                    dkg:messageKind "?" ; rdfs:comment "via ACL" ;
+                                    dkg:from :Ctx_Billing ; dkg:to :Act_PaymentProvider ;
+                                    dkg:mentions :Con_Fare ; dkg:inContext :Ctx_Billing ;
+                                    dkg:source :Art_ESBoard ; dkg:locator "arrow to pink sticky" ; dkg:confidence dkg:Inferred .
+
+# --- board: a policy reacting across a border (B3) ---------------------------
+:Ev_BicycleReturned a dkg:DomainEvent ; skos:prefLabel "Bicycle returned" ; dkg:sequence 14 ;
+                    dkg:inContext :Ctx_RackManagement ; dkg:mentions :Con_Bicycle ;
+                    dkg:source :Art_ESBoard ; dkg:locator "event 14" ; dkg:confidence dkg:OnArtifact .
+:R_WhenReturnedCloseRide a dkg:Policy ; skos:prefLabel "Whenever a bicycle is returned, close the ride" ;
+                         dkg:reactsTo :Ev_BicycleReturned ; dkg:inContext :Ctx_Billing ;
+                         dkg:source :Art_ESBoard ; dkg:locator "lilac sticky after event 14" ; dkg:confidence dkg:OnArtifact .
+:R_NoReservationWithoutFreeBicycle a dkg:Rule ; skos:prefLabel "A reservation is refused when the rack holds no free bicycle" ;
+                                   dkg:inContext :Ctx_RackManagement ;
+                                   dkg:source :Art_BCC_Rack ; dkg:locator "Business decisions, line 1" ; dkg:confidence dkg:Implied .
+
+# --- story (B4 + journey) ----------------------------------------------------
+:Act_Rider a dkg:Actor ; skos:prefLabel "Rider" ;
+           dkg:source :Art_StoryRent ; dkg:locator "actor 1" ; dkg:confidence dkg:OnArtifact .
+:Sen_A_01 a dkg:Sentence ; dkg:sequence 1 ; skos:prefLabel "Rider looks up a free Bike nearby" ;
+          dkg:performedBy :Act_Rider ; dkg:mentions :Con_Bicycle ; dkg:inContext :Ctx_BicycleDistribution ;
+          dkg:precedes :Sen_A_02 ; dkg:source :Art_StoryRent ; dkg:locator "sentence 1" ; dkg:confidence dkg:OnArtifact .
+:Sen_A_02 a dkg:Sentence ; dkg:sequence 2 ; skos:prefLabel "Rider makes a Booking for the Bike" ;
+          dkg:performedBy :Act_Rider ; dkg:mentions :Con_Reservation , :Con_Bicycle ; dkg:inContext :Ctx_BicycleDistribution ;
+          dkg:precedes :Sen_A_03 ; dkg:source :Art_StoryRent ; dkg:locator "sentence 2" ; dkg:confidence dkg:OnArtifact .
+:Sen_A_03 a dkg:Sentence ; dkg:sequence 3 ; skos:prefLabel "Rack confirms the Booking to the Rider" ;
+          dkg:mentions :Con_Rack , :Con_Reservation ; dkg:inContext :Ctx_RackManagement ;
+          dkg:precedes :Sen_A_04 ; dkg:source :Art_StoryRent ; dkg:locator "sentence 3" ; dkg:confidence dkg:OnArtifact .
+:Sen_A_04 a dkg:Sentence ; dkg:sequence 4 ; skos:prefLabel "Rider returns the Bike to a Rack" ;
+          dkg:performedBy :Act_Rider ; dkg:mentions :Con_Bicycle , :Con_Rack ; dkg:inContext :Ctx_Docking ;
+          dkg:precedes :Sen_A_05 ; dkg:source :Art_StoryRent ; dkg:locator "sentence 4" ; dkg:confidence dkg:OnArtifact .
+:Sen_A_05 a dkg:Sentence ; dkg:sequence 5 ; skos:prefLabel "Billing sends the Fare to the Rider the next morning" ;
+          dkg:mentions :Con_Fare ; dkg:inContext :Ctx_Billing ;
+          dkg:source :Art_StoryRent ; dkg:locator "sentence 5" ; dkg:confidence dkg:OnArtifact .
+
+# --- decisions, principles, questions ----------------------------------------
+:Q_HowDoesDistributionKnowRackState a dkg:Question ;
+                                    skos:prefLabel "Should Bicycle distribution call Rack management synchronously to reserve?" ;
+                                    dkg:source :Art_BCC_Dist ; dkg:locator "Open questions, line 1" ; dkg:confidence dkg:OnArtifact .
+:Ctx_BicycleDistribution dkg:raises :Q_HowDoesDistributionKnowRackState .
+:Q_WhoOwnsRide a dkg:Question ; skos:prefLabel "Which context opens a Ride — Billing never hears of the unlock" ;
+               dkg:source :Art_ESBoard ; dkg:locator "hotspot 3" ; dkg:confidence dkg:OnArtifact .
+:Ctx_Billing dkg:raises :Q_WhoOwnsRide .
+
+:D_SADR0004 a dkg:Decision ; skos:prefLabel "Reserving across Bicycle distribution → Rack management" ;
+            dkg:status "Adopted" ; dkg:decidedAt "2026-07-18"^^xsd:date ;
+            dkg:consideredOption "synchronous request/reply" , "reservation-requested event" ;
+            dkg:decidedOption "synchronous request/reply — the Rider is standing at the rack" ;
+            dkg:answers :Q_HowDoesDistributionKnowRackState ; dkg:overrides :Prin_P1_AsyncFirst ;
+            dkg:source :Art_ADRLog ; dkg:locator "row 4" ; dkg:confidence dkg:OnArtifact .
+:D_SADR0002 a dkg:Decision ; skos:prefLabel "Sync technology" ;
+            dkg:status "Superseded" ; dkg:decidedOption "gRPC everywhere" ;
+            dkg:source :Art_ADRLog ; dkg:locator "row 2" ; dkg:confidence dkg:OnArtifact .
+:Prin_P1_AsyncFirst a dkg:Principle ; skos:prefLabel "Async-first cross-context integration" ;
+                    dkg:principleId "P1" ; dkg:statement "Bounded contexts integrate through events unless a decision records why not." ;
+                    dkg:scope "between Bounded Contexts" ; dkg:testable true ;
+                    dkg:source :Art_Principles ; dkg:locator "P1" ; dkg:confidence dkg:OnArtifact .
+:Prin_P3_Pragmatic a dkg:Principle ; skos:prefLabel "Be pragmatic" ;
+                   dkg:principleId "P3" ; dkg:statement "Prefer the simplest thing that works." ; dkg:testable false ;
+                   dkg:source :Art_Principles ; dkg:locator "P3" ; dkg:confidence dkg:OnArtifact .

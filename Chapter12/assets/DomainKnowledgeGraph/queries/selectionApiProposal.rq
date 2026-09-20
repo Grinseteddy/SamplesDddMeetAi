@@ -1,0 +1,23 @@
+PREFIX dkg:  <https://w3id.org/dkg/ns#>
+PREFIX :     <https://w3id.org/dkg/graph/larder#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?artifact ?artifactLabel ?node ?label ?type ?locator
+WHERE {
+  VALUES ?artifact {
+    :Art_Story_06d_Grandma          # Ask Grandma — catastrophe
+    :Art_Story_06e_GrandmaII        # Ask Grandma — second variant (see note)
+    :Art_Story_06a_AskChef
+    :Art_Story_06b_AskCommunity
+    :Art_GlossaryEnhanced
+    :Art_ContextMap
+  }
+  ?artifact rdfs:label ?artifactLabel .
+  ?node dkg:source ?artifact ;
+        skos:prefLabel ?label ;
+        a ?type .
+  FILTER(STRSTARTS(STR(?type), STR(dkg:)))
+  OPTIONAL { ?node dkg:locator ?locator }
+}
+ORDER BY ?artifact ?type ?label

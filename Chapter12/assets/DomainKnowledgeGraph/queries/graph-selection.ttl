@@ -1,0 +1,1572 @@
+@prefix dkg:  <https://w3id.org/dkg/ns#> .
+@prefix :     <https://w3id.org/dkg/graph/larder#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://w3id.org/dkg/graph/larder>
+    a owl:Ontology ;
+    owl:imports <https://w3id.org/dkg/ns> ;
+    rdfs:label "Larder (community cooking) — domain knowledge graph" .
+
+
+##############################################################################
+# INGEST — Context Map (09_ContextMap.jpg)  (2026-09-20)
+##############################################################################
+
+:Art_ContextMap a dkg:Artifact ;
+    rdfs:label "Context Map (09_ContextMap.jpg)" ;
+    rdfs:comment "10 context bubbles with the stickies each holds, 14 arrows (solid = synchronous, dashed = asynchronous per the legend), pattern boxes OHS / ACL / CF. The vocabulary has no ContextMap subclass, so this is a plain dkg:Artifact; each arrow is recorded as a dkg:Message (from, to, carries) exactly as drawn, with no upstream/downstream claim added." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Ctx_RecipeCatalog a dkg:BoundedContext ;
+    skos:prefLabel "Recipe Catalog" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (bottom)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_CookProfile a dkg:BoundedContext ;
+    skos:prefLabel "Cook Profile" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (bottom-left)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_MealPlanning a dkg:BoundedContext ;
+    skos:prefLabel "Meal Planning" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (bottom)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_GrandmaAvatarAI a dkg:BoundedContext ;
+    skos:prefLabel "Grandma Avatar AI" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: ACL (bottom)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_Notification a dkg:BoundedContext ;
+    skos:prefLabel "Notification" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (right)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_CookingAssistance a dkg:BoundedContext ;
+    skos:prefLabel "Cooking Assistance" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (right)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_Media a dkg:BoundedContext ;
+    skos:prefLabel "Media" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: none" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_ConsentManagement a dkg:BoundedContext ;
+    skos:prefLabel "Consent Management" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (bottom)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_MealPreparation a dkg:BoundedContext ;
+    skos:prefLabel "Meal Preparation" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (top) and OHS (left)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ctx_Sharing a dkg:BoundedContext ;
+    skos:prefLabel "Sharing" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "bubble" ;
+    rdfs:comment "pattern boxes drawn on this bubble: OHS (top), OHS (left), CF (bottom)" ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_CookRegistered a dkg:DomainEvent ;
+    skos:prefLabel "Cook registered" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "CookProfile bubble" ;
+    dkg:inContext :Ctx_CookProfile ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_DinnerPlanned a dkg:DomainEvent ;
+    skos:prefLabel "Dinner planned" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPlanning bubble" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_RecipesSearched a dkg:DomainEvent ;
+    skos:prefLabel "Recipes searched" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPlanning bubble" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_RecipeSelected a dkg:DomainEvent ;
+    skos:prefLabel "Recipe selected" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPlanning bubble" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_MealPlanSetteled a dkg:DomainEvent ;
+    skos:prefLabel "Meal plan setteled" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPlanning bubble" ;
+    rdfs:comment "spelled 'setteled' on the wall" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_IngredientsSubstituted a dkg:DomainEvent ;
+    skos:prefLabel "Ingredients substituted" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPlanning bubble" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_IngredientsMissing a dkg:DomainEvent ;
+    skos:prefLabel "Ingredients missing" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPlanning bubble" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_MealPlanningStalled a dkg:DomainEvent ;
+    skos:prefLabel "Meal planning stalled" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPlanning bubble" ;
+    rdfs:comment "carries a robot icon on the context map; meaning unconfirmed" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_HelpRequested a dkg:DomainEvent ;
+    skos:prefLabel "Help requested" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "GrandmaAvatarAI bubble" ;
+    dkg:locator "CookingAssistance bubble" ;
+    rdfs:comment "drawn as an orange sticky in BOTH the Grandma Avatar AI bubble and the Cooking Assistance bubble" ;
+    dkg:inContext :Ctx_GrandmaAvatarAI ;
+    dkg:inContext :Ctx_CookingAssistance ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_HelpProvided a dkg:DomainEvent ;
+    skos:prefLabel "Help provided" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "GrandmaAvatarAI bubble" ;
+    dkg:locator "CookingAssistance bubble" ;
+    rdfs:comment "drawn as an orange sticky in BOTH the Grandma Avatar AI bubble and the Cooking Assistance bubble" ;
+    dkg:inContext :Ctx_GrandmaAvatarAI ;
+    dkg:inContext :Ctx_CookingAssistance ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_PicturesTaken a dkg:DomainEvent ;
+    skos:prefLabel "Pictures taken" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "Media bubble" ;
+    dkg:inContext :Ctx_Media ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_MealPreparationStarted a dkg:DomainEvent ;
+    skos:prefLabel "Meal preparation started" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPreparation bubble" ;
+    dkg:inContext :Ctx_MealPreparation ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_CatastropheHappened a dkg:DomainEvent ;
+    skos:prefLabel "Catastrophe happened" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPreparation bubble" ;
+    dkg:inContext :Ctx_MealPreparation ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_StepUnclear a dkg:DomainEvent ;
+    skos:prefLabel "Step unclear" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "MealPreparation bubble" ;
+    dkg:inContext :Ctx_MealPreparation ;
+    dkg:confidence dkg:OnArtifact .
+:Ev_ThanksGiven a dkg:DomainEvent ;
+    skos:prefLabel "Thanks given" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "Sharing bubble" ;
+    dkg:inContext :Ctx_Sharing ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Ingredients a dkg:BusinessObject ;
+    skos:prefLabel "Ingredients" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in RecipeCatalog" ;
+    dkg:locator "pale-yellow (briefcase) in MealPlanning" ;
+    dkg:inContext :Ctx_RecipeCatalog ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Recipe a dkg:BusinessObject ;
+    skos:prefLabel "Recipe" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in RecipeCatalog" ;
+    dkg:inContext :Ctx_RecipeCatalog ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Cook a dkg:BusinessObject ;
+    skos:prefLabel "Cook" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in CookProfile" ;
+    dkg:inContext :Ctx_CookProfile ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Menu a dkg:BusinessObject ;
+    skos:prefLabel "Menu" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in MealPlanning" ;
+    dkg:inContext :Ctx_MealPlanning ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpResponse a dkg:BusinessObject ;
+    skos:prefLabel "Help response" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in GrandmaAvatarAI" ;
+    dkg:locator "pale-yellow (briefcase) in CookingAssistance" ;
+    dkg:inContext :Ctx_GrandmaAvatarAI ;
+    dkg:inContext :Ctx_CookingAssistance ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest a dkg:BusinessObject ;
+    skos:prefLabel "Help request" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in GrandmaAvatarAI" ;
+    dkg:locator "pale-yellow (briefcase) in CookingAssistance" ;
+    dkg:inContext :Ctx_GrandmaAvatarAI ;
+    dkg:inContext :Ctx_CookingAssistance ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Notification a dkg:BusinessObject ;
+    skos:prefLabel "Notification" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in Notification" ;
+    dkg:inContext :Ctx_Notification ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Pictures a dkg:BusinessObject ;
+    skos:prefLabel "Pictures" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in Media" ;
+    dkg:inContext :Ctx_Media ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Consent a dkg:BusinessObject ;
+    skos:prefLabel "Consent" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in ConsentManagement" ;
+    dkg:inContext :Ctx_ConsentManagement ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Thanks a dkg:BusinessObject ;
+    skos:prefLabel "Thanks" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "pale-yellow (briefcase) in Sharing" ;
+    dkg:inContext :Ctx_Sharing ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Recipe a dkg:ReadModel ;
+    dkg:locator "green (eye) in MealPlanning" ;
+    dkg:locator "green (eye) in CookingAssistance" ;
+    dkg:locator "green (eye) in MealPreparation" .
+:Ctx_MealPlanning dkg:reads :Con_Recipe .
+:Ctx_CookingAssistance dkg:reads :Con_Recipe .
+:Ctx_MealPreparation dkg:reads :Con_Recipe .
+:Con_Menu a dkg:ReadModel ;
+    dkg:locator "green (eye) in CookingAssistance" ;
+    dkg:locator "green (eye) in MealPreparation" .
+:Ctx_CookingAssistance dkg:reads :Con_Menu .
+:Ctx_MealPreparation dkg:reads :Con_Menu .
+:Con_Ingredients a dkg:ReadModel ;
+    dkg:locator "green (eye) in CookingAssistance" ;
+    rdfs:comment "green sticky in Cooking Assistance is spelled 'Ingredietens'" ;
+    skos:altLabel "Ingredietens" .
+:Ctx_CookingAssistance dkg:reads :Con_Ingredients .
+:Con_Pictures a dkg:ReadModel ;
+    dkg:locator "green (eye) in CookingAssistance" .
+:Ctx_CookingAssistance dkg:reads :Con_Pictures .
+:Msg_RecipeCatalog_MealPlanning a dkg:Message ;
+    skos:prefLabel "Recipe Catalog → Meal Planning: Recipe" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 1" ;
+    rdfs:comment "synchronous; leaves Recipe Catalog's OHS" ;
+    dkg:from :Ctx_RecipeCatalog ;
+    dkg:to :Ctx_MealPlanning ;
+    dkg:messageKind "?" ;
+    dkg:carries "Recipe" ;
+    dkg:mentions :Con_Recipe ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_MealPlanning_CookingAssistance a dkg:Message ;
+    skos:prefLabel "Meal Planning → Cooking Assistance: Menu, Ingredients, Recipe" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 2" ;
+    rdfs:comment "synchronous; leaves Meal Planning's OHS" ;
+    dkg:from :Ctx_MealPlanning ;
+    dkg:to :Ctx_CookingAssistance ;
+    dkg:messageKind "?" ;
+    dkg:carries "Menu, Ingredients, Recipe" ;
+    dkg:mentions :Con_Menu ;
+    dkg:mentions :Con_Ingredients ;
+    dkg:mentions :Con_Recipe ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_CookingAssistance_MealPlanning a dkg:Message ;
+    skos:prefLabel "Cooking Assistance → Meal Planning: Help response" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 3" ;
+    rdfs:comment "synchronous; arrowhead on Meal Planning's OHS" ;
+    dkg:from :Ctx_CookingAssistance ;
+    dkg:to :Ctx_MealPlanning ;
+    dkg:messageKind "?" ;
+    dkg:carries "Help response" ;
+    dkg:mentions :Con_HelpResponse ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_CookingAssistance_GrandmaAvatarAI a dkg:Message ;
+    skos:prefLabel "Cooking Assistance → Grandma Avatar AI: Help request" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 4" ;
+    rdfs:comment "asynchronous; arrowhead on Grandma Avatar AI's ACL" ;
+    dkg:from :Ctx_CookingAssistance ;
+    dkg:to :Ctx_GrandmaAvatarAI ;
+    dkg:messageKind "?" ;
+    dkg:carries "Help request" ;
+    dkg:mentions :Con_HelpRequest ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_GrandmaAvatarAI_CookingAssistance a dkg:Message ;
+    skos:prefLabel "Grandma Avatar AI → Cooking Assistance: Help response" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 5" ;
+    rdfs:comment "asynchronous; leaves beside the ACL" ;
+    dkg:from :Ctx_GrandmaAvatarAI ;
+    dkg:to :Ctx_CookingAssistance ;
+    dkg:messageKind "?" ;
+    dkg:carries "Help response" ;
+    dkg:mentions :Con_HelpResponse ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_CookingAssistance_Notification a dkg:Message ;
+    skos:prefLabel "Cooking Assistance → Notification: Help request, Help response" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 6" ;
+    rdfs:comment "asynchronous; arrowhead on Notification's OHS" ;
+    dkg:from :Ctx_CookingAssistance ;
+    dkg:to :Ctx_Notification ;
+    dkg:messageKind "?" ;
+    dkg:carries "Help request, Help response" ;
+    dkg:mentions :Con_HelpRequest ;
+    dkg:mentions :Con_HelpResponse ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_Media_CookingAssistance a dkg:Message ;
+    skos:prefLabel "Media → Cooking Assistance: Pictures" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 7" ;
+    rdfs:comment "synchronous; arrowhead on Cooking Assistance's OHS" ;
+    dkg:from :Ctx_Media ;
+    dkg:to :Ctx_CookingAssistance ;
+    dkg:messageKind "?" ;
+    dkg:carries "Pictures" ;
+    dkg:mentions :Con_Pictures ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_Media_Sharing a dkg:Message ;
+    skos:prefLabel "Media → Sharing: Pictures" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 8" ;
+    rdfs:comment "synchronous; arrowhead on Sharing's OHS (top)" ;
+    dkg:from :Ctx_Media ;
+    dkg:to :Ctx_Sharing ;
+    dkg:messageKind "?" ;
+    dkg:carries "Pictures" ;
+    dkg:mentions :Con_Pictures ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_CookingAssistance_MealPreparation a dkg:Message ;
+    skos:prefLabel "Cooking Assistance → Meal Preparation: Help response" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 9" ;
+    rdfs:comment "synchronous; arrowhead on Meal Preparation's OHS (top)" ;
+    dkg:from :Ctx_CookingAssistance ;
+    dkg:to :Ctx_MealPreparation ;
+    dkg:messageKind "?" ;
+    dkg:carries "Help response" ;
+    dkg:mentions :Con_HelpResponse ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_MealPreparation_CookingAssistance a dkg:Message ;
+    skos:prefLabel "Meal Preparation → Cooking Assistance: Menu, Recipe" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 10" ;
+    rdfs:comment "synchronous; leaves Meal Preparation's OHS (top)" ;
+    dkg:from :Ctx_MealPreparation ;
+    dkg:to :Ctx_CookingAssistance ;
+    dkg:messageKind "?" ;
+    dkg:carries "Menu, Recipe" ;
+    dkg:mentions :Con_Menu ;
+    dkg:mentions :Con_Recipe ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_MealPlanning_MealPreparation a dkg:Message ;
+    skos:prefLabel "Meal Planning → Meal Preparation: Recipe, Menu" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 11" ;
+    rdfs:comment "synchronous; arrowhead on Meal Preparation's OHS (left)" ;
+    dkg:from :Ctx_MealPlanning ;
+    dkg:to :Ctx_MealPreparation ;
+    dkg:messageKind "?" ;
+    dkg:carries "Recipe, Menu" ;
+    dkg:mentions :Con_Recipe ;
+    dkg:mentions :Con_Menu ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_MealPreparation_Sharing a dkg:Message ;
+    skos:prefLabel "Meal Preparation → Sharing: Help response" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 12" ;
+    rdfs:comment "synchronous; arrowhead on Sharing's OHS (left)" ;
+    dkg:from :Ctx_MealPreparation ;
+    dkg:to :Ctx_Sharing ;
+    dkg:messageKind "?" ;
+    dkg:carries "Help response" ;
+    dkg:mentions :Con_HelpResponse ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_CookProfile_ConsentManagement a dkg:Message ;
+    skos:prefLabel "Cook Profile → Consent Management: Consent" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 13" ;
+    rdfs:comment "synchronous; leaves Cook Profile's OHS" ;
+    dkg:from :Ctx_CookProfile ;
+    dkg:to :Ctx_ConsentManagement ;
+    dkg:messageKind "?" ;
+    dkg:carries "Consent" ;
+    dkg:mentions :Con_Consent ;
+    dkg:confidence dkg:OnArtifact .
+:Msg_ConsentManagement_Sharing a dkg:Message ;
+    skos:prefLabel "Consent Management → Sharing: Consent" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "arrow 14" ;
+    rdfs:comment "synchronous; leaves Consent Management's OHS, arrowhead on Sharing's CF" ;
+    dkg:from :Ctx_ConsentManagement ;
+    dkg:to :Ctx_Sharing ;
+    dkg:messageKind "?" ;
+    dkg:carries "Consent" ;
+    dkg:mentions :Con_Consent ;
+    dkg:confidence dkg:OnArtifact .
+:Q_ArrowDirectionOnContextMap a dkg:Question ;
+    skos:prefLabel "Arrows on the context map sometimes leave an OHS and sometimes land on one — do they show data flow, call direction, or upstream→downstream?" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "legend + arrows 1–14" ;
+    dkg:confidence dkg:Implied .
+:Q_HelpEventsInTwoContexts a dkg:Question ;
+    skos:prefLabel "Help requested / Help provided and Help request / Help response are drawn inside both Grandma Avatar AI and Cooking Assistance — who owns them?" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "two bubbles" ;
+    dkg:mentions :Con_HelpRequest ;
+    dkg:mentions :Con_HelpResponse ;
+    dkg:confidence dkg:Implied .
+:Q_IngredientsOwner a dkg:Question ;
+    skos:prefLabel "Ingredients is a business object in both Recipe Catalog and Meal Planning — one owner or two concepts?" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "two bubbles" ;
+    dkg:mentions :Con_Ingredients ;
+    dkg:confidence dkg:Implied .
+:Q_RobotMarker a dkg:Question ;
+    skos:prefLabel "What does the robot icon on 'Meal planning stalled' mean — raised by the system, or sticky proposed by an assistant?" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "Meal Planning bubble" ;
+    dkg:confidence dkg:Implied .
+:Ev_MealPlanningStalled dkg:raises :Q_RobotMarker .
+:Q_ConsentNowhereElse a dkg:Question ;
+    skos:prefLabel "Consent Management, Consent and Notification appear on the context map only — which session produced them?" ;
+    dkg:source :Art_ContextMap ;
+    dkg:locator "left column" ;
+    dkg:mentions :Con_Consent ;
+    dkg:mentions :Con_Notification ;
+    dkg:confidence dkg:Implied .
+
+
+##############################################################################
+# INGEST — Visual Glossary Enhanced (VIsualGlossaryEnhanced.jpg)  (2026-09-20)
+##############################################################################
+
+:Art_GlossaryEnhanced a dkg:VisualGlossary ;
+    rdfs:label "Visual Glossary Enhanced (VIsualGlossaryEnhanced.jpg)" ;
+    rdfs:comment "REVISION of the Simple glossary (overlap test: see report). 26 terms: 3 blue with a plus icon (Dinner, Menu, Course), 4 green with a plus icon (Help provider, Chef, Help Meal plan, Menu proposal), Meal drawn grey, the rest yellow. No legend, so the colours are recorded here and mapped to nothing." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Con_Cook a dkg:Term ;
+    dkg:source :Art_GlossaryEnhanced .
+:Con_Community a dkg:Term ;
+    skos:prefLabel "Community" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_GrandmaAvatar a dkg:Term ;
+    skos:prefLabel "Grandma Avatar" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Meal a dkg:Term ;
+    skos:prefLabel "Meal" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Recipe a dkg:Term ;
+    dkg:source :Art_GlossaryEnhanced .
+:Con_HelpRequest a dkg:Term ;
+    dkg:source :Art_GlossaryEnhanced ;
+    skos:altLabel "Help Request" .
+:Con_Help a dkg:Term ;
+    skos:prefLabel "Help" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Thanks a dkg:Term ;
+    dkg:source :Art_GlossaryEnhanced .
+:Con_Picture a dkg:Term ;
+    skos:prefLabel "Picture" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_MealPreparationCatastrophe a dkg:Term ;
+    skos:prefLabel "Meal Preparation Catastrophe" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpForMealPreparationStep a dkg:Term ;
+    skos:prefLabel "Help for Meal Preparation Step" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpWithIngredients a dkg:Term ;
+    skos:prefLabel "Help with Ingredients" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_IngredientSubstitute a dkg:Term ;
+    skos:prefLabel "Ingredient Substitute" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_PreparationStepExplanation a dkg:Term ;
+    skos:prefLabel "Preparation Step Explanation" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Con_StepsToMitigateCatastrophe a dkg:Term ;
+    skos:prefLabel "Steps to Mitigate Catastrophe" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:confidence dkg:OnArtifact .
+:Rel_CookPreparesMeal a dkg:Relationship ;
+    skos:prefLabel "Cook prepares 0..* Meal" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Cook ;
+    dkg:verb "prepares" ;
+    dkg:to :Con_Meal ;
+    dkg:cardinality "0..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Cook dkg:mentions :Con_Meal .
+:Rel_MealWithRecipe a dkg:Relationship ;
+    skos:prefLabel "Meal with 1 Recipe" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Meal ;
+    dkg:verb "with" ;
+    dkg:to :Con_Recipe ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Meal dkg:mentions :Con_Recipe .
+:Rel_CommunityContainsCook a dkg:Relationship ;
+    skos:prefLabel "Community contains 1..* Cook" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Community ;
+    dkg:verb "contains" ;
+    dkg:to :Con_Cook ;
+    dkg:cardinality "1..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Community dkg:mentions :Con_Cook .
+:Rel_CookPostsHelpRequest a dkg:Relationship ;
+    skos:prefLabel "Cook posts 0..* Help Request" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Cook ;
+    dkg:verb "posts" ;
+    dkg:to :Con_HelpRequest ;
+    dkg:cardinality "0..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Cook dkg:mentions :Con_HelpRequest .
+:Rel_CookPostsThanks a dkg:Relationship ;
+    skos:prefLabel "Cook posts 0..* Thanks" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Cook ;
+    dkg:verb "posts" ;
+    dkg:to :Con_Thanks ;
+    dkg:cardinality "0..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Cook dkg:mentions :Con_Thanks .
+:Rel_HelpRequestBelongsMeal a dkg:Relationship ;
+    skos:prefLabel "Help Request belongs 1 Meal" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_HelpRequest ;
+    dkg:verb "belongs" ;
+    dkg:to :Con_Meal ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest dkg:mentions :Con_Meal .
+:Rel_HelpRequestAtCommunity a dkg:Relationship ;
+    skos:prefLabel "Help Request at 1 Community" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_HelpRequest ;
+    dkg:verb "at" ;
+    dkg:to :Con_Community ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest dkg:mentions :Con_Community .
+:Rel_HelpRequestAtGrandmaAvatar a dkg:Relationship ;
+    skos:prefLabel "Help Request at 1 Grandma Avatar" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_HelpRequest ;
+    dkg:verb "at" ;
+    dkg:to :Con_GrandmaAvatar ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest dkg:mentions :Con_GrandmaAvatar .
+:Rel_ThanksToCommunity a dkg:Relationship ;
+    skos:prefLabel "Thanks to 0..1 Community" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Thanks ;
+    dkg:verb "to" ;
+    dkg:to :Con_Community ;
+    dkg:cardinality "0..1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Thanks dkg:mentions :Con_Community .
+:Rel_ThanksToGrandmaAvatar a dkg:Relationship ;
+    skos:prefLabel "Thanks to 0..1 Grandma Avatar" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Thanks ;
+    dkg:verb "to" ;
+    dkg:to :Con_GrandmaAvatar ;
+    dkg:cardinality "0..1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Thanks dkg:mentions :Con_GrandmaAvatar .
+:Rel_ThanksForHelp a dkg:Relationship ;
+    skos:prefLabel "Thanks for 1 Help" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Thanks ;
+    dkg:verb "for" ;
+    dkg:to :Con_Help ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Thanks dkg:mentions :Con_Help .
+:Rel_HelpForHelpRequest a dkg:Relationship ;
+    skos:prefLabel "Help for 1 Help Request" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Help ;
+    dkg:verb "for" ;
+    dkg:to :Con_HelpRequest ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_HelpRequest .
+:Rel_CommunityProvidesHelp a dkg:Relationship ;
+    skos:prefLabel "Community provides 0..* Help" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Community ;
+    dkg:verb "provides" ;
+    dkg:to :Con_Help ;
+    dkg:cardinality "0..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Community dkg:mentions :Con_Help .
+:Rel_GrandmaAvatarProvidesHelp a dkg:Relationship ;
+    skos:prefLabel "Grandma Avatar provides 0..* Help" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_GrandmaAvatar ;
+    dkg:verb "provides" ;
+    dkg:to :Con_Help ;
+    dkg:cardinality "0..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_GrandmaAvatar dkg:mentions :Con_Help .
+:Rel_PreparationStepExplanationBelongsToHelpForMealPreparationStep a dkg:Relationship ;
+    skos:prefLabel "Preparation Step Explanation belongs to 1 Help for Meal Preparation Step" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_PreparationStepExplanation ;
+    dkg:verb "belongs to" ;
+    dkg:to :Con_HelpForMealPreparationStep ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_PreparationStepExplanation dkg:mentions :Con_HelpForMealPreparationStep .
+:Rel_StepsToMitigateCatastropheBelongsToMealPreparationCatastrophe a dkg:Relationship ;
+    skos:prefLabel "Steps to Mitigate Catastrophe belongs to 1 Meal Preparation Catastrophe" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_StepsToMitigateCatastrophe ;
+    dkg:verb "belongs to" ;
+    dkg:to :Con_MealPreparationCatastrophe ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_StepsToMitigateCatastrophe dkg:mentions :Con_MealPreparationCatastrophe .
+:Rel_HelpRequestContainsPicture_v2 a dkg:Relationship ;
+    skos:prefLabel "Help Request contains 0..10 Picture" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "was 0..* in the Simple glossary" ;
+    dkg:from :Con_HelpRequest ;
+    dkg:verb "contains" ;
+    dkg:to :Con_Picture ;
+    dkg:cardinality "0..10" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpRequest dkg:mentions :Con_Picture .
+:Rel_HelpContainsPicture_v2 a dkg:Relationship ;
+    skos:prefLabel "Help contains 0..10 Picture" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "was 0..* in the Simple glossary" ;
+    dkg:from :Con_Help ;
+    dkg:verb "contains" ;
+    dkg:to :Con_Picture ;
+    dkg:cardinality "0..10" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_Picture .
+:Rel_ThanksContainsPicture_v2 a dkg:Relationship ;
+    skos:prefLabel "Thanks contains 0..10 Picture" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "was 0..* in the Simple glossary" ;
+    dkg:from :Con_Thanks ;
+    dkg:verb "contains" ;
+    dkg:to :Con_Picture ;
+    dkg:cardinality "0..10" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Thanks dkg:mentions :Con_Picture .
+:Rel_HelpContainsIngredientSubstitute_v2 a dkg:Relationship ;
+    skos:prefLabel "Help contains 1..3 Ingredient Substitute" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "was 0..* in the Simple glossary" ;
+    dkg:from :Con_Help ;
+    dkg:verb "contains" ;
+    dkg:to :Con_IngredientSubstitute ;
+    dkg:cardinality "1..3" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_IngredientSubstitute .
+:Rel_HelpContainsPreparationStepExplanation_v2 a dkg:Relationship ;
+    skos:prefLabel "Help contains 1 Preparation Step Explanation" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "was 0..* in the Simple glossary" ;
+    dkg:from :Con_Help ;
+    dkg:verb "contains" ;
+    dkg:to :Con_PreparationStepExplanation ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_PreparationStepExplanation .
+:Rel_HelpContainsStepsToMitigateCatastrophe_v2 a dkg:Relationship ;
+    skos:prefLabel "Help contains 1..10 Steps to Mitigate Catastrophe" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "was 0..* in the Simple glossary" ;
+    dkg:from :Con_Help ;
+    dkg:verb "contains" ;
+    dkg:to :Con_StepsToMitigateCatastrophe ;
+    dkg:cardinality "1..10" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_StepsToMitigateCatastrophe .
+:Rel_IngredientSubstituteBelongsToHelpWithIngredients_v2 a dkg:Relationship ;
+    skos:prefLabel "Ingredient Substitute belongs to Help with Ingredients" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "in the Enhanced drawing the arrow ends in open space left of Ingredient Substitute: no target box reached, no multiplicity (was '1' to Help with Ingredients)" ;
+    dkg:from :Con_IngredientSubstitute ;
+    dkg:verb "belongs to" ;
+    dkg:to :Con_HelpWithIngredients ;
+    dkg:confidence dkg:OnArtifact .
+:Con_IngredientSubstitute dkg:mentions :Con_HelpWithIngredients .
+:Con_Dinner a dkg:Term ;
+    skos:prefLabel "Dinner" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "blue, plus icon" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Menu a dkg:Term ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "blue, plus icon" .
+:Con_Course a dkg:Term ;
+    skos:prefLabel "Course" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "blue, plus icon" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpProvider a dkg:Term ;
+    skos:prefLabel "Help provider" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "green, plus icon" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Chef a dkg:Term ;
+    skos:prefLabel "Chef" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "green, plus icon" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_HelpMealPlan a dkg:Term ;
+    skos:prefLabel "Help Meal plan" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "green, plus icon" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_MenuProposal a dkg:Term ;
+    skos:prefLabel "Menu proposal" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "green, plus icon" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Ingredient a dkg:Term ;
+    skos:prefLabel "Ingredient" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "yellow" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Step a dkg:Term ;
+    skos:prefLabel "Step" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "yellow" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Substitute a dkg:Term ;
+    skos:prefLabel "Substitute" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "yellow" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Meal rdfs:comment "drawn grey/white in the Enhanced glossary (yellow in Simple)" .
+:Rel_DinnerHasMenu a dkg:Relationship ;
+    skos:prefLabel "Dinner has 1 Menu" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Dinner ;
+    dkg:verb "has" ;
+    dkg:to :Con_Menu ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Dinner dkg:mentions :Con_Menu .
+:Rel_MenuHasCourse a dkg:Relationship ;
+    skos:prefLabel "Menu has 1..* Course" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Menu ;
+    dkg:verb "has" ;
+    dkg:to :Con_Course ;
+    dkg:cardinality "1..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Menu dkg:mentions :Con_Course .
+:Rel_CourseContainsMeal a dkg:Relationship ;
+    skos:prefLabel "Course contains 1..* Meal" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Course ;
+    dkg:verb "contains" ;
+    dkg:to :Con_Meal ;
+    dkg:cardinality "1..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Course dkg:mentions :Con_Meal .
+:Rel_RecipeContainsIngredient a dkg:Relationship ;
+    skos:prefLabel "Recipe contains 1..* Ingredient" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Recipe ;
+    dkg:verb "contains" ;
+    dkg:to :Con_Ingredient ;
+    dkg:cardinality "1..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Recipe dkg:mentions :Con_Ingredient .
+:Rel_RecipeContainsStep a dkg:Relationship ;
+    skos:prefLabel "Recipe contains 1..* Step" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Recipe ;
+    dkg:verb "contains" ;
+    dkg:to :Con_Step ;
+    dkg:cardinality "1..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Recipe dkg:mentions :Con_Step .
+:Rel_SubstituteIsIngredient a dkg:Relationship ;
+    skos:prefLabel "Substitute is 1 Ingredient" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Substitute ;
+    dkg:verb "is" ;
+    dkg:to :Con_Ingredient ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Substitute dkg:mentions :Con_Ingredient .
+:Rel_ChefProvidesHelp a dkg:Relationship ;
+    skos:prefLabel "Chef provides 0..* Help" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Chef ;
+    dkg:verb "provides" ;
+    dkg:to :Con_Help ;
+    dkg:cardinality "0..*" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Chef dkg:mentions :Con_Help .
+:Rel_HelpContainsMenuProposal a dkg:Relationship ;
+    skos:prefLabel "Help contains 1..3 Menu proposal" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_Help ;
+    dkg:verb "contains" ;
+    dkg:to :Con_MenuProposal ;
+    dkg:cardinality "1..3" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Help dkg:mentions :Con_MenuProposal .
+:Rel_MenuProposalBelongsToHelpMealPlan a dkg:Relationship ;
+    skos:prefLabel "Menu proposal belongs to 1 Help Meal plan" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_MenuProposal ;
+    dkg:verb "belongs to" ;
+    dkg:to :Con_HelpMealPlan ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_MenuProposal dkg:mentions :Con_HelpMealPlan .
+:Rel_PreparationStepExplanationRefersToStep a dkg:Relationship ;
+    skos:prefLabel "Preparation Step Explanation refers to 1 Step" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_PreparationStepExplanation ;
+    dkg:verb "refers to" ;
+    dkg:to :Con_Step ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_PreparationStepExplanation dkg:mentions :Con_Step .
+:Rel_IngredientSubstituteRefersToSubstitute a dkg:Relationship ;
+    skos:prefLabel "Ingredient Substitute refers to 1 Substitute" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:from :Con_IngredientSubstitute ;
+    dkg:verb "refers to" ;
+    dkg:to :Con_Substitute ;
+    dkg:cardinality "1" ;
+    dkg:cardinalityGiven true ;
+    dkg:confidence dkg:OnArtifact .
+:Con_IngredientSubstitute dkg:mentions :Con_Substitute .
+:Rel_StepNeedsIngredient a dkg:Relationship ;
+    skos:prefLabel "Step needs Ingredient" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    rdfs:comment "no multiplicity drawn" ;
+    dkg:from :Con_Step ;
+    dkg:verb "needs" ;
+    dkg:to :Con_Ingredient ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Step dkg:mentions :Con_Ingredient .
+:Con_Community rdfs:subClassOf :Con_HelpProvider .
+:Con_GrandmaAvatar rdfs:subClassOf :Con_HelpProvider .
+:Con_Chef rdfs:subClassOf :Con_HelpProvider .
+:Con_HelpMealPlan rdfs:subClassOf :Con_HelpRequest .
+:Con_Ingredient dkg:proposedSameAs :Con_Ingredients .
+# ^ singular term (Recipe contains 1..* Ingredient) vs plural business object
+:Q_ThanksToChef a dkg:Question ;
+    skos:prefLabel "Chef is a Help provider who provides Help, but Thanks goes 'to 0..1 Community' or 'to 0..1 Grandma Avatar' and Help Request is 'at' those two only — can a Chef be asked and thanked?" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "Thanks / Help Request arrows" ;
+    dkg:mentions :Con_Chef ;
+    dkg:mentions :Con_Thanks ;
+    dkg:confidence dkg:Implied .
+:Q_HelpRequestBelongsToMeal a dkg:Question ;
+    skos:prefLabel "Every Help Request 'belongs 1 Meal', yet Help Meal plan is a Help Request raised before any Meal exists — what does it belong to?" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "belongs arrow" ;
+    dkg:mentions :Con_HelpMealPlan ;
+    dkg:mentions :Con_Meal ;
+    dkg:confidence dkg:Implied .
+:Q_GlossaryColours a dkg:Question ;
+    skos:prefLabel "Blue, green, grey and yellow terms, plus-icons, and no legend — contexts, or 'added in this revision'?" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "whole glossary" ;
+    dkg:confidence dkg:Implied .
+:Q_MenuVsMealPlan a dkg:Question ;
+    skos:prefLabel "Glossary has Dinner–Menu–Course–Meal and no 'Meal plan'; board and map have 'Menu' and 'Meal plan' and no Dinner/Course — same thing?" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "blue terms" ;
+    dkg:mentions :Con_Menu ;
+    dkg:mentions :Con_Dinner ;
+    dkg:confidence dkg:Implied .
+:Q_DanglingBelongsTo a dkg:Question ;
+    skos:prefLabel "Where does Ingredient Substitute's 'belongs to' arrow end in the Enhanced drawing?" ;
+    dkg:source :Art_GlossaryEnhanced ;
+    dkg:locator "left of Ingredient Substitute" ;
+    dkg:mentions :Con_IngredientSubstitute ;
+    dkg:confidence dkg:Implied .
+
+
+##############################################################################
+# INGEST — Domain Story 06d 'Grandma' (06d_DomainStoryGrandma.jpg)  (2026-09-20)
+##############################################################################
+
+:Art_Story_06d_Grandma a dkg:DomainStory ;
+    rdfs:label "Domain Story 06d 'Grandma' (06d_DomainStoryGrandma.jpg)" ;
+    rdfs:comment "6 sentences, no lanes. Same story as the Copy-of-Grandma picture (9 of 9 clauses match) with three differences: no 'optional' boxes, sentence 3 says 'Catastrophe Pictures', sentence 6 says 'Grandma Avatar'. Which of the two is current is not on either picture, so no dkg:revisionOf is asserted." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Act_Cook a dkg:Actor ;
+    skos:prefLabel "Cook" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:confidence dkg:OnArtifact .
+:Act_GrandmaAvatar a dkg:Actor ;
+    skos:prefLabel "Grandma Avatar" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:confidence dkg:OnArtifact .
+:Act_Community a dkg:Actor ;
+    skos:prefLabel "Community" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Meal a dkg:WorkObject ;
+    dkg:source :Art_Story_06d_Grandma .
+:Con_Help a dkg:WorkObject ;
+    dkg:source :Art_Story_06d_Grandma .
+:Con_Pictures a dkg:WorkObject ;
+    dkg:source :Art_Story_06d_Grandma .
+:Con_CatastrophePictures a dkg:WorkObject ;
+    skos:prefLabel "Catastrophe Pictures" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 3" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_CatastrophePictures dkg:proposedSameAs :Con_Pictures .
+# ^ containment: this story qualifies the evidence photos; the copy, the board and the map write plain 'Pictures'
+:Cmd_Prepares a dkg:Activity ;
+    skos:prefLabel "prepares" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 1" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_01 a dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 1" ;
+    dkg:sequence 1 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Prepares ;
+    dkg:confidence dkg:OnArtifact .
+:Cmd_Burns a dkg:Activity ;
+    skos:prefLabel "burns" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 2a" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_02 a dkg:Sentence ;
+    skos:prefLabel "Cook burns Meal" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 2a" ;
+    dkg:sequence 2 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Burns ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_01 dkg:precedes :Sen_06d_02 .
+:Cmd_Takes a dkg:Activity ;
+    skos:prefLabel "takes" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 2b" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_03 a dkg:Sentence ;
+    skos:prefLabel "… and takes Pictures" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 2b" ;
+    dkg:sequence 3 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Cmd_Takes ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_02 dkg:precedes :Sen_06d_03 .
+:Cmd_Asks a dkg:Activity ;
+    skos:prefLabel "asks" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 3" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_04 a dkg:Sentence ;
+    skos:prefLabel "Cook asks Grandma Avatar for Help with Catastrophe Pictures" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 3" ;
+    dkg:sequence 4 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_GrandmaAvatar ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_CatastrophePictures ;
+    dkg:mentions :Cmd_Asks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_03 dkg:precedes :Sen_06d_04 .
+:Cmd_Provides a dkg:Activity ;
+    skos:prefLabel "provides" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 4" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_05 a dkg:Sentence ;
+    skos:prefLabel "Grandma Avatar provides Help to rescue Meal" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 4" ;
+    dkg:sequence 5 ;
+    dkg:performedBy :Act_GrandmaAvatar ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Provides ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_04 dkg:precedes :Sen_06d_05 .
+:Cmd_Rescues a dkg:Activity ;
+    skos:prefLabel "rescues" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 5a" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_06 a dkg:Sentence ;
+    skos:prefLabel "Cook rescues Meal" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 5a" ;
+    dkg:sequence 6 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Rescues ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_05 dkg:precedes :Sen_06d_06 .
+:Cmd_Takes dkg:locator "06d sentence 5b" .
+:Sen_06d_07 a dkg:Sentence ;
+    skos:prefLabel "… and takes Pictures" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 5b" ;
+    dkg:sequence 7 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Cmd_Takes ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_06 dkg:precedes :Sen_06d_07 .
+:Cmd_Thanks a dkg:Activity ;
+    skos:prefLabel "thanks" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 6a" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_08 a dkg:Sentence ;
+    skos:prefLabel "Cook thanks Grandma Avatar" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 6a" ;
+    dkg:sequence 8 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_GrandmaAvatar ;
+    dkg:mentions :Cmd_Thanks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_07 dkg:precedes :Sen_06d_08 .
+:Cmd_Shares a dkg:Activity ;
+    skos:prefLabel "shares" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "06d sentence 6b" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_09 a dkg:Sentence ;
+    skos:prefLabel "… and shares Pictures with Community" ;
+    dkg:source :Art_Story_06d_Grandma ;
+    dkg:locator "sentence 6b" ;
+    dkg:sequence 9 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Act_Community ;
+    dkg:mentions :Cmd_Shares ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06d_08 dkg:precedes :Sen_06d_09 .
+
+
+##############################################################################
+# INGEST — Domain Story 06a 'Ask Chef' (06a_DomainStoryAskChef.jpg)  (2026-09-20)
+##############################################################################
+
+:Art_Story_06a_AskChef a dkg:DomainStory ;
+    rdfs:label "Domain Story 06a 'Ask Chef' (06a_DomainStoryAskChef.jpg)" ;
+    rdfs:comment "6 sentences, no lanes. Sentences 5 and 6 split." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Act_Cook dkg:source :Art_Story_06a_AskChef .
+:Act_Chef a dkg:Actor ;
+    skos:prefLabel "Chef" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:confidence dkg:OnArtifact .
+:Act_Community dkg:source :Art_Story_06a_AskChef .
+:Act_ParentsInLaw a dkg:Actor ;
+    skos:prefLabel "Parents in Law" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 1, group pictogram" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_Dinner a dkg:WorkObject ;
+    dkg:source :Art_Story_06a_AskChef .
+:Con_Help dkg:source :Art_Story_06a_AskChef .
+:Con_Meal dkg:source :Art_Story_06a_AskChef .
+:Con_Pictures dkg:source :Art_Story_06a_AskChef .
+:Con_MealPlanning a dkg:WorkObject ;
+    skos:prefLabel "Meal Planning" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 2, fork-and-knife work object" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_MealPlanning dkg:proposedSameAs :Ctx_MealPlanning .
+# ^ a work object in this story, a context bubble on board and map — cross-class
+:Cmd_Plans a dkg:Activity ;
+    skos:prefLabel "plans" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 1" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_01 a dkg:Sentence ;
+    skos:prefLabel "Cook plans Dinner with Parents in Law" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 1" ;
+    dkg:sequence 1 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Dinner ;
+    dkg:mentions :Act_ParentsInLaw ;
+    dkg:mentions :Cmd_Plans ;
+    dkg:confidence dkg:OnArtifact .
+:Cmd_Needs a dkg:Activity ;
+    skos:prefLabel "needs" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 2" ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_02 a dkg:Sentence ;
+    skos:prefLabel "Cook needs Help for Meal Planning" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 2" ;
+    dkg:sequence 2 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_MealPlanning ;
+    dkg:mentions :Cmd_Needs ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_01 dkg:precedes :Sen_06a_02 .
+:Cmd_Asks dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 3" .
+:Sen_06a_03 a dkg:Sentence ;
+    skos:prefLabel "Cook asks Chef for Help" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 3" ;
+    dkg:sequence 3 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_Chef ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Cmd_Asks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_02 dkg:precedes :Sen_06a_03 .
+:Cmd_Provides dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 4" .
+:Sen_06a_04 a dkg:Sentence ;
+    skos:prefLabel "Chef provides Help to plan Dinner" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 4" ;
+    dkg:sequence 4 ;
+    dkg:performedBy :Act_Chef ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_Dinner ;
+    dkg:mentions :Cmd_Provides ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_03 dkg:precedes :Sen_06a_04 .
+:Cmd_Prepares dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 5a" .
+:Sen_06a_05 a dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 5a" ;
+    dkg:sequence 5 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Prepares ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_04 dkg:precedes :Sen_06a_05 .
+:Cmd_Takes dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 5b" .
+:Sen_06a_06 a dkg:Sentence ;
+    skos:prefLabel "… and takes Pictures" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 5b" ;
+    dkg:sequence 6 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Cmd_Takes ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_05 dkg:precedes :Sen_06a_06 .
+:Cmd_Thanks dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 6a" .
+:Sen_06a_07 a dkg:Sentence ;
+    skos:prefLabel "Cook thanks Chef" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 6a" ;
+    dkg:sequence 7 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_Chef ;
+    dkg:mentions :Cmd_Thanks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_06 dkg:precedes :Sen_06a_07 .
+:Cmd_Shares dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "06a sentence 6b" .
+:Sen_06a_08 a dkg:Sentence ;
+    skos:prefLabel "… and shares Pictures with Community" ;
+    dkg:source :Art_Story_06a_AskChef ;
+    dkg:locator "sentence 6b" ;
+    dkg:sequence 8 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Act_Community ;
+    dkg:mentions :Cmd_Shares ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06a_07 dkg:precedes :Sen_06a_08 .
+:Sen_06a_07 dkg:raises :Q_ThanksToChef .
+
+
+##############################################################################
+# INGEST — Domain Story 06b 'Ask Community' (06b_DomainStoryAskCommunity.jpg)  (2026-09-20)
+##############################################################################
+
+:Art_Story_06b_AskCommunity a dkg:DomainStory ;
+    rdfs:label "Domain Story 06b 'Ask Community' (06b_DomainStoryAskCommunity.jpg)" ;
+    rdfs:comment "6 sentences, no lanes. Community is both the responder (3, 4, 6a) and the audience (6b)." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Act_Cook dkg:source :Art_Story_06b_AskCommunity .
+:Act_Community dkg:source :Art_Story_06b_AskCommunity .
+:Con_Meal dkg:source :Art_Story_06b_AskCommunity .
+:Con_Help dkg:source :Art_Story_06b_AskCommunity .
+:Con_Pictures dkg:source :Art_Story_06b_AskCommunity .
+:Con_Ingredients a dkg:WorkObject ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentences 2–3" .
+:Con_IngredientsSubstitutes a dkg:WorkObject ;
+    skos:prefLabel "Ingredients Substitutes" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 4" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_IngredientsSubstitutes dkg:proposedSameAs :Con_IngredientSubstitute .
+# ^ story plural-plural vs glossary 'Ingredient Substitute'
+:Cmd_Prepares dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentence 1" .
+:Sen_06b_01 a dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 1" ;
+    dkg:sequence 1 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Prepares ;
+    dkg:confidence dkg:OnArtifact .
+:Cmd_Needs dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentence 2" .
+:Sen_06b_02 a dkg:Sentence ;
+    skos:prefLabel "Cook needs Help with Ingredients" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 2" ;
+    dkg:sequence 2 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_Ingredients ;
+    dkg:mentions :Cmd_Needs ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06b_01 dkg:precedes :Sen_06b_02 .
+:Cmd_Asks dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentence 3" .
+:Sen_06b_03 a dkg:Sentence ;
+    skos:prefLabel "Cook asks Community for Help with Ingredients" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 3" ;
+    dkg:sequence 3 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_Community ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_Ingredients ;
+    dkg:mentions :Cmd_Asks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06b_02 dkg:precedes :Sen_06b_03 .
+:Cmd_Provides dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentence 4" .
+:Sen_06b_04 a dkg:Sentence ;
+    skos:prefLabel "Community provides Help with Ingredients Substitutes" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 4" ;
+    dkg:sequence 4 ;
+    dkg:performedBy :Act_Community ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_IngredientsSubstitutes ;
+    dkg:mentions :Cmd_Provides ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06b_03 dkg:precedes :Sen_06b_04 .
+:Cmd_Prepares dkg:locator "06b sentence 5a" .
+:Sen_06b_05 a dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 5a" ;
+    dkg:sequence 5 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Prepares ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06b_04 dkg:precedes :Sen_06b_05 .
+:Cmd_Takes dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentence 5b" .
+:Sen_06b_06 a dkg:Sentence ;
+    skos:prefLabel "… and takes Pictures" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 5b" ;
+    dkg:sequence 6 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Cmd_Takes ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06b_05 dkg:precedes :Sen_06b_06 .
+:Cmd_Thanks dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentence 6a" .
+:Sen_06b_07 a dkg:Sentence ;
+    skos:prefLabel "Cook thanks Community" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 6a" ;
+    dkg:sequence 7 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_Community ;
+    dkg:mentions :Cmd_Thanks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06b_06 dkg:precedes :Sen_06b_07 .
+:Cmd_Shares dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentence 6b" .
+:Sen_06b_08 a dkg:Sentence ;
+    skos:prefLabel "… and shares Pictures with Community" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "sentence 6b" ;
+    dkg:sequence 8 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Act_Community ;
+    dkg:mentions :Cmd_Shares ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06b_07 dkg:precedes :Sen_06b_08 .
+:Q_IngredientHelpWhen a dkg:Question ;
+    skos:prefLabel "Story 06b asks about ingredients while preparing (sentence 1 'prepares Meal'); the board raises 'Ingredients missing' inside Meal Planning — when does ingredient help happen?" ;
+    dkg:source :Art_Story_06b_AskCommunity ;
+    dkg:locator "06b sentences 1–2 vs board event 5" ;
+    dkg:mentions :Con_Ingredients ;
+    dkg:confidence dkg:Implied .
+
+
+##############################################################################
+# INGEST — Domain Story 06e 'Grandma II' (06e_DomainStoryGrandmaII.jpg)  (2026-09-20)
+##############################################################################
+
+:Art_Story_06e_GrandmaII a dkg:DomainStory ;
+    rdfs:label "Domain Story 06e 'Grandma II' (06e_DomainStoryGrandmaII.jpg)" ;
+    rdfs:comment "6 sentences, no lanes. The non-catastrophe variant: the Cook needs help for Meal Preparation. Sentence 6 says 'Grandma'." ;
+    dkg:ingestedAt "2026-09-20"^^xsd:date .
+
+:Act_Cook dkg:source :Art_Story_06e_GrandmaII .
+:Act_GrandmaAvatar dkg:source :Art_Story_06e_GrandmaII .
+:Act_Grandma a dkg:Actor ;
+    skos:prefLabel "Grandma" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:confidence dkg:OnArtifact .
+:Act_Community dkg:source :Art_Story_06e_GrandmaII .
+:Con_Meal dkg:source :Art_Story_06e_GrandmaII .
+:Con_Help dkg:source :Art_Story_06e_GrandmaII .
+:Con_Pictures dkg:source :Art_Story_06e_GrandmaII .
+:Con_MealPreparation a dkg:WorkObject ;
+    skos:prefLabel "Meal Preparation" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 2, work object" ;
+    dkg:confidence dkg:OnArtifact .
+:Con_MealPreparation dkg:proposedSameAs :Ctx_MealPreparation .
+# ^ a work object here, a context on board and map — cross-class
+:Cmd_Prepares dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "06e sentence 1" .
+:Sen_06e_01 a dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 1" ;
+    dkg:sequence 1 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Prepares ;
+    dkg:confidence dkg:OnArtifact .
+:Cmd_Needs dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "06e sentence 2a" .
+:Sen_06e_02 a dkg:Sentence ;
+    skos:prefLabel "Cook needs Help for Meal Preparation" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 2a" ;
+    dkg:sequence 2 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_MealPreparation ;
+    dkg:mentions :Cmd_Needs ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_01 dkg:precedes :Sen_06e_02 .
+:Cmd_Takes dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "06e sentence 2b" .
+:Sen_06e_03 a dkg:Sentence ;
+    skos:prefLabel "… and takes Pictures" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 2b" ;
+    dkg:sequence 3 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Cmd_Takes ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_02 dkg:precedes :Sen_06e_03 .
+:Cmd_Asks dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "06e sentence 3" .
+:Sen_06e_04 a dkg:Sentence ;
+    skos:prefLabel "Cook asks Grandma Avatar for Help with Pictures" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 3" ;
+    dkg:sequence 4 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_GrandmaAvatar ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Cmd_Asks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_03 dkg:precedes :Sen_06e_04 .
+:Cmd_Provides dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "06e sentence 4" .
+:Sen_06e_05 a dkg:Sentence ;
+    skos:prefLabel "Grandma Avatar provides Help to prepare Meal" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 4" ;
+    dkg:sequence 5 ;
+    dkg:performedBy :Act_GrandmaAvatar ;
+    dkg:mentions :Con_Help ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Provides ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_04 dkg:precedes :Sen_06e_05 .
+:Cmd_Prepares dkg:locator "06e sentence 5a" .
+:Sen_06e_06 a dkg:Sentence ;
+    skos:prefLabel "Cook prepares Meal" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 5a" ;
+    dkg:sequence 6 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Meal ;
+    dkg:mentions :Cmd_Prepares ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_05 dkg:precedes :Sen_06e_06 .
+:Cmd_Takes dkg:locator "06e sentence 5b" .
+:Sen_06e_07 a dkg:Sentence ;
+    skos:prefLabel "… and takes Pictures" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 5b" ;
+    dkg:sequence 7 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Cmd_Takes ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_06 dkg:precedes :Sen_06e_07 .
+:Cmd_Thanks dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "06e sentence 6a" .
+:Sen_06e_08 a dkg:Sentence ;
+    skos:prefLabel "Cook thanks Grandma" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 6a" ;
+    dkg:sequence 8 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Act_Grandma ;
+    dkg:mentions :Cmd_Thanks ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_07 dkg:precedes :Sen_06e_08 .
+:Cmd_Shares dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "06e sentence 6b" .
+:Sen_06e_09 a dkg:Sentence ;
+    skos:prefLabel "… and shares Pictures with Community" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 6b" ;
+    dkg:sequence 9 ;
+    dkg:performedBy :Act_Cook ;
+    dkg:mentions :Con_Pictures ;
+    dkg:mentions :Act_Community ;
+    dkg:mentions :Cmd_Shares ;
+    dkg:confidence dkg:OnArtifact .
+:Sen_06e_08 dkg:precedes :Sen_06e_09 .
+:Q_SharesHasNoEvent a dkg:Question ;
+    skos:prefLabel "All five help stories end '… and shares Pictures with Community'; the board has no share command or event, and the map's Sharing bubble holds only 'Thanks given' — where is sharing?" ;
+    dkg:source :Art_Story_06e_GrandmaII ;
+    dkg:locator "sentence 6b ×5" ;
+    dkg:mentions :Con_Pictures ;
+    dkg:confidence dkg:Implied .
+:Cmd_Shares dkg:raises :Q_SharesHasNoEvent .
+
+
+##############################################################################
+# Merge proposals between selected artifacts that the full graph recorded
+# in an ingest outside this selection
+##############################################################################
+
+:Act_Grandma dkg:proposedSameAs :Act_GrandmaAvatar .
+# ^ sentence 6 thanks 'Grandma'; sentences 3–4 say 'Grandma Avatar', same pictogram
+:Act_Cook dkg:proposedSameAs :Con_Cook .
+# ^ one word as an actor sticky (20×) and as a business object (event 1) — cross-class
+:Con_GrandmaAvatar dkg:proposedSameAs :Act_GrandmaAvatar .
+# ^ glossary term vs board external system / story actor — cross-class
+:Con_Community dkg:proposedSameAs :Act_Community .
+# ^ glossary term vs story actor — cross-class
+:Con_Help dkg:proposedSameAs :Con_HelpResponse .
+# ^ glossary 'Help' is for 1 Help Request and provided by responders = what board and map call 'Help response'
+:Con_Picture dkg:proposedSameAs :Con_Pictures .
+# ^ singular term vs plural business object
+:Act_GrandmaAvatar dkg:proposedSameAs :Ctx_GrandmaAvatarAI .
+# ^ board draws the avatar as a pink external system INSIDE the Cook Assistance bubble; the map draws 'Grandma Avatar AI' as a context of its own behind an ACL — cross-class
+:Con_Chef dkg:proposedSameAs :Act_Chef .
+# ^ glossary term vs board actor — cross-class

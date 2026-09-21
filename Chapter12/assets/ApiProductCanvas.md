@@ -76,6 +76,31 @@ e.g. RESTful API
 | GET    | aggregateId |              | 200: value objects, 401, 403, 404, 500, default     |
 | PUT    | aggregateId | value object | 201: Link to aggregate, 401, 403, 404, 500, default |
 
+
+## Asynchronous API
+
+### Asynchronous protocol
+
+### Server
+
+### Events receive
+
+| Event | Payload |
+|-------|---------|
+| Event name | Aggregate name |
+
+### Events send
+
+| Event | Payload |
+|-------|---------|
+| Event name | Aggregate name |
+
 ## Visual Glossary
+
+(as mermaid)
+
+## Quality requirements
+
+## Notes
 
 

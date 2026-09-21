@@ -11,6 +11,7 @@ description: >-
   EventStorming boards, Domain Stories, Visual Glossaries, or their
   interpreter briefs — scoped to one or all bounded contexts/modules.
   Produces YAML file(s) that pass Spectral linting.
+author: Annegret Junker
 ---
 
 # OpenAPI 3.1.0 Spec Author

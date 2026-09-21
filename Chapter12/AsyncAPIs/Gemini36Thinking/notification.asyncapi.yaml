@@ -1,0 +1,404 @@
+asyncapi: 3.1.0
+info:
+  title: Notifications Service
+  version: 1.0.0
+  description: |
+    AsyncAPI specification for the Notifications Service. Consumes event notifications
+    from the Cooking Assistance domain (Help Requested and Help Provided) over RabbitMQ
+    to deliver timely notifications to Cooks.
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+
+servers:
+  production:
+    host: "larder.org:5671"
+    protocol: "amqps"
+    protocolVersion: "0.9.1"
+    description: "Production RabbitMQ broker (TLS)"
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
+
+defaultContentType: application/json
+
+channels:
+  helpRequestedQueue:
+    address: "notifications.help-requested"
+    description: Consumer queue for receiving help request events destined for the Notifications Service.
+    messages:
+      helpRequested:
+        $ref: '#/components/messages/helpRequested'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: notifications.help-requested
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+  helpProvidedQueue:
+    address: "notifications.help-provided"
+    description: Consumer queue for receiving help response events destined for the Notifications Service.
+    messages:
+      helpProvided:
+        $ref: '#/components/messages/helpProvided'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: notifications.help-provided
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+operations:
+  consumeHelpRequested:
+    action: receive
+    description: |
+      Consumes help requested events to trigger notifications for qualified cooking assistance
+      providers (Chef, Grandma Avatar, or Community).
+    channel:
+      $ref: '#/channels/helpRequestedQueue'
+    messages:
+      - $ref: '#/channels/helpRequestedQueue/messages/helpRequested'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+  consumeHelpProvided:
+    action: receive
+    description: |
+      Consumes help provided events to notify the requester that an answer or guidance
+      is available for their cooking issue.
+    channel:
+      $ref: '#/channels/helpProvidedQueue'
+    messages:
+      - $ref: '#/channels/helpProvidedQueue/messages/helpProvided'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+components:
+  messages:
+    helpRequested:
+      name: HelpRequested
+      title: Help Requested Event
+      summary: Indicates that a cook has submitted a cooking assistance request
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpRequestedPayload'
+      bindings:
+        amqp:
+          contentEncoding: identity
+          messageType: HelpRequested
+          bindingVersion: "0.3.0"
+
+    helpProvided:
+      name: HelpProvided
+      title: Help Provided Event
+      summary: Indicates that assistance has been provided for a cooking help request
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpProvidedPayload'
+      bindings:
+        amqp:
+          contentEncoding: identity
+          messageType: HelpProvided
+          bindingVersion: "0.3.0"
+
+  schemas:
+    MessageHeader:
+      type: object
+      required:
+        - correlationId
+        - messageId
+        - source
+      properties:
+        correlationId:
+          type: string
+          format: uuid
+          description: Identifier to trace end-to-end request journey
+        messageId:
+          type: string
+          format: uuid
+          description: Unique identifier for this message
+        source:
+          type: string
+          description: Source system generating the event
+          minLength: 2
+          maxLength: 50
+
+    HelpRequestedPayload:
+      type: object
+      required:
+        - helpRequestId
+        - requester
+        - title
+        - type
+        - description
+        - preferredProvider
+        - status
+      properties:
+        helpRequestId:
+          type: string
+          format: uuid
+          description: Unique identifier of the help request entity
+        requester:
+          type: string
+          format: uuid
+          description: Identifier of the cook requesting assistance
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Brief summary title of the request
+        type:
+          type: string
+          enum:
+            - INGREDIENT_SUBSTITUTE
+            - PREPARATION_STEP_EXPLANATION
+            - STEPS_TO_MITIGATE_CATASTROPHE
+            - MENU_PROPOSAL
+          description: Category of cooking help requested
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Detailed explanation of the cooking problem
+        recipe:
+          type: string
+          format: uuid
+          description: Identifier of the referenced recipe, if applicable
+        howToStep:
+          type: string
+          format: uuid
+          description: Identifier of the specific step requiring explanation
+        ingredients:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of ingredient identifiers involved in substitution
+        preferredProvider:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            type: string
+            enum:
+              - CHEF
+              - GRANDMA_AVATAR
+              - COMMUNITY
+          description: Targeted assistance providers selected by the requester
+        status:
+          type: string
+          enum:
+            - OPEN
+          description: Lifecycle status of the help request upon creation
+
+    HelpProvidedPayload:
+      type: object
+      required:
+        - helpId
+        - helpRequestId
+        - provider
+        - answerTitle
+        - providerType
+        - status
+      properties:
+        helpId:
+          type: string
+          format: uuid
+          description: Unique identifier of the provided help entity
+        helpRequestId:
+          type: string
+          format: uuid
+          description: Reference to the help request being answered
+        provider:
+          type: string
+          format: uuid
+          description: Identifier of the user or persona providing help
+        answerTitle:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Summary title of the response
+        providerType:
+          type: string
+          enum:
+            - CHEF
+            - GRANDMA_AVATAR
+            - COMMUNITY
+          description: Provider classification of the responder
+        helpDetails:
+          $ref: '#/components/schemas/HelpDetails'
+        status:
+          type: string
+          enum:
+            - ANSWERED
+          description: Updated state of the help request
+
+    HelpDetails:
+      type: object
+      description: Domain-specific response payload depending on the type of assistance requested
+      oneOf:
+        - required: [ingredientSubstitute]
+        - required: [preparationStepExplanation]
+        - required: [stepsToMitigateCatastrophe]
+        - required: [menuProposal]
+      properties:
+        ingredientSubstitute:
+          $ref: '#/components/schemas/IngredientSubstituteDetails'
+        preparationStepExplanation:
+          $ref: '#/components/schemas/PreparationStepExplanationDetails'
+        stepsToMitigateCatastrophe:
+          $ref: '#/components/schemas/StepsToMitigateCatastropheDetails'
+        menuProposal:
+          $ref: '#/components/schemas/MenuProposalDetails'
+
+    IngredientSubstituteDetails:
+      type: object
+      required:
+        - recipeId
+        - ingredients
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+        ingredients:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/IngredientItem'
+
+    IngredientItem:
+      type: object
+      required:
+        - name
+        - value
+        - unit
+      properties:
+        name:
+          type: string
+          minLength: 1
+        value:
+          type: number
+          minimum: 0
+        unit:
+          type: string
+          enum:
+            - PIECE
+            - CUP
+            - TABLESPOON
+            - TEASPOON
+            - FLUID_OUNCE
+            - PINT
+            - QUART
+            - POUND
+            - OUNCE
+            - GRAM
+            - LITER
+            - MILLILITER
+            - PINCH
+
+    PreparationStepExplanationDetails:
+      type: object
+      required:
+        - recipeId
+        - howToStep
+        - instruction
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+        howToStep:
+          type: string
+        instruction:
+          type: string
+          minLength: 1
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+
+    StepsToMitigateCatastropheDetails:
+      type: object
+      required:
+        - instruction
+      properties:
+        recipeId:
+          type: string
+          format: uuid
+        instruction:
+          type: string
+          minLength: 1
+        warning:
+          type: string
+
+    MenuProposalDetails:
+      type: object
+      required:
+        - note
+        - servings
+        - meal
+        - courses
+        - planner
+      properties:
+        note:
+          type: string
+        servings:
+          type: integer
+          minimum: 1
+        meal:
+          type: string
+          enum:
+            - BREAKFAST
+            - LUNCH
+            - DINNER
+            - SUPPER
+        howToServe:
+          type: string
+        courses:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/CourseItem'
+        planner:
+          type: string
+
+    CourseItem:
+      type: object
+      required:
+        - step
+        - meal
+        - recipeId
+      properties:
+        step:
+          type: integer
+          minimum: 1
+        meal:
+          type: string
+          enum:
+            - BREAKFAST
+            - LUNCH
+            - DINNER
+            - SUPPER
+        recipeId:
+          type: string
+          format: uuid
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+      description: RabbitMQ PLAIN SASL credentials for broker access

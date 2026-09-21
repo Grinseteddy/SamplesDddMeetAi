@@ -1,0 +1,428 @@
+asyncapi: 3.1.0
+info:
+  title: Grandma Avatar API
+  version: 1.0.0
+  description: |
+    AsyncAPI specification for Grandma Avatar, an AI-driven event assistant that receives 
+    cooking help requests and publishes tailored help responses for cooking catastrophes, 
+    ingredient substitutions, preparation step explanations, and menu proposals.
+  contact:
+    name: Annegret Junker & Fabrizio Lazzaretti
+    url: https://larder.org
+    email: annegret.junker@larder.org
+
+servers:
+  production:
+    host: "larder.org:5671"
+    protocol: "amqps"
+    protocolVersion: "0.9.1"
+    description: "Production RabbitMQ broker (TLS)"
+    security:
+      - $ref: '#/components/securitySchemes/userPassword'
+
+defaultContentType: application/json
+
+channels:
+  helpRequests:
+    address: "grandma-avatar.help-requests"
+    description: Work queue of cooking help requests assigned to Grandma Avatar
+    messages:
+      helpRequested:
+        $ref: '#/components/messages/helpRequested'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: grandma-avatar.help-requests
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+  helpEvents:
+    address: "cooking-assistance.help-provided"
+    description: Topic exchange channel for cooking help responses provided by Grandma Avatar
+    messages:
+      helpProvided:
+        $ref: '#/components/messages/helpProvided'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: cooking-assistance
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+operations:
+  consumeHelpRequested:
+    action: receive
+    description: |
+      Consumes cooking help requests from the queue. The message is acknowledged only 
+      after processing is complete so mid-processing crashes trigger redelivery.
+    channel:
+      $ref: '#/channels/helpRequests'
+    messages:
+      - $ref: '#/channels/helpRequests/messages/helpRequested'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+  publishHelpProvided:
+    action: send
+    description: |
+      Publishes AI-generated cooking assistance responses to the cooking-assistance topic exchange.
+    channel:
+      $ref: '#/channels/helpEvents'
+    messages:
+      - $ref: '#/channels/helpEvents/messages/helpProvided'
+    bindings:
+      amqp:
+        deliveryMode: 2
+        mandatory: true
+        timestamp: true
+        bindingVersion: "0.3.0"
+
+components:
+  messages:
+    helpRequested:
+      name: HelpRequested
+      title: Help Requested Event
+      summary: Indicates that a user requested cooking help from an assistant
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpRequestedPayload'
+      bindings:
+        amqp:
+          contentEncoding: identity
+          messageType: HelpRequested
+          bindingVersion: "0.3.0"
+
+    helpProvided:
+      name: HelpProvided
+      title: Help Provided Event
+      summary: Indicates that Grandma Avatar provided an AI cooking assistance response
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpProvidedPayload'
+      bindings:
+        amqp:
+          contentEncoding: identity
+          messageType: HelpProvided
+          bindingVersion: "0.3.0"
+
+  schemas:
+    MessageHeader:
+      type: object
+      required:
+        - correlationId
+        - messageId
+        - source
+      properties:
+        correlationId:
+          type: string
+          format: uuid
+          description: Identifier to trace end-to-end help request and response flow
+        messageId:
+          type: string
+          format: uuid
+          description: Unique identifier for this message
+        source:
+          type: string
+          description: Source system generating the event
+          minLength: 2
+          maxLength: 50
+
+    HelpRequestedPayload:
+      type: object
+      required:
+        - helpRequestId
+        - requester
+        - title
+        - type
+        - description
+        - preferredProvider
+        - status
+      properties:
+        helpRequestId:
+          type: string
+          format: uuid
+          description: Unique identifier for the help request aggregate
+        requester:
+          type: string
+          format: uuid
+          description: Identifier of the user requesting help
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Short title of the request (e.g., Burning Catastrophe)
+        type:
+          type: string
+          enum:
+            - INGREDIENT_SUBSTITUTE
+            - PREPARATION_STEP_EXPLANATION
+            - STEPS_TO_MITIGATE_CATASTROPHE
+            - MENU_PROPOSAL
+          description: The category of cooking help requested
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Detailed description of the cooking situation
+        recipe:
+          type: string
+          format: uuid
+          description: Associated recipe identifier (mandatory for step explanation and substitute types)
+        howToStep:
+          type: string
+          format: uuid
+          description: Associated step identifier (only for Preparation Step Explanation)
+        ingredients:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of ingredient identifiers (only for Ingredient Substitute)
+        preferredProvider:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            type: string
+            enum:
+              - CHEF
+              - GRANDMA_AVATAR
+              - COMMUNITY
+          description: Preferred providers requested by the user
+        status:
+          type: string
+          enum:
+            - OPEN
+
+    HelpProvidedPayload:
+      type: object
+      required:
+        - helpId
+        - helpRequestId
+        - helper
+        - answerTitle
+        - helpProviderType
+        - answer
+      properties:
+        helpId:
+          type: string
+          format: uuid
+          description: Unique identifier for the help response aggregate
+        helpRequestId:
+          type: string
+          format: uuid
+          description: Reference to the corresponding help request
+        helper:
+          type: string
+          format: uuid
+          description: Identifier of the helper system or agent
+        answerTitle:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Brief summary title of the answer
+        helpProviderType:
+          type: string
+          enum:
+            - CHEF
+            - GRANDMA_AVATAR
+            - COMMUNITY
+          description: Type of provider answering the request
+        helpProviderNote:
+          type: string
+          maxLength: 500
+          description: Additional notes from provider (e.g., Grandma Avatar response time was 300 ms)
+        answer:
+          $ref: '#/components/schemas/HelpAnswer'
+
+    HelpAnswer:
+      type: object
+      description: Polymorphic answer details tailored to the help request type
+      oneOf:
+        - $ref: '#/components/schemas/IngredientSubstituteAnswer'
+        - $ref: '#/components/schemas/PreparationStepExplanationAnswer'
+        - $ref: '#/components/schemas/MitigateCatastropheAnswer'
+        - $ref: '#/components/schemas/MenuProposalAnswer'
+
+    IngredientSubstituteAnswer:
+      type: object
+      required:
+        - type
+        - substituteOptions
+      properties:
+        type:
+          type: string
+          enum:
+            - INGREDIENT_SUBSTITUTE
+        recipe:
+          type: string
+          format: uuid
+        substituteOptions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SubstituteOption'
+
+    SubstituteOption:
+      type: object
+      required:
+        - substituteName
+        - substituteQuantity
+      properties:
+        substituteName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        substituteQuantity:
+          $ref: '#/components/schemas/Quantity'
+
+    Quantity:
+      type: object
+      required:
+        - value
+        - unit
+      properties:
+        value:
+          type: number
+          minimum: 0
+        unit:
+          type: string
+          enum:
+            - Piece
+            - Cup
+            - Tablespoon
+            - Teaspoon
+            - Fluid Ounce
+            - Pint
+            - Quart
+            - Pound
+            - Kilogram
+            - Gram
+            - Liter
+            - Milliliter
+            - Pinch
+
+    PreparationStepExplanationAnswer:
+      type: object
+      required:
+        - type
+        - howToStep
+        - explanation
+      properties:
+        type:
+          type: string
+          enum:
+            - PREPARATION_STEP_EXPLANATION
+        recipe:
+          type: string
+          format: uuid
+        howToStep:
+          type: string
+          format: uuid
+        explanation:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+        technique:
+          type: string
+
+    MitigateCatastropheAnswer:
+      type: object
+      required:
+        - type
+        - mitigationStep
+      properties:
+        type:
+          type: string
+          enum:
+            - STEPS_TO_MITIGATE_CATASTROPHE
+        recipe:
+          type: string
+          format: uuid
+        mitigationStep:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        warnings:
+          type: string
+          maxLength: 1000
+
+    MenuProposalAnswer:
+      type: object
+      required:
+        - type
+        - note
+        - serving
+        - meal
+        - courses
+        - proposalType
+      properties:
+        type:
+          type: string
+          enum:
+            - MENU_PROPOSAL
+        recipe:
+          type: string
+          format: uuid
+        note:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        serving:
+          type: integer
+          minimum: 1
+        meal:
+          type: string
+          enum:
+            - breakfast
+            - lunch
+            - dinner
+            - supper
+        howToServe:
+          type: string
+          maxLength: 500
+        courses:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/MenuCourse'
+        proposalType:
+          type: string
+          enum:
+            - Menu proposal
+
+    MenuCourse:
+      type: object
+      required:
+        - step
+        - recipe
+      properties:
+        step:
+          type: integer
+          minimum: 1
+        recipe:
+          type: string
+          format: uuid
+
+  securitySchemes:
+    userPassword:
+      type: userPassword
+      description: RabbitMQ username/password credentials (PLAIN SASL) for broker connection

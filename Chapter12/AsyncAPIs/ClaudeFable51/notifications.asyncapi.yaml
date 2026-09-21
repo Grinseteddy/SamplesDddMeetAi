@@ -1,0 +1,600 @@
+asyncapi: 3.1.0
+info:
+  title: Notifications
+  version: 1.0.0
+  description: |
+    Event-driven API of the Notifications bounded context of the Community Cooking
+    platform. Notifications are created exclusively on events: this application
+    consumes the domain events emitted by Cooking Assistance (Help requested,
+    Help provided) and turns each into a notification for the Cook concerned.
+    It publishes no events of its own; marking notifications as read and deleting
+    them are synchronous core functions outside this document, and aggregation
+    (e.g. unread counts) is handled in the frontend.
+
+    Payload shapes follow the Cooking Assistance visual glossaries for the
+    Help Request aggregate and the Help aggregate. Glossary invariants are
+    recorded on the affected properties.
+  contact:
+    name: Annegret Junker
+    url: https://larder.org
+    email: annegret.junker@larder.org
+  tags:
+    - name: notifications
+      description: Notifications bounded context
+    - name: cooking-assistance
+      description: Upstream Cooking Assistance context that emits the consumed events
+
+servers:
+  production:
+    host: "larder.org:5671"
+    protocol: "amqps"
+    protocolVersion: "0.9.1"
+    description: "Production RabbitMQ broker (TLS). Credentials are supplied via the security scheme, never in the URL."
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
+
+defaultContentType: application/json
+
+channels:
+  helpRequestedQueue:
+    address: "notifications/help-requested"
+    description: |
+      Queue owned by Notifications, bound to the Cooking Assistance exchange for
+      the routing key of Help requested. One message per raised Help Request.
+    messages:
+      helpRequested:
+        $ref: '#/components/messages/helpRequested'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: notifications.help-requested
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+  helpProvidedQueue:
+    address: "notifications/help-provided"
+    description: |
+      Queue owned by Notifications, bound to the Cooking Assistance exchange for
+      the routing key of Help provided. One message per Help given on a request.
+    messages:
+      helpProvided:
+        $ref: '#/components/messages/helpProvided'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: notifications.help-provided
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+operations:
+  consumeHelpRequested:
+    action: receive
+    summary: Consume Help requested events from Cooking Assistance
+    description: |
+      Fires when a Cook raises a Help Request (status OPEN). Notifications creates
+      a notification for each preferred provider group named on the request
+      (Chef, Community, Grandma Avatar) so that responders learn a cook is stuck.
+      The message is acknowledged only after the notification has been persisted.
+    tags:
+      - name: notifications
+    channel:
+      $ref: '#/channels/helpRequestedQueue'
+    messages:
+      - $ref: '#/channels/helpRequestedQueue/messages/helpRequested'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+  consumeHelpProvided:
+    action: receive
+    summary: Consume Help provided events from Cooking Assistance
+    description: |
+      Fires when a responder answers a Help Request (request status moves to
+      ANSWERED). Notifications creates a notification for the help requester
+      carrying the answer title and the answer type, so the cook can open the
+      Help in Cooking Assistance. The message is acknowledged only after the
+      notification has been persisted.
+    tags:
+      - name: notifications
+    channel:
+      $ref: '#/channels/helpProvidedQueue'
+    messages:
+      - $ref: '#/channels/helpProvidedQueue/messages/helpProvided'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+components:
+  messages:
+    helpRequested:
+      name: HelpRequested
+      title: Help Requested Event
+      summary: A Cook has raised a Help Request and is waiting for an answer
+      description: |
+        Carries the full Help Request aggregate as defined in the Cooking Assistance
+        visual glossary. Notifications reads requester and preferredProvider to
+        decide whom to notify, and title and type to phrase the notification.
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpRequestedPayload'
+      examples:
+        - name: burningCatastrophe
+          summary: The glossary's own example — scones are burning, mother in law due in 30 minutes
+          headers:
+            correlationId: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            messageId: 5c2f0e9a-1d6b-4f3c-9a0e-2b7d1e4c8f10
+            source: cooking-assistance
+          payload:
+            helpRequestId: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            requester: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+            title: Burning Catastrophe
+            type: STEPS_TO_MITIGATE_CATASTROPHE
+            description: Scones are burned and mother in law is coming in 30 minutes
+            recipe: 7cf09822-77a1-46bb-812f-b7852bca0913
+            preferredProvider:
+              - GRANDMA_AVATAR
+              - COMMUNITY
+            status: OPEN
+      bindings:
+        amqp:
+          contentEncoding: utf-8
+          messageType: help.requested
+          bindingVersion: "0.3.0"
+
+    helpProvided:
+      name: HelpProvided
+      title: Help Provided Event
+      summary: A responder has answered a Help Request
+      description: |
+        Carries the Help aggregate as defined in the Cooking Assistance visual
+        glossary: who answered, for which request, and the typed answer. Notifications
+        reads helpRequester, answerTitle and helpProviderType to phrase the
+        notification; the typed answer body is passed through unchanged.
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpProvidedPayload'
+      examples:
+        - name: stayCalm
+          summary: The glossary's own example — catastrophe mitigation from the Grandma Avatar
+          headers:
+            correlationId: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            messageId: 9a7d3c21-6e40-4b58-b1f2-0c3e5d7a9b64
+            source: cooking-assistance
+          payload:
+            helpId: a9caf90d-00b4-4a66-8184-7d02152e8d6a
+            helpRequest: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            helpRequester: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+            answerTitle: Stay calm
+            helpProviderType: GRANDMA_AVATAR
+            helpRequestStatus: ANSWERED
+            answer:
+              answerType: STEPS_TO_MITIGATE_CATASTROPHE
+              catastropheMitigation:
+                recipe: 7cf09822-77a1-46bb-812f-b7852bca0913
+                explanation: use a new, cold pan
+                answerType: STEPS_TO_MITIGATE_CATASTROPHE
+      bindings:
+        amqp:
+          contentEncoding: utf-8
+          messageType: help.provided
+          bindingVersion: "0.3.0"
+
+  schemas:
+    MessageHeader:
+      type: object
+      required:
+        - correlationId
+        - messageId
+        - source
+      properties:
+        correlationId:
+          type: string
+          format: uuid
+          description: Identifier to trace the end-to-end help journey; carries the helpRequestId
+        messageId:
+          type: string
+          format: uuid
+          description: Unique identifier for this message
+        source:
+          type: string
+          description: Source system generating the event
+          minLength: 2
+          maxLength: 20
+
+    # ---------------------------------------------------------------------
+    # Shared value objects (from the glossaries)
+    # ---------------------------------------------------------------------
+
+    HelpType:
+      type: string
+      description: |
+        The kind of help a request asks for and an answer gives. Value object
+        "type" on Help Request and "answerType" on Help; the glossary requires
+        both to be the same for one request/answer pair.
+      enum:
+        - INGREDIENT_SUBSTITUTE
+        - PREPARATION_STEP_EXPLANATION
+        - STEPS_TO_MITIGATE_CATASTROPHE
+        - MENU_PROPOSAL
+
+    HelpProviderType:
+      type: string
+      description: Who may answer — a Chef, the Grandma Avatar or the Community
+      enum:
+        - CHEF
+        - GRANDMA_AVATAR
+        - COMMUNITY
+
+    Unit:
+      type: string
+      description: Unit of a substitute ingredient's quantity
+      enum:
+        - PIECE
+        - CUP
+        - TABLE_SPOON
+        - TEA_SPOON
+        - FLUID_OUNCES
+        - PINT
+        - QUART
+        - POUND
+        - KILOGRAM
+        - GRAM
+        - LITER
+        - MILLILITER
+        - PINCH
+
+    MealType:
+      type: string
+      description: The meal a menu proposal is for
+      enum:
+        - BREAKFAST
+        - LUNCH
+        - DINNER
+        - SUPPER
+
+    # ---------------------------------------------------------------------
+    # Help requested
+    # ---------------------------------------------------------------------
+
+    HelpRequestedPayload:
+      type: object
+      description: |
+        The Help Request aggregate at the moment it was raised.
+        Glossary invariants:
+        - recipe is mandatory for type PREPARATION_STEP_EXPLANATION and INGREDIENT_SUBSTITUTE
+        - howToStep is only allowed for type PREPARATION_STEP_EXPLANATION
+        - ingredients are only allowed for type INGREDIENT_SUBSTITUTE
+        - CHEF may be a preferred provider only for type MENU_PROPOSAL
+        - at least one Help must answer an OPEN request
+      required:
+        - helpRequestId
+        - requester
+        - title
+        - type
+        - description
+        - preferredProvider
+        - status
+      properties:
+        helpRequestId:
+          type: string
+          format: uuid
+          description: Identity of the Help Request aggregate
+        requester:
+          type: string
+          format: uuid
+          description: The Cook who raised the request
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        type:
+          $ref: '#/components/schemas/HelpType'
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: What went wrong, in the cook's own words
+        recipe:
+          type: string
+          format: uuid
+          description: The recipe the request is about. Mandatory for PREPARATION_STEP_EXPLANATION and INGREDIENT_SUBSTITUTE.
+        howToStep:
+          type: string
+          format: uuid
+          description: The preparation step the request is about. Only for type PREPARATION_STEP_EXPLANATION.
+        ingredients:
+          type: array
+          description: The ingredients the cook is missing. Only for type INGREDIENT_SUBSTITUTE.
+          items:
+            type: string
+            format: uuid
+        preferredProvider:
+          type: array
+          description: Whom the cook would like an answer from (1..2). CHEF only for type MENU_PROPOSAL.
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/HelpProviderType'
+        status:
+          type: string
+          description: A freshly raised request is always OPEN
+          enum: [OPEN]
+      allOf:
+        - if:
+            properties:
+              type:
+                enum: [PREPARATION_STEP_EXPLANATION, INGREDIENT_SUBSTITUTE]
+          then:
+            required: [recipe]
+        - if:
+            properties:
+              type:
+                not:
+                  enum: [PREPARATION_STEP_EXPLANATION]
+          then:
+            not:
+              required: [howToStep]
+        - if:
+            properties:
+              type:
+                not:
+                  enum: [INGREDIENT_SUBSTITUTE]
+          then:
+            not:
+              required: [ingredients]
+
+    # ---------------------------------------------------------------------
+    # Help provided
+    # ---------------------------------------------------------------------
+
+    HelpProvidedPayload:
+      type: object
+      description: |
+        The Help aggregate as answered.
+        Glossary invariants:
+        - answer.answerType must be the same as the request's type
+        - a cook can answer their own request, except for CHEF requests
+        - helpRequestStatus is derived from the Help Request status model (OPEN -> ANSWERED); it is not a field of the Help glossary itself
+      required:
+        - helpId
+        - helpRequest
+        - helpRequester
+        - answerTitle
+        - helpProviderType
+        - helpRequestStatus
+        - answer
+      properties:
+        helpId:
+          type: string
+          format: uuid
+          description: Identity of the Help aggregate
+        helpRequest:
+          type: string
+          format: uuid
+          description: The Help Request this help answers
+        helpRequester:
+          type: string
+          format: uuid
+          description: The Cook who raised the request — the recipient of the notification
+        answerTitle:
+          type: string
+          minLength: 1
+          maxLength: 120
+        helpProviderType:
+          $ref: '#/components/schemas/HelpProviderType'
+        helpProvider:
+          type: string
+          format: uuid
+          description: The Cook who answered (absent when the Grandma Avatar answered)
+        helpRequestStatus:
+          type: string
+          description: The request's status after this help was given
+          enum: [ANSWERED]
+        answer:
+          $ref: '#/components/schemas/Answer'
+
+    Answer:
+      type: object
+      description: |
+        The typed answer. Exactly one of the four bodies is present and its own
+        answerType matches the enclosing answerType.
+      required:
+        - answerType
+      properties:
+        answerType:
+          $ref: '#/components/schemas/HelpType'
+        substitutes:
+          $ref: '#/components/schemas/Substitutes'
+        preparationStepExplanation:
+          $ref: '#/components/schemas/PreparationStepExplanation'
+        catastropheMitigation:
+          $ref: '#/components/schemas/CatastropheMitigation'
+        menuProposal:
+          $ref: '#/components/schemas/MenuProposal'
+      oneOf:
+        - required: [substitutes]
+          properties:
+            answerType:
+              enum: [INGREDIENT_SUBSTITUTE]
+        - required: [preparationStepExplanation]
+          properties:
+            answerType:
+              enum: [PREPARATION_STEP_EXPLANATION]
+        - required: [catastropheMitigation]
+          properties:
+            answerType:
+              enum: [STEPS_TO_MITIGATE_CATASTROPHE]
+        - required: [menuProposal]
+          properties:
+            answerType:
+              enum: [MENU_PROPOSAL]
+
+    Substitutes:
+      type: object
+      description: Ingredient substitutes for a recipe. recipe must be the same as in the request.
+      required:
+        - recipe
+        - substitute
+        - answerType
+      properties:
+        recipe:
+          type: string
+          format: uuid
+        substitute:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Substitute'
+        answerType:
+          type: string
+          enum: [INGREDIENT_SUBSTITUTE]
+
+    Substitute:
+      type: object
+      description: One missing ingredient and what to use instead. ingredient must be the same ingredientId as in the request.
+      required:
+        - ingredient
+        - substituteIngredient
+      properties:
+        ingredient:
+          type: string
+          format: uuid
+        substituteIngredient:
+          $ref: '#/components/schemas/SubstituteIngredient'
+
+    SubstituteIngredient:
+      type: object
+      required:
+        - name
+        - value
+        - unit
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        value:
+          type: number
+          minimum: 0
+          exclusiveMinimum: 0
+        unit:
+          $ref: '#/components/schemas/Unit'
+
+    PreparationStepExplanation:
+      type: object
+      description: Explanation of one preparation step. recipe and howToStep must be the same as in the request.
+      required:
+        - recipe
+        - howToStep
+        - description
+        - answerType
+      properties:
+        recipe:
+          type: string
+          format: uuid
+        howToStep:
+          type: string
+          format: uuid
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+        answerType:
+          type: string
+          enum: [PREPARATION_STEP_EXPLANATION]
+
+    CatastropheMitigation:
+      type: object
+      description: Steps to mitigate a catastrophe. recipe, when given, must be the same as in the request.
+      required:
+        - explanation
+        - answerType
+      properties:
+        recipe:
+          type: string
+          format: uuid
+        explanation:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        answerType:
+          type: string
+          enum: [STEPS_TO_MITIGATE_CATASTROPHE]
+
+    MenuProposal:
+      type: object
+      description: A proposed menu of 1..10 courses. Different courses may share the same step when served in parallel.
+      required:
+        - note
+        - servings
+        - meal
+        - course
+        - answerType
+      properties:
+        note:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        servings:
+          type: integer
+          minimum: 1
+        meal:
+          $ref: '#/components/schemas/MealType'
+        howToServe:
+          type: string
+          maxLength: 2000
+        course:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Course'
+        answerType:
+          type: string
+          enum: [MENU_PROPOSAL]
+
+    Course:
+      type: object
+      required:
+        - step
+        - meal
+      properties:
+        step:
+          type: integer
+          minimum: 1
+          description: Serving order; courses served in parallel share a step
+        meal:
+          $ref: '#/components/schemas/CourseMeal'
+
+    CourseMeal:
+      type: object
+      description: The dish of one course, referring to a recipe
+      required:
+        - recipe
+      properties:
+        recipe:
+          type: string
+          format: uuid
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+      description: Username/password authentication against the RabbitMQ broker

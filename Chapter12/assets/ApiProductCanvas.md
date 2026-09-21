@@ -75,3 +75,7 @@ e.g. RESTful API
 |--------|-------------|--------------|-----------------------------------------------------|
 | GET    | aggregateId |              | 200: value objects, 401, 403, 404, 500, default     |
 | PUT    | aggregateId | value object | 201: Link to aggregate, 401, 403, 404, 500, default |
+
+## Visual Glossary
+
+

@@ -11,22 +11,60 @@ info:
 
 servers:
   production:
-    host: "<broker-host:port>"          # e.g. events.example.com:9092 — no protocol scheme here
-    protocol: "<kafka|mqtt|amqp|ws|...>"
+    host: "<broker-host:port>"          # Kafka events.example.com:9092 | RabbitMQ rabbitmq.example.com:5672 — no scheme here
+    protocol: "<kafka|mqtt|amqp|amqps|ws|...>"
+    # protocolVersion: "0.9.1"          # AMQP/RabbitMQ only
     description: "Production broker"
     security:
       - $ref: '#/components/securitySchemes/user-password'
+    # Kafka only (AMQP has no server binding):
+    # bindings:
+    #   kafka:
+    #     schemaRegistryUrl: "<https://schema-registry.example.com>"
+    #     schemaRegistryVendor: "confluent"
+    #     bindingVersion: "0.5.0"
 
 defaultContentType: application/json
 
 channels:
   <resourceEvents>:                      # camelCase channel key
-    address: "<resource-area/resources>" # kebab-case path segments
+    address: "<resource-area/resources>" # kebab-case: Kafka/MQTT "area/resources"; AMQP routing key "resource.{eventType}"
     messages:
       <resourceCreated>:
         $ref: '#/components/messages/<resourceCreated>'
       <resourceUpdated>:
         $ref: '#/components/messages/<resourceUpdated>'
+    # Every channel carries the binding for its protocol — keep ONE of these. See conventions.md §12.
+    # bindings:
+    #   kafka:
+    #     topic: <resource-area.resources>   # only if different from address
+    #     partitions: 6
+    #     replicas: 3
+    #     topicConfiguration:
+    #       cleanup.policy: ["delete"]
+    #       retention.ms: 604800000
+    #     bindingVersion: "0.5.0"
+    #
+    #   amqp:
+    #     is: routingKey                 # publisher: address is the routing key on this exchange
+    #     exchange:
+    #       name: <resource-area>
+    #       type: topic
+    #       durable: true
+    #       autoDelete: false
+    #       vhost: /
+    #     bindingVersion: "0.3.0"
+    #
+    #   For a CONSUMER channel use instead:
+    #   amqp:
+    #     is: queue                      # consumer: address is the queue name
+    #     queue:
+    #       name: <consumer-context>.<purpose>
+    #       durable: true
+    #       exclusive: false
+    #       autoDelete: false
+    #       vhost: /
+    #     bindingVersion: "0.3.0"
 
 operations:
   # action is from THIS application's perspective:
@@ -38,6 +76,18 @@ operations:
       $ref: '#/channels/<resourceEvents>'
     messages:
       - $ref: '#/channels/<resourceEvents>/messages/<resourceCreated>'
+    # Keep ONE of these:
+    # bindings:
+    #   kafka:
+    #     clientId:                      # a `receive` operation carries `groupId` instead
+    #       type: string
+    #       enum: [<this-service-name>]
+    #     bindingVersion: "0.5.0"
+    #
+    #   amqp:
+    #     deliveryMode: 2                # 2 = persistent; 1 = transient
+    #     mandatory: true
+    #     bindingVersion: "0.3.0"        # a `receive` operation carries `ack: true` instead
 
   publish<ResourceUpdated>:
     action: send
@@ -56,6 +106,19 @@ components:
         $ref: '#/components/schemas/MessageHeader'
       payload:
         $ref: '#/components/schemas/<ResourceCreated>Payload'
+      # Keep ONE of these:
+      # bindings:
+      #   kafka:
+      #     key:                             # partition key = aggregate id
+      #       type: string
+      #       format: uuid
+      #     schemaIdLocation: header
+      #     bindingVersion: "0.5.0"
+      #
+      #   amqp:
+      #     contentEncoding: identity
+      #     messageType: <ResourceCreated>   # mirror `name`
+      #     bindingVersion: "0.3.0"
 
     <resourceUpdated>:
       name: <ResourceUpdated>

@@ -1,10 +1,11 @@
 asyncapi: 3.1.0
 info:
-  title: Task Management System
+  title: Task Management System (RabbitMQ)
   version: 1.0.0
   description: |
-    Async API specification for Task Management System that handles task lifecycle 
-    between Creators, Freelancers, and Assignees.
+    Async API specification for the Task Management System over RabbitMQ (AMQP 0-9-1).
+    The service publishes task lifecycle events to a topic exchange for Creators,
+    Freelancers, and Assignees, and consumes assignment requests from a work queue.
   contact:
     name: Task Management Team
     url: https://taskmanagement.org
@@ -12,22 +13,33 @@ info:
 
 servers:
   production:
-    host: "events.taskmanagement.com:9092"
-    protocol: "kafka"
-    description: "Production Kafka cluster"
+    host: "rabbitmq.taskmanagement.com:5671"
+    protocol: "amqps"
+    protocolVersion: "0.9.1"
+    description: "Production RabbitMQ broker (TLS)"
     security:
       - $ref: '#/components/securitySchemes/user-password'
-    bindings:
-      kafka:
-        schemaRegistryUrl: "https://schema-registry.taskmanagement.com"
-        schemaRegistryVendor: "confluent"
-        bindingVersion: "0.5.0"
+  development:
+    host: "localhost:5672"
+    protocol: "amqp"
+    protocolVersion: "0.9.1"
+    description: "Local RabbitMQ broker"
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
 
 defaultContentType: application/json
 
 channels:
+  # PUBLISHER side: the address is the ROUTING KEY, the binding names the EXCHANGE.
+  # One channel carries all lifecycle events; the {eventType} parameter selects
+  # the routing key (task.created, task.assigned, ...).
   taskEvents:
-    address: "task-management/tasks"
+    address: "task.{eventType}"
+    description: Task lifecycle events, routed by event type on the task-management topic exchange
+    parameters:
+      eventType:
+        description: Lifecycle event type, used as the last routing-key segment
+        enum: [created, assigned, processed, completed]
     messages:
       taskCreated:
         $ref: '#/components/messages/taskCreated'
@@ -38,72 +50,106 @@ channels:
       taskCompleted:
         $ref: '#/components/messages/taskCompleted'
     bindings:
-      kafka:
-        topic: task-management.tasks
-        partitions: 6
-        replicas: 3
-        topicConfiguration:
-          cleanup.policy: ["delete"]
-          retention.ms: 604800000       # 7 days
-          max.message.bytes: 1048576
-        bindingVersion: "0.5.0"
+      amqp:
+        is: routingKey
+        exchange:
+          name: task-management
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+  # CONSUMER side: the address is the QUEUE name, the binding describes the queue.
+  # (The broker-side binding of this queue to an exchange is deployment
+  # configuration, not part of the API contract.)
+  assignmentRequests:
+    address: "task-management.assignment-requests"
+    description: Work queue of assignment requests waiting for the Task Management Service
+    messages:
+      assignmentRequested:
+        $ref: '#/components/messages/assignmentRequested'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: task-management.assignment-requests
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
 
 operations:
   publishTaskCreated:
     action: send
-    description: Published once a task has been persisted; keyed by taskId so all events of one task share a partition
+    description: Published once a task has been persisted; routed as task.created
     channel:
       $ref: '#/channels/taskEvents'
     messages:
       - $ref: '#/channels/taskEvents/messages/taskCreated'
     bindings:
-      kafka:
-        clientId:
-          type: string
-          enum: [task-management-service]
-        bindingVersion: "0.5.0"
+      amqp:
+        deliveryMode: 2
+        mandatory: true
+        timestamp: true
+        bindingVersion: "0.3.0"
 
   publishTaskAssigned:
     action: send
-    description: Published once a freelancer accepts a task
+    description: Published once a freelancer accepts a task; routed as task.assigned
     channel:
       $ref: '#/channels/taskEvents'
     messages:
       - $ref: '#/channels/taskEvents/messages/taskAssigned'
     bindings:
-      kafka:
-        clientId:
-          type: string
-          enum: [task-management-service]
-        bindingVersion: "0.5.0"
+      amqp:
+        deliveryMode: 2
+        mandatory: true
+        timestamp: true
+        bindingVersion: "0.3.0"
 
   publishTaskProcessed:
     action: send
-    description: Published on each progress update
+    description: Published on each progress update; routed as task.processed
     channel:
       $ref: '#/channels/taskEvents'
     messages:
       - $ref: '#/channels/taskEvents/messages/taskProcessed'
     bindings:
-      kafka:
-        clientId:
-          type: string
-          enum: [task-management-service]
-        bindingVersion: "0.5.0"
+      amqp:
+        deliveryMode: 1
+        mandatory: false
+        timestamp: true
+        bindingVersion: "0.3.0"
 
   publishTaskCompleted:
     action: send
-    description: Published when the assignee marks the task done
+    description: Published when the assignee marks the task done; routed as task.completed
     channel:
       $ref: '#/channels/taskEvents'
     messages:
       - $ref: '#/channels/taskEvents/messages/taskCompleted'
     bindings:
-      kafka:
-        clientId:
-          type: string
-          enum: [task-management-service]
-        bindingVersion: "0.5.0"
+      amqp:
+        deliveryMode: 2
+        mandatory: true
+        timestamp: true
+        bindingVersion: "0.3.0"
+
+  consumeAssignmentRequested:
+    action: receive
+    description: |
+      Consumes assignment requests from the work queue. The message is acknowledged
+      only after the assignment has been recorded, so a crash mid-processing redelivers it.
+    channel:
+      $ref: '#/channels/assignmentRequests'
+    messages:
+      - $ref: '#/channels/assignmentRequests/messages/assignmentRequested'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
 
 components:
   messages:
@@ -116,13 +162,10 @@ components:
       payload:
         $ref: '#/components/schemas/TaskCreatedPayload'
       bindings:
-        kafka:
-          key:
-            type: string
-            format: uuid
-            description: The taskId, so every event of one task lands on the same partition
-          schemaIdLocation: header
-          bindingVersion: "0.5.0"
+        amqp:
+          contentEncoding: identity
+          messageType: TaskCreated
+          bindingVersion: "0.3.0"
 
     taskAssigned:
       name: TaskAssigned
@@ -133,13 +176,10 @@ components:
       payload:
         $ref: '#/components/schemas/TaskAssignedPayload'
       bindings:
-        kafka:
-          key:
-            type: string
-            format: uuid
-            description: The taskId, so every event of one task lands on the same partition
-          schemaIdLocation: header
-          bindingVersion: "0.5.0"
+        amqp:
+          contentEncoding: identity
+          messageType: TaskAssigned
+          bindingVersion: "0.3.0"
 
     taskProcessed:
       name: TaskProcessed
@@ -150,13 +190,10 @@ components:
       payload:
         $ref: '#/components/schemas/TaskProcessedPayload'
       bindings:
-        kafka:
-          key:
-            type: string
-            format: uuid
-            description: The taskId, so every event of one task lands on the same partition
-          schemaIdLocation: header
-          bindingVersion: "0.5.0"
+        amqp:
+          contentEncoding: identity
+          messageType: TaskProcessed
+          bindingVersion: "0.3.0"
 
     taskCompleted:
       name: TaskCompleted
@@ -167,13 +204,24 @@ components:
       payload:
         $ref: '#/components/schemas/TaskCompletedPayload'
       bindings:
-        kafka:
-          key:
-            type: string
-            format: uuid
-            description: The taskId, so every event of one task lands on the same partition
-          schemaIdLocation: header
-          bindingVersion: "0.5.0"
+        amqp:
+          contentEncoding: identity
+          messageType: TaskCompleted
+          bindingVersion: "0.3.0"
+
+    assignmentRequested:
+      name: AssignmentRequested
+      title: Assignment Requested Command
+      summary: Asks the Task Management Service to assign a task to a freelancer
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/AssignmentRequestedPayload'
+      bindings:
+        amqp:
+          contentEncoding: identity
+          messageType: AssignmentRequested
+          bindingVersion: "0.3.0"
 
   schemas:
     MessageHeader:
@@ -286,7 +334,27 @@ components:
           type: string
           format: date-time
 
+    AssignmentRequestedPayload:
+      type: object
+      required:
+        - taskId
+        - freelancerId
+        - requestedBy
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        freelancerId:
+          type: string
+          format: uuid
+        requestedBy:
+          type: string
+          format: uuid
+        requestedAt:
+          type: string
+          format: date-time
+
   securitySchemes:
     user-password:
       type: userPassword
-      description: Basic authentication for event broker
+      description: RabbitMQ username/password (PLAIN SASL) for the broker connection

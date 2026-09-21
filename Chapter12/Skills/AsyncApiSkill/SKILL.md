@@ -18,10 +18,17 @@ author: Annegret Junker
 # AsyncAPI 3.1.0 Spec Author
 
 This skill produces AsyncAPI **3.1.0** specifications in **YAML** that follow a
-consistent, heavily componentized house style and pass linting. The bundled
-`assets/example-task-management.yaml` is the gold-standard reference for what
-"good" looks like — when in doubt about structure or formatting, open it and
-mirror it.
+consistent, heavily componentized house style and pass linting. Two bundled
+gold-standard examples show what "good" looks like — when in doubt about
+structure or formatting, open the one for your protocol and mirror it:
+
+- `assets/example-task-management.yaml` — **Kafka** (`kafka` bindings:
+  schema registry on the server, partitions/replicas/retention on the
+  channel, `clientId`/`groupId` on operations, partition `key` on messages).
+- `assets/example-task-management-amqp.yaml` — **RabbitMQ / AMQP 0-9-1**
+  (`amqp` bindings: exchange + routing-key channel for publishing, queue
+  channel for consuming, delivery mode / ack on operations, `messageType`
+  on messages).
 
 The conventions below are **strong defaults**: apply them unless the user's
 domain clearly calls for something different (a different protocol, a different
@@ -66,7 +73,11 @@ Establish, from the conversation or by asking briefly:
 - **Direction** for the application being described — does it `send` (produce) or
   `receive` (consume) each message? This decides the `action` on each operation.
 - The **protocol** and broker (Kafka, MQTT, AMQP, WebSocket, …) and the server
-  host. Default content type is `application/json`.
+  host. Default content type is `application/json`. Also establish the
+  **broker-level facts that go into `bindings`** (`references/conventions.md`
+  §12): for Kafka the partition count, replication, retention, consumer group
+  and partition key; for RabbitMQ the exchange name and type, the routing
+  keys, and the queue names this application consumes from.
 - **Security** for the broker connection (default: `userPassword`).
 
 If the user already gave a message list, a state machine, an event-storming
@@ -94,6 +105,13 @@ so structure stays clean:
    `channel` `$ref`, and a `messages` list of `$ref`s.
 6. `components` — `messages`, `schemas` (a shared `MessageHeader` plus one
    payload schema per message), `securitySchemes`.
+7. `bindings.<protocol>` on the server (Kafka only), every channel, every
+   operation and every message, pinned to the binding version (`kafka`
+   `"0.5.0"`, `amqp` `"0.3.0"`). Kafka: `partitions`/`replicas`/
+   `topicConfiguration`, `clientId` or `groupId`, message `key`. AMQP:
+   `is: routingKey` + `exchange` or `is: queue` + `queue`, `deliveryMode`/
+   `mandatory` for `send` and `ack` for `receive`, `messageType`; a message
+   this application both publishes and consumes gets two channels.
 
 The single most important convention: **componentize and reuse via `$ref`.**
 Messages live under `components.messages`; their headers and payloads live under
@@ -169,10 +187,26 @@ machine by giving each event's `status` a single-value `enum`
 `components.securitySchemes` (default `userPassword`) and reference it from each
 server's `security` list.
 
+**bindings** — every document carries them for its protocol; a spec without
+bindings describes message shapes but not a working integration.
+
+**Kafka** — server `bindings.kafka.schemaRegistryUrl`; channel `partitions`,
+`replicas`, `topicConfiguration` (`cleanup.policy`, `retention.ms`); `send`
+ops `clientId`, `receive` ops `groupId`; messages a partition `key` (the
+aggregate id) and `schemaIdLocation: header`.
+
+**AMQP / RabbitMQ** — `protocol: amqp`/`amqps`, `protocolVersion: "0.9.1"`;
+publisher channels are routing keys on an exchange (`is: routingKey`,
+dotted address like `task.{eventType}`), consumer channels are queues
+(`is: queue`); persist state-changing events (`deliveryMode: 2`), ack
+manually (`ack: true`); no server binding — `vhost` sits on the exchange/queue.
+Full detail in `references/conventions.md` §12.
+
 ## Bundled resources
 
 - `references/conventions.md` — full house-style specification. Read before writing.
 - `references/validation.md` — how to install and run the AsyncAPI CLI and Spectral (and fallbacks).
-- `assets/example-task-management.yaml` — gold-standard example to mirror.
-- `assets/skeleton.yaml` — minimal starting template with the right structure.
-- `assets/house-style.spectral.yaml` — Spectral ruleset encoding the conventions.
+- `assets/example-task-management.yaml` — gold-standard Kafka example (bindings) to mirror.
+- `assets/example-task-management-amqp.yaml` — gold-standard RabbitMQ/AMQP example (bindings) to mirror.
+- `assets/skeleton.yaml` — minimal starting template with the right structure (AMQP binding blocks commented in).
+- `assets/house-style.spectral.yaml` — Spectral ruleset encoding the conventions, including the Kafka and AMQP binding rules.

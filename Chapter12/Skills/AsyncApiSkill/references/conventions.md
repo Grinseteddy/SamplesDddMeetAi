@@ -16,6 +16,7 @@ the canonical example and mirror its structure and formatting.
 9. Componentization (the core principle)
 10. Naming cheat sheet
 11. Version notes: 3.1.0, and 3.x vs 2.x
+12. Protocol bindings: Kafka and AMQP / RabbitMQ
 
 ---
 
@@ -73,7 +74,9 @@ servers:
 
 Add more entries (`staging`, `development`) the same way when the domain needs
 them. `protocolVersion`, `pathname`, and `bindings` are available when a protocol
-requires them.
+requires them. Kafka servers carry a `bindings.kafka` block with the schema
+registry; RabbitMQ servers use `protocol: amqp` (plain, port 5672) or `amqps`
+(TLS, port 5671) with `protocolVersion: "0.9.1"` — see §12.
 
 ---
 
@@ -95,8 +98,11 @@ default is `application/json`.
 `channels` is a **map** keyed in **camelCase** (`taskEvents`). A channel
 describes *where* messages flow and is direction-agnostic. Each channel declares:
 
-- `address` — the broker-level address (topic / queue / routing key). Use a
-  broker-style path with **kebab-case** segments: `task-management/tasks`.
+- `address` — the broker-level address (topic / queue / routing key). Use
+  lowercase **kebab-case** segments. Kafka and MQTT addresses are `/`-separated
+  paths (`task-management/tasks`); AMQP routing keys and queue names are
+  `.`-separated (`task.created`, `task-management.assignment-requests`). A
+  segment may be a `{camelCase}` channel parameter (`task.{eventType}`).
 - `messages` — a map whose **keys mirror the message component keys** and whose
   values are `$ref`s into `components.messages`. A channel lists every message
   that can appear on it.
@@ -118,6 +124,9 @@ channels:
 
 Group related lifecycle events that share a topic onto one channel (as above).
 Use separate channels when messages travel on genuinely different addresses.
+Every channel also carries a `bindings.<protocol>` block with the broker-level
+facts: on Kafka the partition/replica/retention setup, on AMQP whether the
+address is a routing key on an exchange or a queue — see §12.
 Channel `parameters` (for templated addresses such as `task/{taskId}/status`)
 are defined under the channel and referenced from `components.parameters`.
 
@@ -405,3 +414,256 @@ If you have a 2.x document or 2.x habits, the big differences (introduced in
   and `$ref` from channels.
 
 Build new specs as 3.1.0 from the start; mirror the example.
+
+---
+
+## 12. Protocol bindings: Kafka and AMQP / RabbitMQ
+
+The channel/operation/message split is protocol-neutral, but the broker needs
+facts the core spec has no field for: how many partitions a topic has, which
+exchange a routing key goes to, whether a consumer acks manually. Those go in
+`bindings.<protocol>` objects on **servers, channels, operations and
+messages**. **House rule: every document carries the bindings for its
+protocol** — a spec without them describes message shapes but not a working
+integration. Each binding block pins its `bindingVersion`: `"0.5.0"` for
+`kafka`, `"0.3.0"` for `amqp` (the versions for AsyncAPI 3.x documents).
+The two bundled examples show the full set for each protocol; mirror the one
+that matches your broker.
+
+### 12.1 How the address maps
+
+| Protocol | Channel `address` is… | Grouping |
+|---|---|---|
+| Kafka | the **topic** | many lifecycle events on one topic → one channel |
+| MQTT | the **topic** (path, may use `{param}`) | one channel per topic pattern |
+| AMQP, publisher side | the **routing key** published to an exchange | one channel per exchange, `{param}` for the variable key segment |
+| AMQP, consumer side | the **queue name** consumed from | one channel per queue |
+
+### 12.2 Kafka bindings (`assets/example-task-management.yaml`)
+
+**Server** — where schemas are registered:
+
+```yaml
+servers:
+  production:
+    host: "events.taskmanagement.com:9092"
+    protocol: "kafka"
+    bindings:
+      kafka:
+        schemaRegistryUrl: "https://schema-registry.taskmanagement.com"
+        schemaRegistryVendor: "confluent"     # confluent | apicurio | karapace | ...
+        bindingVersion: "0.5.0"
+```
+
+**Channel** — the topic's physical layout. `topic` is optional when it equals
+the address; state it when the topic name differs (dotted names are common
+Kafka practice while the house address stays `/`-separated):
+
+```yaml
+channels:
+  taskEvents:
+    address: "task-management/tasks"
+    bindings:
+      kafka:
+        topic: task-management.tasks
+        partitions: 6
+        replicas: 3
+        topicConfiguration:
+          cleanup.policy: ["delete"]         # or ["compact"] for state topics
+          retention.ms: 604800000            # 7 days
+          max.message.bytes: 1048576
+        bindingVersion: "0.5.0"
+```
+
+**Operation** — `send` operations name their `clientId`; `receive` operations
+name the consumer `groupId` (both as schemas, usually a single-value `enum`):
+
+```yaml
+operations:
+  publishTaskCreated:
+    action: send
+    bindings:
+      kafka:
+        clientId:
+          type: string
+          enum: [task-management-service]
+        bindingVersion: "0.5.0"
+
+  consumeAssignmentRequested:
+    action: receive
+    bindings:
+      kafka:
+        groupId:
+          type: string
+          enum: [task-management-service]
+        bindingVersion: "0.5.0"
+```
+
+**Message** — the partition `key` and where the schema id lives:
+
+```yaml
+components:
+  messages:
+    taskCreated:
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: The taskId, so every event of one task lands on the same partition
+          schemaIdLocation: header         # header | payload
+          bindingVersion: "0.5.0"
+```
+
+House defaults: `cleanup.policy: [delete]` with an explicit `retention.ms`
+for event streams, `[compact]` for current-state topics; `replicas: 3` in
+production; key every lifecycle event by the aggregate id so ordering per
+aggregate is guaranteed; `schemaIdLocation: header`. Say in the message
+`description` what the key is.
+
+### 12.3 AMQP / RabbitMQ bindings (`assets/example-task-management-amqp.yaml`)
+
+The consequence of the address mapping in §12.1: **a message that this
+application both publishes and consumes needs two channels** — a routing-key
+channel (`is: routingKey`) for the `send` operation and a queue channel
+(`is: queue`) for the `receive` operation — because the publisher never sees
+the queue and the consumer never sees the exchange. A document that only
+publishes, or only consumes, needs one of the two.
+
+Do not describe the broker-side *binding* of a queue to an exchange (the
+`queue.bind` with its binding key) in the spec. That is deployment
+configuration owned by whoever provisions the broker, not part of the API
+contract. State it in the channel `description` if consumers need to know it.
+
+**Server** — use `protocol: amqp` (port 5672) or `amqps` (TLS, port 5671) and
+pin `protocolVersion: "0.9.1"`. The AMQP server binding object is defined as
+empty by the binding spec, so **the vhost lives on the exchange or queue
+object**, not on the server. Security stays `userPassword` (RabbitMQ PLAIN
+SASL); `X509` is the alternative for mTLS deployments.
+
+```yaml
+servers:
+  production:
+    host: "rabbitmq.taskmanagement.com:5671"
+    protocol: "amqps"
+    protocolVersion: "0.9.1"
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
+```
+
+**Channel** — must say which of the two it is (the house Spectral rule
+`house-amqp-channel-binding-is` errors otherwise). Publisher-side, routing
+key on an exchange:
+
+```yaml
+channels:
+  taskEvents:
+    address: "task.{eventType}"
+    parameters:
+      eventType:
+        enum: [created, assigned, processed, completed]
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: task-management
+          type: topic          # topic | direct | fanout | headers | default
+          durable: true
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+```
+
+Consumer-side, a queue:
+
+```yaml
+channels:
+  assignmentRequests:
+    address: "task-management.assignment-requests"
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: task-management.assignment-requests
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+```
+
+House defaults: exchange `type: topic` (routing keys as dotted kebab-case
+segments: `task.created`); exchange and queue `durable: true`,
+`autoDelete: false`; queue `exclusive: false`; `vhost: /` unless the
+deployment says otherwise. Name exchanges after the bounded context or
+resource area (`task-management`), name queues `<consumer-context>.<purpose>`
+so the owner is visible.
+
+**Operation** — `send` states how the message is published; `receive` states
+how it is acknowledged:
+
+```yaml
+operations:
+  publishTaskCreated:
+    action: send
+    bindings:
+      amqp:
+        deliveryMode: 2        # 1 = transient, 2 = persistent (survives broker restart)
+        mandatory: true        # broker returns the message if no queue is bound
+        timestamp: true
+        bindingVersion: "0.3.0"
+
+  consumeAssignmentRequested:
+    action: receive
+    bindings:
+      amqp:
+        ack: true              # manual ack after processing; false = auto-ack
+        bindingVersion: "0.3.0"
+```
+
+Other available fields: `expiration` (TTL in ms), `priority`, `cc` / `bcc`
+(additional routing keys), `userId`. House defaults: state-changing events
+`deliveryMode: 2` + `mandatory: true`; high-volume progress/telemetry events
+may use `deliveryMode: 1`; consumers `ack: true` and say in the operation
+`description` *when* they ack. `replyTo` was removed from the operation
+binding in 0.3.0 — model request/reply with the core 3.x `reply` object on the
+operation instead.
+
+**Message**:
+
+```yaml
+components:
+  messages:
+    taskCreated:
+      bindings:
+        amqp:
+          contentEncoding: identity   # or gzip
+          messageType: TaskCreated    # RabbitMQ `type` property; mirror `name`
+          bindingVersion: "0.3.0"
+```
+
+`messageType` mirrors the message `name` so consumers can route on the AMQP
+`type` property without parsing the payload. Keep the shared `MessageHeader`
+schema for `correlationId` / `messageId` / `source` exactly as on Kafka;
+AMQP's own `correlation-id` and `message-id` properties are transport-level
+duplicates set by the client library, not a replacement for the house header.
+
+### 12.4 Checklist
+
+Kafka:
+- [ ] Server: `bindings.kafka.schemaRegistryUrl` (+ vendor).
+- [ ] Channel: `partitions`, `replicas`, `topicConfiguration` with `cleanup.policy` and `retention.ms`.
+- [ ] `send` ops carry `clientId`; `receive` ops carry `groupId`.
+- [ ] Every message declares its partition `key` and `schemaIdLocation`.
+- [ ] Every `bindings.kafka` block pins `bindingVersion: "0.5.0"`.
+
+AMQP:
+- [ ] `protocol: amqp` / `amqps`, `protocolVersion: "0.9.1"`, no server binding.
+- [ ] Every channel has `is: routingKey` (with `exchange`) or `is: queue` (with `queue`), and `vhost`.
+- [ ] Publish-side and consume-side of the same message are separate channels.
+- [ ] Addresses are dotted kebab-case (`task.created`), parameters in `{camelCase}`.
+- [ ] `send` ops carry `deliveryMode` (+ `mandatory`); `receive` ops carry `ack`.
+- [ ] Each message carries `messageType` = its `name`.
+- [ ] Every `bindings.amqp` block pins `bindingVersion: "0.3.0"`.
+
+Both: `asyncapi validate` and `spectral lint` clean.

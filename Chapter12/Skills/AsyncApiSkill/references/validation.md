@@ -66,11 +66,14 @@ Useful flags:
 ### Interpret results
 
 - **Errors** — must all be fixed. The bundled ruleset raises errors for: missing
-  contact, non-camelCase operation or channel keys, and non-PascalCase schema
-  names, on top of the structural errors from `spectral:asyncapi`.
+  contact, non-camelCase operation or channel keys, non-PascalCase schema
+  names, and an `amqp` channel binding without `is: routingKey|queue`, on top
+  of the structural errors from `spectral:asyncapi`.
 - **Warnings** — review each and resolve unless there's a deliberate reason
   (missing operation/message descriptions, channel addresses that aren't
-  kebab-case, message `name` not PascalCase, etc.).
+  kebab-case `/`- or `.`-separated segments, message `name` not PascalCase, a
+  channel without a protocol binding, a `kafka` channel binding without
+  `partitions`/`replicas`, any binding without `bindingVersion`, etc.).
 
 Re-run after fixing until the output is clean. The built-in `spectral:asyncapi`
 rules also check things like header schemas being `type: object`, tag

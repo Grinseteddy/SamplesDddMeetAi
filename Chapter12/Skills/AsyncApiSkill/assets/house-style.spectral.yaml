@@ -85,13 +85,53 @@ rules:
         match: "^[A-Z][a-zA-Z0-9]*$"
 
   house-channel-address-kebab-case:
-    description: "Channel address segments should be kebab-case paths (e.g. task-management/tasks)."
+    description: >-
+      Channel address segments should be lowercase kebab-case, separated by "/"
+      (Kafka/MQTT-style paths: task-management/tasks) or "." (AMQP routing keys
+      and queue names: task.created, task-management.assignment-requests).
+      A segment may be a {camelCase} channel parameter (task.{eventType}).
     severity: warn
     given: "$.channels[*].address"
     then:
       function: pattern
       functionOptions:
-        match: "^[a-z0-9]+([-/][a-z0-9]+)*$"
+        match: "^([a-z0-9]+(-[a-z0-9]+)*|\\{[a-zA-Z][a-zA-Z0-9]*\\})([/.]([a-z0-9]+(-[a-z0-9]+)*|\\{[a-zA-Z][a-zA-Z0-9]*\\}))*$"
+
+  house-binding-version-pinned:
+    description: "Every protocol binding should pin bindingVersion (kafka 0.5.0, amqp 0.3.0) so the parser applies the right binding schema."
+    severity: warn
+    given: "$..bindings[*]"
+    then:
+      field: bindingVersion
+      function: truthy
+
+  house-channel-has-protocol-binding:
+    description: "Every channel should carry a bindings block for the server protocol (kafka: partitions/replicas/topicConfiguration; amqp: is + exchange or queue)."
+    severity: warn
+    given: "$.channels[*]"
+    then:
+      field: bindings
+      function: truthy
+
+  house-kafka-channel-binding-layout:
+    description: "A kafka channel binding should state partitions and replicas so the topic's physical layout is part of the contract."
+    severity: warn
+    given: "$.channels[*].bindings.kafka"
+    then:
+      - field: partitions
+        function: truthy
+      - field: replicas
+        function: truthy
+
+  house-amqp-channel-binding-is:
+    description: "An amqp channel binding must say whether the address is a routingKey (publisher, names the exchange) or a queue (consumer, names the queue)."
+    severity: error
+    given: "$.channels[*].bindings.amqp"
+    then:
+      field: is
+      function: enumeration
+      functionOptions:
+        values: [routingKey, queue]
 
   house-operations-have-description:
     description: "Operations should have a description explaining when the event fires and its side effects."

@@ -1,0 +1,993 @@
+openapi: 3.1.0
+info:
+  title: Cooking Assistance API
+  description: |
+    API providing assistance for cooks in planning and preparation of meals and dinners.
+    Allows cooks to create help requests and receive answers from community members, AI avatars, and professional chefs.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 8d1f2e3a-4b5c-6d7e-8f9a-0b1c2d3e4f5a
+  x-audience: external-public
+
+servers:
+  - url: https://larder.org/cooking-assistance
+
+security:
+  - oAuth2:
+      - cooking-assistance:read
+      - cooking-assistance:write
+      - cooking-assistance:admin
+
+tags:
+  - name: Help Requests
+    description: Operations for managing cooking help requests created by cooks.
+  - name: Helps
+    description: Operations for managing help responses provided by chefs, avatars, and community.
+
+paths:
+  /help-requests:
+    get:
+      operationId: listHelpRequests
+      tags:
+        - Help Requests
+      summary: List help requests
+      description: |
+        Retrieve a collection of help requests with optional filtering by requester ID or request status.
+      parameters:
+        - $ref: '#/components/parameters/RequesterQueryParameter'
+        - $ref: '#/components/parameters/StatusQueryParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    post:
+      operationId: createHelpRequest
+      tags:
+        - Help Requests
+      summary: Create a help request
+      description: |
+        Create a new help request for cooking planning or preparation assistance.
+      security:
+        - oAuth2:
+            - cooking-assistance:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpRequestCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/HelpRequestLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /help-requests/{helpRequestId}:
+    get:
+      operationId: getHelpRequestById
+      tags:
+        - Help Requests
+      summary: Get help request by ID
+      description: |
+        Retrieve details of a specific help request by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/HelpRequestIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    patch:
+      operationId: updateHelpRequest
+      tags:
+        - Help Requests
+      summary: Update help request
+      description: |
+        Update an existing help request.
+        Only the original requester is allowed to modify the request.
+        Modifications are permitted only when the help request status is OPEN.
+      security:
+        - oAuth2:
+            - cooking-assistance:write
+      parameters:
+        - $ref: '#/components/parameters/HelpRequestIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpRequestUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteHelpRequest
+      tags:
+        - Help Requests
+      summary: Delete help request
+      description: |
+        Delete a help request by its unique identifier.
+        Only the original requester is allowed to delete the request.
+        Deletion is permitted only when the help request status is OPEN.
+      security:
+        - oAuth2:
+            - cooking-assistance:write
+      parameters:
+        - $ref: '#/components/parameters/HelpRequestIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Help request deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /helps:
+    get:
+      operationId: listHelps
+      tags:
+        - Helps
+      summary: List help responses
+      description: |
+        Retrieve a collection of help responses.
+        Filters can be applied for helpRequestId, answer type, or helpProvider.
+        If the help provider is a CHEF, only the original requester can see the response.
+      parameters:
+        - $ref: '#/components/parameters/HelpRequestIdQueryParameter'
+        - $ref: '#/components/parameters/HelpTypeQueryParameter'
+        - $ref: '#/components/parameters/HelpProviderQueryParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    post:
+      operationId: createHelp
+      tags:
+        - Helps
+      summary: Create help response
+      description: |
+        Provide a help response to an existing help request.
+      security:
+        - oAuth2:
+            - cooking-assistance:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/HelpLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /helps/{helpId}:
+    get:
+      operationId: getHelpById
+      tags:
+        - Helps
+      summary: Get help response by ID
+      description: |
+        Retrieve a help response by its unique identifier.
+        If the help provider is a CHEF, only the original requester can view it.
+      parameters:
+        - $ref: '#/components/parameters/HelpIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    patch:
+      operationId: updateHelp
+      tags:
+        - Helps
+      summary: Update help response
+      description: |
+        Update an existing help response.
+        Only the original help provider is allowed to modify the response.
+      security:
+        - oAuth2:
+            - cooking-assistance:write
+      parameters:
+        - $ref: '#/components/parameters/HelpIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteHelp
+      tags:
+        - Helps
+      summary: Delete help response
+      description: |
+        Delete a help response by its unique identifier.
+        Only the original help provider is allowed to delete the response.
+      security:
+        - oAuth2:
+            - cooking-assistance:write
+      parameters:
+        - $ref: '#/components/parameters/HelpIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Help response deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+components:
+  parameters:
+    HelpRequestIdParameter:
+      name: helpRequestId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    HelpIdParameter:
+      name: helpId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    RequesterQueryParameter:
+      name: requester
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+
+    StatusQueryParameter:
+      name: status
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - OPEN
+          - ANSWERED
+
+    HelpRequestIdQueryParameter:
+      name: helpRequestId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+
+    HelpTypeQueryParameter:
+      name: type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - INGREDIENT_SUBSTITUTE
+          - PREPARATION_STEP_EXPLANATION
+          - STEPS_TO_MITIGATE_CATASTROPHE
+          - MENU_PROPOSAL
+
+    HelpProviderQueryParameter:
+      name: helpProvider
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      schema:
+        type: string
+        default: "1.0.0"
+        enum:
+          - "1.0.0"
+
+  schemas:
+    HelpRequestType:
+      type: string
+      description: Category of assistance requested by the cook.
+      enum:
+        - INGREDIENT_SUBSTITUTE
+        - PREPARATION_STEP_EXPLANATION
+        - STEPS_TO_MITIGATE_CATASTROPHE
+        - MENU_PROPOSAL
+
+    ProviderType:
+      type: string
+      description: Category of provider offering help.
+      enum:
+        - CHEF
+        - GRANDMA_AVATAR
+        - COMMUNITY
+
+    HelpRequestStatus:
+      type: string
+      description: Lifecycle state of the help request.
+      enum:
+        - OPEN
+        - ANSWERED
+
+    Unit:
+      type: string
+      description: Measurement unit for ingredients.
+      enum:
+        - PIECE
+        - CUP
+        - TABLESPOON
+        - TEASPOON
+        - FLUID_OUNCE
+        - PINT
+        - QUART
+        - POUND
+        - OUNCE
+        - GRAM
+        - LITER
+        - MILLILITER
+        - PINCH
+
+    Meal:
+      type: string
+      description: Meal type for menu proposals.
+      enum:
+        - LUNCH
+        - DINNER
+        - SUPPER
+
+    HelpRequest:
+      type: object
+      required:
+        - helpRequestId
+        - requester
+        - title
+        - type
+        - description
+        - preferredProvider
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        helpRequestId:
+          description: Unique identifier of the help request, generated by the server.
+          type: string
+          format: uuid
+        requester:
+          description: Unique identifier of the cook requesting help.
+          type: string
+          format: uuid
+        title:
+          description: Short title summarizing the help request.
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          description: Category of assistance requested.
+          $ref: '#/components/schemas/HelpRequestType'
+        description:
+          description: Detailed explanation of the cooking problem or request.
+          type: string
+          maxLength: 2000
+        recipe:
+          description: Identifier of the recipe related to the request, required for preparation step explanation and ingredient substitute types.
+          type:
+            - string
+            - "null"
+          format: uuid
+        howToStep:
+          description: Identifier of the specific recipe step where help is needed.
+          type:
+            - string
+            - "null"
+          format: uuid
+        ingredients:
+          description: Identifiers of ingredients involved in an ingredient substitution request.
+          type: array
+          items:
+            type: string
+            format: uuid
+        preferredProvider:
+          description: Preferred provider types selected by the requester.
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/ProviderType'
+        status:
+          description: Current status of the help request.
+          $ref: '#/components/schemas/HelpRequestStatus'
+        createdAt:
+          description: Timestamp when the help request was created, set by the server.
+          type: string
+          format: date-time
+        updatedAt:
+          description: Timestamp when the help request was last updated, set by the server.
+          type: string
+          format: date-time
+
+    HelpRequestCreate:
+      type: object
+      required:
+        - requester
+        - title
+        - type
+        - description
+        - preferredProvider
+      properties:
+        requester:
+          description: Unique identifier of the cook requesting help.
+          type: string
+          format: uuid
+        title:
+          description: Short title summarizing the help request.
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          description: Category of assistance requested.
+          $ref: '#/components/schemas/HelpRequestType'
+        description:
+          description: Detailed explanation of the cooking problem or request.
+          type: string
+          maxLength: 2000
+        recipe:
+          description: Identifier of the recipe related to the request.
+          type: string
+          format: uuid
+        howToStep:
+          description: Identifier of the specific recipe step where help is needed.
+          type: string
+          format: uuid
+        ingredients:
+          description: Identifiers of ingredients involved in an ingredient substitution request.
+          type: array
+          items:
+            type: string
+            format: uuid
+        preferredProvider:
+          description: Preferred provider types selected by the requester.
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/ProviderType'
+
+    HelpRequestUpdate:
+      type: object
+      properties:
+        title:
+          description: Short title summarizing the help request.
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          description: Category of assistance requested.
+          $ref: '#/components/schemas/HelpRequestType'
+        description:
+          description: Detailed explanation of the cooking problem or request.
+          type: string
+          maxLength: 2000
+        recipe:
+          description: Identifier of the recipe related to the request.
+          type: string
+          format: uuid
+        howToStep:
+          description: Identifier of the specific recipe step where help is needed.
+          type: string
+          format: uuid
+        ingredients:
+          description: Identifiers of ingredients involved in an ingredient substitution request.
+          type: array
+          items:
+            type: string
+            format: uuid
+        preferredProvider:
+          description: Preferred provider types selected by the requester.
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/ProviderType'
+
+    IngredientQuantity:
+      type: object
+      required:
+        - name
+        - value
+        - unit
+      properties:
+        name:
+          description: Name of the ingredient.
+          type: string
+          minLength: 1
+          maxLength: 200
+        value:
+          description: Quantity value for the ingredient.
+          type: number
+          minimum: 0
+        unit:
+          description: Measurement unit for the ingredient quantity.
+          $ref: '#/components/schemas/Unit'
+
+    IngredientSubstitutePair:
+      type: object
+      required:
+        - ingredient
+        - substitute
+      properties:
+        ingredient:
+          description: Original ingredient to be replaced.
+          $ref: '#/components/schemas/IngredientQuantity'
+        substitute:
+          description: Proposed substitute ingredient.
+          $ref: '#/components/schemas/IngredientQuantity'
+
+    IngredientSubstituteAnswer:
+      type: object
+      required:
+        - recipe
+        - substitutes
+      properties:
+        recipe:
+          description: Identifier of the recipe being modified (must match the request).
+          type: string
+          format: uuid
+        substitutes:
+          description: List of ingredient substitution pairs.
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/IngredientSubstitutePair'
+
+    PreparationStepExplanationAnswer:
+      type: object
+      required:
+        - recipe
+        - howToStep
+        - howTo
+      properties:
+        recipe:
+          description: Identifier of the recipe (must match the request).
+          type: string
+          format: uuid
+        howToStep:
+          description: Identifier of the specific step being explained.
+          type: string
+          format: uuid
+        howTo:
+          description: Detailed instruction text explaining how to execute the step.
+          type: string
+          minLength: 1
+          maxLength: 5000
+        images:
+          description: Image URIs illustrating the step preparation.
+          type: array
+          items:
+            type: string
+            format: uri
+
+    CatastropheMitigationAnswer:
+      type: object
+      required:
+        - howToStep
+        - howTo
+      properties:
+        recipe:
+          description: Identifier of the recipe, if applicable.
+          type: string
+          format: uuid
+        howToStep:
+          description: Identifier of the step where the problem occurred.
+          type: string
+          format: uuid
+        howTo:
+          description: Actionable instructions to recover from the cooking problem.
+          type: string
+          minLength: 1
+          maxLength: 5000
+
+    MenuCourse:
+      type: object
+      required:
+        - step
+        - recipe
+      properties:
+        step:
+          description: Course sequence number starting with 1.
+          type: integer
+          minimum: 1
+          maximum: 10
+        recipe:
+          description: Identifier of the recipe assigned to this course.
+          type: string
+          format: uuid
+
+    MenuProposalAnswer:
+      type: object
+      required:
+        - note
+        - servings
+        - meal
+        - courses
+      properties:
+        note:
+          description: General instructions or overall notes for the menu proposal.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        servings:
+          description: Number of servings planned for the menu.
+          type: integer
+          minimum: 1
+          maximum: 100
+        meal:
+          description: Target meal for the proposal.
+          $ref: '#/components/schemas/Meal'
+        howToStep:
+          description: Identifier of an associated recipe step, if applicable.
+          type: string
+          format: uuid
+        courses:
+          description: Ordered list of menu courses.
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/MenuCourse'
+
+    HelpAnswer:
+      type: object
+      required:
+        - answerType
+      properties:
+        answerType:
+          description: Type of answer provided in this response.
+          $ref: '#/components/schemas/HelpRequestType'
+        substitute:
+          description: Substitution details when answerType is INGREDIENT_SUBSTITUTE.
+          $ref: '#/components/schemas/IngredientSubstituteAnswer'
+        explanation:
+          description: Step explanation details when answerType is PREPARATION_STEP_EXPLANATION.
+          $ref: '#/components/schemas/PreparationStepExplanationAnswer'
+        mitigation:
+          description: Catastrophe recovery details when answerType is STEPS_TO_MITIGATE_CATASTROPHE.
+          $ref: '#/components/schemas/CatastropheMitigationAnswer'
+        menuProposal:
+          description: Menu proposal details when answerType is MENU_PROPOSAL.
+          $ref: '#/components/schemas/MenuProposalAnswer'
+
+    Help:
+      type: object
+      required:
+        - helpId
+        - helpRequestId
+        - helpProvider
+        - rationale
+        - helpProviderType
+        - answer
+        - createdAt
+        - updatedAt
+      properties:
+        helpId:
+          description: Unique identifier of the help response, generated by the server.
+          type: string
+          format: uuid
+        helpRequestId:
+          description: Unique identifier of the help request this response answers.
+          type: string
+          format: uuid
+        helpProvider:
+          description: Unique identifier of the user or system providing help.
+          type: string
+          format: uuid
+        rationale:
+          description: Reason or guidance explaining the advice given.
+          type: string
+          minLength: 1
+          maxLength: 1000
+        helpProviderType:
+          description: Category of provider supplying this response.
+          $ref: '#/components/schemas/ProviderType'
+        helpProviderNote:
+          description: Additional confidential notes. If provider is CHEF, visible only to the original requester.
+          type:
+            - string
+            - "null"
+          maxLength: 2000
+        answer:
+          description: Structured answer content.
+          $ref: '#/components/schemas/HelpAnswer'
+        createdAt:
+          description: Timestamp when the help response was created, set by the server.
+          type: string
+          format: date-time
+        updatedAt:
+          description: Timestamp when the help response was last updated, set by the server.
+          type: string
+          format: date-time
+
+    HelpCreate:
+      type: object
+      required:
+        - helpRequestId
+        - helpProvider
+        - rationale
+        - helpProviderType
+        - answer
+      properties:
+        helpRequestId:
+          description: Unique identifier of the help request being answered.
+          type: string
+          format: uuid
+        helpProvider:
+          description: Unique identifier of the user or system providing help.
+          type: string
+          format: uuid
+        rationale:
+          description: Reason or guidance explaining the advice given.
+          type: string
+          minLength: 1
+          maxLength: 1000
+        helpProviderType:
+          description: Category of provider supplying this response.
+          $ref: '#/components/schemas/ProviderType'
+        helpProviderNote:
+          description: Additional confidential notes. If provider is CHEF, visible only to the original requester.
+          type: string
+          maxLength: 2000
+        answer:
+          description: Structured answer content.
+          $ref: '#/components/schemas/HelpAnswer'
+
+    HelpUpdate:
+      type: object
+      properties:
+        rationale:
+          description: Reason or guidance explaining the advice given.
+          type: string
+          minLength: 1
+          maxLength: 1000
+        helpProviderNote:
+          description: Additional confidential notes.
+          type: string
+          maxLength: 2000
+        answer:
+          description: Structured answer content.
+          $ref: '#/components/schemas/HelpAnswer'
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    HelpRequestResponse:
+      description: Single help request response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequest'
+
+    HelpRequestsResponse:
+      description: List of help requests response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/HelpRequest'
+
+    HelpRequestLinkResponse:
+      description: Link to help request response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - helpRequestLink
+            properties:
+              helpRequestLink:
+                description: URI link to the created or updated help request.
+                type: string
+                format: uri
+
+    HelpResponse:
+      description: Single help response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Help'
+
+    HelpsResponse:
+      description: List of help responses
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Help'
+
+    HelpLinkResponse:
+      description: Link to help response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - helpLink
+            properties:
+              helpLink:
+                description: URI link to the created or updated help response.
+                type: string
+                format: uri
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    HelpRequestCreateRequest:
+      description: Request body for creating a help request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestCreate'
+
+    HelpRequestUpdateRequest:
+      description: Request body for updating a help request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestUpdate'
+
+    HelpCreateRequest:
+      description: Request body for creating a help response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpCreate'
+
+    HelpUpdateRequest:
+      description: Request body for updating a help response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpUpdate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            cooking-assistance:read: Grants read access to help requests and responses
+            cooking-assistance:write: Grants write access to create or modify help requests and responses
+            cooking-assistance:admin: Grants administrative access

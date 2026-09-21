@@ -1,0 +1,442 @@
+openapi: 3.1.0
+info:
+  title: Cook Profile API
+  description: |
+    Manages the cooks of the Community Cooking platform and provides their identity to the
+    other bounded contexts (Meal Planning, Cook Assistance, Meal Preparation, Sharing).
+    Used by the platform's own applications and services to register, look up, change and deregister cooks.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 8d1f4c6e-3b52-4a97-9e0d-5c7a2f61b3d4
+  x-audience: company-internal
+
+servers:
+  - url: 'https://larder.org/cook-profile'
+
+security:
+  - oAuth2:
+      - cook:read
+      - cook:write
+
+tags:
+  - name: Cooks
+    description: Registration, lookup, change and deregistration of cooks
+
+paths:
+  /cooks:
+    get:
+      operationId: listCooks
+      tags:
+        - Cooks
+      summary: List cooks
+      description: |
+        Retrieve the cooks known to the platform, optionally filtered by name and/or email.
+        Both filters are optional; when both are given, a cook must match both.
+      parameters:
+        - $ref: '#/components/parameters/NameParameter'
+        - $ref: '#/components/parameters/EmailParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/CooksResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+    post:
+      operationId: createCook
+      tags:
+        - Cooks
+      summary: Register a user as a cook
+      description: |
+        Register a user as a new cook. The user goes in, a cook comes out: the server generates
+        the cookId, sets memberSince to the registration date and sets the status to `active`.
+        The response carries a link to the created cook rather than the cook itself.
+      security:
+        - oAuth2:
+            - cook:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/UserRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CookLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+  /cooks/{cookId}:
+    get:
+      operationId: getCookById
+      tags:
+        - Cooks
+      summary: Get cook by ID
+      description: |
+        Retrieve a single cook by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/CookIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/CookResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+    patch:
+      operationId: updateCook
+      tags:
+        - Cooks
+      summary: Change a cook
+      description: |
+        Partially change a cook. Only the fields supplied are changed; cookId and memberSince
+        are set by the server and cannot be changed.
+        The response carries a link to the changed cook rather than the cook itself.
+      security:
+        - oAuth2:
+            - cook:write
+      parameters:
+        - $ref: '#/components/parameters/CookIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/CookUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CookLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+    delete:
+      operationId: deleteCook
+      tags:
+        - Cooks
+      summary: Deregister a cook
+      description: |
+        Permanently remove a cook. This is irreversible.
+        Invariant: a cook is deleted only when the cook deregisters. The caller must be the
+        cook identified by cookId; any other caller is refused with 403.
+      security:
+        - oAuth2:
+            - cook:write
+      parameters:
+        - $ref: '#/components/parameters/CookIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Cook deregistered and deleted
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+components:
+  parameters:
+    CookIdParameter:
+      name: cookId
+      in: path
+      required: true
+      description: Unique identifier of the cook.
+      schema:
+        type: string
+        format: uuid
+      example: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+
+    NameParameter:
+      name: name
+      in: query
+      required: false
+      description: Return only cooks with this name.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+
+    EmailParameter:
+      name: email
+      in: query
+      required: false
+      description: Return only the cook registered with this email address.
+      schema:
+        type: string
+        format: email
+        maxLength: 254
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Version of the API the client expects.
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    Cook:
+      description: A registered member of the cooking community; the aggregate of this context.
+      type: object
+      required:
+        - cookId
+        - email
+        - name
+        - givenName
+        - memberSince
+        - status
+      properties:
+        cookId:
+          description: Unique identifier of the cook, generated by the server at registration.
+          type: string
+          format: uuid
+          examples:
+            - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        email:
+          description: Email address the cook registered and logs in with.
+          type: string
+          format: email
+          maxLength: 254
+        name:
+          description: Name of the cook.
+          type: string
+          minLength: 1
+          maxLength: 100
+          examples:
+            - Joe
+        givenName:
+          description: Given name of the cook.
+          type: string
+          minLength: 1
+          maxLength: 100
+          examples:
+            - Doe
+        memberSince:
+          description: Date the cook registered, set by the server.
+          type: string
+          format: date
+          examples:
+            - '2026-09-21'
+        status:
+          description: Current standing of the cook in the community.
+          $ref: '#/components/schemas/Status'
+
+    User:
+      description: A person who is not yet a cook, as supplied at registration.
+      type: object
+      required:
+        - email
+        - name
+        - givenName
+      properties:
+        email:
+          description: Email address the user wants to register and log in with.
+          type: string
+          format: email
+          maxLength: 254
+        name:
+          description: Name of the user.
+          type: string
+          minLength: 1
+          maxLength: 100
+        givenName:
+          description: Given name of the user.
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    CookUpdate:
+      description: The changeable part of a cook; every field is optional.
+      type: object
+      minProperties: 1
+      properties:
+        email:
+          description: Email address the cook registered and logs in with.
+          type: string
+          format: email
+          maxLength: 254
+        name:
+          description: Name of the cook.
+          type: string
+          minLength: 1
+          maxLength: 100
+        givenName:
+          description: Given name of the cook.
+          type: string
+          minLength: 1
+          maxLength: 100
+        status:
+          description: Current standing of the cook in the community.
+          $ref: '#/components/schemas/Status'
+
+    Status:
+      description: Standing of a cook in the community.
+      type: string
+      enum:
+        - active
+        - inActive
+        - premium
+
+    Cooks:
+      description: A list of cooks.
+      type: array
+      items:
+        $ref: '#/components/schemas/Cook'
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    CookResponse:
+      description: Single cook response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Cook'
+
+    CooksResponse:
+      description: List of cooks response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Cooks'
+
+    CookLinkResponse:
+      description: Link to cook response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - cookLink
+            properties:
+              cookLink:
+                description: Link to the created or changed cook.
+                type: string
+                format: uri
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnauthorizedResponse:
+      description: Authentication missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnexpectedErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    UserRequest:
+      description: User to be registered as a cook
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+
+    CookUpdateRequest:
+      description: Changes to apply to a cook
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CookUpdate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            cook:read: Grants read access to cooks
+            cook:write: Grants write access to register, change and deregister cooks

@@ -1,0 +1,400 @@
+openapi: 3.1.0
+info:
+  title: Notifications API
+  description: |
+    Provides notifications to Cooks of the Community Cooking platform — for
+    example that help for a burning catastrophe has been provided — and lets a
+    Cook mark notifications as read or delete them.
+    Used by the Cook-facing apps; notifications themselves are created by other
+    contexts (Cook Assistance) and are not created through this API.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 7c3e9f52-4b1d-4a86-9e0f-2d5c8a1b6f47
+  x-audience: external-public
+
+servers:
+  - url: 'https://larder.org/notifications'
+
+security:
+  - oAuth2:
+      - notifications:read
+      - notifications:write
+
+tags:
+  - name: Notifications
+    description: Providing, reading and deleting notifications addressed to Cooks
+
+paths:
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags:
+        - Notifications
+      summary: List notifications
+      description: |
+        Retrieve the notifications addressed to one or more Receivers, optionally
+        filtered by status (NEW or READ). A Cook may only list notifications
+        of which they are a Receiver.
+      parameters:
+        - $ref: '#/components/parameters/ReceiverParameter'
+        - $ref: '#/components/parameters/StatusParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+  /notifications/{notificationId}:
+    get:
+      operationId: getNotificationById
+      tags:
+        - Notifications
+      summary: Get a notification by ID
+      description: |
+        Retrieve a single notification by its identifier. Only a Receiver of the
+        notification may read it.
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+    delete:
+      operationId: deleteNotification
+      tags:
+        - Notifications
+      summary: Delete a notification
+      description: |
+        Delete a notification for the calling Receiver. The deletion is
+        irreversible; the notification will no longer be listed or retrievable.
+        Only a Receiver of the notification may delete it.
+      security:
+        - oAuth2:
+            - notifications:write
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Notification deleted
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+  /notifications/{notificationId}/status:
+    put:
+      operationId: updateNotificationStatus
+      tags:
+        - Notifications
+      summary: Change the status of a notification
+      description: |
+        Set the status of a notification, typically to mark it as READ.
+        Only a Receiver of the notification may change its status.
+        Returns a link to the changed notification.
+      security:
+        - oAuth2:
+            - notifications:write
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/StatusUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+components:
+  parameters:
+    NotificationIdParameter:
+      name: notificationId
+      in: path
+      description: Identifier of the notification.
+      required: true
+      schema:
+        type: string
+        format: uuid
+        examples:
+          - 0b81c1e6-0c55-4b2b-8fe0-c122bd688203
+
+    ReceiverParameter:
+      name: receiver
+      in: query
+      description: |
+        Restrict the result to notifications addressed to this Receiver (the
+        identifier of a Cook). Defaults to the authenticated caller.
+      required: false
+      schema:
+        type: string
+        format: uuid
+        examples:
+          - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+
+    StatusParameter:
+      name: status
+      in: query
+      description: Restrict the result to notifications in this status.
+      required: false
+      schema:
+        $ref: '#/components/schemas/Status'
+
+    VersionParameter:
+      name: version
+      in: header
+      description: Version of the API contract the client was built against.
+      required: true
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    Notification:
+      description: |
+        A message addressed to one or more Cooks (the Receivers), pointing them
+        to something that happened elsewhere on the platform — for example that
+        help for a burning catastrophe has been provided.
+      type: object
+      required:
+        - notificationId
+        - receivers
+        - title
+        - text
+        - link
+        - status
+      properties:
+        notificationId:
+          description: Unique identifier of the notification, generated by the server.
+          type: string
+          format: uuid
+          examples:
+            - 0b81c1e6-0c55-4b2b-8fe0-c122bd688203
+        receivers:
+          description: |
+            The Cooks this notification is addressed to. A notification has at
+            least one Receiver; help requests go to the whole community or to a
+            Chef, so a single notification may fan out to many Receivers.
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Receiver'
+        title:
+          description: Short headline of the notification as shown to the Receiver.
+          type: string
+          minLength: 1
+          maxLength: 200
+          examples:
+            - Help for burning catastrophe provided
+        text:
+          description: The message body telling the Receiver what happened and what to do.
+          type: string
+          minLength: 1
+          maxLength: 2000
+          examples:
+            - Stay calm look at the help
+        link:
+          description: |
+            Where the Receiver should go next — a link to the resource in the
+            originating context the notification is about, such as a help
+            request in Cook Assistance.
+          type: string
+          format: uri
+          examples:
+            - https://larder.org/cook-assistance/help-requests/23a8eeed-35f6-460b-892e-7bb458a8fded
+        status:
+          description: Whether the Receiver has read this notification yet.
+          $ref: '#/components/schemas/Status'
+
+    Notifications:
+      description: A collection of notifications, as returned by a list request.
+      type: object
+      required:
+        - notifications
+      properties:
+        notifications:
+          description: The notifications matching the request.
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+
+    Receiver:
+      description: |
+        A Cook a notification is addressed to, identified by the Cook's
+        identifier from Cook Profile.
+      type: string
+      format: uuid
+      examples:
+        - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+
+    Status:
+      description: |
+        Read state of a notification. A notification is created as NEW and
+        becomes READ once the Receiver has marked it as read.
+      type: string
+      enum:
+        - NEW
+        - READ
+
+    StatusUpdate:
+      description: Request to change the read state of a notification.
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          description: The status the notification should have after the change.
+          $ref: '#/components/schemas/Status'
+
+    Error:
+      description: Standard error payload returned by every non-success response.
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    NotificationsResponse:
+      description: List of notifications
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notifications'
+
+    NotificationResponse:
+      description: Single notification
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notification'
+
+    NotificationLinkResponse:
+      description: Link to the changed notification
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - notificationLink
+            properties:
+              notificationLink:
+                description: Link to the notification whose status was changed.
+                type: string
+                format: uri
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnauthorizedResponse:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden — the caller is not a Receiver of the notification
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Notification not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    DefaultErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    StatusUpdateRequest:
+      description: New status for the notification
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StatusUpdate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            notifications:read: Grants read access to a Cook's own notifications
+            notifications:write: Grants access to mark as read and delete a Cook's own notifications

@@ -1,0 +1,1227 @@
+openapi: 3.1.0
+info:
+  title: Recipe Catalog API
+  description: |
+    Manage and search recipes by meal, ingredients, and diet for recipe catalog clients.
+    Derived from the supplied API Product Canvas and Recipe Visual Glossary; proposed contract decisions are recorded in x-design-assumptions.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 0b1a303b-ab74-440e-ae4a-ef1808edcf08
+  x-audience: external-public
+servers:
+- url: https://larder.org/recipe-catalog
+  description: Server supplied by the API Product Canvas.
+security:
+- OAuth2:
+  - recipes:read
+tags:
+- name: Recipes
+  description: Recipe aggregate management and search.
+- name: Ingredients
+  description: Ingredients owned by a recipe.
+- name: HowToSteps
+  description: Ordered preparation steps owned by a recipe.
+- name: Meals
+  description: The single meal classification of a recipe.
+paths:
+  /recipes:
+    get:
+      operationId: searchRecipes
+      tags:
+      - Recipes
+      summary: Search recipes
+      description: |
+        Return complete recipes matching all supplied filters. With no filters, return all recipes accessible to the caller. No matches returns an empty array. Pagination is not defined in the source canvas.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/DietParameter'
+      - $ref: '#/components/parameters/MealParameter'
+      - $ref: '#/components/parameters/IngredientsParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipeListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    post:
+      operationId: createRecipe
+      tags:
+      - Recipes
+      summary: Create a recipe
+      description: |
+        Atomically create a recipe with at least one ingredient and one preparation step. Generate all IDs and derive owner from the caller. Duplicate sequence numbers are rejected with 400.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/RecipeCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /recipes/{recipeId}:
+    get:
+      operationId: getRecipeById
+      tags:
+      - Recipes
+      summary: Download a recipe
+      description: |
+        Return the full recipe as JSON, including its ingredients and ordered preparation steps. This implements the canvas download function.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    patch:
+      operationId: updateRecipe
+      tags:
+      - Recipes
+      summary: Update a recipe
+      description: |
+        Only the recipe owner may update mutable fields. Apply JSON Merge Patch atomically; omitted fields remain unchanged and null removes optional fields. Required fields cannot be removed. IDs, owner, ingredients, and howToSteps cannot be patched here.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/RecipeUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ResourceLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: deleteRecipe
+      tags:
+      - Recipes
+      summary: Delete a recipe
+      description: |
+        Only the recipe owner may delete the recipe. Permanently remove its owned ingredients and preparation steps as part of the same aggregate deletion.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      responses:
+        '204':
+          description: Resource deleted; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /recipes/{recipeId}/ingredients:
+    get:
+      operationId: listIngredients
+      tags:
+      - Ingredients
+      summary: List recipe ingredients
+      description: |
+        Return the recipe's owned ingredients.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/IngredientListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    post:
+      operationId: createIngredient
+      tags:
+      - Ingredients
+      summary: Add a recipe Ingredient
+      description: |
+        Only the recipe owner may add this child (proposed rule). Generate its ID and atomically validate the resulting aggregate. Step sequence numbers must remain unique.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/IngredientCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /recipes/{recipeId}/ingredients/{ingredientId}:
+    get:
+      operationId: getIngredientById
+      tags:
+      - Ingredients
+      summary: Get a recipe Ingredient
+      description: |
+        Return the child only if it belongs to the addressed recipe; otherwise return 404.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      - $ref: '#/components/parameters/IngredientIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/IngredientResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    patch:
+      operationId: updateIngredient
+      tags:
+      - Ingredients
+      summary: Update a recipe Ingredient
+      description: |
+        Only the recipe owner may update this child. Apply JSON Merge Patch atomically; identifiers cannot change. Null removes only optional fields. Reject duplicate step sequence numbers with 400.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      - $ref: '#/components/parameters/IngredientIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/IngredientUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ResourceLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: deleteIngredient
+      tags:
+      - Ingredients
+      summary: Delete a recipe Ingredient
+      description: |
+        Only the recipe owner may delete this child. Reject deletion of the last Ingredient with 400 because a recipe requires at least one. Remaining step sequence numbers are unchanged.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      - $ref: '#/components/parameters/IngredientIdParameter'
+      responses:
+        '204':
+          description: Resource deleted; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /recipes/{recipeId}/how-to-steps:
+    get:
+      operationId: listHowToSteps
+      tags:
+      - HowToSteps
+      summary: List recipe how-to-steps
+      description: |
+        Return the recipe's owned how-to-steps. Return steps in ascending sequenceNumber order.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    post:
+      operationId: createHowToStep
+      tags:
+      - HowToSteps
+      summary: Add a recipe HowToStep
+      description: |
+        Only the recipe owner may add this child (proposed rule). Generate its ID and atomically validate the resulting aggregate. Step sequence numbers must remain unique.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HowToStepCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /recipes/{recipeId}/how-to-steps/{howToStepId}:
+    get:
+      operationId: getHowToStepById
+      tags:
+      - HowToSteps
+      summary: Get a recipe HowToStep
+      description: |
+        Return the child only if it belongs to the addressed recipe; otherwise return 404.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      - $ref: '#/components/parameters/HowToStepIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    patch:
+      operationId: updateHowToStep
+      tags:
+      - HowToSteps
+      summary: Update a recipe HowToStep
+      description: |
+        Only the recipe owner may update this child. Apply JSON Merge Patch atomically; identifiers cannot change. Null removes only optional fields. Reject duplicate step sequence numbers with 400.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      - $ref: '#/components/parameters/HowToStepIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HowToStepUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ResourceLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: deleteHowToStep
+      tags:
+      - HowToSteps
+      summary: Delete a recipe HowToStep
+      description: |
+        Only the recipe owner may delete this child. Reject deletion of the last HowToStep with 400 because a recipe requires at least one. Remaining step sequence numbers are unchanged.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      - $ref: '#/components/parameters/HowToStepIdParameter'
+      responses:
+        '204':
+          description: Resource deleted; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /recipes/{recipeId}/meals:
+    get:
+      operationId: getRecipeMeal
+      tags:
+      - Meals
+      summary: Get the recipe meal
+      description: |
+        Return the single meal classification as a JSON string, despite the plural canvas path.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    put:
+      operationId: replaceRecipeMeal
+      tags:
+      - Meals
+      summary: Replace the recipe meal
+      description: |
+        Only the recipe owner may replace the single required meal classification. This operation is idempotent.
+      security:
+      - OAuth2:
+        - recipes:read
+        - recipes:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RecipeIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealReplaceRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ResourceLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      description: Contract version requested by the client (proposed house-style requirement).
+      required: true
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    RecipeIdParameter:
+      name: recipeId
+      in: path
+      description: UUID of the Recipe addressed by this request. Nested IDs must belong to the addressed recipe.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IngredientIdParameter:
+      name: ingredientId
+      in: path
+      description: UUID of the Ingredient addressed by this request. Nested IDs must belong to the addressed recipe.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    HowToStepIdParameter:
+      name: howToStepId
+      in: path
+      description: UUID of the HowToStep addressed by this request. Nested IDs must belong to the addressed recipe.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DietParameter:
+      name: diet
+      in: query
+      description: Filter by the exact diet classification.
+      required: false
+      schema:
+        $ref: '#/components/schemas/Diet'
+    MealParameter:
+      name: meal
+      in: query
+      description: Filter by the exact meal classification.
+      required: false
+      schema:
+        $ref: '#/components/schemas/Meal'
+    IngredientsParameter:
+      name: ingredients
+      in: query
+      description: Repeat the parameter for ingredient names; all names must match case-insensitively (proposed
+        semantics).
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          minLength: 1
+      example:
+      - Flour
+      - Milk
+  schemas:
+    Meal:
+      description: The meal at which a recipe is intended to be served.
+      type: string
+      enum:
+      - BREAKFAST
+      - LUNCH
+      - DINNER
+      - SUPPER
+    Diet:
+      description: The dietary classification assigned to a recipe.
+      type: string
+      enum:
+      - VEGETARIAN
+      - VEGAN
+      - NORMAL
+    Unit:
+      description: Ingredient measurement unit; labels preserve glossary wording, including Kilogramm and Gramm.
+      type: string
+      enum:
+      - PIECE
+      - CUP
+      - TABLE_SPOON
+      - TEA_SPOON
+      - FLUID_OUNCES
+      - PINT
+      - QUART
+      - POUND
+      - KILOGRAM
+      - GRAM
+      - LITER
+      - MILLILITER
+      - PINCH
+    PreparationTime:
+      description: Proposed hours:minutes duration; 02:00 means two hours, pending domain confirmation.
+      type: string
+      pattern: ^\d{2,}:[0-5]\d$
+      examples:
+      - 02:00
+    Ingredient:
+      description: A Ingredient entity contained in a recipe.
+      type: object
+      required:
+      - ingredientId
+      - name
+      - value
+      - unit
+      properties:
+        ingredientId:
+          description: Identifier of this Ingredient, generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          description: The ingredient used in this recipe, such as Flour.
+          type: string
+          minLength: 1
+          examples:
+          - Flour
+        value:
+          description: Quantity of this ingredient measured in the specified unit.
+          type: number
+          exclusiveMinimum: 0
+          examples:
+          - 0.5
+        unit:
+          description: Measurement unit for the ingredient quantity.
+          $ref: '#/components/schemas/Unit'
+      additionalProperties: false
+    IngredientCreate:
+      description: Client-supplied fields for a new Ingredient.
+      type: object
+      required:
+      - name
+      - value
+      - unit
+      properties:
+        name:
+          description: The ingredient used in this recipe, such as Flour.
+          type: string
+          minLength: 1
+          examples:
+          - Flour
+        value:
+          description: Quantity of this ingredient measured in the specified unit.
+          type: number
+          exclusiveMinimum: 0
+          examples:
+          - 0.5
+        unit:
+          description: Measurement unit for the ingredient quantity.
+          $ref: '#/components/schemas/Unit'
+      additionalProperties: false
+    IngredientUpdate:
+      description: Partial changes to a Ingredient; omitted fields retain their values.
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          description: The ingredient used in this recipe, such as Flour.
+          type: string
+          minLength: 1
+          examples:
+          - Flour
+        value:
+          description: Quantity of this ingredient measured in the specified unit.
+          type: number
+          exclusiveMinimum: 0
+          examples:
+          - 0.5
+        unit:
+          description: Measurement unit for the ingredient quantity.
+          $ref: '#/components/schemas/Unit'
+      additionalProperties: false
+    HowToStep:
+      description: A HowToStep entity contained in a recipe.
+      type: object
+      required:
+      - howToStepId
+      - sequenceNumber
+      - description
+      properties:
+        howToStepId:
+          description: Identifier of this HowToStep, generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        sequenceNumber:
+          description: Positive position of the step; unique within its recipe, with gaps allowed.
+          type: integer
+          minimum: 1
+          examples:
+          - 1
+        description:
+          description: Instructions for performing this preparation step.
+          type: string
+          minLength: 1
+          examples:
+          - Carefully mix the water with the flour.
+        illustration:
+          description: Optional URL illustrating how to perform this step.
+          type:
+          - string
+          - 'null'
+          format: uri
+      additionalProperties: false
+    HowToStepCreate:
+      description: Client-supplied fields for a new HowToStep.
+      type: object
+      required:
+      - sequenceNumber
+      - description
+      properties:
+        sequenceNumber:
+          description: Positive position of the step; unique within its recipe, with gaps allowed.
+          type: integer
+          minimum: 1
+          examples:
+          - 1
+        description:
+          description: Instructions for performing this preparation step.
+          type: string
+          minLength: 1
+          examples:
+          - Carefully mix the water with the flour.
+        illustration:
+          description: Optional URL illustrating how to perform this step.
+          type:
+          - string
+          - 'null'
+          format: uri
+      additionalProperties: false
+    HowToStepUpdate:
+      description: Partial changes to a HowToStep; omitted fields retain their values.
+      type: object
+      minProperties: 1
+      properties:
+        sequenceNumber:
+          description: Positive position of the step; unique within its recipe, with gaps allowed.
+          type: integer
+          minimum: 1
+          examples:
+          - 1
+        description:
+          description: Instructions for performing this preparation step.
+          type: string
+          minLength: 1
+          examples:
+          - Carefully mix the water with the flour.
+        illustration:
+          description: Optional URL illustrating how to perform this step.
+          type:
+          - string
+          - 'null'
+          format: uri
+      additionalProperties: false
+    Recipe:
+      description: A recipe aggregate with its owned ingredients and preparation steps.
+      type: object
+      required:
+      - recipeId
+      - owner
+      - name
+      - preparationTime
+      - ingredients
+      - howToSteps
+      - meal
+      - diet
+      - servings
+      properties:
+        recipeId:
+          description: Recipe identifier generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        owner:
+          description: Owner UUID derived from the authenticated creator; immutable.
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          description: Name by which cooks recognize the recipe.
+          type: string
+          minLength: 1
+          examples:
+          - Scones for Sunday
+        mainImage:
+          description: Optional primary image URL representing the recipe.
+          type:
+          - string
+          - 'null'
+          format: uri
+        subtitle:
+          description: Optional short supporting text for the recipe.
+          type:
+          - string
+          - 'null'
+          examples:
+          - Easy to prepare on Saturday
+        preparationTime:
+          description: Total preparation duration for the recipe.
+          $ref: '#/components/schemas/PreparationTime'
+        ingredients:
+          description: Ingredients contained in the recipe; at least one is required. IDs must be unique within
+            the recipe.
+          type: array
+          items:
+            $ref: '#/components/schemas/Ingredient'
+          minItems: 1
+        howToSteps:
+          description: Preparation steps returned in ascending sequenceNumber order; at least one is required. IDs
+            and sequence numbers must be unique within the recipe.
+          type: array
+          items:
+            $ref: '#/components/schemas/HowToStep'
+          minItems: 1
+        meal:
+          description: The single meal classification of this recipe.
+          $ref: '#/components/schemas/Meal'
+        furtherImages:
+          description: Up to ten additional image URLs associated with this recipe.
+          type: array
+          items:
+            type: string
+            format: uri
+          minItems: 0
+          maxItems: 10
+        diet:
+          description: The single dietary classification of this recipe.
+          $ref: '#/components/schemas/Diet'
+        servings:
+          description: Number of servings yielded by the recipe.
+          type: integer
+          minimum: 1
+          examples:
+          - 4
+      additionalProperties: false
+    RecipeCreate:
+      description: A new recipe, including its initial ingredients and preparation steps.
+      type: object
+      required:
+      - name
+      - preparationTime
+      - ingredients
+      - howToSteps
+      - meal
+      - diet
+      - servings
+      properties:
+        name:
+          description: Name by which cooks recognize the recipe.
+          type: string
+          minLength: 1
+          examples:
+          - Scones for Sunday
+        mainImage:
+          description: Optional primary image URL representing the recipe.
+          type:
+          - string
+          - 'null'
+          format: uri
+        subtitle:
+          description: Optional short supporting text for the recipe.
+          type:
+          - string
+          - 'null'
+          examples:
+          - Easy to prepare on Saturday
+        preparationTime:
+          description: Total preparation duration for the recipe.
+          $ref: '#/components/schemas/PreparationTime'
+        ingredients:
+          description: Ingredients contained in the recipe; at least one is required. IDs must be unique within
+            the recipe.
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientCreate'
+          minItems: 1
+        howToSteps:
+          description: Preparation steps returned in ascending sequenceNumber order; at least one is required. IDs
+            and sequence numbers must be unique within the recipe.
+          type: array
+          items:
+            $ref: '#/components/schemas/HowToStepCreate'
+          minItems: 1
+        meal:
+          description: The single meal classification of this recipe.
+          $ref: '#/components/schemas/Meal'
+        furtherImages:
+          description: Up to ten additional image URLs associated with this recipe.
+          type: array
+          items:
+            type: string
+            format: uri
+          minItems: 0
+          maxItems: 10
+        diet:
+          description: The single dietary classification of this recipe.
+          $ref: '#/components/schemas/Diet'
+        servings:
+          description: Number of servings yielded by the recipe.
+          type: integer
+          minimum: 1
+          examples:
+          - 4
+      additionalProperties: false
+    RecipeUpdate:
+      description: Partial recipe changes. Use nested endpoints to edit ingredients and preparation steps.
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          description: Name by which cooks recognize the recipe.
+          type: string
+          minLength: 1
+          examples:
+          - Scones for Sunday
+        mainImage:
+          description: Optional primary image URL representing the recipe.
+          type:
+          - string
+          - 'null'
+          format: uri
+        subtitle:
+          description: Optional short supporting text for the recipe.
+          type:
+          - string
+          - 'null'
+          examples:
+          - Easy to prepare on Saturday
+        preparationTime:
+          description: Total preparation duration for the recipe.
+          $ref: '#/components/schemas/PreparationTime'
+        meal:
+          description: The single meal classification of this recipe.
+          $ref: '#/components/schemas/Meal'
+        furtherImages:
+          description: Up to ten additional image URLs associated with this recipe. In PATCH, null removes the optional
+            collection.
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            format: uri
+          minItems: 0
+          maxItems: 10
+        diet:
+          description: The single dietary classification of this recipe.
+          $ref: '#/components/schemas/Diet'
+        servings:
+          description: Number of servings yielded by the recipe.
+          type: integer
+          minimum: 1
+          examples:
+          - 4
+      additionalProperties: false
+    RecipeList:
+      description: Matching resources; an empty list is returned when no resources match.
+      type: array
+      items:
+        $ref: '#/components/schemas/Recipe'
+      minItems: 0
+    IngredientList:
+      description: Matching resources; an empty list is returned when no resources match.
+      type: array
+      items:
+        $ref: '#/components/schemas/Ingredient'
+      minItems: 0
+    HowToStepList:
+      description: Matching resources; an empty list is returned when no resources match.
+      type: array
+      items:
+        $ref: '#/components/schemas/HowToStep'
+      minItems: 0
+    ResourceLink:
+      description: A link to a created or modified resource.
+      type: object
+      required:
+      - href
+      properties:
+        href:
+          description: Absolute URI of the created or modified resource.
+          type: string
+          format: uri
+      additionalProperties: false
+    Error:
+      description: A structured error returned when an operation fails.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable error identifier.
+          type: string
+        message:
+          description: Human-readable explanation of the failure.
+          type: string
+        details:
+          description: Optional additional information about invalid fields or failed rules.
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+  responses:
+    RecipeResponse:
+      description: Requested Recipe representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Recipe'
+    IngredientResponse:
+      description: Requested Ingredient representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Ingredient'
+    HowToStepResponse:
+      description: Requested HowToStep representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStep'
+    MealResponse:
+      description: Requested Meal representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Meal'
+    RecipeListResponse:
+      description: Requested RecipeList representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RecipeList'
+    IngredientListResponse:
+      description: Requested IngredientList representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IngredientList'
+    HowToStepListResponse:
+      description: Requested HowToStepList representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStepList'
+    ResourceLinkResponse:
+      description: Link to the modified resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceLink'
+    CreatedResourceResponse:
+      description: Resource created; href and Location identify the new resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceLink'
+      headers:
+        Location:
+          description: Absolute URI of the created resource; always returned on success.
+          required: true
+          schema:
+            type: string
+            format: uri
+    BadRequestResponse:
+      description: Invalid input or a proposed aggregate invariant would be violated.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          description: Bearer authentication challenge.
+          required: true
+          schema:
+            type: string
+          example: Bearer
+    ForbiddenResponse:
+      description: Insufficient scope, or the authenticated caller does not own the recipe.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: The addressed recipe does not exist, or the child does not belong to it.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: The service could not complete the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedErrorResponse:
+      description: An unexpected failure occurred; inspect the HTTP status and error code.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  requestBodies:
+    RecipeCreateRequest:
+      description: Create fields for the Recipe; updates are atomic and reject invalid resulting aggregate state.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RecipeCreate'
+    RecipeUpdateRequest:
+      description: Update fields for the Recipe; updates are atomic and reject invalid resulting aggregate state.
+      required: true
+      content:
+        application/merge-patch+json:
+          schema:
+            $ref: '#/components/schemas/RecipeUpdate'
+    IngredientCreateRequest:
+      description: Create fields for the Ingredient; updates are atomic and reject invalid resulting aggregate state.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IngredientCreate'
+    IngredientUpdateRequest:
+      description: Update fields for the Ingredient; updates are atomic and reject invalid resulting aggregate state.
+      required: true
+      content:
+        application/merge-patch+json:
+          schema:
+            $ref: '#/components/schemas/IngredientUpdate'
+    HowToStepCreateRequest:
+      description: Create fields for the HowToStep; updates are atomic and reject invalid resulting aggregate state.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStepCreate'
+    HowToStepUpdateRequest:
+      description: Update fields for the HowToStep; updates are atomic and reject invalid resulting aggregate state.
+      required: true
+      content:
+        application/merge-patch+json:
+          schema:
+            $ref: '#/components/schemas/HowToStepUpdate'
+    MealReplaceRequest:
+      description: Replace the recipe's single meal classification with a JSON string.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Meal'
+          example: BREAKFAST
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: Proposed OAuth2 authorization code flow with PKCE (S256). Replace example authorization/token
+        URLs before deployment. Map the authenticated subject to the owner UUID; scopes do not bypass ownership
+        checks.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/authorize
+          tokenUrl: https://auth.example.com/token
+          scopes:
+            recipes:read: Read and search recipe resources.
+            recipes:write: Create recipes and mutate recipes owned by the caller.
+x-design-assumptions:
+- The canvas governs operations and paths; the glossary governs fields and cardinalities. Field descriptions are
+  draft interpretations for domain expert review.
+- 'Authentication and audience are unspecified. Proposed default: public-client OAuth2 authorization code with PKCE,
+  recipes:read and recipes:write scopes. Authorization and token URLs under auth.example.com are placeholders and
+  MUST be replaced before deployment.'
+- A required version header is a house-style addition, not a canvas requirement.
+- Recipe, ingredient, and howToStep IDs are server-generated UUIDs. The recipe owner is the authenticated principal
+  mapped to an owner UUID and cannot be transferred through this API.
+- Only the recipe owner can mutate it or any nested resource. Applying this to nested POST operations is inferred;
+  the canvas explicitly marks PATCH, PUT, and DELETE.
+- Preparation time is provisionally an HH:MM duration, with 02:00 interpreted as two hours. Confirm the time unit
+  before implementation.
+- Search uses exact meal/diet values and case-insensitive exact ingredient names; all supplied ingredient names
+  must match. Filters combine with AND. Pagination and sorting are unspecified and intentionally omitted.
+- PATCH uses application/merge-patch+json. Omitted fields remain unchanged; null removes optional values. Ingredients
+  and howToSteps arrays are changed through their nested endpoints, not recipe PATCH.
+- The glossary spelling Gramm is preserved as GRAMM. Meal, diet, and unit leaf terms are treated as closed enumerations.
+- The plural /meals path is preserved from the canvas but returns or replaces one meal, reflecting glossary cardinality
+  1.
+- Download recipe means GET the complete JSON recipe. The canvas supplies no separate binary or PDF export operation.
+- Create/update link responses use a JSON href property; create responses also supply Location. The canvas does
+  not specify a link representation.
+- Positive ingredient quantities and servings, nonempty text, unique ingredient/step IDs within a recipe, and unique
+  positive step sequence numbers are proposed domain rules. Sequence numbers need not be contiguous.
+- Removing the last ingredient or last step is rejected with 400 to preserve glossary minimum cardinalities. Aggregate
+  deletion removes its owned children.
+- The canvas recipe DELETE omits 404; this draft adds 404 for consistency with the other item operations. Obvious
+  response-label typos are interpreted as singular resources.

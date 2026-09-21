@@ -1,0 +1,401 @@
+openapi: 3.1.0
+info:
+  title: Media API
+  description: |
+    Manages images used by Larder recipes, thanks, help requests, and help.
+    Enables consuming applications to upload, find, download, and delete media.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: e2e356b2-70b2-4d42-8bbd-741387d797db
+  x-audience: component-internal
+servers:
+- url: https://larder.org/media
+  description: Server specified by the API Product Canvas.
+security:
+- OAuth2:
+  - media:read
+tags:
+- name: Images
+  description: Image storage and retrieval for linked business objects; videos are deferred.
+x-source-documents:
+- MediaApiProductCanvasSynchronous.jpg
+- MediaMediaVisualGlossary.jpg
+x-design-assumptions:
+- The canvas is authoritative for paths, operations, status codes, server, contact, and version; the glossary
+  is authoritative for terms and cardinalities.
+- Draft field descriptions require domain-expert confirmation. Audience is assumed component-internal.
+- OAuth2 authorization-code flow with PKCE and read/write/admin scopes is a proposed house-style default. Identity-provider
+  URLs use reserved .invalid placeholders and MUST be replaced before use.
+- The required version header is a house-style proposal; the canvas only specifies API version 1.0.0.
+- GET /images requires both businessObjectId and businessObjectType. It returns a JSON array and an empty array
+  when no authorized images match. Pagination is unspecified and not added.
+- Each Media has one UUID mediaId, one media value represented in JSON as an absolute download URL, and zero
+  or more links. GET /images/{mediaId} returns the actual image bytes.
+- POST uses multipart/form-data with one required image part and an optional links part containing a JSON array.
+  Supplying links on upload is a proposed extension to the canvas request, which only shows image; it provides
+  a way to populate the glossary links. Omitting links creates an unlinked image.
+- Each link has one type and one absolute HTTPS url; the url cardinality is not explicit in the glossary and
+  is assumed to be one. Links identify existing external objects, not objects owned by this API.
+- Glossary type values recipe, thanks, help Request, and help map to RECIPE, THANKS, HELP_REQUEST, and HELP.
+  No relationship id field is invented. Filtering matches type and the final path segment of the link URL against
+  businessObjectId; this URL convention requires confirmation for all object types.
+- Business-object identifiers are opaque nonempty strings; only mediaId is constrained to UUID. The glossary
+  recipe URL provides one example, not a universal UUID requirement.
+- The image/* media range expresses image-only upload and download; concrete accepted image formats and size
+  limits remain implementation decisions requiring confirmation.
+- DELETE removes the stored image and its local links, never the referenced business objects. Missing images
+  yield 404, including repeated deletion. Retention and cleanup policies are unspecified.
+- POST returns the absolute download URL in both Location and a JSON url field. Link changes after creation
+  have no operation in the canvas and remain an open requirement; no extra CRUD endpoints are added.
+paths:
+  /images:
+    get:
+      operationId: listImages
+      tags:
+      - Images
+      summary: List images for a business object
+      description: |
+        Return metadata for images linked to the specified business object. Both filters are required and combined with AND. Match a link type and the final URL path segment to the filters. Return 200 with an empty array when no accessible images match. Each media URL points to the binary download operation. No pagination contract is defined in the sources.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/BusinessObjectIdParameter'
+      - $ref: '#/components/parameters/BusinessObjectTypeParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MediaCollectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    post:
+      operationId: createImage
+      tags:
+      - Images
+      summary: Upload an image
+      description: |
+        Store one image and generate its mediaId. Optionally record the supplied business-object links; omission produces no links. Validate caller access to supplied associations. Return 201 with the download URL in Location and the response body. No external business object is created. Multipart encoding and link assignment at upload are proposed design choices. Reject invalid or unsupported image content with 400. Videos are excluded.
+      security:
+      - OAuth2:
+        - media:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/ImageCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ImageCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /images/{mediaId}:
+    get:
+      operationId: getImageById
+      tags:
+      - Images
+      summary: Download an image
+      description: |
+        Return the raw bytes of the image identified by mediaId, with the concrete image Content-Type. The caller must have access to the image. Return 404 if the image does not exist.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/MediaIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ImageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: deleteImage
+      tags:
+      - Images
+      summary: Delete an image
+      description: |
+        Delete the image and its local business-object links. The referenced business objects are unaffected. This API provides no restore operation. Return 204 with no body on success, or 404 when the image does not exist, including repeated deletion.
+      security:
+      - OAuth2:
+        - media:admin
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/MediaIdParameter'
+      responses:
+        '204':
+          description: Image and its local links deleted; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      description: Requested contract version; proposed house-style header.
+      required: true
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    MediaIdParameter:
+      name: mediaId
+      in: path
+      description: Identity of the stored image.
+      required: true
+      schema:
+        $ref: '#/components/schemas/MediaId'
+    BusinessObjectIdParameter:
+      name: businessObjectId
+      in: query
+      description: Identity of the linked business object; assumed to match the final path segment of its URL.
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      example: 7cf09822-77a1-46bb-812f-b7852bca0913
+    BusinessObjectTypeParameter:
+      name: businessObjectType
+      in: query
+      description: Glossary type of the linked business object.
+      required: true
+      schema:
+        $ref: '#/components/schemas/BusinessObjectType'
+  schemas:
+    MediaId:
+      description: Server-generated identity of a Media aggregate.
+      type: string
+      format: uuid
+      examples:
+      - f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+    BusinessObjectType:
+      description: 'Linked glossary type: recipe, thanks, help Request, or help.'
+      type: string
+      enum:
+      - RECIPE
+      - THANKS
+      - HELP_REQUEST
+      - HELP
+    BusinessObjectLink:
+      description: A value object associating an image with an external business object.
+      type: object
+      required:
+      - type
+      - url
+      properties:
+        type:
+          description: Kind of business object referenced by this link.
+          $ref: '#/components/schemas/BusinessObjectType'
+        url:
+          description: Absolute HTTPS address identifying the linked business object.
+          type: string
+          format: uri
+          pattern: ^https://
+          examples:
+          - https://larder.org/recipe-catalog/recipes/7cf09822-77a1-46bb-812f-b7852bca0913
+    BusinessObjectLinks:
+      description: Zero or more external business-object links owned by a Media aggregate.
+      type: array
+      minItems: 0
+      items:
+        $ref: '#/components/schemas/BusinessObjectLink'
+    Media:
+      description: Metadata representation of a Media aggregate with one downloadable image.
+      type: object
+      required:
+      - mediaId
+      - media
+      - links
+      properties:
+        mediaId:
+          description: Identity assigned by the server when this image is created.
+          readOnly: true
+          $ref: '#/components/schemas/MediaId'
+        media:
+          description: Absolute URL from which the single stored image can be downloaded.
+          type: string
+          format: uri
+          readOnly: true
+          examples:
+          - https://larder.org/media/images/f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+        links:
+          description: External business objects associated with this image; empty when unlinked.
+          $ref: '#/components/schemas/BusinessObjectLinks'
+    MediaCollection:
+      description: Media matching the requested business-object identity and type.
+      type: array
+      minItems: 0
+      items:
+        $ref: '#/components/schemas/Media'
+    ImageBinary:
+      description: Raw image bytes, transmitted using the concrete image media type.
+      type: string
+      format: binary
+    ImageCreate:
+      description: One image with optional links supplied at creation.
+      type: object
+      required:
+      - image
+      properties:
+        image:
+          description: Bytes of the image to store; video content is outside this API version.
+          $ref: '#/components/schemas/ImageBinary'
+        links:
+          description: Optional JSON array of business-object links; omission is equivalent to an empty array.
+          $ref: '#/components/schemas/BusinessObjectLinks'
+    ImageCreated:
+      description: Address of the image created by the upload.
+      type: object
+      required:
+      - url
+      properties:
+        url:
+          description: Absolute download URL, identical to the Location response header.
+          type: string
+          format: uri
+          examples:
+          - https://larder.org/media/images/f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+    Error:
+      description: Shared error representation for unsuccessful requests.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable error identifier.
+          type: string
+          minLength: 1
+        message:
+          description: Human-readable explanation of the failure.
+          type: string
+          minLength: 1
+        details:
+          description: Optional context specific to the failure.
+          type: object
+          additionalProperties: true
+  responses:
+    MediaCollectionResponse:
+      description: Matching image metadata; an empty array indicates no matches.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MediaCollection'
+    ImageCreatedResponse:
+      description: Image created; the response body and Location header identify its download URL.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImageCreated'
+      headers:
+        Location:
+          description: Absolute URL of the created image.
+          required: true
+          schema:
+            type: string
+            format: uri
+    ImageResponse:
+      description: Stored image bytes; Content-Type is the concrete image type, such as image/png.
+      content:
+        image/*:
+          schema:
+            $ref: '#/components/schemas/ImageBinary'
+    BadRequestResponse:
+      description: Invalid parameters, version, image content, or business-object links.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          description: Bearer authentication challenge.
+          required: true
+          schema:
+            type: string
+          example: Bearer realm="media"
+    ForbiddenResponse:
+      description: The caller lacks the required scope or access to the image or linked business object.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: No image exists with the supplied mediaId.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: An unexpected server error prevented completion.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedErrorResponse:
+      description: An otherwise unspecified error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  requestBodies:
+    ImageCreateRequest:
+      description: Upload a single image and optionally associate it with existing business objects.
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/ImageCreate'
+          encoding:
+            image:
+              contentType: image/*
+            links:
+              contentType: application/json
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: 'PROPOSED: OAuth 2.0 authorization-code flow with PKCE (S256). Replace placeholder endpoints
+        before use. Scope checks are supplemented by object-level authorization.'
+      flows:
+        authorizationCode:
+          authorizationUrl: https://identity.example.invalid/authorize
+          tokenUrl: https://identity.example.invalid/token
+          scopes:
+            media:read: Read accessible image metadata and download images.
+            media:write: Upload images and assign authorized business-object links.
+            media:admin: Delete images and their local associations.

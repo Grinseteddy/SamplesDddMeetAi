@@ -1,0 +1,1081 @@
+openapi: 3.1.0
+info:
+  title: Recipe Catalog API
+  description: API for managing recipes and searching recipes by meal, ingredients, and diets.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: a8d3f109-7b2e-4c51-91a3-b45612349012
+  x-audience: external-public
+
+servers:
+  - url: 'https://larder.org/recipe-catalog'
+
+security:
+  - oAuth2:
+      - recipe:read
+      - recipe:write
+      - recipe:admin
+
+tags:
+  - name: Recipes
+    description: Recipe catalog management and search operations
+  - name: Ingredients
+    description: Recipe ingredient management operations
+  - name: How-To Steps
+    description: Recipe preparation step operations
+  - name: Meals
+    description: Recipe meal classification operations
+
+paths:
+  /recipes:
+    get:
+      operationId: listRecipes
+      tags:
+        - Recipes
+      summary: List or search recipes
+      description: |
+        Retrieve a list of recipes filtered by meal classification, dietary preferences, or ingredient content.
+      parameters:
+        - $ref: '#/components/parameters/DietQueryParameter'
+        - $ref: '#/components/parameters/MealQueryParameter'
+        - $ref: '#/components/parameters/IngredientQueryParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    post:
+      operationId: createRecipe
+      tags:
+        - Recipes
+      summary: Create a new recipe
+      description: |
+        Create a new recipe in the catalog with ingredients, preparation steps, and classifications.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/RecipeCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/RecipeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /recipes/{recipeId}:
+    get:
+      operationId: getRecipeById
+      tags:
+        - Recipes
+      summary: Get recipe by ID
+      description: |
+        Retrieve detailed information for a specific recipe by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    patch:
+      operationId: updateRecipe
+      tags:
+        - Recipes
+      summary: Update recipe
+      description: |
+        Update details of an existing recipe. Only the recipe owner can update the recipe.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/RecipeUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/RecipeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteRecipe
+      tags:
+        - Recipes
+      summary: Delete recipe
+      description: |
+        Delete a recipe by its unique identifier. Only the owner can delete the recipe.
+      security:
+        - oAuth2:
+            - recipe:admin
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Recipe deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /recipes/{recipeId}/ingredients:
+    get:
+      operationId: getRecipeIngredients
+      tags:
+        - Ingredients
+      summary: Get ingredients for recipe
+      description: |
+        Retrieve all ingredients associated with a specific recipe.
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/IngredientsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    post:
+      operationId: addRecipeIngredient
+      tags:
+        - Ingredients
+      summary: Add ingredient to recipe
+      description: |
+        Add a new ingredient to a specific recipe.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/IngredientCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/IngredientResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /recipes/{recipeId}/ingredients/{ingredientId}:
+    get:
+      operationId: getRecipeIngredientById
+      tags:
+        - Ingredients
+      summary: Get recipe ingredient by ID
+      description: |
+        Retrieve details of a specific ingredient in a recipe.
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/IngredientIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/IngredientResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    patch:
+      operationId: updateRecipeIngredient
+      tags:
+        - Ingredients
+      summary: Update recipe ingredient
+      description: |
+        Update an existing ingredient in a recipe. Only the recipe owner can modify ingredients.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/IngredientIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/IngredientUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/IngredientResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteRecipeIngredient
+      tags:
+        - Ingredients
+      summary: Delete recipe ingredient
+      description: |
+        Remove an ingredient from a recipe. Only the recipe owner can remove ingredients.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/IngredientIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Ingredient deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /recipes/{recipeId}/how-to-steps:
+    get:
+      operationId: getRecipeHowToSteps
+      tags:
+        - How-To Steps
+      summary: Get preparation steps for recipe
+      description: |
+        Retrieve all preparation steps for a specific recipe.
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    post:
+      operationId: addRecipeHowToStep
+      tags:
+        - How-To Steps
+      summary: Add preparation step to recipe
+      description: |
+        Add a new preparation step to a specific recipe.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HowToStepCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /recipes/{recipeId}/how-to-steps/{howToStepId}:
+    get:
+      operationId: getRecipeHowToStepById
+      tags:
+        - How-To Steps
+      summary: Get preparation step by ID
+      description: |
+        Retrieve details of a specific preparation step in a recipe.
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/HowToStepIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    patch:
+      operationId: updateRecipeHowToStep
+      tags:
+        - How-To Steps
+      summary: Update preparation step
+      description: |
+        Update an existing preparation step in a recipe. Only the recipe owner can modify steps.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/HowToStepIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HowToStepUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteRecipeHowToStep
+      tags:
+        - How-To Steps
+      summary: Delete preparation step
+      description: |
+        Remove a preparation step from a recipe. Only the recipe owner can remove steps.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/HowToStepIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Preparation step deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /recipes/{recipeId}/meals:
+    get:
+      operationId: getRecipeMeal
+      tags:
+        - Meals
+      summary: Get meal classification for recipe
+      description: |
+        Retrieve the meal type assigned to a specific recipe.
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    put:
+      operationId: updateRecipeMeal
+      tags:
+        - Meals
+      summary: Update meal classification for recipe
+      description: |
+        Set or update the meal type classification for a recipe. Only the recipe owner can change the meal type.
+      security:
+        - oAuth2:
+            - recipe:write
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+components:
+  parameters:
+    RecipeIdParameter:
+      name: recipeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    IngredientIdParameter:
+      name: ingredientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    HowToStepIdParameter:
+      name: howToStepId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    DietQueryParameter:
+      name: diet
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Diet'
+
+    MealQueryParameter:
+      name: meal
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Meal'
+
+    IngredientQueryParameter:
+      name: ingredient
+      in: query
+      required: false
+      schema:
+        type: string
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    Meal:
+      type: string
+      description: Meal type classification for the recipe.
+      enum:
+        - BREAKFAST
+        - LUNCH
+        - DINNER
+        - SUPPER
+
+    Diet:
+      type: string
+      description: Dietary classification for the recipe.
+      enum:
+        - SWEETENER
+        - VEGAN
+        - NORMAL
+
+    Unit:
+      type: string
+      description: Unit of measurement for ingredient quantities.
+      enum:
+        - PIECE
+        - CUP
+        - TABLE_SPOON
+        - TEA_SPOON
+        - FLUID_OUNCES
+        - PINT
+        - QUART
+        - POUND
+        - OUNCES
+        - GRAM
+        - LITER
+        - MILLITER
+        - PINCH
+
+    Ingredient:
+      type: object
+      description: Single ingredient item specification within a recipe.
+      required:
+        - ingredientId
+        - name
+        - value
+        - unit
+      properties:
+        ingredientId:
+          description: Unique identifier of the ingredient, generated by the server.
+          type: string
+          format: uuid
+        name:
+          description: Common name of the ingredient.
+          type: string
+          minLength: 1
+          maxLength: 100
+        value:
+          description: Numerical quantity or amount of the ingredient needed.
+          type: number
+          minimum: 0
+        unit:
+          description: Unit of measurement for the ingredient quantity.
+          $ref: '#/components/schemas/Unit'
+
+    IngredientCreate:
+      type: object
+      description: Input parameters required to add an ingredient to a recipe.
+      required:
+        - name
+        - value
+        - unit
+      properties:
+        name:
+          description: Common name of the ingredient.
+          type: string
+          minLength: 1
+          maxLength: 100
+        value:
+          description: Numerical quantity or amount of the ingredient needed.
+          type: number
+          minimum: 0
+        unit:
+          description: Unit of measurement for the ingredient quantity.
+          $ref: '#/components/schemas/Unit'
+
+    IngredientUpdate:
+      type: object
+      description: Mutable fields for updating an ingredient in a recipe.
+      properties:
+        name:
+          description: Common name of the ingredient.
+          type: string
+          minLength: 1
+          maxLength: 100
+        value:
+          description: Numerical quantity or amount of the ingredient needed.
+          type: number
+          minimum: 0
+        unit:
+          description: Unit of measurement for the ingredient quantity.
+          $ref: '#/components/schemas/Unit'
+
+    HowToStep:
+      type: object
+      description: Instructional step describing preparation procedure.
+      required:
+        - howToStepId
+        - sequenceNumber
+        - description
+      properties:
+        howToStepId:
+          description: Unique identifier of the preparation step, generated by the server.
+          type: string
+          format: uuid
+        sequenceNumber:
+          description: Sequence order position of this instruction step.
+          type: integer
+          minimum: 1
+        description:
+          description: Detailed instructions describing what to do in this step.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        howToImage:
+          description: Optional image URI illustrating this specific preparation step.
+          type: [string, "null"]
+          format: uri
+
+    HowToStepCreate:
+      type: object
+      description: Input parameters required to create a new preparation step.
+      required:
+        - sequenceNumber
+        - description
+      properties:
+        sequenceNumber:
+          description: Sequence order position of this instruction step.
+          type: integer
+          minimum: 1
+        description:
+          description: Detailed instructions describing what to do in this step.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        howToImage:
+          description: Optional image URI illustrating this specific preparation step.
+          type: [string, "null"]
+          format: uri
+
+    HowToStepUpdate:
+      type: object
+      description: Mutable fields for updating a preparation step.
+      properties:
+        sequenceNumber:
+          description: Sequence order position of this instruction step.
+          type: integer
+          minimum: 1
+        description:
+          description: Detailed instructions describing what to do in this step.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        howToImage:
+          description: Optional image URI illustrating this specific preparation step.
+          type: [string, "null"]
+          format: uri
+
+    Recipe:
+      type: object
+      description: Complete read model representation of a recipe.
+      required:
+        - recipeId
+        - owner
+        - name
+        - preparationTime
+        - ingredients
+        - howToSteps
+        - meal
+        - diet
+        - servings
+      properties:
+        recipeId:
+          description: Unique identifier of the recipe, generated by the server.
+          type: string
+          format: uuid
+        owner:
+          description: Unique identifier of the user who owns and manages the recipe.
+          type: string
+          format: uuid
+        name:
+          description: Title or primary identifier name of the recipe.
+          type: string
+          minLength: 1
+          maxLength: 200
+        subtitle:
+          description: Optional short subtitle or summary phrase describing the recipe.
+          type: [string, "null"]
+          maxLength: 200
+        mainImage:
+          description: Primary image URI showcasing the finished dish.
+          type: [string, "null"]
+          format: uri
+        preparationTime:
+          description: Time required for preparation in HH:MM format.
+          type: string
+          pattern: '^[0-9]{2}:[0-9]{2}$'
+        ingredients:
+          description: Array of ingredients required for the recipe.
+          type: array
+          items:
+            $ref: '#/components/schemas/Ingredient'
+          minItems: 1
+        howToSteps:
+          description: Ordered sequence of preparation steps.
+          type: array
+          items:
+            $ref: '#/components/schemas/HowToStep'
+          minItems: 1
+        meal:
+          description: Meal classification category assigned to the recipe.
+          $ref: '#/components/schemas/Meal'
+        furtherImages:
+          description: Optional collection of additional image URIs for the recipe.
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
+        diet:
+          description: Dietary classification category assigned to the recipe.
+          $ref: '#/components/schemas/Diet'
+        servings:
+          description: Number of portions produced by the recipe.
+          type: integer
+          minimum: 1
+        createdAt:
+          description: Creation timestamp set by the server.
+          type: string
+          format: date-time
+        updatedAt:
+          description: Last modification timestamp set by the server.
+          type: string
+          format: date-time
+
+    RecipeCreate:
+      type: object
+      description: Data model for creating a new recipe entry.
+      required:
+        - name
+        - preparationTime
+        - ingredients
+        - howToSteps
+        - meal
+        - diet
+        - servings
+      properties:
+        name:
+          description: Title or primary identifier name of the recipe.
+          type: string
+          minLength: 1
+          maxLength: 200
+        subtitle:
+          description: Optional short subtitle or summary phrase describing the recipe.
+          type: [string, "null"]
+          maxLength: 200
+        mainImage:
+          description: Primary image URI showcasing the finished dish.
+          type: [string, "null"]
+          format: uri
+        preparationTime:
+          description: Time required for preparation in HH:MM format.
+          type: string
+          pattern: '^[0-9]{2}:[0-9]{2}$'
+        ingredients:
+          description: Array of initial ingredients required for the recipe.
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientCreate'
+          minItems: 1
+        howToSteps:
+          description: Ordered sequence of preparation steps.
+          type: array
+          items:
+            $ref: '#/components/schemas/HowToStepCreate'
+          minItems: 1
+        meal:
+          description: Meal classification category assigned to the recipe.
+          $ref: '#/components/schemas/Meal'
+        furtherImages:
+          description: Optional collection of additional image URIs for the recipe.
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
+        diet:
+          description: Dietary classification category assigned to the recipe.
+          $ref: '#/components/schemas/Diet'
+        servings:
+          description: Number of portions produced by the recipe.
+          type: integer
+          minimum: 1
+
+    RecipeUpdate:
+      type: object
+      description: Mutable properties available for updating an existing recipe.
+      properties:
+        name:
+          description: Title or primary identifier name of the recipe.
+          type: string
+          minLength: 1
+          maxLength: 200
+        subtitle:
+          description: Optional short subtitle or summary phrase describing the recipe.
+          type: [string, "null"]
+          maxLength: 200
+        mainImage:
+          description: Primary image URI showcasing the finished dish.
+          type: [string, "null"]
+          format: uri
+        preparationTime:
+          description: Time required for preparation in HH:MM format.
+          type: string
+          pattern: '^[0-9]{2}:[0-9]{2}$'
+        ingredients:
+          description: Array of ingredients required for the recipe.
+          type: array
+          items:
+            $ref: '#/components/schemas/Ingredient'
+          minItems: 1
+        howToSteps:
+          description: Ordered sequence of preparation steps.
+          type: array
+          items:
+            $ref: '#/components/schemas/HowToStep'
+          minItems: 1
+        meal:
+          description: Meal classification category assigned to the recipe.
+          $ref: '#/components/schemas/Meal'
+        furtherImages:
+          description: Optional collection of additional image URIs for the recipe.
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
+        diet:
+          description: Dietary classification category assigned to the recipe.
+          $ref: '#/components/schemas/Diet'
+        servings:
+          description: Number of portions produced by the recipe.
+          type: integer
+          minimum: 1
+
+    Error:
+      type: object
+      description: Standard machine-readable error envelope.
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional error-specific contextual details.
+          type: object
+
+  responses:
+    RecipeResponse:
+      description: Single recipe response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Recipe'
+
+    RecipesResponse:
+      description: Collection of recipes response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - items
+            properties:
+              items:
+                description: List of recipes matching the criteria.
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+
+    IngredientResponse:
+      description: Single recipe ingredient response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Ingredient'
+
+    IngredientsResponse:
+      description: Collection of recipe ingredients response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - items
+            properties:
+              items:
+                description: List of ingredients for the specified recipe.
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+
+    HowToStepResponse:
+      description: Single preparation step response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStep'
+
+    HowToStepsResponse:
+      description: Collection of preparation steps response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - items
+            properties:
+              items:
+                description: List of preparation steps for the specified recipe.
+                type: array
+                items:
+                  $ref: '#/components/schemas/HowToStep'
+
+    MealResponse:
+      description: Meal classification response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - meal
+            properties:
+              meal:
+                description: Meal type assigned to the recipe.
+                $ref: '#/components/schemas/Meal'
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    RecipeCreateRequest:
+      description: Recipe creation payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RecipeCreate'
+
+    RecipeUpdateRequest:
+      description: Recipe update payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RecipeUpdate'
+
+    IngredientCreateRequest:
+      description: Ingredient creation payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IngredientCreate'
+
+    IngredientUpdateRequest:
+      description: Ingredient update payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IngredientUpdate'
+
+    HowToStepCreateRequest:
+      description: Preparation step creation payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStepCreate'
+
+    HowToStepUpdateRequest:
+      description: Preparation step update payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStepUpdate'
+
+    MealUpdateRequest:
+      description: Meal classification update payload
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - meal
+            properties:
+              meal:
+                description: Meal type classification to set.
+                $ref: '#/components/schemas/Meal'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            recipe:read: Grants read access to recipe resources
+            recipe:write: Grants write access to modify user-owned recipes
+            recipe:admin: Grants administrative access to manage recipes

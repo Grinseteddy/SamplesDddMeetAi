@@ -1,0 +1,472 @@
+openapi: 3.1.0
+info:
+  title: Cook Profile API
+  description: |
+    Manage cook profiles and provide cook identity to authorized Larder applications.
+    Draft derived from the Cook Profile API Product Canvas and Cook Visual Glossary; review x-design-assumptions before implementation.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 0f03279c-7701-4563-987c-37afa32d96df
+  x-audience: company-internal
+servers:
+- url: https://larder.org/cook-profile
+  description: Server specified by the API Product Canvas.
+security:
+- OAuth2:
+  - cook:read
+tags:
+- name: Cooks
+  description: Cook profile registration, lookup, updates and deregistration.
+x-source-artifacts:
+- CookProfileApiProductCanvasSynchronous.jpg
+- CookProfileCookVisualGlossary.jpg
+x-design-assumptions:
+- 'Paths retain the canvas spelling: /cooks and /cook/{cookId}; the singular item path is intentional.'
+- The DELETE parameter labelled recipe Id is interpreted as cookId; PATCH response wording changed recipient is
+  interpreted as changed cook.
+- The undefined POST User payload is provisionally mapped to CookCreate using the glossary fields email, name and
+  givenName. No password or credential fields are inferred.
+- cookId and memberSince are assumed server-generated. New cooks receive ACTIVE status; status is service-controlled
+  and cannot be assigned through create or patch. Status transition and premium entitlement workflows remain unspecified.
+- 'The DELETE Cook body shown on the canvas is omitted provisionally: identity comes from cookId and the authenticated
+  caller. DELETE represents the cook voluntarily deregistering; it requires the caller to own the profile. Retention,
+  anonymization and downstream cleanup require a separate decision.'
+- OAuth2 authorization code with PKCE and read/write scopes are proposed defaults. Identity-provider URLs under
+  example.com are placeholders to replace. Login remains owned by the identity provider; the canvas defines no login
+  endpoint.
+- The audience company-internal and required version header are house-style assumptions, not stated on the canvas.
+  Caller-specific authorization must limit profile lookup and prevent arbitrary browsing of personal data.
+- Optional name and email filters use exact matching and combine with AND; matching is case-sensitive in this draft.
+  An empty match returns an empty array. Pagination is unspecified and omitted.
+- Glossary status values active, inActive and premium map to ACTIVE, IN_ACTIVE and PREMIUM following house style.
+  Name and givenName retain the source labels and examples Joe and Doe; their intended semantics need confirmation.
+- 'All six Cook properties have cardinality 1 and are required non-null response fields. Property descriptions are
+  drafts for domain-expert confirmation. PATCH is a partial JSON object: omitted fields stay unchanged, null and
+  empty patches are rejected.'
+- Creation returns Location and a JSON link; PATCH returns a JSON link. Link-body shape is an implementation assumption.
+  DELETE returns no body. The canvas response codes, including default errors, are preserved.
+paths:
+  /cooks:
+    get:
+      operationId: listCooks
+      tags:
+      - Cooks
+      summary: List cooks
+      description: |
+        Return profiles visible to the caller, optionally filtered by name and email. Both filters must match when supplied; no matches returns an empty array. Authorization must constrain which profiles the caller can discover.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/NameParameter'
+      - $ref: '#/components/parameters/EmailParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/CooksResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    post:
+      operationId: createCook
+      tags:
+      - Cooks
+      summary: Create a cook
+      description: |
+        Register a cook using the provisional CookCreate interpretation of the canvas User payload. Generate cookId and memberSince, initialize status to ACTIVE, and return a link to the new profile.
+      security:
+      - OAuth2:
+        - cook:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/CookCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CookCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /cook/{cookId}:
+    get:
+      operationId: getCookById
+      tags:
+      - Cooks
+      summary: Get a cook
+      description: |
+        Retrieve the identified cook profile if the caller is permitted to view it.
+      parameters:
+      - $ref: '#/components/parameters/CookIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/CookResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    patch:
+      operationId: updateCook
+      tags:
+      - Cooks
+      summary: Update a cook
+      description: |
+        Apply only the supplied email, name and givenName fields to an authorized profile. Reject null, unknown fields and an empty update; cookId, memberSince and status cannot be modified. Return a link to the updated profile.
+      security:
+      - OAuth2:
+        - cook:write
+      parameters:
+      - $ref: '#/components/parameters/CookIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/CookUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CookUpdatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: deleteCook
+      tags:
+      - Cooks
+      summary: Deregister a cook
+      description: |
+        Deregister only when the authenticated cook chooses to deregister and owns the profile identified by cookId. Reject another caller with 403. No request body is accepted in this draft. After success the profile is no longer available through this API; retention and anonymization are outside this contract.
+      security:
+      - OAuth2:
+        - cook:write
+      parameters:
+      - $ref: '#/components/parameters/CookIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Cook deregistered successfully; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+components:
+  parameters:
+    CookIdParameter:
+      name: cookId
+      in: path
+      description: UUID identifying the cook whose profile is addressed.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VersionParameter:
+      name: version
+      in: header
+      description: Contract version requested by the caller; a house-style addition.
+      required: true
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    NameParameter:
+      name: name
+      in: query
+      description: Optional exact, case-sensitive match on the glossary name field. Combined with email using AND.
+      required: false
+      schema:
+        type: string
+        minLength: 1
+    EmailParameter:
+      name: email
+      in: query
+      description: Optional exact, case-sensitive match on the cook email. Combined with name using AND.
+      required: false
+      schema:
+        type: string
+        format: email
+  schemas:
+    Cook:
+      description: Cook aggregate; each of the six glossary values occurs exactly once.
+      type: object
+      additionalProperties: false
+      required:
+      - cookId
+      - email
+      - name
+      - givenName
+      - memberSince
+      - status
+      properties:
+        cookId:
+          description: Unique cook identity generated by the service.
+          type: string
+          format: uuid
+          readOnly: true
+          examples:
+          - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        email:
+          description: Email address associated with the cook profile.
+          type: string
+          format: email
+          examples:
+          - joe.doe@example.com
+        name:
+          description: Cook name as labelled in the glossary; the source example is Joe.
+          type: string
+          minLength: 1
+          examples:
+          - Joe
+        givenName:
+          description: Additional name labelled givenName in the glossary; the source example is Doe and its semantics
+            need confirmation.
+          type: string
+          minLength: 1
+          examples:
+          - Doe
+        memberSince:
+          description: Date on which membership began, assigned by the service.
+          type: string
+          format: date
+          readOnly: true
+          examples:
+          - '2026-09-21'
+        status:
+          description: Service-controlled classification corresponding to glossary active, inActive or premium.
+          $ref: '#/components/schemas/CookStatus'
+          readOnly: true
+    CookCreate:
+      description: Provisional registration payload for the canvas User request. Server assigns identity, membership
+        date and ACTIVE status.
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - name
+      - givenName
+      properties:
+        email:
+          description: Email address associated with the cook profile.
+          type: string
+          format: email
+          examples:
+          - joe.doe@example.com
+        name:
+          description: Cook name as labelled in the glossary; the source example is Joe.
+          type: string
+          minLength: 1
+          examples:
+          - Joe
+        givenName:
+          description: Additional name labelled givenName in the glossary; the source example is Doe and its semantics
+            need confirmation.
+          type: string
+          minLength: 1
+          examples:
+          - Doe
+    CookUpdate:
+      description: Partial profile update; only supplied fields change and null is not permitted.
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        email:
+          description: Email address associated with the cook profile.
+          type: string
+          format: email
+          examples:
+          - joe.doe@example.com
+        name:
+          description: Cook name as labelled in the glossary; the source example is Joe.
+          type: string
+          minLength: 1
+          examples:
+          - Joe
+        givenName:
+          description: Additional name labelled givenName in the glossary; the source example is Doe and its semantics
+            need confirmation.
+          type: string
+          minLength: 1
+          examples:
+          - Doe
+    CookStatus:
+      description: 'Glossary value mapping: active → ACTIVE; inActive → IN_ACTIVE; premium → PREMIUM. Allowed transitions
+        are not specified.'
+      type: string
+      enum:
+      - ACTIVE
+      - IN_ACTIVE
+      - PREMIUM
+    Cooks:
+      description: Cooks visible to the caller that match all supplied filters; an empty array means no matches.
+      type: array
+      items:
+        $ref: '#/components/schemas/Cook'
+    CookLink:
+      description: Link to the created or changed cook profile.
+      type: object
+      additionalProperties: false
+      required:
+      - href
+      properties:
+        href:
+          description: Absolute URL at which the cook profile can be retrieved.
+          type: string
+          format: uri
+          examples:
+          - https://larder.org/cook-profile/cook/f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+    Error:
+      description: Shared error representation for all unsuccessful requests.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable identifier for the failure.
+          type: string
+        message:
+          description: Explanation of the failure suitable for the caller.
+          type: string
+        details:
+          description: Optional diagnostic fields that must not expose credentials or unrelated personal data.
+          type: object
+          additionalProperties: true
+  responses:
+    CooksResponse:
+      description: Matching cook profiles visible to the caller.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Cooks'
+    CookResponse:
+      description: The requested cook profile.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Cook'
+    CookCreatedResponse:
+      description: Profile created; Location and href identify the new cook.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CookLink'
+      headers:
+        Location:
+          description: Absolute URL of the created cook profile.
+          required: true
+          schema:
+            type: string
+            format: uri
+    CookUpdatedResponse:
+      description: Profile updated; href identifies the changed cook.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CookLink'
+    BadRequestResponse:
+      description: Invalid parameter, payload or version header.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Authentication is missing, invalid or expired.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          description: Authentication challenge for the caller.
+          schema:
+            type: string
+          example: Bearer
+    ForbiddenResponse:
+      description: The caller is authenticated but not permitted to perform this operation; deregistration requires
+        profile ownership.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: No cook profile exists for the supplied cookId.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: An unexpected internal failure prevented completion.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedErrorResponse:
+      description: An unsuccessful response not otherwise declared.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  requestBodies:
+    CookCreateRequest:
+      description: Cook registration fields; the canvas labels this payload User.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CookCreate'
+    CookUpdateRequest:
+      description: Mutable Cook fields; omitted properties are unchanged.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CookUpdate'
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: Proposed OAuth2 authorization code flow with PKCE (S256); clients must use PKCE and the identity
+        provider must enforce it. Replace placeholder URLs before deployment. Scopes do not replace per-profile
+        authorization.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://identity.example.com/authorize
+          tokenUrl: https://identity.example.com/token
+          scopes:
+            cook:read: Read cook profiles allowed by caller-specific policy.
+            cook:write: Create or update permitted profiles and deregister the caller own profile.

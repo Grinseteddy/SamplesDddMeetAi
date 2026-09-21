@@ -1,0 +1,467 @@
+openapi: 3.1.0
+info:
+  title: Sharing API
+  description: |
+    API of the Sharing bounded context of the Community Cooking platform.
+    For the moment it only handles thanks: a cook who received help gives
+    thanks to the people or avatar who helped, and those thanks are made
+    visible to the other community cooks.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 7c4d1f0a-3b2e-4e8f-9a61-5d2c8b7e1f34
+  x-audience: external-public
+
+servers:
+  - url: 'https://larder.org/sharing'
+
+security:
+  - oAuth2:
+      - sharing:read
+      - sharing:write
+      - sharing:admin
+
+tags:
+  - name: Thanks
+    description: Thanks a cook gives to the community members or the Grandma Avatar who helped them
+
+paths:
+  /thanks:
+    get:
+      operationId: listThanks
+      tags:
+        - Thanks
+      summary: List thanks
+      description: |
+        Retrieve the thanks visible to the community, optionally narrowed
+        to the thanks given by one cook and/or addressed to one cook.
+      parameters:
+        - $ref: '#/components/parameters/GiverParameter'
+        - $ref: '#/components/parameters/RecipientParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ThanksListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    post:
+      operationId: createThanks
+      tags:
+        - Thanks
+      summary: Give thanks
+      description: |
+        Create new thanks. The giver is taken from the authenticated cook;
+        the server assigns the thanks identifier.
+        A recipient of type Chef may carry a chef name; a recipient may
+        mention cooks only if those cooks have consented to being mentioned.
+      security:
+        - oAuth2:
+            - sharing:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/ThanksCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ThanksLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /thanks/{thanksId}:
+    get:
+      operationId: getThanksById
+      tags:
+        - Thanks
+      summary: Get thanks by ID
+      description: |
+        Retrieve one thanks by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/ThanksIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ThanksResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    patch:
+      operationId: updateThanks
+      tags:
+        - Thanks
+      summary: Change thanks
+      description: |
+        Partially update existing thanks: the text, the pictures or the
+        recipients. The giver and the identifier cannot be changed.
+        The same recipient rules apply as on creation.
+      security:
+        - oAuth2:
+            - sharing:write
+      parameters:
+        - $ref: '#/components/parameters/ThanksIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/ThanksUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ThanksLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteThanks
+      tags:
+        - Thanks
+      summary: Withdraw thanks
+      description: |
+        Delete thanks. Only the giver of the thanks is allowed to delete
+        them; any other caller receives 403. The deletion is irreversible.
+      security:
+        - oAuth2:
+            - sharing:write
+      parameters:
+        - $ref: '#/components/parameters/ThanksIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Thanks deleted
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+components:
+  parameters:
+    ThanksIdParameter:
+      name: thanksId
+      in: path
+      required: true
+      description: Unique identifier of the thanks.
+      schema:
+        type: string
+        format: uuid
+
+    GiverParameter:
+      name: giver
+      in: query
+      required: false
+      description: Identifier of the cook who gave the thanks; narrows the list to thanks given by that cook.
+      schema:
+        type: string
+        format: uuid
+
+    RecipientParameter:
+      name: recipient
+      in: query
+      required: false
+      description: Identifier of a cook mentioned as recipient; narrows the list to thanks addressed to that cook.
+      schema:
+        type: string
+        format: uuid
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Version of the API contract the client was built against.
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    Thanks:
+      description: Thanks a cook gives, after receiving help, to the community cooks, chefs or the Grandma Avatar who helped.
+      type: object
+      required:
+        - thanksId
+        - giver
+        - recipients
+        - thanksText
+        - pictures
+      properties:
+        thanksId:
+          description: Unique identifier of the thanks, generated by the server.
+          type: string
+          format: uuid
+          examples:
+            - e1e82a2e-9555-49fc-9df0-b85edb5b5997
+        giver:
+          description: Identifier of the cook who gives the thanks, taken from the authenticated caller.
+          type: string
+          format: uuid
+          examples:
+            - e1e82a2e-9555-49fc-9df0-b85edb5b5997
+        recipients:
+          description: The parties the thanks are addressed to; thanks may be given without naming anyone.
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/Recipient'
+        thanksText:
+          description: The message of gratitude the giver writes to the helpers.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        pictures:
+          description: Link to the picture of the finished meal shared together with the thanks.
+          type: string
+          format: uri
+          examples:
+            - https://larder.org/media/images/b009a5d1-0205-4b0c-af82-822229cf243a
+        createdAt:
+          description: Timestamp when the thanks were given, set by the server.
+          type: string
+          format: date-time
+        updatedAt:
+          description: Timestamp of the last change to the thanks, set by the server.
+          type: string
+          format: date-time
+
+    ThanksCreate:
+      description: Fields a cook supplies when giving thanks; identifier and giver are set by the server.
+      type: object
+      required:
+        - thanksText
+        - pictures
+      properties:
+        recipients:
+          description: The parties the thanks are addressed to; thanks may be given without naming anyone.
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/RecipientCreate'
+        thanksText:
+          description: The message of gratitude the giver writes to the helpers.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        pictures:
+          description: Link to the picture of the finished meal shared together with the thanks.
+          type: string
+          format: uri
+
+    ThanksUpdate:
+      description: Mutable fields of thanks for a partial update; every field is optional.
+      type: object
+      properties:
+        recipients:
+          description: The parties the thanks are addressed to; replaces the whole list when supplied.
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/RecipientCreate'
+        thanksText:
+          description: The message of gratitude the giver writes to the helpers.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        pictures:
+          description: Link to the picture of the finished meal shared together with the thanks.
+          type: string
+          format: uri
+
+    Recipient:
+      description: One party the thanks are addressed to, identified by the kind of helper and, depending on that kind, a chef name or the cooks mentioned.
+      type: object
+      required:
+        - recipientId
+        - type
+      properties:
+        recipientId:
+          description: Unique identifier of the recipient entry within the thanks, generated by the server.
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/RecipientType'
+          description: The kind of helper being thanked.
+        chefName:
+          description: Name of the chef being thanked; allowed only if the type is Chef.
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 200
+        cooks:
+          description: Identifiers of the community cooks mentioned as recipients; a cook may be mentioned only if that cook has given consent to being mentioned.
+          type: array
+          minItems: 0
+          items:
+            description: Identifier of a mentioned cook.
+            type: string
+            format: uuid
+
+    RecipientCreate:
+      description: One party the thanks are addressed to, as supplied by the giver.
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/RecipientType'
+          description: The kind of helper being thanked.
+        chefName:
+          description: Name of the chef being thanked; allowed only if the type is Chef.
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 200
+        cooks:
+          description: Identifiers of the community cooks mentioned as recipients; a cook may be mentioned only if that cook has given consent to being mentioned.
+          type: array
+          minItems: 0
+          items:
+            description: Identifier of a mentioned cook.
+            type: string
+            format: uuid
+
+    RecipientType:
+      description: The kind of helper a recipient is - a community cook, a chef, or the Grandma Avatar.
+      type: string
+      enum:
+        - Cook
+        - Chef
+        - GrandmaAvatar
+
+    Error:
+      description: Error information returned for every non-successful response.
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    ThanksResponse:
+      description: Single thanks response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Thanks'
+
+    ThanksListResponse:
+      description: List of thanks matching the filter
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - thanks
+            properties:
+              thanks:
+                description: The thanks matching the requested filter, visible to the community.
+                type: array
+                items:
+                  $ref: '#/components/schemas/Thanks'
+
+    ThanksLinkResponse:
+      description: Link to the created or changed thanks
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - thanksLink
+            properties:
+              thanksLink:
+                description: Link to the created or changed thanks.
+                type: string
+                format: uri
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    ThanksCreateRequest:
+      description: Thanks creation request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ThanksCreate'
+
+    ThanksUpdateRequest:
+      description: Thanks partial update request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ThanksUpdate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            sharing:read: Grants read access to thanks
+            sharing:write: Grants write access to give, change and withdraw own thanks
+            sharing:admin: Grants administrative access to all thanks

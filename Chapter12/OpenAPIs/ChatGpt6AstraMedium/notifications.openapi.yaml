@@ -1,0 +1,366 @@
+openapi: 3.1.0
+info:
+  title: Notifications API
+  description: |
+    Provides notifications to Cooks and supports retrieving, marking as read, and deleting notifications.
+    Derived from the Notifications API Product Canvas and Visual Glossary; design assumptions remain subject to domain review.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: fb1ea4d8-5a8d-4f82-aff4-3a107fc6a79d
+  x-audience: component-internal
+servers:
+- url: https://larder.org
+  description: Origin of the canvas service URL; /notifications is included in the paths exactly once.
+security:
+- BearerAuth: []
+tags:
+- name: Notifications
+  description: Notifications delivered to Cooks and their read status.
+paths:
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags:
+      - Notifications
+      summary: List notifications
+      description: |
+        Retrieve notifications visible to the authenticated caller. Optional receiver and status filters are combined with AND. Omitted filters do not restrict the result further. An empty result is returned as 200 with []. Reading does not mark notifications as read.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/ReceiverParameter'
+      - $ref: '#/components/parameters/StatusParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /notifications/{notificationId}:
+    get:
+      operationId: getNotificationById
+      tags:
+      - Notifications
+      summary: Get a notification
+      description: |
+        Retrieve an authorized notification by its identifier without changing its status.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/NotificationIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: deleteNotification
+      tags:
+      - Notifications
+      summary: Delete a notification
+      description: |
+        Delete the addressed notification aggregate for all receivers in this draft. Return 204 with no body after deletion or when already absent. Verify caller authorization before applying this operation; receiver-specific dismissal is an unresolved domain choice.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/NotificationIdParameter'
+      responses:
+        '204':
+          description: Notification deleted or already absent; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /notifications/{notificationId}/status:
+    put:
+      operationId: updateNotificationStatus
+      tags:
+      - Notifications
+      summary: Mark a notification as read
+      description: |
+        Replace the notification status with READ and return a link to the changed notification. Repeating READ is idempotent. The single shared status follows the glossary; receiver-specific read tracking requires a domain decision.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/NotificationIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+      requestBody:
+        $ref: '#/components/requestBodies/NotificationStatusUpdateRequest'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Contract version required by this draft house style.
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    NotificationIdParameter:
+      name: notificationId
+      in: path
+      required: true
+      description: Identifier of the notification being addressed.
+      schema:
+        $ref: '#/components/schemas/NotificationId'
+    ReceiverParameter:
+      name: receiver
+      in: query
+      required: false
+      description: Return notifications whose receiver array contains this identifier; this filter never
+        grants access.
+      schema:
+        $ref: '#/components/schemas/Receiver'
+    StatusParameter:
+      name: status
+      in: query
+      required: false
+      description: Return notifications with this read status.
+      schema:
+        $ref: '#/components/schemas/Status'
+  schemas:
+    NotificationId:
+      description: Unique notification identifier, modeled as a UUID from the glossary example.
+      type: string
+      format: uuid
+      examples:
+      - 0b81c1e6-0c55-4b2b-8fe0-c122bd688203
+    Receiver:
+      description: Identifier of a notification recipient. Help requests go to the whole community or
+        Chef; recipient resolution is outside this contract.
+      type: string
+      format: uuid
+      examples:
+      - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+    Status:
+      description: 'Notification read state: NEW means not yet read; READ means marked as read.'
+      type: string
+      enum:
+      - NEW
+      - READ
+    Notification:
+      description: A notification containing exactly one identity, title, text, link and status, and one
+        or more receivers.
+      type: object
+      required:
+      - notificationId
+      - receiver
+      - title
+      - text
+      - link
+      - status
+      properties:
+        notificationId:
+          description: Identity of this notification, assigned by the producing system.
+          $ref: '#/components/schemas/NotificationId'
+          readOnly: true
+        receiver:
+          description: One or more recipients of this notification; help requests target the whole community
+            or Chef.
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Receiver'
+        title:
+          description: Short heading explaining the notification to the Cook.
+          type: string
+          examples:
+          - Help for burning catastrophe provided
+        text:
+          description: Message content presented to the Cook.
+          type: string
+          examples:
+          - Stay calm look at the help
+        link:
+          description: URI of the related resource, such as a help request.
+          type: string
+          format: uri
+          examples:
+          - https://larder.org/cook-assistance/help-requests/23a8eeed-35f6-460b-892e-7bb458a8fded
+        status:
+          description: Current read state of the notification; shared across receivers in this draft.
+          $ref: '#/components/schemas/Status'
+    Notifications:
+      description: Authorized notifications matching the supplied filters; may be empty.
+      type: array
+      items:
+        $ref: '#/components/schemas/Notification'
+    NotificationStatusUpdate:
+      description: Replacement status payload for marking a notification as read.
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          description: Set READ to mark the notification as read; repeating this request has the same
+            effect.
+          type: string
+          enum:
+          - READ
+    NotificationLink:
+      description: Link to the notification whose status was updated.
+      type: object
+      required:
+      - link
+      properties:
+        link:
+          description: Absolute URI for retrieving the changed notification.
+          type: string
+          format: uri
+          examples:
+          - https://larder.org/notifications/0b81c1e6-0c55-4b2b-8fe0-c122bd688203
+    Error:
+      description: Shared error representation for unsuccessful requests.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the failure.
+          type: string
+        details:
+          description: Optional additional information about the failure.
+          type: object
+          additionalProperties: true
+  responses:
+    NotificationsResponse:
+      description: Notifications matching the authorized query; an empty array if none match.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notifications'
+    NotificationResponse:
+      description: The requested notification.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notification'
+    NotificationLinkResponse:
+      description: Status updated; link to the changed notification.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotificationLink'
+    BadRequestResponse:
+      description: Invalid parameters, version header, or request body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Missing or invalid authentication credentials.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          description: Bearer authentication challenge.
+          schema:
+            type: string
+          example: Bearer realm="notifications"
+    ForbiddenResponse:
+      description: The authenticated caller is not authorized for this operation or resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: The notification does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: An unexpected server error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedErrorResponse:
+      description: An error not covered by the explicitly listed responses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  requestBodies:
+    NotificationStatusUpdateRequest:
+      description: Status to apply to the addressed notification.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotificationStatusUpdate'
+          example:
+            status: READ
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Provisional bearer-token authentication. Token issuer and resource authorization policy
+        must be confirmed before implementation.
+x-source-artifacts:
+- NotificationsApiProductCanvasSynchronous.jpg
+- NotificationsNotificationsVisualGlossary.jpg
+x-design-assumptions:
+- The canvas service URL https://larder.org/notifications is interpreted as the collection URL, not an
+  additional prefix. The collection path is normalized to /notifications without a trailing slash.
+- Bearer authentication and component-internal audience are provisional; identity provider, token format,
+  and authorization roles are unspecified. Every operation requires resource-level authorization.
+- The required version header is a house-style addition, not a requirement shown in the canvas.
+- receiver and status are optional conjunctive list filters. No matches returns an empty array. Pagination,
+  ordering, and result limits are unspecified and are not invented here.
+- The glossary term Receiver is preserved as receiver, an array of UUIDs with at least one member. Community-versus-Chef
+  identity resolution remains unspecified.
+- The glossary places one status on the notification, so this draft models shared status and aggregate
+  deletion. Confirm whether status and deletion should instead be receiver-specific before implementation.
+- PUT accepts READ only, reflecting the stated mark-as-read use case. NEW remains a valid read-model status;
+  resetting to NEW is not specified.
+- DELETE returns 204 when the notification is already absent, consistent with the canvas omitting 404.
+  Authorization still applies.
+- The PUT success link is represented as a JSON object with a link URI. This response shape and the Error
+  envelope are design choices.
+- Property descriptions are draft domain-language interpretations for domain-expert confirmation. No arbitrary
+  size limits or timestamps have been added.

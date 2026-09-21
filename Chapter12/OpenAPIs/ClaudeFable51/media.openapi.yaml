@@ -1,0 +1,377 @@
+openapi: 3.1.0
+info:
+  title: Media API
+  description: |
+    Manages media to be used in recipes, help requests, help and thanks. Other larder.org
+    business contexts use it to upload, download and remove the images that belong to their
+    business objects. Videos will be handled in a later version.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 6b0e6d1c-52f4-4c58-9a0e-3d7f1c2a9e41
+  x-audience: company-internal
+
+servers:
+  - url: 'https://larder.org/media'
+
+security:
+  - oAuth2:
+      - media:read
+      - media:write
+
+tags:
+  - name: Images
+    description: Upload, download and management of images linked to other business objects
+
+paths:
+  /images:
+    get:
+      operationId: listImages
+      tags:
+        - Images
+      summary: List the media of a business object
+      description: |
+        Retrieve all media linked to one business object, identified by its id and its type
+        (recipe, thanks, helpRequest or help).
+        A business object without media yields an empty list, not a 404.
+      parameters:
+        - $ref: '#/components/parameters/BusinessObjectIdParameter'
+        - $ref: '#/components/parameters/BusinessObjectTypeParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MediaListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+    post:
+      operationId: createImage
+      tags:
+        - Images
+      summary: Upload a new image
+      description: |
+        Upload an image together with the links to the business objects it is used in.
+        The server generates the media id and returns a link to the created image.
+        Links cannot be changed afterwards in this version; delete and upload again instead.
+      security:
+        - oAuth2:
+            - media:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MediaCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ImageLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+  /images/{mediaId}:
+    get:
+      operationId: getImageById
+      tags:
+        - Images
+      summary: Get image by media id
+      description: |
+        Download a single image, including the links to the business objects it is used in,
+        by its media id.
+      parameters:
+        - $ref: '#/components/parameters/MediaIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MediaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+    delete:
+      operationId: deleteImage
+      tags:
+        - Images
+      summary: Delete an image
+      description: |
+        Permanently remove an image and all of its links. This cannot be undone.
+        The linked business objects are not touched; their references to this image
+        will no longer resolve.
+      security:
+        - oAuth2:
+            - media:write
+      parameters:
+        - $ref: '#/components/parameters/MediaIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Image deleted
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+components:
+  parameters:
+    MediaIdParameter:
+      name: mediaId
+      in: path
+      required: true
+      description: Identifier of the media.
+      schema:
+        type: string
+        format: uuid
+      example: f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+
+    BusinessObjectIdParameter:
+      name: businessObjectId
+      in: query
+      required: true
+      description: Identifier of the business object whose media are requested.
+      schema:
+        type: string
+        format: uuid
+      example: 7cf09822-77a1-46bb-812f-b7852bca0913
+
+    BusinessObjectTypeParameter:
+      name: businessObjectType
+      in: query
+      required: true
+      description: Type of the business object whose media are requested.
+      schema:
+        $ref: '#/components/schemas/LinkType'
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Version of the API the client expects.
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    Media:
+      description: A medium (currently always an image) together with the business objects it is used in.
+      type: object
+      required:
+        - mediaId
+        - media
+        - links
+      properties:
+        mediaId:
+          description: Unique identifier of the media, generated by the server.
+          type: string
+          format: uuid
+          examples:
+            - f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+        media:
+          description: The image content itself, base64-encoded.
+          type: string
+          contentEncoding: base64
+          minLength: 1
+        links:
+          description: The business objects this media is used in; may be empty while the media is not yet used anywhere.
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+
+    MediaCreate:
+      description: An image to be uploaded, together with the business objects it is used in.
+      type: object
+      required:
+        - media
+      properties:
+        media:
+          description: The image content itself, base64-encoded.
+          type: string
+          contentEncoding: base64
+          minLength: 1
+        links:
+          description: The business objects this media is used in; may be omitted or empty.
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+
+    MediaList:
+      description: All media linked to one business object.
+      type: array
+      items:
+        $ref: '#/components/schemas/Media'
+
+    Link:
+      description: A reference from a media to one business object that uses it.
+      type: object
+      required:
+        - type
+        - url
+      properties:
+        type:
+          description: Kind of business object the link points to.
+          $ref: '#/components/schemas/LinkType'
+        url:
+          description: Address of the linked business object in its owning API.
+          type: string
+          format: uri
+          maxLength: 2048
+          examples:
+            - https://larder.org/recipe-catalog/recipes/7cf09822-77a1-46bb-812f-b7852bca0913
+
+    LinkType:
+      description: Kinds of business objects a media can be used in.
+      type: string
+      enum:
+        - recipe
+        - thanks
+        - helpRequest
+        - help
+
+    Error:
+      description: Shared error body of all error responses.
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    MediaResponse:
+      description: Single image response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Media'
+
+    MediaListResponse:
+      description: Media of one business object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MediaList'
+
+    ImageLinkResponse:
+      description: Link to created image response
+      headers:
+        Location:
+          description: Address of the created image.
+          schema:
+            type: string
+            format: uri
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - imageLink
+            properties:
+              imageLink:
+                description: Link to the created image.
+                type: string
+                format: uri
+                examples:
+                  - https://larder.org/media/images/f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnauthorizedResponse:
+      description: Authentication missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnexpectedErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    MediaCreateRequest:
+      description: Image upload request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MediaCreate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            media:read: Grants read access to media
+            media:write: Grants access to upload and delete media

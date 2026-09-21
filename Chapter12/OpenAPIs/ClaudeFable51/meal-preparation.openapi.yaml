@@ -1,0 +1,413 @@
+openapi: 3.1.0
+info:
+  title: Meal Preparation API
+  description: |
+    Supports cooks while they prepare a meal by showing the meal preparation step by step.
+    Used by the Community Cooking client applications on behalf of a cook standing at the stove.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 5d0e7c52-3b1f-4c8a-9a6e-1f4b7d2c9e31
+  x-audience: external-public
+
+servers:
+  - url: 'https://larder.org/meal-preparation'
+
+security:
+  - oAuth2:
+      - meal-preparation:read
+      - meal-preparation:write
+
+tags:
+  - name: Meal Preparations
+    description: Starting a meal preparation for a recipe and reading its current state
+  - name: How-To Steps
+    description: Reading the how-to steps of a meal preparation and moving the current step forwards or backwards
+
+paths:
+  /preparations:
+    post:
+      operationId: createMealPreparation
+      tags:
+        - Meal Preparations
+      summary: Start a new meal preparation
+      description: |
+        Start a meal preparation for the given recipe.
+        The server generates the preparation id and sets the current step to the
+        first how-to step of the recipe (sequence number 1).
+        The response carries a link to the created meal preparation.
+      security:
+        - oAuth2:
+            - meal-preparation:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealPreparationCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/MealPreparationLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+  /preparations/{preparationId}:
+    get:
+      operationId: getMealPreparationById
+      tags:
+        - Meal Preparations
+      summary: Get meal preparation by ID
+      description: |
+        Retrieve a meal preparation with the recipe it refers to and its current step.
+      parameters:
+        - $ref: '#/components/parameters/PreparationIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPreparationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+  /preparations/{preparationId}/how-to-steps/{stepId}:
+    get:
+      operationId: getHowToStepById
+      tags:
+        - How-To Steps
+      summary: Get a how-to step of a meal preparation
+      description: |
+        Retrieve one how-to step of the meal preparation by its identifier.
+        Reading a step does not change the current step of the meal preparation.
+      parameters:
+        - $ref: '#/components/parameters/PreparationIdParameter'
+        - $ref: '#/components/parameters/StepIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+  /preparations/{preparationId}/how-to-steps/next:
+    patch:
+      operationId: moveToNextHowToStep
+      tags:
+        - How-To Steps
+      summary: Move the current step to the next how-to step
+      description: |
+        Advance the current step of the meal preparation by one and return the
+        how-to step that is now current.
+        The caller names the step it is moving on from in `stepId`.
+        Invariant: rejected with `400` when the current step is already the last
+        how-to step of the recipe. The current step is left unchanged in that case.
+      security:
+        - oAuth2:
+            - meal-preparation:write
+      parameters:
+        - $ref: '#/components/parameters/PreparationIdParameter'
+        - $ref: '#/components/parameters/CurrentStepIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+  /preparations/{preparationId}/how-to-steps/previous:
+    patch:
+      operationId: moveToPreviousHowToStep
+      tags:
+        - How-To Steps
+      summary: Move the current step back to the previous how-to step
+      description: |
+        Move the current step of the meal preparation back by one and return the
+        how-to step that is now current.
+        The caller names the step it is moving back from in `stepId`.
+        Invariant: rejected with `400` when the current step is already the first
+        how-to step of the recipe. The current step is left unchanged in that case.
+      security:
+        - oAuth2:
+            - meal-preparation:write
+      parameters:
+        - $ref: '#/components/parameters/PreparationIdParameter'
+        - $ref: '#/components/parameters/CurrentStepIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+
+components:
+  parameters:
+    PreparationIdParameter:
+      name: preparationId
+      in: path
+      required: true
+      description: Identifier of the meal preparation.
+      schema:
+        type: string
+        format: uuid
+      example: 7cf09822-77a1-46bb-812f-b7852bca0913
+
+    StepIdParameter:
+      name: stepId
+      in: path
+      required: true
+      description: Identifier of the how-to step (the glossary's howToStepId).
+      schema:
+        type: string
+        format: uuid
+      example: 65610dee-fb83-4341-a730-26a4a99a621a
+
+    CurrentStepIdParameter:
+      name: stepId
+      in: query
+      required: true
+      description: |
+        Identifier of the how-to step the cook is moving away from (the glossary's
+        howToStepId). Must be the current step of the meal preparation, so that a
+        repeated or out-of-date request does not move the preparation twice.
+      schema:
+        type: string
+        format: uuid
+      example: 65610dee-fb83-4341-a730-26a4a99a621a
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Version of the API the client was built against.
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    MealPreparation:
+      description: |
+        Aggregate that carries a cook through one recipe in real time. It refers to
+        exactly one recipe and contains exactly one current step.
+      type: object
+      required:
+        - preparationId
+        - recipe
+        - currentStep
+      properties:
+        preparationId:
+          description: Unique identifier of the meal preparation, generated by the server.
+          type: string
+          format: uuid
+          examples:
+            - 7cf09822-77a1-46bb-812f-b7852bca0913
+        recipe:
+          description: Identifier of the one recipe this meal preparation refers to; the recipe itself is owned outside this API.
+          type: string
+          format: uuid
+          examples:
+            - e1e82a2e-9555-49fc-9df0-b85edb5b5997
+        currentStep:
+          description: The one how-to step the cook is on right now; moved by the next and previous operations.
+          $ref: '#/components/schemas/HowToStep'
+
+    MealPreparationCreate:
+      description: What a cook supplies to start a meal preparation.
+      type: object
+      required:
+        - recipe
+      properties:
+        recipe:
+          description: Identifier of the recipe the cook is about to prepare.
+          type: string
+          format: uuid
+          examples:
+            - e1e82a2e-9555-49fc-9df0-b85edb5b5997
+
+    HowToStep:
+      description: |
+        One step of the recipe as seen from a meal preparation. The glossary draws it
+        as the entity "current step" when it is the step the cook is on.
+      type: object
+      required:
+        - howToStepId
+        - sequenceNumber
+      properties:
+        howToStepId:
+          description: Unique identifier of the how-to step within the recipe being prepared.
+          type: string
+          format: uuid
+          examples:
+            - 65610dee-fb83-4341-a730-26a4a99a621a
+        sequenceNumber:
+          description: Position of the step in the recipe's order, starting at 1 for the first step.
+          type: integer
+          format: int32
+          minimum: 1
+          examples:
+            - 1
+
+    Error:
+      description: Shared error body of every non-success response.
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code, e.g. LAST_STEP_REACHED or FIRST_STEP_REACHED.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    MealPreparationResponse:
+      description: Single meal preparation response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPreparation'
+
+    MealPreparationLinkResponse:
+      description: Link to the created meal preparation
+      headers:
+        Location:
+          description: URI of the created meal preparation.
+          schema:
+            type: string
+            format: uri
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - preparationLink
+            properties:
+              preparationLink:
+                description: Link to the created meal preparation.
+                type: string
+                format: uri
+                examples:
+                  - https://larder.org/meal-preparation/preparations/7cf09822-77a1-46bb-812f-b7852bca0913
+
+    HowToStepResponse:
+      description: Single how-to step response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStep'
+
+    BadRequestResponse:
+      description: |
+        Invalid request. Also returned when an invariant refuses the move: next on
+        the last step, previous on the first step.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnauthorizedResponse:
+      description: Authentication missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnexpectedErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    MealPreparationCreateRequest:
+      description: Meal preparation creation request naming the recipe
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPreparationCreate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            meal-preparation:read: Grants read access to meal preparations and their how-to steps
+            meal-preparation:write: Grants access to start meal preparations and move their current step

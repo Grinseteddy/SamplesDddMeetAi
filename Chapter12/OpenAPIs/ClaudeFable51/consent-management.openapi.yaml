@@ -1,0 +1,454 @@
+openapi: 3.1.0
+info:
+  title: Consent Management API
+  description: |
+    Manages the consents of the platform: a subject gives consent to a consent text and can revoke it again.
+    Used by the platform's own applications and contexts that must check or record a subject's consent
+    (e.g. before photos are used in public thanks and recipes).
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 7b0e4c52-3a9d-4e6f-9c1b-5d2f8a7e6b41
+  x-audience: company-internal
+
+servers:
+  - url: 'https://larder.org/consent-management'
+
+security:
+  - oAuth2:
+      - consent:read
+      - consent:write
+
+tags:
+  - name: Consents
+    description: Giving, reading and revoking consents of a subject
+  - name: Consent Texts
+    description: Read-only access to the consent texts a subject can consent to
+
+paths:
+  /consents:
+    get:
+      operationId: getConsents
+      tags:
+        - Consents
+      summary: List the consents of a subject
+      description: |
+        Retrieve all consents given by one subject, including revoked ones.
+        A revoked consent is recognizable by its `revokedAt` timestamp.
+      parameters:
+        - $ref: '#/components/parameters/SubjectParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+    post:
+      operationId: createConsent
+      tags:
+        - Consents
+      summary: Give a consent
+      description: |
+        Create a consent of a subject to one existing consent text.
+        The server generates the `consentId`, sets `givenAt`, and stores the consent text as it reads at that moment.
+        The response carries a link to the created consent instead of the consent itself.
+      security:
+        - oAuth2:
+            - consent:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/ConsentCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ConsentLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+  /consents/{consentId}:
+    get:
+      operationId: getConsentById
+      tags:
+        - Consents
+      summary: Get consent by ID
+      description: Retrieve a single consent by its unique identifier, whether it is still in force or already revoked.
+      parameters:
+        - $ref: '#/components/parameters/ConsentIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+    delete:
+      operationId: revokeConsent
+      tags:
+        - Consents
+      summary: Revoke a consent
+      description: |
+        Revokes the consent. The consent is NOT removed: the server sets `revokedAt`, and the consent
+        stays retrievable as evidence of what was agreed to and when it ended.
+        A revoked consent cannot be given again; the subject gives a new consent instead.
+      security:
+        - oAuth2:
+            - consent:write
+      parameters:
+        - $ref: '#/components/parameters/ConsentIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Consent revoked successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+  /consents/consent-texts:
+    get:
+      operationId: getConsentTexts
+      tags:
+        - Consent Texts
+      summary: List the consent texts
+      description: |
+        Retrieve the consent texts a subject can consent to.
+        Consent texts are read-only in this API: creation and change of consent texts happen only via the backend.
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentTextsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+  /consents/consent-texts/{consentTextId}:
+    get:
+      operationId: getConsentTextById
+      tags:
+        - Consent Texts
+      summary: Get consent text by ID
+      description: Retrieve a single consent text by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/ConsentTextIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentTextResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+components:
+  parameters:
+    SubjectParameter:
+      name: subject
+      in: query
+      required: true
+      description: Identifier of the subject - the one who gives the consent - whose consents are listed.
+      schema:
+        type: string
+        format: uuid
+      example: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+
+    ConsentIdParameter:
+      name: consentId
+      in: path
+      required: true
+      description: Unique identifier of the consent.
+      schema:
+        type: string
+        format: uuid
+      example: f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+
+    ConsentTextIdParameter:
+      name: consentTextId
+      in: path
+      required: true
+      description: Unique identifier of the consent text.
+      schema:
+        type: string
+        format: uuid
+      example: 5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Version of the API the client expects.
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    Consent:
+      description: A subject's agreement to exactly one consent text, given at one moment and possibly revoked later.
+      type: object
+      required:
+        - consentId
+        - subject
+        - consentText
+        - givenAt
+      properties:
+        consentId:
+          description: Unique identifier of the consent, generated by the server.
+          type: string
+          format: uuid
+        subject:
+          description: Identifier of the one who gives the consent.
+          type: string
+          format: uuid
+        consentText:
+          description: The consent text the subject agreed to.
+          $ref: '#/components/schemas/ConsentText'
+        givenAt:
+          description: Moment the subject gave the consent, set by the server.
+          type: string
+          format: date-time
+        revokedAt:
+          description: Moment the subject revoked the consent, set by the server; absent or null while the consent is in force.
+          type: [string, "null"]
+          format: date-time
+      example:
+        consentId: f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+        subject: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        consentText:
+          consentTextId: 5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+          text: I allow to use my photos in public thanks and recipes.
+        givenAt: '2026-09-21T12:34:00+02:00'
+        revokedAt: null
+
+    Consents:
+      description: The consents of one subject.
+      type: array
+      items:
+        $ref: '#/components/schemas/Consent'
+
+    ConsentCreate:
+      description: What a client supplies to give a consent - who consents, and to which consent text.
+      type: object
+      required:
+        - subject
+        - consentTextId
+      properties:
+        subject:
+          description: Identifier of the one who gives the consent.
+          type: string
+          format: uuid
+        consentTextId:
+          description: Identifier of the existing consent text the subject agrees to.
+          type: string
+          format: uuid
+      example:
+        subject: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        consentTextId: 5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+
+    ConsentText:
+      description: A wording a subject can consent to; maintained only via the backend.
+      type: object
+      required:
+        - consentTextId
+        - text
+      properties:
+        consentTextId:
+          description: Unique identifier of the consent text, assigned by the backend.
+          type: string
+          format: uuid
+        text:
+          description: The wording the subject agrees to.
+          type: string
+          minLength: 1
+      example:
+        consentTextId: 5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+        text: I allow to use my photos in public thanks and recipes.
+
+    ConsentTexts:
+      description: The consent texts available on the platform.
+      type: array
+      items:
+        $ref: '#/components/schemas/ConsentText'
+
+    Error:
+      description: Shared error body of all error responses.
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    ConsentResponse:
+      description: Single consent response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Consent'
+
+    ConsentsResponse:
+      description: Consents of the subject
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Consents'
+
+    ConsentLinkResponse:
+      description: Link to created consent
+      headers:
+        Location:
+          description: URI of the created consent.
+          schema:
+            type: string
+            format: uri
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - consentLink
+            properties:
+              consentLink:
+                description: Link to the created consent.
+                type: string
+                format: uri
+          example:
+            consentLink: https://larder.org/consent-management/consents/f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+
+    ConsentTextResponse:
+      description: Single consent text response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConsentText'
+
+    ConsentTextsResponse:
+      description: Consent texts response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConsentTexts'
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnauthorizedResponse:
+      description: Authentication missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    DefaultErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    ConsentCreateRequest:
+      description: Consent to be given
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConsentCreate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            consent:read: Grants read access to consents and consent texts
+            consent:write: Grants access to give and revoke consents

@@ -1,0 +1,433 @@
+openapi: 3.1.0
+info:
+  title: Meal Preparation API
+  description: |
+    Supports cooks as they prepare a meal by retrieving preparations and navigating recipe steps.
+    Derived from the Meal Preparation API Product Canvas and Visual Glossary; draft decisions are listed in x-design-assumptions.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: d9667790-62ce-44d7-ac9c-0832a9047143
+  x-audience: external-public
+servers:
+- url: https://larder.org/meal-preparation
+  description: Server specified by the API Product Canvas.
+security:
+- oAuth2:
+  - preparations:read
+tags:
+- name: Preparations
+  description: Create and retrieve meal preparations.
+- name: How To Steps
+  description: Retrieve steps and change the current step of a preparation.
+x-design-assumptions:
+- 'Contract draft: domain descriptions are inferred from the images and require domain expert confirmation.'
+- The canvas determines the five operations; glossary terms determine payload names. No additional CRUD
+  operations are inferred.
+- recipe is a UUID reference, not an embedded recipe, based on the glossary example. Creation wraps it
+  in a JSON object.
+- currentStep is a required singular object. HowToStep provisionally contains only howToStepId and sequenceNumber
+  from the glossary. Instruction text and other step content are undefined and must be agreed before implementation.
+- The canvas stepId parameter on navigation has no path placeholder; it is modeled as a required query
+  parameter identifying the expected current step. The preparationId path parameter is required even though
+  its sticky is omitted on these rows.
+- Navigation atomically checks stepId against currentStep and moves one step in recipe order. A stale
+  current step returns 400 CURRENT_STEP_MISMATCH; an unknown or unrelated step returns 404. These semantics
+  are proposed, not defined by the canvas.
+- Creation initializes currentStep to the first step. sequenceNumber is a positive one-based integer;
+  a recipe without steps is rejected with 400. These lifecycle rules are inferred.
+- 201 returns a Location header with no body, implementing the canvas link to the created preparation.
+- OAuth2 authorization code with PKCE, read/write scopes, external-public audience, and the required version
+  header are house-style proposals, not source requirements. The example.com authorization endpoints are
+  placeholders and must be replaced.
+paths:
+  /preparations:
+    post:
+      operationId: createMealPreparation
+      tags:
+      - Preparations
+      summary: Create a meal preparation
+      description: |
+        Create a preparation for the supplied recipe UUID and return its URL in Location.
+        Proposed lifecycle: initialize the first step; reject recipes with no steps using 400.
+        An invalid or unavailable recipe reference also returns 400.
+      security:
+      - oAuth2:
+        - preparations:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealPreparationCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/MealPreparationCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /preparations/{preparationId}:
+    get:
+      operationId: getMealPreparationById
+      tags:
+      - Preparations
+      summary: Get a meal preparation
+      description: |
+        Return the preparation with its recipe reference and current step. Reading does not change state.
+      parameters:
+      - $ref: '#/components/parameters/PreparationIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPreparationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /preparations/{preparationId}/how-to-steps/{stepId}:
+    get:
+      operationId: getHowToStepById
+      tags:
+      - How To Steps
+      summary: Get a preparation step
+      description: |
+        Retrieve a step belonging to the preparation recipe without changing the current step.
+        The canvas stepId maps to the glossary howToStepId.
+      parameters:
+      - $ref: '#/components/parameters/PreparationIdParameter'
+      - $ref: '#/components/parameters/StepIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /preparations/{preparationId}/how-to-steps/next:
+    patch:
+      operationId: moveToNextHowToStep
+      tags:
+      - How To Steps
+      summary: Move to the next step
+      description: |
+        Proposed semantics: atomically verify that query stepId identifies the current step,
+        then set currentStep to the next step in recipe order and return it.
+        At the last step return 400 LAST_STEP_REACHED without changing state.
+        A stale stepId returns 400 CURRENT_STEP_MISMATCH; an unknown or unrelated step returns 404.
+        No request body is used. Retrying with the old stepId cannot advance the preparation again.
+      security:
+      - oAuth2:
+        - preparations:write
+      parameters:
+      - $ref: '#/components/parameters/PreparationIdParameter'
+      - $ref: '#/components/parameters/CurrentStepIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/NextStepBadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /preparations/{preparationId}/how-to-steps/previous:
+    patch:
+      operationId: moveToPreviousHowToStep
+      tags:
+      - How To Steps
+      summary: Move to the previous step
+      description: |
+        Proposed semantics: atomically verify that query stepId identifies the current step,
+        then set currentStep to the previous step in recipe order and return it.
+        At the first step return 400 FIRST_STEP_REACHED without changing state.
+        A stale stepId returns 400 CURRENT_STEP_MISMATCH; an unknown or unrelated step returns 404.
+        No request body is used. Retrying with the old stepId cannot advance the preparation again.
+      security:
+      - oAuth2:
+        - preparations:write
+      parameters:
+      - $ref: '#/components/parameters/PreparationIdParameter'
+      - $ref: '#/components/parameters/CurrentStepIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HowToStepResponse'
+        '400':
+          $ref: '#/components/responses/PreviousStepBadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      description: Requested API contract version; proposed house-style header.
+      required: true
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    PreparationIdParameter:
+      name: preparationId
+      in: path
+      description: Preparation that owns the requested state.
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 7cf09822-77a1-46bb-812f-b7852bca0913
+    StepIdParameter:
+      name: stepId
+      in: path
+      description: How-to step belonging to the preparation recipe.
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 65610dee-fb83-4341-a730-26a4a99a621a
+    CurrentStepIdParameter:
+      name: stepId
+      in: query
+      description: Expected current howToStepId before navigation; proposed concurrency precondition.
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 65610dee-fb83-4341-a730-26a4a99a621a
+  schemas:
+    MealPreparationCreate:
+      description: Client input for creating a preparation from one recipe.
+      type: object
+      required:
+      - recipe
+      properties:
+        recipe:
+          description: UUID of the recipe to prepare.
+          type: string
+          format: uuid
+          examples:
+          - e1e82a2e-9555-49fc-9df0-b85edb5b5997
+    HowToStep:
+      description: Minimal step representation derived from the current step entity; instructional content
+        remains unspecified.
+      type: object
+      required:
+      - howToStepId
+      - sequenceNumber
+      properties:
+        howToStepId:
+          description: Identity of the recipe step, supplied by the server.
+          type: string
+          format: uuid
+          readOnly: true
+          examples:
+          - 65610dee-fb83-4341-a730-26a4a99a621a
+        sequenceNumber:
+          description: One-based position of this step in recipe order; numbering rule is inferred.
+          type: integer
+          minimum: 1
+          readOnly: true
+          examples:
+          - 1
+    MealPreparation:
+      description: Preparation aggregate with exactly one recipe reference and one current step.
+      type: object
+      required:
+      - preparationId
+      - recipe
+      - currentStep
+      properties:
+        preparationId:
+          description: Identity of the meal preparation, generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+          examples:
+          - 7cf09822-77a1-46bb-812f-b7852bca0913
+        recipe:
+          description: UUID of the single recipe this preparation refers to.
+          type: string
+          format: uuid
+          examples:
+          - e1e82a2e-9555-49fc-9df0-b85edb5b5997
+        currentStep:
+          description: Single step currently selected for this preparation.
+          $ref: '#/components/schemas/HowToStep'
+    Error:
+      description: Shared error representation; error codes are proposed contract values.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable reason for failure.
+          type: string
+          minLength: 1
+          examples:
+          - LAST_STEP_REACHED
+        message:
+          description: Human-readable explanation of why the request failed.
+          type: string
+          minLength: 1
+        details:
+          description: Optional additional context for diagnosing the failure.
+          type: object
+          additionalProperties: true
+  responses:
+    MealPreparationResponse:
+      description: The requested meal preparation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPreparation'
+    HowToStepResponse:
+      description: The requested step, or the new current step after successful navigation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HowToStep'
+    MealPreparationCreatedResponse:
+      description: Preparation created with its first step selected. Follow Location to retrieve it; no
+        response body.
+      headers:
+        Location:
+          description: Absolute URL of the created preparation.
+          required: true
+          schema:
+            type: string
+            format: uri
+          example: https://larder.org/meal-preparation/preparations/7cf09822-77a1-46bb-812f-b7852bca0913
+    BadRequestResponse:
+      description: Malformed input, unsupported version, invalid recipe, or recipe without steps.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ForbiddenResponse:
+      description: The caller lacks the required scope or access to this preparation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: Preparation or step not found, including a step outside the preparation recipe.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: An unexpected server error prevented completion.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedErrorResponse:
+      description: An otherwise undocumented error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NextStepBadRequestResponse:
+      description: Invalid request, stale current step, or navigation beyond the last step. Preparation
+        state remains unchanged.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            boundary:
+              summary: Already at the last step
+              value:
+                code: LAST_STEP_REACHED
+                message: The current step is the last step.
+            staleStep:
+              summary: Expected step is no longer current
+              value:
+                code: CURRENT_STEP_MISMATCH
+                message: stepId does not match the current step.
+    PreviousStepBadRequestResponse:
+      description: Invalid request, stale current step, or navigation beyond the first step. Preparation
+        state remains unchanged.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            boundary:
+              summary: Already at the first step
+              value:
+                code: FIRST_STEP_REACHED
+                message: The current step is the first step.
+            staleStep:
+              summary: Expected step is no longer current
+              value:
+                code: CURRENT_STEP_MISMATCH
+                message: stepId does not match the current step.
+  requestBodies:
+    MealPreparationCreateRequest:
+      description: Recipe reference for the new preparation.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPreparationCreate'
+          example:
+            recipe: e1e82a2e-9555-49fc-9df0-b85edb5b5997
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: PROPOSED OAuth 2.0 authorization code flow with PKCE (S256). Replace placeholder endpoints
+        before implementation.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth2/authorize
+          tokenUrl: https://example.com/oauth2/token
+          scopes:
+            preparations:read: Read preparations and recipe steps.
+            preparations:write: Create preparations and navigate their current steps.

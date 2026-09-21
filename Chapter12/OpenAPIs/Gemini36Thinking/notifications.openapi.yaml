@@ -1,0 +1,326 @@
+openapi: 3.1.0
+info:
+  title: Notifications API
+  description: API for providing notifications to Cooks, marking notifications as read, and deleting notifications.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+  x-api-id: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+  x-audience: company-internal
+
+servers:
+  - url: 'https://larder.org/notifications'
+
+security:
+  - oAuth2:
+      - notifications:read
+      - notifications:write
+      - notifications:admin
+
+tags:
+  - name: Notifications
+    description: Operations for managing and viewing notifications
+
+paths:
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags:
+        - Notifications
+      summary: List notifications
+      description: |
+        Retrieve a collection of notifications. Optional query parameters allow filtering by receiver and status.
+      parameters:
+        - $ref: '#/components/parameters/ReceiverQueryParameter'
+        - $ref: '#/components/parameters/StatusQueryParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /notifications/{notificationId}:
+    get:
+      operationId: getNotificationById
+      tags:
+        - Notifications
+      summary: Get notification by ID
+      description: |
+        Retrieve a specific notification by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+    delete:
+      operationId: deleteNotification
+      tags:
+        - Notifications
+      summary: Delete notification
+      description: |
+        Delete a notification by its unique identifier.
+      security:
+        - oAuth2:
+            - notifications:write
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Notification deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /notifications/{notificationId}/status:
+    put:
+      operationId: updateNotificationStatus
+      tags:
+        - Notifications
+      summary: Update notification status
+      description: |
+        Update the status of a specific notification (e.g., mark as read).
+      security:
+        - oAuth2:
+            - notifications:write
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/NotificationStatusUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/NotificationLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+components:
+  parameters:
+    NotificationIdParameter:
+      name: notificationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ReceiverQueryParameter:
+      name: receiver
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+
+    StatusQueryParameter:
+      name: status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/NotificationStatus'
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  schemas:
+    NotificationStatus:
+      description: Lifecycle status of a notification.
+      type: string
+      enum:
+        - NEW
+        - READ
+
+    Notification:
+      type: object
+      required:
+        - notificationId
+        - receivers
+        - title
+        - text
+        - link
+        - status
+      properties:
+        notificationId:
+          description: Unique identifier of the notification, generated by the server.
+          type: string
+          format: uuid
+        receivers:
+          description: Unique identifiers of the intended receivers (e.g. Cooks or community members).
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+        title:
+          description: Title summary of the notification.
+          type: string
+          minLength: 1
+          maxLength: 200
+        text:
+          description: Detailed message body text of the notification.
+          type: string
+          minLength: 1
+          maxLength: 2000
+        link:
+          description: URI link to the related assistance or action resource.
+          type: string
+          format: uri
+        status:
+          description: Current lifecycle status of the notification.
+          $ref: '#/components/schemas/NotificationStatus'
+        createdAt:
+          description: Timestamp of creation, set by the server.
+          type: string
+          format: date-time
+        updatedAt:
+          description: Timestamp of the last change, set by the server.
+          type: string
+          format: date-time
+
+    Notifications:
+      description: List of notification objects.
+      type: array
+      items:
+        $ref: '#/components/schemas/Notification'
+
+    NotificationStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          description: New status to apply to the notification.
+          $ref: '#/components/schemas/NotificationStatus'
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    NotificationsResponse:
+      description: Collection of notifications response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notifications'
+
+    NotificationResponse:
+      description: Single notification response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notification'
+
+    NotificationLinkResponse:
+      description: Link to changed notification response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              notificationLink:
+                description: URI link to the changed notification resource.
+                type: string
+                format: uri
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    NotificationStatusUpdateRequest:
+      description: Request payload for updating a notification's status
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotificationStatusUpdate'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            notifications:read: Grants read access to notifications
+            notifications:write: Grants write access to modify notifications
+            notifications:admin: Grants administrative access to manage notifications

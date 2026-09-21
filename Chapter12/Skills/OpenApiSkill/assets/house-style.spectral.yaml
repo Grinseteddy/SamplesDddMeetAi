@@ -98,3 +98,23 @@ rules:
     then:
       field: description
       function: truthy
+
+  house-enum-values-screaming-snake-case:
+    description: "Enum values must be SCREAMING_SNAKE_CASE (e.g. ALREADY_READ). The `version` header parameter is exempt."
+    message: "Enum value {{value}} must be SCREAMING_SNAKE_CASE."
+    severity: error
+    given:
+      # enums anywhere inside schemas, request bodies, responses and headers
+      - "$.components.schemas..enum[*]"
+      - "$.components.requestBodies..enum[*]"
+      - "$.components.responses..enum[*]"
+      - "$.components.headers..enum[*]"
+      - "$.paths..requestBody..enum[*]"
+      - "$.paths..responses..enum[*]"
+      # enums on parameters, except the version header (semver by convention)
+      - "$.components.parameters[?(@.name != 'version')]..enum[*]"
+      - "$.paths..parameters[?(@ && @.name && @.name != 'version')]..enum[*]"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"

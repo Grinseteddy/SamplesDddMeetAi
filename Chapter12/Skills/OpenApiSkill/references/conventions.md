@@ -241,6 +241,26 @@ components:
     optional (no `required` list), and only mutable fields appear.
 - Compose with `$ref` (an `Author` array inside `Book`, a `Publisher` object,
   etc.) rather than repeating structures.
+- **Enum values are `SCREAMING_SNAKE_CASE`** — upper-case letters and digits,
+  words separated by a single underscore (`ON_LOAN`, `ALREADY_READ`,
+  `TO_BE_READ`). They are constants of the contract, not display text, so they
+  carry no spaces, hyphens or mixed case. When a value comes from a modeling
+  artifact (a state sticky, a glossary value term), convert its spelling
+  (`Already read` → `ALREADY_READ`) and keep the artifact's own wording in the
+  property `description`. A nullable enum lists `null` as a literal next to the
+  constants. The one exception is the `version` header (§7), whose enum holds
+  the semantic version string. Enforced by `house-enum-values-screaming-snake-case`.
+
+```yaml
+        status:
+          description: Where the loan stands in its lifecycle.
+          type: string
+          enum:
+            - ON_LOAN
+            - OVERDUE
+            - RETURNED
+```
+
 - **Nullable** (3.1.0): use a JSON-Schema type array — `type: [string, "null"]` —
   not the OpenAPI 3.0 `nullable: true` keyword.
 - Provide a shared `Error` schema:
@@ -338,4 +358,5 @@ If the domain needs a different scheme (API key, bearer JWT, mutual TLS), adapt
 | Response component | PascalCase + `Response` | `NotFoundResponse` |
 | Request body component | PascalCase + `Request` | `BookCreateRequest` |
 | Schema property | camelCase | `catalogEntryId` |
+| Enum value | SCREAMING_SNAKE_CASE | `ALREADY_READ` |
 | Scope | `resource:action` | `catalog:write` |

@@ -89,3 +89,12 @@ rules:
       function: pattern
       functionOptions:
         match: "^(/(([a-z][a-z0-9-]*)|(\\{[a-z][a-zA-Z0-9]*\\})))+$"
+
+  house-properties-have-description:
+    description: "Every schema property must have a description (also on $ref properties, nested objects, and inline request/response schemas)."
+    severity: error
+    resolved: false
+    given: "$..properties[*]"
+    then:
+      field: description
+      function: truthy

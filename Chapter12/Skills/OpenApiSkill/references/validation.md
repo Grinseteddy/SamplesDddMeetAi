@@ -31,7 +31,7 @@ Useful flags:
 
 - **Errors** — must all be fixed. The ruleset raises errors for: missing/duplicate
   `operationId`, non-camelCase `operationId`, operations tagged with an undeclared
-  tag, missing `x-api-id`, missing `x-audience`, and missing `contact`.
+  tag, schema properties without a `description`, missing `x-api-id`, missing `x-audience`, and missing `contact`.
 - **Warnings** — review each and resolve unless there's a deliberate reason
   (missing summaries/descriptions, non-PascalCase schema names, tags without
   descriptions, missing `servers`, etc.).

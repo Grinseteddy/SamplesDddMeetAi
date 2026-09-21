@@ -109,6 +109,7 @@ npm install -g @stoplight/spectral-cli   # if not already installed
 spectral lint <spec>.yaml --ruleset assets/house-style.spectral.yaml
 ```
 
+A property without a `description` is an **error** (`house-properties-have-description`).
 Fix every **error** and review **warnings** (resolve them unless there's a
 deliberate reason). Re-run until clean. If Spectral can't be installed, fall
 back to the Python structural validator described in `references/validation.md`.
@@ -156,7 +157,11 @@ scopes for mutations).
 All error responses point at a shared `Error` schema (`code`, `message`,
 `details`).
 
-**Schemas** — `type: object` with `required` + `properties`. Add constraints
+**Schemas** — `type: object` with `required` + `properties`. **Every property
+carries a `description`** — a domain-language sentence, not a restatement of the
+name — including `$ref` properties (as a sibling of the `$ref`), nested and
+inline schemas, write-model variants and `Error`; the Spectral ruleset fails the
+lint otherwise. Add constraints
 liberally: `minLength`/`maxLength`, `minItems`/`maxItems`, `pattern`, and
 `format` (`uuid`, `date-time`, `uri`, `email`, …). Keep **read** models (include
 server-generated fields like ids and timestamps) separate from **write** models:

@@ -1,0 +1,1448 @@
+openapi: 3.1.0
+info:
+  title: Meal Rescue API
+  description: |
+    API for cooks to prepare meals, ask a Grandma Avatar and their community for help when a meal preparation goes wrong, receive help, and thank helpers by sharing pictures of the rescued meal. Used by the cook app and by the Grandma Avatar and community clients.
+  version: 1.0.0
+  contact:
+    name: Meal Rescue Team
+  x-api-id: 81e9b978-9835-4586-85ba-2ca142fbf5aa
+  x-audience: external-public
+
+servers:
+- url: https://api.meal-rescue.example/meal-rescue
+
+security:
+- oAuth2:
+  - cooking:read
+  - cooking:write
+  - help:provide
+
+tags:
+- name: Meals
+  description: Meals a cook prepares, burns and rescues
+- name: Pictures
+  description: Pictures a cook takes of meals
+- name: Help Requests
+  description: Help requests a cook posts at a Grandma Avatar and a community
+- name: Help
+  description: Help provided by a Grandma Avatar or a community for a help request
+- name: Thanks
+  description: Thanks a cook gives for help, sharing pictures with the community
+- name: Grandma Avatars
+  description: Grandma Avatars that cooks can ask for help
+- name: Communities
+  description: Communities of cooks
+
+paths:
+
+  /meals:
+    get:
+      operationId: listMeals
+      tags:
+      - Meals
+      summary: List the cook's meals
+      description: |
+        Retrieve the meals prepared by the authenticated cook, optionally filtered by status.
+      parameters:
+      - $ref: '#/components/parameters/MealStatusQueryParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+    post:
+      operationId: createMeal
+      tags:
+      - Meals
+      summary: Prepare a new meal
+      description: |
+        Story step 1 — the Cook prepares a Meal.
+        Creates a meal together with the recipe it is prepared with. The new meal starts in status `inPreparation`;
+        the cook is taken from the authenticated caller.
+      security:
+      - oAuth2:
+        - cooking:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/MealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /meals/{mealId}:
+    get:
+      operationId: getMealById
+      tags:
+      - Meals
+      summary: Get meal by ID
+      description: |
+        Retrieve a single meal, including its recipe and current status.
+      parameters:
+      - $ref: '#/components/parameters/MealIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /meals/{mealId}/burn:
+    post:
+      operationId: burnMeal
+      tags:
+      - Meals
+      summary: Mark a meal as burned
+      description: |
+        Story step 2 — the Cook burns the Meal.
+        Transitions the meal from `inPreparation` to `burned`. The catastrophe pictures the cook takes are uploaded
+        separately via `POST /pictures` and attached to the help request, not to the meal (the glossary has no
+        Meal–Picture relationship). Returns `409` if the meal is not in preparation.
+      security:
+      - oAuth2:
+        - cooking:write
+      parameters:
+      - $ref: '#/components/parameters/MealIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /meals/{mealId}/rescue:
+    post:
+      operationId: rescueMeal
+      tags:
+      - Meals
+      summary: Mark a meal as rescued
+      description: |
+        Story step 5 — the Cook rescues the Meal.
+        Transitions the meal from `burned` to `rescued`. Pictures of the rescued meal are uploaded via
+        `POST /pictures` and shared through a Thanks. Returns `409` if the meal is not burned.
+      security:
+      - oAuth2:
+        - cooking:write
+      parameters:
+      - $ref: '#/components/parameters/MealIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /pictures:
+    post:
+      operationId: uploadPicture
+      tags:
+      - Pictures
+      summary: Upload a picture
+      description: |
+        Story steps 2 and 5 — the Cook takes Pictures.
+        Uploads one picture as binary content. The returned `pictureId` is then referenced from a Help Request,
+        a Help, or a Thanks, all of which contain 0..* pictures.
+      security:
+      - oAuth2:
+        - cooking:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/PictureUploadRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/PictureResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /pictures/{pictureId}:
+    get:
+      operationId: getPictureById
+      tags:
+      - Pictures
+      summary: Get picture by ID
+      description: |
+        Retrieve the metadata of a picture, including the URL of its content.
+      parameters:
+      - $ref: '#/components/parameters/PictureIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/PictureResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /help-requests:
+    get:
+      operationId: listHelpRequests
+      tags:
+      - Help Requests
+      summary: List help requests
+      description: |
+        Retrieve help requests. A Grandma Avatar uses the `grandmaAvatarId` filter to find the requests addressed to it;
+        a community uses `communityId`; a cook uses `mealId` to see the requests for one meal.
+      parameters:
+      - $ref: '#/components/parameters/MealIdQueryParameter'
+      - $ref: '#/components/parameters/GrandmaAvatarIdQueryParameter'
+      - $ref: '#/components/parameters/CommunityIdQueryParameter'
+      - $ref: '#/components/parameters/HelpRequestTypeQueryParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+    post:
+      operationId: createHelpRequest
+      tags:
+      - Help Requests
+      summary: Post a help request
+      description: |
+        Story step 3 — the Cook asks the Grandma Avatar for Help with Catastrophe Pictures.
+        Posts a help request of one of the three kinds (Meal Preparation Catastrophe, Help for Meal Preparation Step,
+        Help with Ingredients). The request belongs to exactly one meal, is placed at one Grandma Avatar and one
+        community, and may contain pictures previously uploaded via `POST /pictures`.
+      security:
+      - oAuth2:
+        - cooking:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpRequestCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/HelpRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /help-requests/{helpRequestId}:
+    get:
+      operationId: getHelpRequestById
+      tags:
+      - Help Requests
+      summary: Get help request by ID
+      description: |
+        Retrieve a single help request.
+      parameters:
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /help-requests/{helpRequestId}/help:
+    get:
+      operationId: listHelpForHelpRequest
+      tags:
+      - Help
+      summary: List help given for a help request
+      description: |
+        Retrieve all help provided for one help request, by the Grandma Avatar or the community.
+      parameters:
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+    post:
+      operationId: provideHelp
+      tags:
+      - Help
+      summary: Provide help
+      description: |
+        Story step 4 — the Grandma Avatar provides Help to rescue the Meal.
+        The provider (Grandma Avatar or community) is taken from the authenticated caller. The content must fit
+        the kind of help request:
+        - `ingredientSubstitutes` only for a Help with Ingredients request,
+        - `preparationStepExplanations` only for a Help for Meal Preparation Step request,
+        - `stepsToMitigateCatastrophe` only for a Meal Preparation Catastrophe request.
+        Mismatching content is rejected with `422`.
+      security:
+      - oAuth2:
+        - help:provide
+      parameters:
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/HelpResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /help-requests/{helpRequestId}/help/{helpId}:
+    get:
+      operationId: getHelpById
+      tags:
+      - Help
+      summary: Get help by ID
+      description: |
+        Retrieve one piece of help given for a help request.
+      parameters:
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      - $ref: '#/components/parameters/HelpIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /thanks:
+    get:
+      operationId: listThanks
+      tags:
+      - Thanks
+      summary: List thanks
+      description: |
+        Retrieve thanks. Filter by `communityId` to see the pictures shared with a community, or by
+        `grandmaAvatarId` to see the thanks a Grandma Avatar received.
+      parameters:
+      - $ref: '#/components/parameters/CommunityIdQueryParameter'
+      - $ref: '#/components/parameters/GrandmaAvatarIdQueryParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ThanksListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+    post:
+      operationId: createThanks
+      tags:
+      - Thanks
+      summary: Post a thanks
+      description: |
+        Story step 6 — the Cook thanks the Grandma Avatar and shares Pictures with the Community.
+        A thanks is given for exactly one help, may be addressed to a Grandma Avatar and/or a community, and
+        may contain pictures of the rescued meal.
+      security:
+      - oAuth2:
+        - cooking:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/ThanksCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ThanksResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /thanks/{thanksId}:
+    get:
+      operationId: getThanksById
+      tags:
+      - Thanks
+      summary: Get thanks by ID
+      description: |
+        Retrieve a single thanks.
+      parameters:
+      - $ref: '#/components/parameters/ThanksIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ThanksResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /grandma-avatars:
+    get:
+      operationId: listGrandmaAvatars
+      tags:
+      - Grandma Avatars
+      summary: List Grandma Avatars
+      description: |
+        Retrieve the Grandma Avatars a cook can ask for help.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/GrandmaAvatarListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /grandma-avatars/{grandmaAvatarId}:
+    get:
+      operationId: getGrandmaAvatarById
+      tags:
+      - Grandma Avatars
+      summary: Get Grandma Avatar by ID
+      description: |
+        Retrieve a single Grandma Avatar.
+      parameters:
+      - $ref: '#/components/parameters/GrandmaAvatarIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/GrandmaAvatarResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /communities:
+    get:
+      operationId: listCommunities
+      tags:
+      - Communities
+      summary: List communities
+      description: |
+        Retrieve the communities of cooks.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/CommunityListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+  /communities/{communityId}:
+    get:
+      operationId: getCommunityById
+      tags:
+      - Communities
+      summary: Get community by ID
+      description: |
+        Retrieve a single community including its cooks.
+      parameters:
+      - $ref: '#/components/parameters/CommunityIdParameter'
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/CommunityResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+
+components:
+
+  parameters:
+    MealIdParameter:
+      name: mealId
+      in: path
+      required: true
+      description: Unique identifier of the meal.
+      schema:
+        type: string
+        format: uuid
+    PictureIdParameter:
+      name: pictureId
+      in: path
+      required: true
+      description: Unique identifier of the picture.
+      schema:
+        type: string
+        format: uuid
+    HelpRequestIdParameter:
+      name: helpRequestId
+      in: path
+      required: true
+      description: Unique identifier of the help request.
+      schema:
+        type: string
+        format: uuid
+    HelpIdParameter:
+      name: helpId
+      in: path
+      required: true
+      description: Unique identifier of the help.
+      schema:
+        type: string
+        format: uuid
+    ThanksIdParameter:
+      name: thanksId
+      in: path
+      required: true
+      description: Unique identifier of the thanks.
+      schema:
+        type: string
+        format: uuid
+    GrandmaAvatarIdParameter:
+      name: grandmaAvatarId
+      in: path
+      required: true
+      description: Unique identifier of the Grandma Avatar.
+      schema:
+        type: string
+        format: uuid
+    CommunityIdParameter:
+      name: communityId
+      in: path
+      required: true
+      description: Unique identifier of the community.
+      schema:
+        type: string
+        format: uuid
+    MealIdQueryParameter:
+      name: mealId
+      in: query
+      required: false
+      description: Only return items belonging to this meal.
+      schema:
+        type: string
+        format: uuid
+    GrandmaAvatarIdQueryParameter:
+      name: grandmaAvatarId
+      in: query
+      required: false
+      description: Only return items placed at or addressed to this Grandma Avatar.
+      schema:
+        type: string
+        format: uuid
+    CommunityIdQueryParameter:
+      name: communityId
+      in: query
+      required: false
+      description: Only return items placed at or addressed to this community.
+      schema:
+        type: string
+        format: uuid
+    HelpRequestTypeQueryParameter:
+      name: helpRequestType
+      in: query
+      required: false
+      description: Only return help requests of this kind.
+      schema:
+        type: string
+        enum:
+        - MealPreparationCatastrophe
+        - HelpForMealPreparationStep
+        - HelpWithIngredients
+    MealStatusQueryParameter:
+      name: status
+      in: query
+      required: false
+      description: Only return meals in this status.
+      schema:
+        type: string
+        enum:
+        - inPreparation
+        - burned
+        - rescued
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Version of the API the client expects.
+      schema:
+        type: string
+        default: 1.0.0
+        enum:
+        - 1.0.0
+
+  schemas:
+    Meal:
+      description: A meal a cook prepares with a recipe; it may be burned and rescued.
+      type: object
+      required:
+      - mealId
+      - name
+      - recipe
+      - status
+      - cookId
+      - createdAt
+      - updatedAt
+      properties:
+        mealId:
+          description: Unique identifier of the meal, generated by the server.
+          type: string
+          format: uuid
+        name:
+          description: Name of the meal as the cook calls it.
+          type: string
+          minLength: 1
+          maxLength: 200
+        recipe:
+          description: Recipe the meal is prepared with (exactly one).
+          $ref: '#/components/schemas/Recipe'
+        status:
+          description: 'Current state of the meal: in preparation, burned (a catastrophe happened), or rescued.'
+          type: string
+          enum:
+          - inPreparation
+          - burned
+          - rescued
+        cookId:
+          description: Cook who prepares the meal, taken from the authenticated caller.
+          type: string
+          format: uuid
+        createdAt:
+          description: Timestamp when the cook started preparing the meal, set by the server.
+          type: string
+          format: date-time
+        updatedAt:
+          description: Timestamp of the last status change, set by the server.
+          type: string
+          format: date-time
+    MealCreate:
+      description: Data a cook supplies when starting to prepare a meal.
+      type: object
+      required:
+      - name
+      - recipe
+      properties:
+        name:
+          description: Name of the meal as the cook calls it.
+          type: string
+          minLength: 1
+          maxLength: 200
+        recipe:
+          description: Recipe the meal is prepared with (exactly one).
+          $ref: '#/components/schemas/Recipe'
+    Recipe:
+      description: Recipe the meal is prepared with.
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          description: Name of the recipe.
+          type: string
+          minLength: 1
+          maxLength: 200
+        instructions:
+          description: Free-text cooking instructions of the recipe.
+          type: string
+          minLength: 1
+          maxLength: 10000
+    MealList:
+      description: A list of meals.
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          description: Meals matching the query.
+          type: array
+          items:
+            $ref: '#/components/schemas/Meal'
+    Picture:
+      description: A picture a cook takes, e.g. of a burned or a rescued meal.
+      type: object
+      required:
+      - pictureId
+      - contentUrl
+      - mediaType
+      - cookId
+      - createdAt
+      properties:
+        pictureId:
+          description: Unique identifier of the picture, generated by the server.
+          type: string
+          format: uuid
+        contentUrl:
+          description: Location from which the picture content can be downloaded.
+          type: string
+          format: uri
+        mediaType:
+          description: Media type of the picture content.
+          type: string
+          enum:
+          - image/jpeg
+          - image/png
+          - image/heic
+          - image/webp
+        caption:
+          description: Optional short text the cook adds to the picture.
+          type:
+          - string
+          - 'null'
+          maxLength: 280
+        cookId:
+          description: Cook who took the picture, taken from the authenticated caller.
+          type: string
+          format: uuid
+        createdAt:
+          description: Timestamp of the upload, set by the server.
+          type: string
+          format: date-time
+    HelpRequestBase:
+      description: Common part of every help request a cook posts.
+      type: object
+      required:
+      - helpRequestId
+      - helpRequestType
+      - mealId
+      - communityId
+      - grandmaAvatarId
+      - cookId
+      - pictureIds
+      - createdAt
+      properties:
+        helpRequestId:
+          description: Unique identifier of the help request, generated by the server.
+          type: string
+          format: uuid
+        helpRequestType:
+          description: Kind of help request; selects which help content may be provided for it.
+          type: string
+          enum:
+          - MealPreparationCatastrophe
+          - HelpForMealPreparationStep
+          - HelpWithIngredients
+        mealId:
+          description: Meal the help request belongs to (exactly one).
+          type: string
+          format: uuid
+        communityId:
+          description: Community the help request is placed at (exactly one).
+          type: string
+          format: uuid
+        grandmaAvatarId:
+          description: Grandma Avatar the help request is placed at (exactly one).
+          type: string
+          format: uuid
+        cookId:
+          description: Cook who posted the help request, taken from the authenticated caller.
+          type: string
+          format: uuid
+        message:
+          description: What the cook asks for, in their own words.
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        pictureIds:
+          description: Pictures contained in the help request, e.g. the catastrophe pictures (0..*).
+          type: array
+          items:
+            type: string
+            format: uuid
+        createdAt:
+          description: Timestamp when the help request was posted, set by the server.
+          type: string
+          format: date-time
+    MealPreparationCatastrophe:
+      description: A help request because something went wrong while preparing the meal, e.g. it burned.
+      allOf:
+      - $ref: '#/components/schemas/HelpRequestBase'
+      - type: object
+        properties:
+          helpRequestType:
+            description: Discriminator value identifying this kind of help request.
+            type: string
+            const: MealPreparationCatastrophe
+    HelpForMealPreparationStep:
+      description: A help request about how to carry out one preparation step.
+      allOf:
+      - $ref: '#/components/schemas/HelpRequestBase'
+      - type: object
+        properties:
+          helpRequestType:
+            description: Discriminator value identifying this kind of help request.
+            type: string
+            const: HelpForMealPreparationStep
+    HelpWithIngredients:
+      description: A help request about ingredients, e.g. a missing one that needs a substitute.
+      allOf:
+      - $ref: '#/components/schemas/HelpRequestBase'
+      - type: object
+        properties:
+          helpRequestType:
+            description: Discriminator value identifying this kind of help request.
+            type: string
+            const: HelpWithIngredients
+    HelpRequest:
+      description: A help request posted by a cook; is one of three kinds.
+      oneOf:
+      - $ref: '#/components/schemas/MealPreparationCatastrophe'
+      - $ref: '#/components/schemas/HelpForMealPreparationStep'
+      - $ref: '#/components/schemas/HelpWithIngredients'
+      discriminator:
+        propertyName: helpRequestType
+        mapping:
+          MealPreparationCatastrophe: '#/components/schemas/MealPreparationCatastrophe'
+          HelpForMealPreparationStep: '#/components/schemas/HelpForMealPreparationStep'
+          HelpWithIngredients: '#/components/schemas/HelpWithIngredients'
+    HelpRequestCreate:
+      description: Data a cook supplies when posting a help request.
+      type: object
+      required:
+      - helpRequestType
+      - mealId
+      - communityId
+      - grandmaAvatarId
+      properties:
+        helpRequestType:
+          description: Kind of help request; selects which help content may be provided for it.
+          type: string
+          enum:
+          - MealPreparationCatastrophe
+          - HelpForMealPreparationStep
+          - HelpWithIngredients
+        mealId:
+          description: Meal the help request belongs to (exactly one).
+          type: string
+          format: uuid
+        communityId:
+          description: Community the help request is placed at (exactly one).
+          type: string
+          format: uuid
+        grandmaAvatarId:
+          description: Grandma Avatar the help request is placed at (exactly one).
+          type: string
+          format: uuid
+        message:
+          description: What the cook asks for, in their own words.
+          type: string
+          maxLength: 2000
+        pictureIds:
+          description: Previously uploaded pictures to include, e.g. the catastrophe pictures (0..*).
+          type: array
+          items:
+            type: string
+            format: uuid
+    HelpRequestList:
+      description: A list of help requests.
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          description: Help requests matching the query.
+          type: array
+          items:
+            $ref: '#/components/schemas/HelpRequest'
+    IngredientSubstitute:
+      description: An ingredient suggested in place of another one; belongs to a Help with Ingredients request.
+      type: object
+      required:
+      - originalIngredient
+      - substituteIngredient
+      properties:
+        originalIngredient:
+          description: Ingredient the cook lacks or cannot use.
+          type: string
+          minLength: 1
+          maxLength: 200
+        substituteIngredient:
+          description: Ingredient proposed to use instead.
+          type: string
+          minLength: 1
+          maxLength: 200
+        hint:
+          description: How to use the substitute, e.g. a changed amount.
+          type: string
+          maxLength: 1000
+    PreparationStepExplanation:
+      description: Explanation of how to carry out a preparation step; belongs to a Help for Meal Preparation Step request.
+      type: object
+      required:
+      - explanation
+      properties:
+        preparationStep:
+          description: The preparation step being explained, as named in the recipe.
+          type: string
+          maxLength: 500
+        explanation:
+          description: How to carry out the preparation step.
+          type: string
+          minLength: 1
+          maxLength: 5000
+    StepsToMitigateCatastrophe:
+      description: One step to mitigate a catastrophe; belongs to a Meal Preparation Catastrophe request.
+      type: object
+      required:
+      - sequenceNumber
+      - instruction
+      properties:
+        sequenceNumber:
+          description: Position of this step in the order the cook should follow.
+          type: integer
+          minimum: 1
+        instruction:
+          description: What the cook should do in this step to save the meal.
+          type: string
+          minLength: 1
+          maxLength: 2000
+    Help:
+      description: Help provided for exactly one help request by a Grandma Avatar or a community.
+      type: object
+      required:
+      - helpId
+      - helpRequestId
+      - providerType
+      - providerId
+      - pictureIds
+      - createdAt
+      properties:
+        helpId:
+          description: Unique identifier of the help, generated by the server.
+          type: string
+          format: uuid
+        helpRequestId:
+          description: Help request this help is for (exactly one).
+          type: string
+          format: uuid
+        providerType:
+          description: 'Who provided the help: the Grandma Avatar or the community.'
+          type: string
+          enum:
+          - grandmaAvatar
+          - community
+        providerId:
+          description: Identifier of the Grandma Avatar or community that provided the help, taken from the authenticated
+            caller.
+          type: string
+          format: uuid
+        ingredientSubstitutes:
+          description: Ingredient substitutes the help contains (0..*); only for Help with Ingredients requests.
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientSubstitute'
+        preparationStepExplanations:
+          description: Preparation step explanations the help contains (0..*); only for Help for Meal Preparation Step requests.
+          type: array
+          items:
+            $ref: '#/components/schemas/PreparationStepExplanation'
+        stepsToMitigateCatastrophe:
+          description: Steps to mitigate the catastrophe the help contains (0..*); only for Meal Preparation Catastrophe requests.
+          type: array
+          items:
+            $ref: '#/components/schemas/StepsToMitigateCatastrophe'
+        pictureIds:
+          description: Pictures the help contains, e.g. showing how it should look (0..*).
+          type: array
+          items:
+            type: string
+            format: uuid
+        createdAt:
+          description: Timestamp when the help was provided, set by the server.
+          type: string
+          format: date-time
+    HelpCreate:
+      description: Content a provider supplies when giving help; must fit the kind of help request.
+      type: object
+      properties:
+        ingredientSubstitutes:
+          description: Ingredient substitutes the help contains (0..*); only for Help with Ingredients requests.
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientSubstitute'
+        preparationStepExplanations:
+          description: Preparation step explanations the help contains (0..*); only for Help for Meal Preparation Step requests.
+          type: array
+          items:
+            $ref: '#/components/schemas/PreparationStepExplanation'
+        stepsToMitigateCatastrophe:
+          description: Steps to mitigate the catastrophe the help contains (0..*); only for Meal Preparation Catastrophe requests.
+          type: array
+          items:
+            $ref: '#/components/schemas/StepsToMitigateCatastrophe'
+        pictureIds:
+          description: Pictures the help contains, e.g. showing how it should look (0..*).
+          type: array
+          items:
+            type: string
+            format: uuid
+    HelpList:
+      description: A list of help.
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          description: Help given for the help request.
+          type: array
+          items:
+            $ref: '#/components/schemas/Help'
+    Thanks:
+      description: A cook's thanks for help, which can share pictures with a community.
+      type: object
+      required:
+      - thanksId
+      - helpId
+      - cookId
+      - pictureIds
+      - createdAt
+      properties:
+        thanksId:
+          description: Unique identifier of the thanks, generated by the server.
+          type: string
+          format: uuid
+        helpId:
+          description: Help this thanks is for (exactly one).
+          type: string
+          format: uuid
+        cookId:
+          description: Cook who posted the thanks, taken from the authenticated caller.
+          type: string
+          format: uuid
+        grandmaAvatarId:
+          description: Grandma Avatar the thanks is addressed to (0..1).
+          type:
+          - string
+          - 'null'
+          format: uuid
+        communityId:
+          description: Community the thanks and its pictures are shared with (0..1).
+          type:
+          - string
+          - 'null'
+          format: uuid
+        message:
+          description: Thank-you words of the cook.
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        pictureIds:
+          description: Pictures contained in the thanks, e.g. of the rescued meal (0..*).
+          type: array
+          items:
+            type: string
+            format: uuid
+        createdAt:
+          description: Timestamp when the thanks was posted, set by the server.
+          type: string
+          format: date-time
+    ThanksCreate:
+      description: Data a cook supplies when posting a thanks.
+      type: object
+      required:
+      - helpId
+      properties:
+        helpId:
+          description: Help this thanks is for (exactly one).
+          type: string
+          format: uuid
+        grandmaAvatarId:
+          description: Grandma Avatar the thanks is addressed to (0..1).
+          type: string
+          format: uuid
+        communityId:
+          description: Community the thanks and its pictures are shared with (0..1).
+          type: string
+          format: uuid
+        message:
+          description: Thank-you words of the cook.
+          type: string
+          maxLength: 2000
+        pictureIds:
+          description: Previously uploaded pictures to share, e.g. of the rescued meal (0..*).
+          type: array
+          items:
+            type: string
+            format: uuid
+    ThanksList:
+      description: A list of thanks.
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          description: Thanks matching the query.
+          type: array
+          items:
+            $ref: '#/components/schemas/Thanks'
+    GrandmaAvatar:
+      description: A virtual grandma a cook can ask for help and who provides help.
+      type: object
+      required:
+      - grandmaAvatarId
+      - name
+      properties:
+        grandmaAvatarId:
+          description: Unique identifier of the Grandma Avatar.
+          type: string
+          format: uuid
+        name:
+          description: Display name of the Grandma Avatar.
+          type: string
+          minLength: 1
+          maxLength: 100
+    GrandmaAvatarList:
+      description: A list of Grandma Avatars.
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          description: Available Grandma Avatars.
+          type: array
+          items:
+            $ref: '#/components/schemas/GrandmaAvatar'
+    Community:
+      description: A group of cooks that provides help and receives shared pictures.
+      type: object
+      required:
+      - communityId
+      - name
+      - cookIds
+      properties:
+        communityId:
+          description: Unique identifier of the community.
+          type: string
+          format: uuid
+        name:
+          description: Display name of the community.
+          type: string
+          minLength: 1
+          maxLength: 200
+        cookIds:
+          description: Cooks the community contains (1..*).
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+    CommunityList:
+      description: A list of communities.
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          description: Communities matching the query.
+          type: array
+          items:
+            $ref: '#/components/schemas/Community'
+    Error:
+      description: Error returned for any failed request.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  responses:
+    MealResponse:
+      description: Single meal response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Meal'
+    MealListResponse:
+      description: List of meals response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealList'
+    PictureResponse:
+      description: Single picture response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Picture'
+    HelpRequestResponse:
+      description: Single help request response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequest'
+    HelpRequestListResponse:
+      description: List of help requests response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestList'
+    HelpResponse:
+      description: Single help response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Help'
+    HelpListResponse:
+      description: List of help response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpList'
+    ThanksResponse:
+      description: Single thanks response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Thanks'
+    ThanksListResponse:
+      description: List of thanks response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ThanksList'
+    GrandmaAvatarResponse:
+      description: Single Grandma Avatar response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GrandmaAvatar'
+    GrandmaAvatarListResponse:
+      description: List of Grandma Avatars response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GrandmaAvatarList'
+    CommunityResponse:
+      description: Single community response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Community'
+    CommunityListResponse:
+      description: List of communities response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CommunityList'
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ForbiddenResponse:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ConflictResponse:
+      description: The meal is not in a status that allows this transition
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnprocessableEntityResponse:
+      description: The help content does not fit the kind of help request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServiceNotAvailableResponse:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  requestBodies:
+    MealCreateRequest:
+      description: Meal preparation request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealCreate'
+    HelpRequestCreateRequest:
+      description: Help request creation request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestCreate'
+    HelpCreateRequest:
+      description: Help provision request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpCreate'
+    ThanksCreateRequest:
+      description: Thanks creation request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ThanksCreate'
+    PictureUploadRequest:
+      description: Picture upload request
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+            - file
+            properties:
+              file:
+                description: Binary content of the picture.
+                type: string
+                format: binary
+              caption:
+                description: Optional short text the cook adds to the picture.
+                type: string
+                maxLength: 280
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.meal-rescue.example/auth
+          tokenUrl: https://auth.meal-rescue.example/tokens
+          refreshUrl: https://auth.meal-rescue.example/refresh
+          scopes:
+            cooking:read: Grants read access to meals, pictures, help requests, help and thanks
+            cooking:write: Grants a cook write access to prepare, burn and rescue meals, upload pictures, post help requests
+              and thanks
+            help:provide: Grants a Grandma Avatar or community the right to provide help

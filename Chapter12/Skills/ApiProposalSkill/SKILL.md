@@ -15,6 +15,7 @@ description: >-
   API proposals, an API landscape, "what APIs do we need", or Arazzo files —
   even if they only attach a .ttl and say "APIs?". A Visual Glossary, in the
   graph or as an image, sets term spellings and field shape.
+author: Annegret Junker
 ---
 
 # Context Map API Proposer

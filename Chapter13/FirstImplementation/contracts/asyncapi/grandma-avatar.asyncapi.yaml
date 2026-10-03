@@ -1,0 +1,215 @@
+asyncapi: 3.1.0
+info:
+  title: Grandma Avatar
+  version: 1.0.0
+  description: |
+    Event-driven API of the Grandma Avatar — the AI responder inside Cooking
+    Assistance. It consumes `HelpRequested` events raised when a cook is stuck
+    (a catastrophe at the stove, a missing ingredient, an unclear preparation
+    step, or a menu to plan) and answers by publishing `HelpProvided` with a
+    machine-generated Help.
+
+    Used by Cooking Assistance (producer of help requests, consumer of help).
+    The Grandma Avatar is an anticorruption layer in front of the external AI:
+    it consumes the published language of Cooking Assistance (messages and
+    schemas are referenced from cooking-assistance.asyncapi.yaml) and answers
+    on its own `grandma-avatar` exchange.
+
+    Quality requirement: fast answers — an unclear step at the stove cannot
+    wait; the avatar is the fallback when no human responder is fast enough.
+  contact:
+    name: Annegret Junker
+    url: https://larder.org
+    email: annegret.junker@larder.org
+  license:
+    name: "(c) Annegret Junker & Fabrizio Lazzaretti — all rights reserved"
+  tags:
+    - name: grandma-avatar
+      description: AI responder answering help requests of Cooking Assistance
+
+servers:
+  production:
+    host: "larder.org:5671"
+    protocol: "amqps"
+    protocolVersion: "0.9.1"
+    description: "Production RabbitMQ broker (TLS)"
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
+
+defaultContentType: application/json
+
+channels:
+  helpRequestedQueue:
+    address: "grandma-avatar.help-requested"
+    description: |
+      Queue owned by the Grandma Avatar, bound to the `cooking-assistance`
+      exchange on routing key `cooking-assistance.help.requested`. The Grandma
+      Avatar consumes every open help request from here.
+    x-bindings:
+      - exchange: cooking-assistance
+        routingKey: cooking-assistance.help.requested
+    messages:
+      helpRequested:
+        $ref: '#/components/messages/helpRequested'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: grandma-avatar.help-requested
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+  helpProvidedRoutingKey:
+    address: "grandma-avatar.help.provided"
+    description: |
+      Routing key on the Grandma Avatar topic exchange. The Grandma Avatar
+      publishes its Help here; Cooking Assistance consumes it and republishes
+      the resulting HelpProvided for its own consumers.
+    messages:
+      helpProvided:
+        $ref: '#/components/messages/helpProvided'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: grandma-avatar
+          type: topic
+          durable: true
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+operations:
+  onHelpRequested:
+    action: receive
+    summary: Consume a help request raised by a stuck cook
+    description: |
+      Fires whenever Cooking Assistance publishes `HelpRequested`. The avatar
+      generates an answer for requests of type `INGREDIENT_SUBSTITUTE`,
+      `PREPARATION_STEP_EXPLANATION`, `STEPS_TO_MITIGATE_CATASTROPHE` and
+      `MENU_PROPOSAL`. A request whose `preferredProvider` names only `CHEF`
+      is acknowledged and not answered — chef help is provided exclusively.
+      Side effect: a `HelpProvided` event is published on `helpProvidedRoutingKey`.
+    channel:
+      $ref: '#/channels/helpRequestedQueue'
+    messages:
+      - $ref: '#/channels/helpRequestedQueue/messages/helpRequested'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+  publishHelpProvided:
+    action: send
+    summary: Publish the avatar's Help for a help request
+    description: |
+      Fires once the avatar has generated a Help for a consumed request. The
+      answer's `answerType` equals the request's `type`; `helpProviderType` is
+      always `GRANDMA_AVATAR` so consumers can label the answer as
+      machine-generated. Persistent delivery: an answer must survive a broker
+      restart, because the cook is waiting for it.
+    channel:
+      $ref: '#/channels/helpProvidedRoutingKey'
+    messages:
+      - $ref: '#/channels/helpProvidedRoutingKey/messages/helpProvided'
+    bindings:
+      amqp:
+        deliveryMode: 2
+        mandatory: true
+        bindingVersion: "0.3.0"
+
+components:
+  messages:
+    helpRequested:
+      name: HelpRequested
+      title: Help Requested Event
+      summary: A cook has asked for help with a catastrophe, a substitute, a step or a menu
+      headers:
+        $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/MessageHeader'
+      payload:
+        $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/HelpRequestedPayload'
+      bindings:
+        amqp:
+          contentEncoding: utf-8
+          messageType: HelpRequested
+          bindingVersion: "0.3.0"
+
+    helpProvided:
+      name: HelpProvided
+      title: Help Provided Event
+      summary: The Grandma Avatar has answered a help request with a Help
+      headers:
+        $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpProvidedPayload'
+      bindings:
+        amqp:
+          contentEncoding: utf-8
+          messageType: HelpProvided
+          bindingVersion: "0.3.0"
+
+  schemas:
+    # Outbound only. Everything else is the published language of Cooking Assistance.
+    HelpProvidedPayload:
+      type: object
+      description: |
+        The Help aggregate published by the Grandma Avatar. Invariants from the
+        visual glossary: `answer.answerType` must equal the request's `type`;
+        recipes, steps and ingredients referenced in the answer must be the same
+        as in the request; a cook may answer their own request except for chef
+        requests (not applicable to the avatar, but carried in the shape).
+      required:
+        - helpId
+        - helpRequest
+        - helpRequester
+        - answerTitle
+        - helpProviderType
+        - answer
+      properties:
+        helpId:
+          type: string
+          format: uuid
+          description: Identity of the Help aggregate
+          examples:
+            - a9caf90d-00b4-4a66-8184-7d02152e8d6a
+        helpRequest:
+          type: string
+          format: uuid
+          description: The Help Request this Help answers
+          examples:
+            - 23a8eeed-35f6-460b-892e-7bb458a8fded
+        helpRequester:
+          type: string
+          format: uuid
+          description: Cook id of the requester
+          examples:
+            - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        answerTitle:
+          type: string
+          minLength: 1
+          maxLength: 200
+          examples:
+            - Stay calm
+        helpProviderType:
+          type: string
+          description: Always GRANDMA_AVATAR for Help published by this application, so the answer can be labelled machine-generated
+          enum: [GRANDMA_AVATAR]
+        helpProvider:
+          type: string
+          format: uuid
+          description: Cook id of a human responder. Absent for the avatar.
+          examples:
+            - 39a7aed5-2e50-48c8-8aa6-f3afa9f03f74
+        answer:
+          $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/Answer'
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+      description: |
+        Broker credentials (RabbitMQ user/password over TLS). Never embed them in
+        the server URL — the canvas's `amqps://app_prod:p@ssword123@…` form is
+        deliberately not reproduced here.

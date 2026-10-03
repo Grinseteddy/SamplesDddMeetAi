@@ -1,0 +1,203 @@
+asyncapi: 3.1.0
+info:
+  title: Notifications
+  version: 1.0.0
+  description: |
+    Event-driven API of the Notifications bounded context of the Community Cooking
+    platform. Notifications are created exclusively on events: this application
+    consumes the domain events emitted by Cooking Assistance (Help requested,
+    Help provided) and turns each into a notification for the Cook concerned.
+    It publishes no events of its own; marking notifications as read and deleting
+    them are synchronous core functions outside this document, and aggregation
+    (e.g. unread counts) is handled in the frontend.
+
+    Notifications is a conformist to Cooking Assistance: headers and payloads
+    are referenced from cooking-assistance.asyncapi.yaml, the published
+    language for help requests and helps.
+  contact:
+    name: Annegret Junker
+    url: https://larder.org
+    email: annegret.junker@larder.org
+  tags:
+    - name: notifications
+      description: Notifications bounded context
+    - name: cooking-assistance
+      description: Upstream Cooking Assistance context that emits the consumed events
+
+servers:
+  production:
+    host: "larder.org:5671"
+    protocol: "amqps"
+    protocolVersion: "0.9.1"
+    description: "Production RabbitMQ broker (TLS). Credentials are supplied via the security scheme, never in the URL."
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
+
+defaultContentType: application/json
+
+channels:
+  helpRequestedQueue:
+    address: "notifications.help-requested"
+    description: |
+      Queue owned by Notifications, bound to the `cooking-assistance` exchange on
+      routing key `cooking-assistance.help.requested`. One message per raised Help Request.
+    x-bindings:
+      - exchange: cooking-assistance
+        routingKey: cooking-assistance.help.requested
+    messages:
+      helpRequested:
+        $ref: '#/components/messages/helpRequested'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: notifications.help-requested
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+  helpProvidedQueue:
+    address: "notifications.help-provided"
+    description: |
+      Queue owned by Notifications, bound to the `cooking-assistance` exchange on
+      routing key `cooking-assistance.help.provided`. One message per Help given on a request.
+    x-bindings:
+      - exchange: cooking-assistance
+        routingKey: cooking-assistance.help.provided
+    messages:
+      helpProvided:
+        $ref: '#/components/messages/helpProvided'
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: notifications.help-provided
+          durable: true
+          exclusive: false
+          autoDelete: false
+          vhost: /
+        bindingVersion: "0.3.0"
+
+operations:
+  consumeHelpRequested:
+    action: receive
+    summary: Consume Help requested events from Cooking Assistance
+    description: |
+      Fires when a Cook raises a Help Request (status OPEN). Notifications creates
+      a notification for each preferred provider group named on the request
+      (Chef, Community, Grandma Avatar) so that responders learn a cook is stuck.
+      The message is acknowledged only after the notification has been persisted.
+    tags:
+      - name: notifications
+    channel:
+      $ref: '#/channels/helpRequestedQueue'
+    messages:
+      - $ref: '#/channels/helpRequestedQueue/messages/helpRequested'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+  consumeHelpProvided:
+    action: receive
+    summary: Consume Help provided events from Cooking Assistance
+    description: |
+      Fires when a responder answers a Help Request (request status moves to
+      ANSWERED). Notifications creates a notification for the help requester
+      carrying the answer title and the answer type, so the cook can open the
+      Help in Cooking Assistance. The message is acknowledged only after the
+      notification has been persisted.
+    tags:
+      - name: notifications
+    channel:
+      $ref: '#/channels/helpProvidedQueue'
+    messages:
+      - $ref: '#/channels/helpProvidedQueue/messages/helpProvided'
+    bindings:
+      amqp:
+        ack: true
+        bindingVersion: "0.3.0"
+
+components:
+  messages:
+    helpRequested:
+      name: HelpRequested
+      title: Help Requested Event
+      summary: A Cook has raised a Help Request and is waiting for an answer
+      description: |
+        Carries the full Help Request aggregate as defined in the Cooking Assistance
+        visual glossary. Notifications reads requester and preferredProvider to
+        decide whom to notify, and title and type to phrase the notification.
+      headers:
+        $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/MessageHeader'
+      payload:
+        $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/HelpRequestedPayload'
+      examples:
+        - name: burningCatastrophe
+          summary: The glossary's own example — scones are burning, mother in law due in 30 minutes
+          headers:
+            correlationId: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            messageId: 5c2f0e9a-1d6b-4f3c-9a0e-2b7d1e4c8f10
+            source: cooking-assistance
+          payload:
+            helpRequestId: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            requester: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+            title: Burning Catastrophe
+            type: STEPS_TO_MITIGATE_CATASTROPHE
+            description: Scones are burned and mother in law is coming in 30 minutes
+            recipe: 7cf09822-77a1-46bb-812f-b7852bca0913
+            preferredProvider:
+              - GRANDMA_AVATAR
+              - COMMUNITY
+            status: OPEN
+      bindings:
+        amqp:
+          contentEncoding: utf-8
+          messageType: HelpRequested
+          bindingVersion: "0.3.0"
+
+    helpProvided:
+      name: HelpProvided
+      title: Help Provided Event
+      summary: A responder has answered a Help Request
+      description: |
+        Carries the Help aggregate as defined in the Cooking Assistance visual
+        glossary: who answered, for which request, and the typed answer. Notifications
+        reads helpRequester, answerTitle and helpProviderType to phrase the
+        notification; the typed answer body is passed through unchanged.
+      headers:
+        $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/MessageHeader'
+      payload:
+        $ref: './cooking-assistance.asyncapi.yaml#/components/schemas/HelpProvidedPayload'
+      examples:
+        - name: stayCalm
+          summary: The glossary's own example — catastrophe mitigation from the Grandma Avatar
+          headers:
+            correlationId: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            messageId: 9a7d3c21-6e40-4b58-b1f2-0c3e5d7a9b64
+            source: cooking-assistance
+          payload:
+            helpId: a9caf90d-00b4-4a66-8184-7d02152e8d6a
+            helpRequest: 23a8eeed-35f6-460b-892e-7bb458a8fded
+            helpRequester: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+            answerTitle: Stay calm
+            helpProviderType: GRANDMA_AVATAR
+            helpRequestStatus: ANSWERED
+            answer:
+              answerType: STEPS_TO_MITIGATE_CATASTROPHE
+              catastropheMitigation:
+                recipe: 7cf09822-77a1-46bb-812f-b7852bca0913
+                explanation: use a new, cold pan
+                answerType: STEPS_TO_MITIGATE_CATASTROPHE
+      bindings:
+        amqp:
+          contentEncoding: utf-8
+          messageType: HelpProvided
+          bindingVersion: "0.3.0"
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+      description: Username/password authentication against the RabbitMQ broker

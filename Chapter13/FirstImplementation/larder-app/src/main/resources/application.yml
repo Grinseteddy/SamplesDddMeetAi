@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: larder
+  rabbitmq:
+    host: ${LARDER_RABBITMQ_HOST:localhost}
+    port: ${LARDER_RABBITMQ_PORT:5672}
+    username: ${LARDER_RABBITMQ_USERNAME:larder}
+    password: ${LARDER_RABBITMQ_PASSWORD:larder}
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${LARDER_ISSUER_URI:http://localhost:8180/realms/larder}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+# One schema and one database user per Bounded Context (ADR0002)
+larder:
+  recipe-catalog:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: recipecatalog
+      username: recipecatalog
+      password: ${LARDER_DB_PASSWORD_RECIPECATALOG:recipecatalog}
+  meal-planning:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: mealplanning
+      username: mealplanning
+      password: ${LARDER_DB_PASSWORD_MEALPLANNING:mealplanning}
+  meal-preparation:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: mealpreparation
+      username: mealpreparation
+      password: ${LARDER_DB_PASSWORD_MEALPREPARATION:mealpreparation}
+  cooking-assistance:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: cookingassistance
+      username: cookingassistance
+      password: ${LARDER_DB_PASSWORD_COOKINGASSISTANCE:cookingassistance}
+  grandma-avatar-ai:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: grandmaavatar
+      username: grandmaavatar
+      password: ${LARDER_DB_PASSWORD_GRANDMAAVATAR:grandmaavatar}
+  notification:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: notification
+      username: notification
+      password: ${LARDER_DB_PASSWORD_NOTIFICATION:notification}
+  media:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: media
+      username: media
+      password: ${LARDER_DB_PASSWORD_MEDIA:media}
+  sharing:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: sharing
+      username: sharing
+      password: ${LARDER_DB_PASSWORD_SHARING:sharing}
+  cook-profile:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: cookprofile
+      username: cookprofile
+      password: ${LARDER_DB_PASSWORD_COOKPROFILE:cookprofile}
+  consent-management:
+    database:
+      url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
+      schema: consentmanagement
+      username: consentmanagement
+      password: ${LARDER_DB_PASSWORD_CONSENTMANAGEMENT:consentmanagement}

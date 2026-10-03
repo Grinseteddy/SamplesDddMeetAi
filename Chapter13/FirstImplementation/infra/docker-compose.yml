@@ -1,0 +1,30 @@
+# Local infrastructure for Larder. Development only: credentials are placeholders.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: larder
+      POSTGRES_USER: larder_admin
+      POSTGRES_PASSWORD: larder_admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d:ro
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: larder
+      RABBITMQ_DEFAULT_PASS: larder
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"

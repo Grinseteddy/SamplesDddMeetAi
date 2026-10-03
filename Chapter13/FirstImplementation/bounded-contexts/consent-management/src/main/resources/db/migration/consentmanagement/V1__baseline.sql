@@ -1,0 +1,1 @@
+-- Baseline of schema consentmanagement (ConsentManagement). Tables follow with the domain model.

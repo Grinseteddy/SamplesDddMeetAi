@@ -1,0 +1,1 @@
+-- Baseline of schema mealplanning (MealPlanning). Tables follow with the domain model.

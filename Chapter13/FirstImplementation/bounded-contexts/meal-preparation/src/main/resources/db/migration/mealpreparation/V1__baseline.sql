@@ -1,0 +1,1 @@
+-- Baseline of schema mealpreparation (MealPreparation). Tables follow with the domain model.

@@ -1,0 +1,1 @@
+-- Baseline of schema media (Media). Tables follow with the domain model.

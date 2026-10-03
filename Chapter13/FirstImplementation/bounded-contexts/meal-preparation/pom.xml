@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.larder.bc</groupId>
+        <artifactId>bounded-contexts-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>meal-preparation</artifactId>
+    <name>Larder :: MealPreparation</name>
+    <description>Guides the cook step by step; downstream of Cooking Assistance.</description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>server-meal-preparation</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${larder.contracts.dir}/openapi/meal-preparation.openapi.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <apiPackage>org.larder.mealpreparation.adapter.in.web.api</apiPackage>
+                            <modelPackage>org.larder.mealpreparation.adapter.in.web.model</modelPackage>
+                            <configOptions>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useSpringBoot3>true</useSpringBoot3>
+                                <useTags>true</useTags>
+                                <skipDefaultInterface>false</skipDefaultInterface>
+                                <documentationProvider>none</documentationProvider>
+                                <annotationLibrary>none</annotationLibrary>
+                                <useResponseEntity>true</useResponseEntity>
+                            </configOptions>
+                            <openapiNormalizer>REFACTOR_ALLOF_WITH_PROPERTIES_ONLY=true</openapiNormalizer>
+                            <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>client-cooking-assistance</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${larder.contracts.dir}/openapi/cooking-assistance.openapi.yaml</inputSpec>
+                            <generatorName>java</generatorName>
+                            <library>restclient</library>
+                            <apiPackage>org.larder.mealpreparation.adapter.out.cookingassistance.client.api</apiPackage>
+                            <modelPackage>org.larder.mealpreparation.adapter.out.cookingassistance.client.model</modelPackage>
+                            <invokerPackage>org.larder.mealpreparation.adapter.out.cookingassistance.client</invokerPackage>
+                            <configOptions>
+                                <useTags>true</useTags>
+                                <annotationLibrary>none</annotationLibrary>
+                            </configOptions>
+                            <openapiNormalizer>REFACTOR_ALLOF_WITH_PROPERTIES_ONLY=true</openapiNormalizer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

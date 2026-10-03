@@ -1,0 +1,1 @@
+-- Baseline of schema cookprofile (CookProfile). Tables follow with the domain model.

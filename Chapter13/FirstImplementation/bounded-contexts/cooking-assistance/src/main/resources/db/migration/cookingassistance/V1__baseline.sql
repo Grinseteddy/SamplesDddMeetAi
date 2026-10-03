@@ -1,0 +1,1 @@
+-- Baseline of schema cookingassistance (CookingAssistance). Tables follow with the domain model.

@@ -1,0 +1,1 @@
+-- Baseline of schema grandmaavatar (GrandmaAvatarAi). Tables follow with the domain model.

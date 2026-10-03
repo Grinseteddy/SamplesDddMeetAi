@@ -1,0 +1,545 @@
+openapi: 3.1.0
+info:
+  title: Meal Planning API
+  description: |
+    API that supports cooks when planning a dinner. Cooks set up meal plans for an occasion,
+    fill them step by step with courses that refer to recipes, and search their meal plans by diet and occasion.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 3832eaa5-d501-4d07-a3fb-a475c7fadb50
+  x-audience: external-public
+
+servers:
+  - url: 'https://larder.org/meal-planning'
+
+security:
+  - oAuth2:
+      - meal-plan:read
+      - meal-plan:write
+
+tags:
+  - name: Meal Plans
+    description: Set up, search, change and delete meal plans
+
+paths:
+  /meal-plans:
+    get:
+      operationId: searchMealPlans
+      tags:
+        - Meal Plans
+      summary: Search meal plans
+      description: |
+        Retrieve the meal plans matching the given diet and occasion. Both filters are optional.
+        Invariant: diet is searched by the most restrictive. When several diets are given,
+        only the most restrictive one is used for the search.
+      security:
+        - oAuth2:
+            - meal-plan:read
+      parameters:
+        - $ref: '#/components/parameters/DietParameter'
+        - $ref: '#/components/parameters/OccasionParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPlansResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+    post:
+      operationId: createMealPlan
+      tags:
+        - Meal Plans
+      summary: Set up a new meal plan
+      description: |
+        Set up a new meal plan. The authenticated caller becomes the owner of the meal plan.
+        Invariant: a meal plan can be created empty and then filled step by step, so every
+        field of the request body is optional; missing parts are added later with PATCH.
+        The response carries the link to the created meal plan.
+      security:
+        - oAuth2:
+            - meal-plan:write
+      parameters:
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealPlanCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/MealPlanCreatedLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+  /meal-plans/{mealPlanId}:
+    get:
+      operationId: getMealPlanById
+      tags:
+        - Meal Plans
+      summary: Get meal plan by ID
+      description: Retrieve a single meal plan with its courses by its meal plan Id.
+      security:
+        - oAuth2:
+            - meal-plan:read
+      parameters:
+        - $ref: '#/components/parameters/MealPlanIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPlanResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+    patch:
+      operationId: updateMealPlan
+      tags:
+        - Meal Plans
+      summary: Change a meal plan
+      description: |
+        Partially change a meal plan; this is how an empty meal plan is filled step by step.
+        Only the fields present in the request body are changed. A given list of courses
+        replaces the existing list as a whole. The meal plan Id and the owner cannot be changed.
+        Invariant: only the owner can change a meal plan; any other caller receives 403.
+        The response carries the link to the changed meal plan.
+      security:
+        - oAuth2:
+            - meal-plan:write
+      parameters:
+        - $ref: '#/components/parameters/MealPlanIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealPlanUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPlanChangedLinkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+    delete:
+      operationId: deleteMealPlan
+      tags:
+        - Meal Plans
+      summary: Delete a meal plan
+      description: |
+        Delete a meal plan together with its courses. This operation is irreversible.
+        The referenced recipes are not affected.
+        Invariant: only the owner can delete a meal plan; any other caller receives 403.
+      security:
+        - oAuth2:
+            - meal-plan:write
+      parameters:
+        - $ref: '#/components/parameters/MealPlanIdParameter'
+        - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '204':
+          description: Meal plan deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServiceNotAvailableResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+
+components:
+  parameters:
+    MealPlanIdParameter:
+      name: mealPlanId
+      in: path
+      required: true
+      description: The meal plan Id identifying the meal plan.
+      schema:
+        type: string
+        format: uuid
+      example: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+
+    DietParameter:
+      name: diet
+      in: query
+      required: false
+      description: |
+        Diet(s) the meal plans must be suitable for. When several diets are given,
+        the search uses the most restrictive one.
+      style: form
+      explode: true
+      schema:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          maxLength: 100
+      example:
+        - vegetarian
+        - vegan
+
+    OccasionParameter:
+      name: occasion
+      in: query
+      required: false
+      description: Occasion the meal plans were set up for.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+      example: parents in law visiting
+
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Version of the API the client was built against.
+      schema:
+        type: string
+        default: "1.0.0"
+        enum: ["1.0.0"]
+
+  headers:
+    LocationHeader:
+      description: Link to the meal plan.
+      schema:
+        type: string
+        format: uri
+
+  schemas:
+    MealPlan:
+      description: |
+        Aggregate describing what a cook serves for one occasion: the meal, the number of servings
+        and the courses with their recipes. Because a meal plan can be created empty and then filled
+        step by step, only the server-set fields are guaranteed to be present; a complete meal plan
+        contains occasion, servings, meal and 1..10 courses.
+      type: object
+      required:
+        - mealPlanId
+        - owner
+      properties:
+        mealPlanId:
+          description: Identity of the meal plan, generated by the server when the meal plan is set up.
+          type: string
+          format: uuid
+          readOnly: true
+          examples:
+            - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        owner:
+          description: Identifier of the cook who owns the meal plan, taken from the authenticated caller on creation; only the owner can change or delete the meal plan.
+          type: string
+          format: uuid
+          readOnly: true
+          examples:
+            - 90f63dd9-ab62-4e7f-a69a-4ec89fa033ec
+        occasion:
+          description: The occasion the meal plan is set up for.
+          type: string
+          minLength: 1
+          maxLength: 200
+          examples:
+            - parents in law visiting
+        servings:
+          description: Number of people the meal is planned for.
+          type: integer
+          minimum: 1
+          examples:
+            - 6
+        meal:
+          description: The meal of the day the plan is set up for.
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional instructions on how the courses are served together.
+          type: string
+          minLength: 1
+          maxLength: 2000
+          examples:
+            - hold course 2 warm while serving soup
+        courses:
+          description: The courses of the meal plan; a filled meal plan contains 1 to 10 courses.
+          $ref: '#/components/schemas/Courses'
+
+    MealPlanCreate:
+      description: |
+        Data a cook supplies when setting up a meal plan. All fields are optional because a
+        meal plan can be created empty and then filled step by step.
+      type: object
+      properties:
+        occasion:
+          description: The occasion the meal plan is set up for.
+          type: string
+          minLength: 1
+          maxLength: 200
+          examples:
+            - parents in law visiting
+        servings:
+          description: Number of people the meal is planned for.
+          type: integer
+          minimum: 1
+          examples:
+            - 6
+        meal:
+          description: The meal of the day the plan is set up for.
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional instructions on how the courses are served together.
+          type: string
+          minLength: 1
+          maxLength: 2000
+          examples:
+            - hold course 2 warm while serving soup
+        courses:
+          description: The courses of the meal plan; when given, 1 to 10 courses.
+          $ref: '#/components/schemas/Courses'
+
+    MealPlanUpdate:
+      description: Partial change of a meal plan; only the given fields are changed.
+      type: object
+      minProperties: 1
+      properties:
+        occasion:
+          description: The occasion the meal plan is set up for.
+          type: string
+          minLength: 1
+          maxLength: 200
+        servings:
+          description: Number of people the meal is planned for.
+          type: integer
+          minimum: 1
+        meal:
+          description: The meal of the day the plan is set up for.
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Instructions on how the courses are served together; null removes them.
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 2000
+        courses:
+          description: The courses of the meal plan; the given list replaces the existing courses as a whole.
+          $ref: '#/components/schemas/Courses'
+
+    MealPlans:
+      description: List of meal plans matching a search.
+      type: array
+      items:
+        $ref: '#/components/schemas/MealPlan'
+
+    Meal:
+      description: The meal of the day; a meal is a breakfast, a lunch, a dinner or a supper.
+      type: string
+      enum:
+        - breakfast
+        - lunch
+        - dinner
+        - supper
+      examples:
+        - dinner
+
+    Courses:
+      description: The courses of a meal plan, 1 to 10.
+      type: array
+      minItems: 1
+      maxItems: 10
+      items:
+        $ref: '#/components/schemas/Course'
+
+    Course:
+      description: One course of a meal plan, served at a step and consisting of a meal that refers to a recipe.
+      type: object
+      required:
+        - step
+        - meal
+      properties:
+        step:
+          description: Position of the course in the serving sequence; different courses can have the same step when served in parallel.
+          type: integer
+          minimum: 1
+          examples:
+            - 2
+        meal:
+          description: What is served in this course.
+          $ref: '#/components/schemas/CourseMeal'
+
+    CourseMeal:
+      description: |
+        The meal served in a course (glossary term "meal" below "course"). It is a different concept
+        from the meal of the day on the meal plan, hence the distinct schema name.
+      type: object
+      required:
+        - recipe
+      properties:
+        recipe:
+          description: Identifier of the recipe this course's meal refers to; the recipe itself is owned outside this API.
+          type: string
+          format: uuid
+          examples:
+            - 7cf09822-77a1-46bb-812f-b7852bca0913
+
+    MealPlanLink:
+      description: Link to a meal plan.
+      type: object
+      required:
+        - mealPlanLink
+      properties:
+        mealPlanLink:
+          description: Link under which the meal plan can be retrieved.
+          type: string
+          format: uri
+          examples:
+            - https://larder.org/meal-planning/meal-plans/f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+
+    Error:
+      description: Shared error body of all error responses.
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        message:
+          description: Human-readable explanation of the error.
+          type: string
+        details:
+          description: Additional, error-specific information.
+          type: object
+
+  requestBodies:
+    MealPlanCreateRequest:
+      description: Meal plan to set up; may be empty and filled later
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanCreate'
+
+    MealPlanUpdateRequest:
+      description: Fields of the meal plan to change
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanUpdate'
+
+  responses:
+    MealPlanResponse:
+      description: Single meal plan response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlan'
+
+    MealPlansResponse:
+      description: Meal plans matching the search; an empty list when nothing matches
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlans'
+
+    MealPlanCreatedLinkResponse:
+      description: Link to created meal plan
+      headers:
+        Location:
+          $ref: '#/components/headers/LocationHeader'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanLink'
+
+    MealPlanChangedLinkResponse:
+      description: Link to changed meal plan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanLink'
+
+    BadRequestResponse:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnauthorizedResponse:
+      description: Authentication is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenResponse:
+      description: Access forbidden, e.g. the caller is not the owner of the meal plan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundResponse:
+      description: Meal plan not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceNotAvailableResponse:
+      description: Service not available
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    DefaultErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    oAuth2:
+      type: oauth2
+      description: OAuth 2.0 Authorization Code Flow with PKCE
+      flows:
+        authorizationCode:
+          authorizationUrl: https://larder.org/auth
+          tokenUrl: https://larder.org/tokens
+          refreshUrl: https://larder.org/refresh
+          scopes:
+            meal-plan:read: Grants read access to meal plans
+            meal-plan:write: Grants access to set up, change and delete own meal plans

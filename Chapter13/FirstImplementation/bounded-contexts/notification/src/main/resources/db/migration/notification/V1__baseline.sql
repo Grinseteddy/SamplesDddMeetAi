@@ -1,0 +1,1 @@
+-- Baseline of schema notification (Notification). Tables follow with the domain model.

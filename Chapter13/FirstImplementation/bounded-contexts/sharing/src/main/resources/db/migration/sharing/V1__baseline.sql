@@ -1,0 +1,1 @@
+-- Baseline of schema sharing (Sharing). Tables follow with the domain model.

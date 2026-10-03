@@ -1,0 +1,1 @@
+-- Baseline of schema recipecatalog (RecipeCatalog). Tables follow with the domain model.

@@ -1,0 +1,62 @@
+/*
+ * Larder design tokens - the common look of all micro-UIs (AP Micro-UIs: "out of one hand").
+ * Custom properties inherit into the micro-UIs' shadow DOM; components style themselves
+ * only with these tokens and the classes of kit.js.
+ */
+:root {
+  color-scheme: light dark;
+
+  --larder-font: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --larder-font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+
+  --larder-bg: #faf6f0;
+  --larder-surface: #ffffff;
+  --larder-surface-muted: #f3ece2;
+  --larder-text: #2b2420;
+  --larder-text-muted: #6f645b;
+  --larder-border: #e4d9cb;
+  --larder-accent: #c2552d;          /* terracotta */
+  --larder-accent-strong: #a3431f;
+  --larder-accent-text: #ffffff;
+  --larder-herb: #4f7a4a;            /* success, vegetarian */
+  --larder-warn: #b7791f;
+  --larder-danger: #b3261e;
+  --larder-focus: #2f6fb3;
+
+  --larder-radius: 14px;
+  --larder-radius-small: 8px;
+  --larder-shadow: 0 1px 2px rgb(60 40 20 / 8%), 0 6px 20px rgb(60 40 20 / 6%);
+  --larder-gap: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --larder-bg: #1c1815;
+    --larder-surface: #262019;
+    --larder-surface-muted: #2f2820;
+    --larder-text: #f1e9df;
+    --larder-text-muted: #b5a899;
+    --larder-border: #3d342b;
+    --larder-accent: #e07a4f;
+    --larder-accent-strong: #f0946c;
+    --larder-accent-text: #1c1815;
+    --larder-herb: #8fbf86;
+    --larder-warn: #e3b25a;
+    --larder-danger: #f2867c;
+    --larder-focus: #7fb2ea;
+    --larder-shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 20px rgb(0 0 0 / 25%);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--larder-bg);
+  color: var(--larder-text);
+  font-family: var(--larder-font);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+body { min-height: 100vh; }

@@ -13,7 +13,8 @@ platform/
   platform-persistence  one schema + one DB user per Bounded Context (ADR0002)
   platform-messaging    RabbitMQ (ADR0003): topology incl. dead-letter queues, contract messages, transactional outbox
   platform-test         architecture rules every Bounded Context must satisfy
-bounded-contexts/     one module per Bounded Context (see table)
+bounded-contexts/     one module per Bounded Context (see table), each with its micro-UI under static/ui/<context>/
+app-shell/            UI orchestrator (ADR0005): login, routing, rescue flow, UI kit - see app-shell/MICRO-UI.md
 larder-app/           the one Spring Boot deployable; no domain code
 infra/                docker-compose: PostgreSQL (schemas+users), RabbitMQ, Keycloak (dev realm), S3Mock (bucket)
 ```
@@ -98,6 +99,19 @@ All ten Bounded Contexts are implemented.
 The S3 bucket is Adobe S3Mock locally (the MinIO images are not pullable here); Media talks plain S3 with the
 AWS SDK, so a real bucket only needs other `larder.media.storage.*` values.
 
+## User interface (phase 6)
+
+Open http://localhost:8080 and sign in as `cook` / `cook` (local dev realm).
+
+- **AppShell** (`app-shell/`): signs the cook in (OIDC Authorization Code + PKCE against Keycloak, tokens only in
+  memory), loads the micro-UIs, routes, and orchestrates flows that span contexts - above all the rescue flow
+  (step unclear / catastrophe → picture → help request → help → thanks). It holds the process state.
+- **Micro-UIs** belong to their Bounded Context (`bounded-contexts/<context>/src/main/resources/static/ui/<context>/`):
+  plain Web Components on the shared kit (`/app-shell/kit.js`, design tokens in `/app-shell/larder.css`), no
+  framework, no build step. A micro-UI calls only its own context's API; it never sees a token.
+- **Integration contract:** `app-shell/MICRO-UI.md` - element tags, attributes, `larder:*` events, the few element
+  methods. A missing micro-UI degrades to a placeholder instead of breaking the app.
+
 ## Messaging (phase 4)
 
 - **Topology from the AsyncAPIs:** a publisher owns its topic exchange, a consumer owns its queue and binding.
@@ -123,7 +137,7 @@ AWS SDK, so a real bucket only needs other `larder.media.storage.*` values.
 | 3 | Meal Planning, Meal Preparation (clients against Recipe Catalog; help flows go UI → Cooking Assistance, see CHANGES) | done |
 | 4 | Cooking Assistance (REST + publisher/consumer), Grandma Avatar ACL (deterministic recipe box), Notification | done |
 | 5 | Sharing incl. consent check for mentioned cooks | done |
-| 6 | Micro-UIs per Bounded Context + AppShell orchestrator (ADR0005) | |
+| 6 | Micro-UIs per Bounded Context + AppShell orchestrator (ADR0005) | done |
 | 7 | Contract tests (OpenAPI + AsyncAPI payloads), Testcontainers end-to-end rescue scenario, coverage gate (AP0005) | |
 
 

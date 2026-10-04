@@ -97,6 +97,18 @@ Implementation decisions where the contracts are silent (details in the module c
   deserialize the `oneOf` answer, so the adapter skips it. A consumer that needs the answer requires a generator fix.
 - **Outbox relays send `mandatory`** (as the AsyncAPI bindings demand); unroutable messages are logged and counted.
 
+## Decided in phase 6
+
+- **Micro-UIs as plain Web Components** in each context's module, on a shared kit from the AppShell; no framework,
+  no frontend build. Integration contract: `app-shell/MICRO-UI.md`.
+- **The AppShell orchestrates** the flows across contexts (start cooking, rescue flow, picking a recipe for a meal
+  plan, asking for a missing consent and retrying); ambient parts (notification bell) work by choreography.
+  Cooking mode is a UI composition: Meal Preparation drives, Recipe Catalog shows the step text.
+- **The browser signs in with OIDC Authorization Code + PKCE** (public client, tokens in memory only); micro-UIs never
+  see a token. Static UI files are public, every API call carries the cook's token.
+- **The rescue picture belongs to the help request** (Media link `helpRequest`); the thanks ask for a new picture of
+  the rescued meal.
+
 ## Open
 
 - **The ubiquitous language is spelled differently:** `Meal` is `dinner` in Meal Planning but `DINNER` in Recipe
@@ -119,6 +131,10 @@ Implementation decisions where the contracts are silent (details in the module c
 - A Help carries no chef name, so a Chef recipient's `chefName` cannot be verified; `cooks[]` allows several cooks
   although one help has one provider.
 - Notification's `receivers` would expose other cooks' ids once a notification has several receivers.
+- **UI gaps:** ingredient-substitute requests cannot be raised from the UI (no ingredient selection), substitutes
+  show "Ingredient n" (no ingredient names without Recipe Catalog), cooking mode learns the last step only from a
+  refused "Next" (see `app-shell/MICRO-UI.md`).
+- Cook Profile's contract example has `name: Joe`, `givenName: Doe` - given name and family name look swapped.
 - Meal Preparation: the contract's `HowToStep` has only `howToStepId` and `sequenceNumber` - no description. The
   cook at the stove gets the step text only from Recipe Catalog.
 

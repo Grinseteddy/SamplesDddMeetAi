@@ -21,6 +21,7 @@
     <modules>
         <module>platform</module>
         <module>bounded-contexts</module>
+        <module>app-shell</module>
         <module>larder-app</module>
     </modules>
 

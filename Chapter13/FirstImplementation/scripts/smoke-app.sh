@@ -229,6 +229,11 @@ eventually "a community help over REST also reaches Notification" "True" "/notif
 
 echo "== 7. Sharing: thanks for the help, guarded by consents"
 PHOTOS=5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+# Precondition: the cook has neither photo nor mention consent in force (e.g. given earlier in the UI)
+for consent in $(curl -s "$APP/consent-management/consents?subject=$COOK" -H 'version: 1.0.0' -H "Authorization: Bearer $TOKEN" \
+        | python3 -c "import json,sys; print(' '.join(c['consentId'] for c in json.load(sys.stdin) if 'revokedAt' not in c))"); do
+    curl -s -o /dev/null -X DELETE "$APP/consent-management/consents/$consent" -H 'version: 1.0.0' -H "Authorization: Bearer $TOKEN"
+done
 api 201 POST /media/images '{"media":"'$PNG'","links":[{"type":"helpRequest","url":"https://larder.org/cooking-assistance/help-requests/'$REQUEST'"}]}'
 PICTURE=$LOCATION; PICTURE_ID=$(id_of "$LOCATION")
 THANKS_FOR_GRANDMA='{"helpId":"'$HELP'","recipients":[{"type":"GrandmaAvatar"}],"thanksText":"Grandma saved my scones!","pictures":"'$PICTURE'"}'

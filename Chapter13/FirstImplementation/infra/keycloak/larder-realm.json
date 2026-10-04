@@ -172,10 +172,11 @@
       "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
       "redirectUris": [
+        "http://localhost:8080/*",
         "http://localhost:*"
       ],
       "webOrigins": [
-        "+"
+        "http://localhost:8080"
       ],
       "defaultClientScopes": [
         "basic",
@@ -214,7 +215,11 @@
             "userinfo.token.claim": "false"
           }
         }
-      ]
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8080/*"
+      }
     }
   ],
   "users": [
@@ -223,7 +228,7 @@
       "enabled": true,
       "email": "cook@larder.test",
       "emailVerified": true,
-      "firstName": "Test",
+      "firstName": "Grace",
       "lastName": "Cook",
       "credentials": [
         {

@@ -17,6 +17,7 @@
 
     <modules>
         <module>platform-security</module>
+        <module>platform-web</module>
         <module>platform-persistence</module>
         <module>platform-messaging</module>
         <module>platform-test</module>

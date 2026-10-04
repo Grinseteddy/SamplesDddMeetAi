@@ -41,6 +41,11 @@
             </dependency>
             <dependency>
                 <groupId>org.larder.platform</groupId>
+                <artifactId>platform-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.larder.platform</groupId>
                 <artifactId>platform-persistence</artifactId>
                 <version>${project.version}</version>
             </dependency>

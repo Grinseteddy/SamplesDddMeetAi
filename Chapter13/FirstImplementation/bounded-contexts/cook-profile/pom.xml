@@ -11,7 +11,7 @@
 
     <artifactId>cook-profile</artifactId>
     <name>Larder :: CookProfile</name>
-    <description>Cooks; anticorruption layer to the IAM; records consents on registration.</description>
+    <description>Cooks and their profiles; later the anticorruption layer to the IAM.</description>
 
     <build>
         <plugins>

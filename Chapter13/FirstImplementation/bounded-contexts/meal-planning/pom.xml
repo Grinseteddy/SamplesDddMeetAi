@@ -11,7 +11,7 @@
 
     <artifactId>meal-planning</artifactId>
     <name>Larder :: MealPlanning</name>
-    <description>Plans dinners; downstream of Recipe Catalog and Cooking Assistance.</description>
+    <description>Plans dinners from recipes; downstream of Recipe Catalog.</description>
 
     <build>
         <plugins>
@@ -54,25 +54,6 @@
                             <apiPackage>org.larder.mealplanning.adapter.out.recipecatalog.client.api</apiPackage>
                             <modelPackage>org.larder.mealplanning.adapter.out.recipecatalog.client.model</modelPackage>
                             <invokerPackage>org.larder.mealplanning.adapter.out.recipecatalog.client</invokerPackage>
-                            <configOptions>
-                                <useTags>true</useTags>
-                                <annotationLibrary>none</annotationLibrary>
-                            </configOptions>
-                            <openapiNormalizer>REFACTOR_ALLOF_WITH_PROPERTIES_ONLY=true</openapiNormalizer>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>client-cooking-assistance</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>${larder.contracts.dir}/openapi/cooking-assistance.openapi.yaml</inputSpec>
-                            <generatorName>java</generatorName>
-                            <library>restclient</library>
-                            <apiPackage>org.larder.mealplanning.adapter.out.cookingassistance.client.api</apiPackage>
-                            <modelPackage>org.larder.mealplanning.adapter.out.cookingassistance.client.model</modelPackage>
-                            <invokerPackage>org.larder.mealplanning.adapter.out.cookingassistance.client</invokerPackage>
                             <configOptions>
                                 <useTags>true</useTags>
                                 <annotationLibrary>none</annotationLibrary>

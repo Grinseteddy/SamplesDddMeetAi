@@ -42,6 +42,8 @@ public final class BoundedContextDatabase {
                 .build();
         dataSource.setSchema(properties.schema());
         dataSource.setPoolName(properties.schema());
+        dataSource.setMaximumPoolSize(properties.poolSize());
+        dataSource.setMinimumIdle(1);
 
         Flyway.configure()
                 .dataSource(dataSource)

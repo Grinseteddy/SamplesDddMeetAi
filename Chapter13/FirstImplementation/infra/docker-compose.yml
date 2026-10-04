@@ -20,11 +20,22 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  # S3-compatible bucket for the Media context (ADR0001: Media wraps an external bucket).
+  # Adobe S3Mock locally: the MinIO images are not pullable here. Any credentials are accepted.
+  s3:
+    image: adobe/s3mock:5.2.3
+    ports:
+      - "9090:9090"
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
-    command: start-dev
+    # Local dev realm "larder": public client larder-dev, test user cook/cook,
+    # every access token carries all API scopes and a fixed cookId claim.
+    command: start-dev --import-realm
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
       - "8180:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro

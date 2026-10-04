@@ -1,15 +1,28 @@
 spring:
   application:
     name: larder
+  jackson:
+    # The contracts declare absent optional fields, not null values
+    default-property-inclusion: non_null
   rabbitmq:
     host: ${LARDER_RABBITMQ_HOST:localhost}
     port: ${LARDER_RABBITMQ_PORT:5672}
     username: ${LARDER_RABBITMQ_USERNAME:larder}
     password: ${LARDER_RABBITMQ_PASSWORD:larder}
+    # Outbox relays wait for the broker's confirm before they delete a message
+    publisher-confirm-type: simple
+    # Outbox relays send mandatory messages; unroutable ones come back and are logged
+    publisher-returns: true
     listener:
       simple:
         acknowledge-mode: auto
+        # A failing message is retried 3 times, then rejected without requeue -> <queue>.dlq
         default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 500ms
+          multiplier: 2
   security:
     oauth2:
       resourceserver:
@@ -40,12 +53,20 @@ larder:
       schema: mealplanning
       username: mealplanning
       password: ${LARDER_DB_PASSWORD_MEALPLANNING:mealplanning}
+    # Upstream Bounded Contexts, called over HTTP through their contracts with the caller's token
+    upstream:
+      recipe-catalog:
+        base-url: ${LARDER_RECIPE_CATALOG_URL:http://localhost:${server.port:8080}/recipe-catalog}
   meal-preparation:
     database:
       url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
       schema: mealpreparation
       username: mealpreparation
       password: ${LARDER_DB_PASSWORD_MEALPREPARATION:mealpreparation}
+    # Upstream Bounded Contexts, called over HTTP through their contracts with the caller's token
+    upstream:
+      recipe-catalog:
+        base-url: ${LARDER_RECIPE_CATALOG_URL:http://localhost:${server.port:8080}/recipe-catalog}
   cooking-assistance:
     database:
       url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
@@ -64,18 +85,36 @@ larder:
       schema: notification
       username: notification
       password: ${LARDER_DB_PASSWORD_NOTIFICATION:notification}
+    # Notifications link to the resource they are about, e.g. <base-url>/cooking-assistance/helps/{helpId}
+    links:
+      base-url: ${LARDER_PUBLIC_BASE_URL:https://larder.org}
   media:
     database:
       url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
       schema: media
       username: media
       password: ${LARDER_DB_PASSWORD_MEDIA:media}
+    # Image bytes live in an S3-compatible bucket (S3Mock locally), metadata in the schema
+    storage:
+      endpoint: ${LARDER_MEDIA_STORAGE_ENDPOINT:http://localhost:9090}
+      region: ${LARDER_MEDIA_STORAGE_REGION:us-east-1}
+      bucket: ${LARDER_MEDIA_STORAGE_BUCKET:larder-media}
+      access-key: ${LARDER_MEDIA_STORAGE_ACCESS_KEY:larder}
+      secret-key: ${LARDER_MEDIA_STORAGE_SECRET_KEY:larder}
   sharing:
     database:
       url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}
       schema: sharing
       username: sharing
       password: ${LARDER_DB_PASSWORD_SHARING:sharing}
+    # Upstream Bounded Contexts, called over HTTP through their contracts with the caller's token
+    upstream:
+      cooking-assistance:
+        base-url: ${LARDER_COOKING_ASSISTANCE_URL:http://localhost:${server.port:8080}/cooking-assistance}
+      media:
+        base-url: ${LARDER_MEDIA_URL:http://localhost:${server.port:8080}/media}
+      consent-management:
+        base-url: ${LARDER_CONSENT_MANAGEMENT_URL:http://localhost:${server.port:8080}/consent-management}
   cook-profile:
     database:
       url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}

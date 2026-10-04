@@ -1,5 +1,8 @@
 /**
- * Bounded Context CookProfile. Cooks; anticorruption layer to the IAM; records consents on registration.
+ * Bounded Context CookProfile. Cooks; anticorruption layer to the IAM.
+ *
+ * <p>The contract carries no consents at registration, so the generated Consent Management client
+ * stays unused for now; the IAM integration (behind an application port) follows once the contract needs it.
  *
  * <ul>
  *   <li>{@code domain} - aggregates, value objects, domain events; no framework code</li>

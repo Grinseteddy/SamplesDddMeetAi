@@ -37,6 +37,10 @@
                                 <documentationProvider>none</documentationProvider>
                                 <annotationLibrary>none</annotationLibrary>
                                 <useResponseEntity>true</useResponseEntity>
+                                <!-- Optional arrays default to null instead of an empty collection: otherwise a PATCH
+                                     omitting recipients could not be told from one clearing them (the contract allows
+                                     thanks without recipients), and an absent cooks list from an empty one. -->
+                                <containerDefaultToNull>true</containerDefaultToNull>
                             </configOptions>
                             <openapiNormalizer>REFACTOR_ALLOF_WITH_PROPERTIES_ONLY=true</openapiNormalizer>
                             <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>

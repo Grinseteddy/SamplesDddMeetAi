@@ -13,6 +13,43 @@
     <name>Larder :: Media</name>
     <description>Images for recipes, help requests, helps and thanks; adapter to an object bucket.</description>
 
+    <properties>
+        <!-- AWS SDK v2 for the S3-compatible bucket (ADR0001); pinned here, used only by this context -->
+        <awssdk.version>2.31.50</awssdk.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${awssdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <!-- the synchronous client uses the Apache HTTP client; no Netty needed -->
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <!-- S3Mock runs in a plain GenericContainer -->
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -38,6 +75,9 @@
                                 <annotationLibrary>none</annotationLibrary>
                                 <useResponseEntity>true</useResponseEntity>
                             </configOptions>
+                            <!-- Link.url is format uri + maxLength: as java.net.URI the generated @Size cannot be
+                                 validated (HV000030), so uris are Strings; the domain parses them into URIs -->
+                            <typeMappings>string+uri=String</typeMappings>
                             <openapiNormalizer>REFACTOR_ALLOF_WITH_PROPERTIES_ONLY=true</openapiNormalizer>
                             <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
                         </configuration>

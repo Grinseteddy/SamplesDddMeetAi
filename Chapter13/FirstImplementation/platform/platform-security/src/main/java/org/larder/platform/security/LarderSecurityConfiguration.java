@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * authorities and are checked per operation with {@code @PreAuthorize}.
  */
 @AutoConfiguration
-@EnableMethodSecurity
+@EnableMethodSecurity(proxyTargetClass = true)
 public class LarderSecurityConfiguration {
 
     @Bean

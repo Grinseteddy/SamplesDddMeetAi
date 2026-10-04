@@ -88,6 +88,24 @@ class OutboxRelayTest {
     }
 
     @Test
+    void theRelayRunsInTheBackgroundUntilStopped() throws InterruptedException {
+        var transactions = new TransactionTemplate(new DataSourceTransactionManager(database.dataSource()));
+        transactions.executeWithoutResult(status ->
+                outbox.add("outbox-test", "thing.happened", "ThingHappened", UUID.randomUUID(), Map.of("answer", 3)));
+        var background = new OutboxRelay("background", database.jdbcClient(), rabbit,
+                new DataSourceTransactionManager(database.dataSource()), Duration.ofMillis(50));
+
+        background.start();
+        try {
+            assertThat(background.isRunning()).isTrue();
+            assertThat(rabbit.receive(queue, 5000)).isNotNull();
+        } finally {
+            background.stop();
+        }
+        assertThat(background.isRunning()).isFalse();
+    }
+
+    @Test
     void aRolledBackChangePublishesNothing() {
         var transactions = new TransactionTemplate(new DataSourceTransactionManager(database.dataSource()));
         transactions.executeWithoutResult(status -> {

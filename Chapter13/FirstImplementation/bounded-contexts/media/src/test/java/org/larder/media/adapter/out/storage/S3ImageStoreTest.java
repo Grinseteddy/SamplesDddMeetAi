@@ -79,12 +79,26 @@ class S3ImageStoreTest {
     }
 
     @Test
+    void aMissingBucketIsCreatedOnceAndThenUsed() {
+        var fresh = new S3ImageStore(s3, "larder-media-" + java.util.UUID.randomUUID());
+
+        fresh.ensureBucket();
+        fresh.ensureBucket();
+        MediaId id = MediaId.newId();
+        fresh.put(id, PNG);
+
+        assertThat(fresh.get(id)).contains(PNG);
+    }
+
+    @Test
     void anUnreachableBucketIsAStorageFailure() {
         try (S3Client unreachable = MediaStorageConfiguration.s3Client(new MediaStorageProperties(
                 URI.create("http://localhost:1"), "us-east-1", "larder-media", "larder", "larder"))) {
             var broken = new S3ImageStore(unreachable, "larder-media");
 
             assertThatThrownBy(() -> broken.put(MediaId.newId(), PNG)).isInstanceOf(ImageStoreException.class);
+            assertThatThrownBy(() -> broken.get(MediaId.newId())).isInstanceOf(ImageStoreException.class);
+            assertThatThrownBy(() -> broken.delete(MediaId.newId())).isInstanceOf(ImageStoreException.class);
             assertThatThrownBy(broken::ensureBucket).isInstanceOf(ImageStoreException.class);
         }
     }

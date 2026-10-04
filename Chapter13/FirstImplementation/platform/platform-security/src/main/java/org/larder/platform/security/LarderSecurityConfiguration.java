@@ -20,6 +20,7 @@ public class LarderSecurityConfiguration {
 
     @Bean
     SecurityFilterChain larderSecurityFilterChain(HttpSecurity http) throws Exception {
+        ContractErrorResponses errors = new ContractErrorResponses();
         return http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -29,7 +30,13 @@ public class LarderSecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/", "/index.html", "/app-shell/**", "/ui/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(errors)
+                        .accessDeniedHandler(errors))
+                .oauth2ResourceServer(server -> server
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(errors)
+                        .accessDeniedHandler(errors))
                 .build();
     }
 }

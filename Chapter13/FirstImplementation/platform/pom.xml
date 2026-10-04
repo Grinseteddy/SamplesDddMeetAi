@@ -15,6 +15,11 @@
     <name>Larder Platform</name>
     <description>Technical building blocks only. No domain types live here.</description>
 
+    <properties>
+        <!-- Technical helpers: their remaining branches are failure paths of Spring/RabbitMQ integration -->
+        <larder.coverage.branch>0.70</larder.coverage.branch>
+    </properties>
+
     <modules>
         <module>platform-security</module>
         <module>platform-web</module>
@@ -22,4 +27,13 @@
         <module>platform-messaging</module>
         <module>platform-test</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

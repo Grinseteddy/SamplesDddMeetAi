@@ -1,0 +1,13 @@
+{
+  "name": "larder-ui-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automated end-to-end UI tests of the Larder AppShell and its micro-UIs (Playwright)",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

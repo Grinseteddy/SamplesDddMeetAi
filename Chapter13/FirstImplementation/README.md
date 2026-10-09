@@ -16,7 +16,8 @@ platform/
 bounded-contexts/     one module per Bounded Context (see table), each with its micro-UI under static/ui/<context>/
 app-shell/            UI orchestrator (ADR0005): login, routing, rescue flow, UI kit - see app-shell/MICRO-UI.md
 larder-app/           the one Spring Boot deployable; no domain code
-infra/                docker-compose: PostgreSQL (schemas+users), RabbitMQ, Keycloak (dev realm), S3Mock (bucket)
+infra/                docker-compose: PostgreSQL (schemas+users), RabbitMQ, Keycloak (dev realm), RustFS (S3 bucket)
+ui-tests/             Playwright end-to-end tests of the UI against the running application
 ```
 
 Inside each Bounded Context (hexagonal, checked by ArchUnit):
@@ -79,7 +80,7 @@ Requires Java 21, Maven, Docker.
 
 ```bash
 mvn install                                         # generates code, compiles, runs architecture tests
-docker compose -f infra/docker-compose.yml up -d    # PostgreSQL :5432, RabbitMQ :5672/:15672, Keycloak :8180, S3Mock :9090
+docker compose -f infra/docker-compose.yml up -d    # PostgreSQL :5432, RabbitMQ :5672/:15672, Keycloak :8180, S3 :9090
 java -jar larder-app/target/larder-app-0.1.0-SNAPSHOT.jar
 scripts/smoke-app.sh                                # schemas, isolation, topology, security + the whole rescue story
 ```
@@ -96,8 +97,24 @@ Local development only:
 
 All ten Bounded Contexts are implemented.
 
-The S3 bucket is Adobe S3Mock locally (the MinIO images are not pullable here); Media talks plain S3 with the
-AWS SDK, so a real bucket only needs other `larder.media.storage.*` values.
+The S3 bucket is RustFS locally, with a volume so images survive restarts (the MinIO images are not pullable here;
+the tests use Adobe S3Mock as a throwaway container). Media talks plain S3 with the AWS SDK, so a real bucket only
+needs other `larder.media.storage.*` values. `docker compose -f infra/docker-compose.yml down -v` resets all local data.
+
+## Tests (phase 7)
+
+| Level | What | How to run |
+|---|---|---|
+| Unit / slice | Domain rules, use cases with in-memory fakes, web adapters (`@WebMvcTest`), architecture rules (ArchUnit) | `mvn install` |
+| Integration | Persistence on PostgreSQL, messaging on RabbitMQ, bucket on S3Mock (Testcontainers); upstream clients with `MockRestServiceServer` | `mvn install` |
+| Contract | Every published and consumed message against the AsyncAPIs (`AsyncApiContract`); OpenAPI schemas checked by Redocly | `mvn install`, `scripts/lint-contracts.sh` |
+| End to end (backend) | `larder-app`: the whole app on Testcontainers plays the rescue story with two cooks; every HTTP response is validated against the OpenAPI of the context that served it (`OpenApiContract`), every message against the AsyncAPIs | `mvn install` (≈ 15 s) |
+| End to end (UI) | Playwright: sign-in, rescue story through the micro-UIs incl. photos and consent dialog, feed and bell, meal-plan picker, consents, a missing micro-UI, accessibility smoke | `scripts/ui-tests.sh` (app running) |
+| Smoke | The rescue story against the running app with curl (144 checks) | `scripts/smoke-app.sh` |
+
+**Coverage gate (AP0005):** JaCoCo fails the build below 90 % lines / 80 % branches per module (platform: 70 %
+branches). Code generated from the contracts and Spring wiring (`*Configuration`) are not counted; the wiring is
+covered by the end-to-end test. Reports: `<module>/target/site/jacoco/index.html`.
 
 ## User interface (phase 6)
 
@@ -138,7 +155,7 @@ Open http://localhost:8080 and sign in as `cook` / `cook` (local dev realm).
 | 4 | Cooking Assistance (REST + publisher/consumer), Grandma Avatar ACL (deterministic recipe box), Notification | done |
 | 5 | Sharing incl. consent check for mentioned cooks | done |
 | 6 | Micro-UIs per Bounded Context + AppShell orchestrator (ADR0005) | done |
-| 7 | Contract tests (OpenAPI + AsyncAPI payloads), Testcontainers end-to-end rescue scenario, coverage gate (AP0005) | |
+| 7 | Contract tests (OpenAPI + AsyncAPI payloads), Testcontainers end-to-end rescue scenario, coverage gate (AP0005) | done |
 
 
 ## Phase 0

@@ -94,13 +94,13 @@ larder:
       schema: media
       username: media
       password: ${LARDER_DB_PASSWORD_MEDIA:media}
-    # Image bytes live in an S3-compatible bucket (S3Mock locally), metadata in the schema
+    # Image bytes live in an S3-compatible bucket (RustFS locally), metadata in the schema
     storage:
       endpoint: ${LARDER_MEDIA_STORAGE_ENDPOINT:http://localhost:9090}
       region: ${LARDER_MEDIA_STORAGE_REGION:us-east-1}
       bucket: ${LARDER_MEDIA_STORAGE_BUCKET:larder-media}
       access-key: ${LARDER_MEDIA_STORAGE_ACCESS_KEY:larder}
-      secret-key: ${LARDER_MEDIA_STORAGE_SECRET_KEY:larder}
+      secret-key: ${LARDER_MEDIA_STORAGE_SECRET_KEY:larder-local}
   sharing:
     database:
       url: ${LARDER_DB_URL:jdbc:postgresql://localhost:5432/larder}

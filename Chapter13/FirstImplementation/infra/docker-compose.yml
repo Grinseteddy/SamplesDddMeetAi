@@ -21,11 +21,17 @@ services:
       - "15672:15672"
 
   # S3-compatible bucket for the Media context (ADR0001: Media wraps an external bucket).
-  # Adobe S3Mock locally: the MinIO images are not pullable here. Any credentials are accepted.
+  # RustFS with a volume, so images survive restarts like the database does (the MinIO images are not
+  # pullable here; S3Mock does not reload its files after a restart and serves only the tests).
   s3:
-    image: adobe/s3mock:5.2.3
+    image: rustfs/rustfs:1.0.1
+    environment:
+      RUSTFS_ACCESS_KEY: larder
+      RUSTFS_SECRET_KEY: larder-local
     ports:
-      - "9090:9090"
+      - "9090:9000"
+    volumes:
+      - s3-data:/data
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -39,3 +45,6 @@ services:
       - "8180:8080"
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
+
+volumes:
+  s3-data:

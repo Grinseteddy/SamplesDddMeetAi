@@ -109,6 +109,15 @@ Implementation decisions where the contracts are silent (details in the module c
 - **The rescue picture belongs to the help request** (Media link `helpRequest`); the thanks ask for a new picture of
   the rescued meal.
 
+## Decided in phase 7
+
+- **Every HTTP response is checked against its contract** in the end-to-end test, also 401 and 403. That found a
+  defect in every context: Spring Security answered 401 (no token) and 403 (missing scope) with an empty body, the
+  contracts promise the `Error` body. Fixed centrally (`ContractErrorResponses` in platform-security).
+- **Coverage gate** 90 % lines / 80 % branches per module, generated code and Spring wiring excluded.
+- **Local S3 bucket is RustFS with a volume:** S3Mock lost every image on a Docker restart while the metadata stayed
+  in PostgreSQL - Media then answered 500 `STORAGE_UNAVAILABLE` for those images. The tests keep S3Mock.
+
 ## Open
 
 - **The ubiquitous language is spelled differently:** `Meal` is `dinner` in Meal Planning but `DINNER` in Recipe

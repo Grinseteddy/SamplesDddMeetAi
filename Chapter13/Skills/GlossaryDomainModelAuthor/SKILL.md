@@ -1,6 +1,7 @@
 ---
 name: glossary-domain-model-author
 description: Turn a Visual Glossary into source code for ONE bounded context's domain model, deciding entity vs value object per term with a written rationale. Asks for the target language first.
+author: Annegret Junker
 ---
 
 # Glossary Domain Model Author

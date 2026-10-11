@@ -1,0 +1,1207 @@
+openapi: 3.1.0
+info:
+  title: Cooking Assistance API
+  description: |
+    Provides help for cooks planning and preparing meals and dinners.
+    Cooks create help requests and select Community, AI (Grandma Avatar), or Chef providers.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 3fc475e7-435f-46d9-932c-d9cb08b73eff
+  x-audience: external-public
+servers:
+- url: https://larder.org/cooking-assistance
+security:
+- BearerAuth: []
+tags:
+- name: Help requests
+  description: Cooking problems and menu requests created by cooks.
+- name: Helps
+  description: Typed answers supplied by selected providers.
+x-source-artifacts:
+- CookingAssistanceApiProductCanvasSynchronous.jpg
+- CookingAssistanceHelpRequestVisualGlossary.jpg
+- CookingAssistanceHelpVisualGlossary.jpg
+x-design-assumptions:
+- Draft descriptions require domain-expert review; the diagrams provide terms and examples rather than
+  formal prose definitions.
+- HTTP bearer authentication and external-public audience are proposed. Token issuance, validation and
+  role mapping are unspecified; no identity-provider URLs are invented.
+- The required version header is a house-style addition, not shown in the canvas.
+- Requester, helpRequester, human helpProvider, identifiers and request status are server-maintained.
+  AI callers use a service identity; provider ownership must be retained internally even when helpProvider
+  is absent.
+- 'Status is derived from existing helps: no helps means OPEN; one or more means ANSWERED. Deleting the
+  final help reopens the request. Confirm this lifecycle policy.'
+- 'PATCH uses application/json partial objects: omitted fields unchanged, arrays replaced, optional nullable
+  references cleared with null, and answer replaced as a whole. Full merged resources are validated atomically.'
+- The canvas type filter for /helps is interpreted as answer type. helpProvider is a provider UUID.
+- Glossary Grandma Avartar is normalized to GRANDMA_AVATAR and represents canvas AI; measurement spellings
+  are normalized (e.g. Gramm to GRAM).
+- The Help answer is flattened to a discriminated union with answerType inside each selected variant;
+  no duplicated outer answerType is serialized.
+- Chef-exclusive selection means preferredProvider=[CHEF], allowed only for MENU_PROPOSAL; other request
+  types can use Community and/or Grandma Avatar.
+- Chef privacy applies to list and direct GET; author-only mutation remains permitted. Provider type is
+  authorized by the service and cannot be self-assigned without role checks.
+- Malformed references and domain-rule failures use canvas 400; no new 409 or 422 responses were added.
+  Collections use empty arrays rather than 404.
+- No pagination or maximum text lengths are invented. Positive quantities, servings and course steps,
+  unique provider choices, immutable ownership and non-empty text are proposed validation refinements.
+- Preparation requests retain the glossary optional howToStep; a PreparationStepExplanation answer requires
+  a matching step, so requests without a step must be updated before they can receive that answer.
+- Glossary 0..1 singular fields permit omission or null. Unbounded plural fields are optional arrays and
+  permit empty arrays. The singular glossary names preferredProvider, substitute and course remain array
+  property names.
+- The PATCH Help success sticky says link to changed help request; treated as a copy error and returned
+  as link to the changed Help.
+paths:
+  /help-requests:
+    get:
+      operationId: listHelpRequests
+      tags:
+      - Help requests
+      summary: List help requests
+      description: |
+        Return all matching visible resources as a JSON array; filters are combined with AND. No matches returns an empty array. Pagination is not specified by the canvas.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/RequesterParameter'
+      - $ref: '#/components/parameters/StatusParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+    post:
+      operationId: createHelpRequest
+      tags:
+      - Help requests
+      summary: Create help request
+      description: |
+        Create a request owned by the authenticated cook, initially OPEN. Return its resource link and Location header.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpRequestCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+  /help-requests/{helpRequestId}:
+    get:
+      operationId: getHelpRequestById
+      tags:
+      - Help requests
+      summary: Get help request
+      description: |
+        Return the addressed resource.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+    patch:
+      operationId: updateHelpRequest
+      tags:
+      - Help requests
+      summary: Update help request
+      description: |
+        Only the original requester may update this request. Omitted fields remain unchanged; null clears optional singular references and arrays are replaced as a whole. Validate the merged resource and all existing helps atomically; reject changes that would break answer type, reference or provider invariants with 400. Status and ownership are server-maintained.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpRequestUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/UpdatedResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+    delete:
+      operationId: deleteHelpRequest
+      tags:
+      - Help requests
+      summary: Delete help request
+      description: |
+        Only the original requester may delete this request, and only while its status is OPEN. A non-OPEN request returns 400. Return 204 without a body.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      responses:
+        '204':
+          description: Resource deleted; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+  /helps:
+    get:
+      operationId: listHelps
+      tags:
+      - Helps
+      summary: List helps
+      description: |
+        Return all matching visible resources as a JSON array; filters are combined with AND. No matches returns an empty array. Pagination is not specified by the canvas.
+        Chef help is visible only to the original requester, including on direct GET. Lists omit inaccessible Chef helps; direct unauthorized access returns 403. A Chef provider does not gain read access solely by being the author.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpRequestFilterParameter'
+      - $ref: '#/components/parameters/TypeParameter'
+      - $ref: '#/components/parameters/HelpProviderParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+    post:
+      operationId: createHelp
+      tags:
+      - Helps
+      summary: Create help
+      description: |
+        The authenticated provider must be authorized for helpProviderType, which must occur in the referenced request preferredProvider. A cook may answer their own request except with Chef help. Validate all cross-resource constraints before committing. Set the parent request status to ANSWERED atomically. Return its Help resource link and Location header.
+        answer.answerType must equal the request type. Supplied recipe references must equal the request recipe; preparation step must equal request howToStep; substitute ingredients must be drawn from request ingredients. Chef answers are Menu proposals only. These cross-resource checks are enforced by the service, not JSON Schema.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+  /helps/{helpId}:
+    get:
+      operationId: getHelpById
+      tags:
+      - Helps
+      summary: Get help
+      description: |
+        Return the addressed resource.
+        Chef help is visible only to the original requester, including on direct GET. Lists omit inaccessible Chef helps; direct unauthorized access returns 403. A Chef provider does not gain read access solely by being the author.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+    patch:
+      operationId: updateHelp
+      tags:
+      - Helps
+      summary: Update help
+      description: |
+        Only the original provider may update the Help, including a Chef provider. Omitted fields are unchanged; answer replaces the complete typed answer. Validate against the related request atomically. Provider type, ownership and request association are immutable.
+        answer.answerType must equal the request type. Supplied recipe references must equal the request recipe; preparation step must equal request howToStep; substitute ingredients must be drawn from request ingredients. Chef answers are Menu proposals only. These cross-resource checks are enforced by the service, not JSON Schema.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/UpdatedResourceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+    delete:
+      operationId: deleteHelp
+      tags:
+      - Helps
+      summary: Delete help
+      description: |
+        Only the original provider may delete the Help. If this removes the final answer, set the parent request status to OPEN atomically (proposed lifecycle assumption). Return 204 without a body.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpIdParameter'
+      responses:
+        '204':
+          description: Resource deleted; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/DefaultErrorResponse'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      description: Contract version required by the proposed house style.
+      required: true
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    HelpRequestIdParameter:
+      name: helpRequestId
+      in: path
+      description: Identifier of the resource to retrieve or change.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    HelpIdParameter:
+      name: helpId
+      in: path
+      description: Identifier of the resource to retrieve or change.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RequesterParameter:
+      name: requester
+      in: query
+      description: Filter requests by the requesting cook.
+      required: false
+      schema:
+        type: string
+        format: uuid
+    StatusParameter:
+      name: status
+      in: query
+      description: Filter requests by current state.
+      required: false
+      schema:
+        $ref: '#/components/schemas/RequestStatus'
+    HelpRequestFilterParameter:
+      name: helpRequestId
+      in: query
+      description: Filter helps by the answered request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+    TypeParameter:
+      name: type
+      in: query
+      description: Filter helps by answer type; assumed to mean answerType, not provider type.
+      required: false
+      schema:
+        $ref: '#/components/schemas/RequestType'
+    HelpProviderParameter:
+      name: helpProvider
+      in: query
+      description: Filter helps by human provider identity.
+      required: false
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    RequestType:
+      description: 'Type of cooking assistance: Ingredient Substitute, Preparation Step Explanation, Steps
+        to Mitigate Catastrophe, or Menu proposal.'
+      type: string
+      enum:
+      - INGREDIENT_SUBSTITUTE
+      - PREPARATION_STEP_EXPLANATION
+      - STEPS_TO_MITIGATE_CATASTROPHE
+      - MENU_PROPOSAL
+    ProviderType:
+      description: Chef, Grandma Avatar (the AI provider), or Community. The glossary spelling Grandma
+        Avartar is normalized to Grandma Avatar.
+      type: string
+      enum:
+      - CHEF
+      - GRANDMA_AVATAR
+      - COMMUNITY
+    RequestStatus:
+      description: Open or Answered; an Answered request must have at least one associated Help.
+      type: string
+      enum:
+      - OPEN
+      - ANSWERED
+    Unit:
+      description: Measurement unit for a substitute ingredient; spelling is normalized from the glossary.
+      type: string
+      enum:
+      - PIECE
+      - CUP
+      - TABLE_SPOON
+      - TEA_SPOON
+      - FLUID_OUNCES
+      - PINT
+      - QUART
+      - POUND
+      - KILOGRAM
+      - GRAM
+      - LITER
+      - MILLILITER
+      - PINCH
+    Meal:
+      description: Meal occasion for the proposed menu.
+      type: string
+      enum:
+      - BREAKFAST
+      - LUNCH
+      - DINNER
+      - SUPPER
+    HelpRequestCreate:
+      description: Client fields for a new request. The server derives requester from the caller and initializes
+        status to OPEN.
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          description: Short title describing the cooking problem.
+          type: string
+          minLength: 1
+        type:
+          description: Kind of assistance the requester needs.
+          $ref: '#/components/schemas/RequestType'
+        description:
+          description: Details of the cooking problem or desired menu.
+          type: string
+          minLength: 1
+        recipe:
+          description: Referenced recipe; required for Ingredient Substitute and Preparation Step Explanation.
+          type:
+          - string
+          - 'null'
+          format: uuid
+        howToStep:
+          description: Referenced preparation step; a non-null value is allowed only for Preparation Step
+            Explanation.
+          type:
+          - string
+          - 'null'
+          format: uuid
+        ingredients:
+          description: Ingredients for which substitutes are requested; non-empty only for Ingredient
+            Substitute.
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 0
+        preferredProvider:
+          description: One or two selected provider types. Chef is exclusive and available only for Menu
+            proposal.
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderType'
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+      allOf:
+      - if:
+          properties:
+            type:
+              enum:
+              - INGREDIENT_SUBSTITUTE
+              - PREPARATION_STEP_EXPLANATION
+              description: Request category tested by this conditional rule.
+          required:
+          - type
+        then:
+          required:
+          - recipe
+          properties:
+            recipe:
+              description: Recipe required for this request type.
+              type: string
+              format: uuid
+      - if:
+          properties:
+            type:
+              const: PREPARATION_STEP_EXPLANATION
+              description: Request category tested by this conditional rule.
+          required:
+          - type
+        else:
+          properties:
+            howToStep:
+              description: No preparation step is associated with this request type.
+              type: 'null'
+      - if:
+          properties:
+            type:
+              const: INGREDIENT_SUBSTITUTE
+              description: Request category tested by this conditional rule.
+          required:
+          - type
+        else:
+          properties:
+            ingredients:
+              description: Other request types cannot select ingredients.
+              type: array
+              items:
+                type: string
+                format: uuid
+              minItems: 0
+              maxItems: 0
+      - if:
+          properties:
+            preferredProvider:
+              contains:
+                const: CHEF
+              description: Provider choices tested for exclusive Chef support.
+          required:
+          - preferredProvider
+        then:
+          properties:
+            type:
+              description: Chef support is restricted to Menu proposal.
+              const: MENU_PROPOSAL
+            preferredProvider:
+              description: Chef support excludes all other provider types.
+              type: array
+              items:
+                $ref: '#/components/schemas/ProviderType'
+              minItems: 1
+              maxItems: 1
+      required:
+      - title
+      - type
+      - description
+      - preferredProvider
+    HelpRequest:
+      description: Cooking assistance request, including its owner and current status.
+      type: object
+      additionalProperties: false
+      properties:
+        helpRequestId:
+          description: Request identifier generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        requester:
+          description: Cook who created the request, derived from the authenticated caller.
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          description: Short title describing the cooking problem.
+          type: string
+          minLength: 1
+        type:
+          description: Kind of assistance the requester needs.
+          $ref: '#/components/schemas/RequestType'
+        description:
+          description: Details of the cooking problem or desired menu.
+          type: string
+          minLength: 1
+        recipe:
+          description: Referenced recipe; required for Ingredient Substitute and Preparation Step Explanation.
+          type:
+          - string
+          - 'null'
+          format: uuid
+        howToStep:
+          description: Referenced preparation step; a non-null value is allowed only for Preparation Step
+            Explanation.
+          type:
+          - string
+          - 'null'
+          format: uuid
+        ingredients:
+          description: Ingredients for which substitutes are requested; non-empty only for Ingredient
+            Substitute.
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 0
+        preferredProvider:
+          description: One or two selected provider types. Chef is exclusive and available only for Menu
+            proposal.
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderType'
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+        status:
+          description: Server-maintained state reflecting whether any Help answers the request.
+          $ref: '#/components/schemas/RequestStatus'
+          readOnly: true
+      allOf:
+      - if:
+          properties:
+            type:
+              enum:
+              - INGREDIENT_SUBSTITUTE
+              - PREPARATION_STEP_EXPLANATION
+              description: Request category tested by this conditional rule.
+          required:
+          - type
+        then:
+          required:
+          - recipe
+          properties:
+            recipe:
+              description: Recipe required for this request type.
+              type: string
+              format: uuid
+      - if:
+          properties:
+            type:
+              const: PREPARATION_STEP_EXPLANATION
+              description: Request category tested by this conditional rule.
+          required:
+          - type
+        else:
+          properties:
+            howToStep:
+              description: No preparation step is associated with this request type.
+              type: 'null'
+      - if:
+          properties:
+            type:
+              const: INGREDIENT_SUBSTITUTE
+              description: Request category tested by this conditional rule.
+          required:
+          - type
+        else:
+          properties:
+            ingredients:
+              description: Other request types cannot select ingredients.
+              type: array
+              items:
+                type: string
+                format: uuid
+              minItems: 0
+              maxItems: 0
+      - if:
+          properties:
+            preferredProvider:
+              contains:
+                const: CHEF
+              description: Provider choices tested for exclusive Chef support.
+          required:
+          - preferredProvider
+        then:
+          properties:
+            type:
+              description: Chef support is restricted to Menu proposal.
+              const: MENU_PROPOSAL
+            preferredProvider:
+              description: Chef support excludes all other provider types.
+              type: array
+              items:
+                $ref: '#/components/schemas/ProviderType'
+              minItems: 1
+              maxItems: 1
+      required:
+      - helpRequestId
+      - requester
+      - title
+      - type
+      - description
+      - preferredProvider
+      - status
+    HelpRequestUpdate:
+      description: Partial request update. Omitted fields are unchanged; null clears recipe or howToStep.
+        The server validates the full merged resource and existing helps atomically.
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          description: Short title describing the cooking problem.
+          type: string
+          minLength: 1
+        type:
+          description: Kind of assistance the requester needs.
+          $ref: '#/components/schemas/RequestType'
+        description:
+          description: Details of the cooking problem or desired menu.
+          type: string
+          minLength: 1
+        recipe:
+          description: Referenced recipe; required for Ingredient Substitute and Preparation Step Explanation.
+          type:
+          - string
+          - 'null'
+          format: uuid
+        howToStep:
+          description: Referenced preparation step; a non-null value is allowed only for Preparation Step
+            Explanation.
+          type:
+          - string
+          - 'null'
+          format: uuid
+        ingredients:
+          description: Ingredients for which substitutes are requested; non-empty only for Ingredient
+            Substitute.
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 0
+        preferredProvider:
+          description: One or two selected provider types. Chef is exclusive and available only for Menu
+            proposal.
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderType'
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+      minProperties: 1
+    SubstituteIngredient:
+      description: Replacement ingredient and its quantity.
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          description: Name of the ingredient to use instead.
+          type: string
+          minLength: 1
+        value:
+          description: Quantity of the replacement ingredient; assumed positive.
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          description: Unit used to express the replacement quantity.
+          $ref: '#/components/schemas/Unit'
+      required:
+      - name
+      - value
+      - unit
+    Substitute:
+      description: Replacement for one ingredient referenced by the request.
+      type: object
+      additionalProperties: false
+      properties:
+        ingredient:
+          description: Original ingredient; must occur in the related request ingredients.
+          type: string
+          format: uuid
+        substituteIngredient:
+          description: Replacement ingredient with its quantity.
+          $ref: '#/components/schemas/SubstituteIngredient'
+      required:
+      - ingredient
+      - substituteIngredient
+    Substitutes:
+      description: Ingredient Substitute answer.
+      type: object
+      additionalProperties: false
+      properties:
+        answerType:
+          description: Discriminator identifying the answer variant; must match the related request type.
+          type: string
+          const: INGREDIENT_SUBSTITUTE
+        recipe:
+          description: Recipe being adapted; must equal the related request recipe.
+          type: string
+          format: uuid
+        substitute:
+          description: One or more ingredient replacements.
+          type: array
+          items:
+            $ref: '#/components/schemas/Substitute'
+          minItems: 1
+      required:
+      - answerType
+      - recipe
+      - substitute
+    PreparationStepExplanation:
+      description: Preparation Step Explanation answer.
+      type: object
+      additionalProperties: false
+      properties:
+        answerType:
+          description: Discriminator identifying the answer variant; must match the related request type.
+          type: string
+          const: PREPARATION_STEP_EXPLANATION
+        recipe:
+          description: Recipe being explained; must equal the related request recipe.
+          type: string
+          format: uuid
+        howToStep:
+          description: Step being explained; must equal the related request howToStep.
+          type: string
+          format: uuid
+        description:
+          description: Explanation of how to carry out the preparation step.
+          type: string
+          minLength: 1
+        images:
+          description: Optional image URLs illustrating the preparation step.
+          type: array
+          items:
+            type: string
+            format: uri
+          minItems: 0
+      required:
+      - answerType
+      - recipe
+      - howToStep
+      - description
+    CatastropheMitigation:
+      description: Steps to Mitigate Catastrophe answer.
+      type: object
+      additionalProperties: false
+      properties:
+        answerType:
+          description: Discriminator identifying the answer variant; must match the related request type.
+          type: string
+          const: STEPS_TO_MITIGATE_CATASTROPHE
+        recipe:
+          description: Optional recipe reference; when provided it must match the related request recipe.
+          type:
+          - string
+          - 'null'
+          format: uuid
+        explanation:
+          description: Instructions for recovering from the cooking problem.
+          type: string
+          minLength: 1
+      required:
+      - answerType
+      - explanation
+    CourseMeal:
+      description: Meal served as part of one course.
+      type: object
+      additionalProperties: false
+      properties:
+        recipe:
+          description: Recipe to prepare for this course meal.
+          type: string
+          format: uuid
+      required:
+      - recipe
+    Course:
+      description: One course in the proposed menu.
+      type: object
+      additionalProperties: false
+      properties:
+        step:
+          description: Serving order; multiple courses may share a step when served in parallel. Assumed
+            positive.
+          type: integer
+          minimum: 1
+        meal:
+          description: Recipe-backed meal served in this course.
+          $ref: '#/components/schemas/CourseMeal'
+      required:
+      - step
+      - meal
+    MenuProposal:
+      description: Menu proposal answer.
+      type: object
+      additionalProperties: false
+      properties:
+        answerType:
+          description: Discriminator identifying the answer variant; must match the related request type.
+          type: string
+          const: MENU_PROPOSAL
+        note:
+          description: Advice accompanying the proposed menu.
+          type: string
+          minLength: 1
+        servings:
+          description: Number of people served; assumed positive.
+          type: integer
+          minimum: 1
+        meal:
+          description: Meal occasion for this menu.
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional instructions for serving the menu.
+          type:
+          - string
+          - 'null'
+          minLength: 1
+        course:
+          description: Between one and ten courses in the proposed menu.
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+          minItems: 1
+          maxItems: 10
+      required:
+      - answerType
+      - note
+      - servings
+      - meal
+      - course
+    Answer:
+      description: Exactly one typed answer. Each alternative carries answerType; it must equal the referenced
+        help request type.
+      oneOf:
+      - $ref: '#/components/schemas/Substitutes'
+      - $ref: '#/components/schemas/PreparationStepExplanation'
+      - $ref: '#/components/schemas/CatastropheMitigation'
+      - $ref: '#/components/schemas/MenuProposal'
+      discriminator:
+        propertyName: answerType
+        mapping:
+          INGREDIENT_SUBSTITUTE: '#/components/schemas/Substitutes'
+          PREPARATION_STEP_EXPLANATION: '#/components/schemas/PreparationStepExplanation'
+          STEPS_TO_MITIGATE_CATASTROPHE: '#/components/schemas/CatastropheMitigation'
+          MENU_PROPOSAL: '#/components/schemas/MenuProposal'
+    HelpCreate:
+      description: New answer. The server derives helpRequester from the request and helpProvider from
+        the authenticated provider; AI may have no human provider.
+      type: object
+      additionalProperties: false
+      properties:
+        helpRequest:
+          description: Request answered by this Help; must identify an existing request.
+          type: string
+          format: uuid
+        helpProviderType:
+          description: Kind of provider answering the request; must be selected in preferredProvider.
+          $ref: '#/components/schemas/ProviderType'
+        answerTitle:
+          description: Short title introducing the answer.
+          type: string
+          minLength: 1
+        answer:
+          description: Typed advice supplied in response to the request.
+          $ref: '#/components/schemas/Answer'
+      allOf:
+      - if:
+          properties:
+            helpProviderType:
+              const: CHEF
+              description: Provider category tested for Chef-only answer constraints.
+          required:
+          - helpProviderType
+        then:
+          properties:
+            answer:
+              description: Chef answers must be Menu proposals.
+              $ref: '#/components/schemas/MenuProposal'
+      required:
+      - helpRequest
+      - helpProviderType
+      - answerTitle
+      - answer
+    Help:
+      description: Answer supplied by a selected provider to a cooking assistance request.
+      type: object
+      additionalProperties: false
+      properties:
+        helpId:
+          description: Help identifier generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        helpRequest:
+          description: Request answered by this Help; must identify an existing request.
+          type: string
+          format: uuid
+        helpRequester:
+          description: Owner of the related request, derived by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        helpProviderType:
+          description: Kind of provider answering the request; must be selected in preferredProvider.
+          $ref: '#/components/schemas/ProviderType'
+        helpProvider:
+          description: Human provider identity, derived from the caller; may be absent or null for Grandma
+            Avatar.
+          type:
+          - string
+          - 'null'
+          format: uuid
+          readOnly: true
+        answerTitle:
+          description: Short title introducing the answer.
+          type: string
+          minLength: 1
+        answer:
+          description: Typed advice supplied in response to the request.
+          $ref: '#/components/schemas/Answer'
+      allOf:
+      - if:
+          properties:
+            helpProviderType:
+              const: CHEF
+              description: Provider category tested for Chef-only answer constraints.
+          required:
+          - helpProviderType
+        then:
+          properties:
+            answer:
+              description: Chef answers must be Menu proposals.
+              $ref: '#/components/schemas/MenuProposal'
+      required:
+      - helpId
+      - helpRequest
+      - helpRequester
+      - answerTitle
+      - helpProviderType
+      - answer
+    HelpUpdate:
+      description: Partial Help update. answer, if present, replaces the entire answer object. Ownership,
+        request association and provider type cannot be changed.
+      type: object
+      additionalProperties: false
+      properties:
+        answerTitle:
+          description: Short title introducing the answer.
+          type: string
+          minLength: 1
+        answer:
+          description: Typed advice supplied in response to the request.
+          $ref: '#/components/schemas/Answer'
+      minProperties: 1
+    HelpRequestList:
+      description: Requests matching the supplied filters; empty when there are no matches.
+      type: array
+      items:
+        $ref: '#/components/schemas/HelpRequest'
+      minItems: 0
+    HelpList:
+      description: Visible helps matching all supplied filters; unauthorized Chef helps are excluded.
+      type: array
+      items:
+        $ref: '#/components/schemas/Help'
+      minItems: 0
+    ResourceLink:
+      description: Link to a created or updated resource.
+      type: object
+      additionalProperties: false
+      properties:
+        href:
+          description: Absolute URI for retrieving the created or updated resource.
+          type: string
+          format: uri
+      required:
+      - href
+    Error:
+      description: Shared API error representation.
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+          minLength: 1
+        message:
+          description: Human-readable explanation of the failure.
+          type: string
+          minLength: 1
+        details:
+          description: Optional error-specific context without exposing private resource content.
+          type: object
+          additionalProperties: true
+      required:
+      - code
+      - message
+  responses:
+    HelpRequestResponse:
+      description: Requested HelpRequest representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequest'
+    HelpResponse:
+      description: Requested Help representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Help'
+    HelpRequestListResponse:
+      description: Requested HelpRequestList representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestList'
+    HelpListResponse:
+      description: Requested HelpList representation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpList'
+    BadRequestResponse:
+      description: Invalid payload, parameter, reference or domain invariant. Includes deletion of a request
+        that is not OPEN.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Authentication credentials are missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          description: Authentication challenge for the required bearer credentials.
+          schema:
+            type: string
+          example: Bearer
+    ForbiddenResponse:
+      description: The authenticated caller cannot perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: The addressed resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: Unexpected server failure.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DefaultErrorResponse:
+      description: Unexpected non-success response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    CreatedResourceResponse:
+      description: Link to the created resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceLink'
+      headers:
+        Location:
+          description: Absolute URI of the created resource.
+          required: true
+          schema:
+            type: string
+            format: uri
+    UpdatedResourceResponse:
+      description: Link to the updated resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceLink'
+  requestBodies:
+    HelpRequestCreateRequest:
+      description: Client fields for a new request. The server derives requester from the caller and initializes
+        status to OPEN.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestCreate'
+    HelpRequestUpdateRequest:
+      description: Partial request update. Omitted fields are unchanged; null clears recipe or howToStep.
+        The server validates the full merged resource and existing helps atomically.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestUpdate'
+    HelpCreateRequest:
+      description: New answer. The server derives helpRequester from the request and helpProvider from
+        the authenticated provider; AI may have no human provider.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpCreate'
+    HelpUpdateRequest:
+      description: Partial Help update. answer, if present, replaces the entire answer object. Ownership,
+        request association and provider type cannot be changed.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpUpdate'
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Proposed bearer authentication. The service resolves caller identity and authorized
+        provider roles; ownership and Chef visibility checks are mandatory independently of authentication.

@@ -2,7 +2,7 @@
 
 Criticize the Impact Map based on the Brainstorming result and Business Model Canvas.
 Use the provided skill.
-![](../assets/ImpactMapping.jpg)
+![](../../Chapter14/DomainKnowledgeGraphInclApis/03ImpactMapping/ImpactMapping.jpg)
 ![](../assets/BrainstormingConvergence.jpg)
 ![](../assets/BusinessModelCanvasEnhanced.jpg)
 [SKILL.md](../Skills/ImpactMappingSkill/SKILL.md)

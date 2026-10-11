@@ -1,7 +1,7 @@
 # Prompt 2026-06-06:
 
 Criticize the Impact Map based on the Brainstorming result and Business Model Canvas. 
-![](../assets/ImpactMapping.jpg)
+![](../../Chapter14/DomainKnowledgeGraphInclApis/03ImpactMapping/ImpactMapping.jpg)
 ![](../assets/BrainstormingConvergence.jpg)
 ![](../assets/BusinessModelCanvasEnhanced.jpg)
 [SKILL.md](../Skills/ImpactMappingSkill/SKILL.md)

@@ -1,0 +1,467 @@
+openapi: 3.1.0
+info:
+  title: Consent Management API
+  description: |
+    Manages platform consents for authorized platform applications. Supports granting, retrieving and revoking consent, and retrieving backend-managed consent texts.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: d40e693c-40d2-4415-9739-d3ebe49ad84d
+  x-audience: company-internal
+servers:
+- url: https://larder.org/consent-management
+  description: Server specified in the API Product Canvas.
+security:
+- OAuth2:
+  - consents:read
+tags:
+- name: Consents
+  description: Consent grants and revocations for subjects.
+- name: Consent Texts
+  description: Read access to consent wording managed through the backend.
+x-source-artifacts:
+- ConsentManagementApiProductCanvasSynchronous.jpg
+- ConsentManagementConsentVisualGlossary.jpg
+x-design-assumptions:
+- Canvas controls the operation set, paths, version, contact, server and response codes; the glossary
+  controls names and read-model cardinalities. Descriptions are drafts for domain-expert confirmation.
+- Company-internal audience and OAuth2 authorization-code flow with PKCE are proposed defaults. Identity-provider
+  URLs use example.com placeholders and must be replaced; scope names and subject-level authorization
+  policy require confirmation.
+- A required version header is added by house convention; it is not shown in the canvas.
+- The subject query parameter is treated as required. Collection responses are unpaginated JSON arrays;
+  empty results return 200 with []. Pagination and limits are unspecified.
+- ConsentCreate carries subject and a reference to an existing consentText via consentTextId. This refines
+  the canvas consent request; clients cannot create or edit consent text here.
+- The server generates consentId and givenAt when accepting consent and revokedAt when revoking it. Confirm
+  whether historical or offline grant timestamps must be accepted from clients.
+- 'DELETE is logical revocation: the record remains readable. Repeat revocation returns 204 and preserves
+  the original revokedAt. Lists include active and revoked records visible to the caller.'
+- Consent responses embed one ConsentText. Proposed behavior preserves the wording accepted at grant time
+  even if backend text changes. Text versioning is not specified by the inputs.
+- UUID formats are inferred from the glossary examples. Optional revokedAt may be absent or null while
+  active. No arbitrary text-length or collection-size limits are imposed.
+- The glossary givenAt and revokedAt examples contain duplicated date text and omit seconds. Examples
+  are normalized to RFC 3339 values; these are illustrative, not recovered source timestamps.
+- 201 uses a Location header to express the canvas link to the created consent and has no response body.
+  Unknown consentTextId at creation returns 400, consistent with the canvas response set.
+paths:
+  /consents:
+    get:
+      operationId: listConsents
+      tags:
+      - Consents
+      summary: List consents for a subject
+      description: |
+        Return all active and revoked consents visible to the caller for the required subject. Return an empty array if none exist. The caller must have permission to view the subject.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/SubjectParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    post:
+      operationId: createConsent
+      tags:
+      - Consents
+      summary: Create a consent
+      description: |
+        Record consent for the supplied subject and existing consent text. Verify that the caller may act for the subject; resolve and preserve the selected wording. Generate consentId and givenAt on the server. Return the created resource URL in Location. An unknown consentTextId is a bad request.
+      security:
+      - OAuth2:
+        - consents:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/ConsentCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ConsentCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /consents/{consentId}:
+    get:
+      operationId: getConsentById
+      tags:
+      - Consents
+      summary: Get a consent
+      description: |
+        Retrieve one consent, including its accepted wording and any revocation timestamp. A revoked consent remains readable to authorized callers.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/ConsentIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: revokeConsent
+      tags:
+      - Consents
+      summary: Revoke a consent
+      description: |
+        Revoke the consent by setting revokedAt on the server; retain the grant record. The proposed behavior is idempotent: an already revoked consent returns 204 without changing its original revocation timestamp. An unknown consentId returns 404.
+      security:
+      - OAuth2:
+        - consents:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/ConsentIdParameter'
+      responses:
+        '204':
+          description: Consent is revoked; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /consents/consent-texts:
+    get:
+      operationId: listConsentTexts
+      tags:
+      - Consent Texts
+      summary: List consent texts
+      description: |
+        Retrieve available consent texts. Consent texts are created and changed only through the backend; this API exposes no text mutation operations. Return an empty array when none are available.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentTextsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /consents/consent-texts/{consentTextId}:
+    get:
+      operationId: getConsentTextById
+      tags:
+      - Consent Texts
+      summary: Get a consent text
+      description: |
+        Retrieve the backend-managed wording identified by consentTextId. This operation does not alter the consent text.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/ConsentTextIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsentTextResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      description: API contract version requested by the caller.
+      required: true
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    SubjectParameter:
+      name: subject
+      in: query
+      description: Identifier of the person who gives consent; results are restricted to subjects the
+        caller may access.
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+    ConsentIdParameter:
+      name: consentId
+      in: path
+      description: Identifier of the requested consent.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ConsentTextIdParameter:
+      name: consentTextId
+      in: path
+      description: Identifier of the requested consent text.
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    ConsentText:
+      description: Consent wording managed through the backend.
+      type: object
+      required:
+      - consentTextId
+      - text
+      properties:
+        consentTextId:
+          description: Identity of the consent wording selected for a grant.
+          type: string
+          format: uuid
+          examples:
+          - 5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+        text:
+          description: Wording to which the subject gives consent.
+          type: string
+          minLength: 1
+          examples:
+          - I allow to use my photos in public thanks and recipes.
+    Consent:
+      description: A consent given by one subject to exactly one consent text.
+      type: object
+      required:
+      - consentId
+      - subject
+      - consentText
+      - givenAt
+      properties:
+        consentId:
+          description: Unique identity of the consent, generated by the server.
+          type: string
+          format: uuid
+          examples:
+          - f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+          readOnly: true
+        subject:
+          description: Identity of the person who gives the consent.
+          type: string
+          format: uuid
+          examples:
+          - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        consentText:
+          description: The single consent text accepted by the subject; proposed snapshot of wording at
+            grant time.
+          $ref: '#/components/schemas/ConsentText'
+        givenAt:
+          description: Time at which the server records the grant of consent.
+          type: string
+          format: date-time
+          readOnly: true
+          examples:
+          - '2026-09-21T12:34:00+02:00'
+        revokedAt:
+          description: Time at which the server revokes consent; absent or null while consent remains
+            active.
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+          examples:
+          - '2026-09-21T13:34:00+02:00'
+          - null
+    ConsentTextReference:
+      description: Reference to existing backend-managed consent wording.
+      type: object
+      required:
+      - consentTextId
+      properties:
+        consentTextId:
+          description: Identity of an existing consent text to which the subject agrees.
+          type: string
+          format: uuid
+          examples:
+          - 5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+    ConsentCreate:
+      description: Client-supplied information for recording a new consent.
+      type: object
+      required:
+      - subject
+      - consentText
+      properties:
+        subject:
+          description: Identity of the person giving consent; the caller must be authorized to act for
+            this subject.
+          type: string
+          format: uuid
+          examples:
+          - f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+        consentText:
+          description: The existing consent text selected by the subject; wording cannot be supplied or
+            changed here.
+          $ref: '#/components/schemas/ConsentTextReference'
+    Consents:
+      description: Collection of consents visible to the caller for the requested subject, including revoked
+        grants.
+      type: array
+      items:
+        $ref: '#/components/schemas/Consent'
+    ConsentTexts:
+      description: Collection of available consent texts.
+      type: array
+      items:
+        $ref: '#/components/schemas/ConsentText'
+    Error:
+      description: Shared error representation.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable identifier of the error condition.
+          type: string
+          minLength: 1
+        message:
+          description: Human-readable explanation of the failure.
+          type: string
+          minLength: 1
+        details:
+          description: Additional context about the error, without exposing confidential data.
+          type: object
+          additionalProperties: true
+  responses:
+    ConsentResponse:
+      description: Requested Consent.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Consent'
+    ConsentsResponse:
+      description: Requested Consents.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Consents'
+    ConsentTextResponse:
+      description: Requested ConsentText.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConsentText'
+    ConsentTextsResponse:
+      description: Requested ConsentTexts.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConsentTexts'
+    ConsentCreatedResponse:
+      description: Consent recorded. Location identifies the created consent; no response body.
+      headers:
+        Location:
+          description: Absolute URL of the created consent resource. Returned on every successful creation.
+          required: true
+          schema:
+            type: string
+            format: uri
+          example: https://larder.org/consent-management/consents/f0c03819-b2ac-4488-8e2c-b34d2dada0a5
+    BadRequestResponse:
+      description: Invalid parameter, version header or request body; includes an unknown consentTextId
+        on creation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          description: Authentication challenge for the protected resource.
+          schema:
+            type: string
+          example: Bearer
+    ForbiddenResponse:
+      description: The caller lacks the required scope or permission to access the subject or resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: The requested consent or consent text does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: An unexpected server error prevented completion.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedErrorResponse:
+      description: An error not covered by the explicitly listed status codes.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  requestBodies:
+    ConsentCreateRequest:
+      description: Subject and selected existing consent text for a new grant.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConsentCreate'
+          example:
+            subject: f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+            consentText:
+              consentTextId: 5f8d8a1c-515d-4eae-a6b1-0a0313edfc31
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: Proposed OAuth2 authorization-code flow with PKCE (S256). Identity-provider URLs are
+        placeholders. Subject-level authorization is required in addition to scopes.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth2/authorize
+          tokenUrl: https://example.com/oauth2/token
+          scopes:
+            consents:read: Read consents and consent texts permitted to the caller.
+            consents:write: Grant and revoke consents for authorized subjects.

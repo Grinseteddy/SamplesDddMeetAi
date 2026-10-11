@@ -1,0 +1,630 @@
+openapi: 3.1.0
+info:
+  title: Meal Planning API
+  description: Supports cooks when planning a dinner by creating, finding, and maintaining meal plans.
+    This draft reconciles empty-plan creation with the completed-plan glossary; unresolved contract decisions
+    are recorded in x-open-questions.
+  version: 1.0.0
+  contact:
+    name: Annegret Junker
+    email: annegret.junker@larder.org
+  x-api-id: 2b962453-3ad4-4950-8ea5-977a54a5fa8c
+  x-audience: external-public
+servers:
+- url: https://larder.org/meal-planning
+  description: Server specified by the API Product Canvas.
+security:
+- OAuth2:
+  - meal-plans:read
+tags:
+- name: Meal Plans
+  description: Set up and maintain meal plans and their courses.
+paths:
+  /meal-plans:
+    get:
+      operationId: listMealPlans
+      tags:
+      - Meal Plans
+      summary: Find meal plans
+      description: |
+        Return plans visible to the caller, optionally filtered by diet and occasion. No matches returns an empty array. Diet uses the most restrictive restriction, but vocabulary and compatibility rules remain unresolved; see x-open-questions. Incomplete plans without the data needed to evaluate a supplied filter do not match. Read visibility requires confirmation.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/DietParameter'
+      - $ref: '#/components/parameters/OccasionParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPlanListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    post:
+      operationId: createMealPlan
+      tags:
+      - Meal Plans
+      summary: Create a meal plan
+      description: |
+        Create a plan from an empty object or supplied planning details. Assign mealPlanId and immutable owner on the server from the authenticated caller. Return a link in the body and Location header. Plans can be filled step by step with PATCH.
+      security:
+      - OAuth2:
+        - meal-plans:read
+        - meal-plans:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealPlanCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/MealPlanCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+  /meal-plans/{mealPlanId}:
+    get:
+      operationId: getMealPlanById
+      tags:
+      - Meal Plans
+      summary: Get a meal plan
+      description: |
+        Return the identified meal plan, including an incomplete plan, subject to read authorization. Read visibility policy is unresolved.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/MealPlanIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPlanResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    patch:
+      operationId: updateMealPlan
+      tags:
+      - Meal Plans
+      summary: Update a meal plan
+      description: |
+        Only the owner may change this plan; scopes alone do not establish ownership. Apply JSON Merge Patch atomically: omitted fields stay unchanged, null removes fields, and courses replaces the full array. Reject unknown fields and attempts to write mealPlanId or owner with 400. Validate the resulting plan before saving; complete plans may become incomplete. Multiple courses may share a step. Return a link to the changed meal plan (the canvas says changed recipient, treated as a wording error).
+      security:
+      - OAuth2:
+        - meal-plans:read
+        - meal-plans:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/MealPlanIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/MealPlanUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/MealPlanUpdatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+    delete:
+      operationId: deleteMealPlan
+      tags:
+      - Meal Plans
+      summary: Delete a meal plan
+      description: |
+        Only the owner may delete this plan; scopes alone do not establish ownership. Delete the aggregate and its contained courses. Referenced recipes are not deleted. Return 404 if the plan does not exist.
+      security:
+      - OAuth2:
+        - meal-plans:read
+        - meal-plans:write
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/MealPlanIdParameter'
+      responses:
+        '204':
+          description: Meal plan deleted successfully; no response body.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        default:
+          $ref: '#/components/responses/UnexpectedErrorResponse'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Contract version; proposed house-style addition to the canvas.
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    MealPlanIdParameter:
+      name: mealPlanId
+      in: path
+      required: true
+      description: Identifier of the meal plan to retrieve, change, or delete.
+      schema:
+        type: string
+        format: uuid
+    DietParameter:
+      name: diet
+      in: query
+      required: false
+      description: Diet restriction used to find compatible plans, using the most restrictive diet per
+        the canvas. Vocabulary, ordering, and recipe-based derivation are unresolved; no diet taxonomy
+        is invented. Unknown values return 400 once a vocabulary is agreed.
+      schema:
+        type: string
+        minLength: 1
+    OccasionParameter:
+      name: occasion
+      in: query
+      required: false
+      description: Filter by occasion; proposed case-sensitive exact match. Combined with diet using AND
+        when both are supplied.
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    Meal:
+      description: Meal category; glossary values breakfast, lunch, dinner, and supper represented as
+        contract constants.
+      type: string
+      enum:
+      - BREAKFAST
+      - LUNCH
+      - DINNER
+      - SUPPER
+    CourseMeal:
+      description: Meal served in a course, referring to one recipe; distinct from the plan-level meal
+        category.
+      type: object
+      additionalProperties: false
+      properties:
+        recipe:
+          description: Identifier of the recipe referred to by this course meal.
+          type: string
+          format: uuid
+      required:
+      - recipe
+    Course:
+      description: One course in a meal plan; multiple courses may share a step when served in parallel.
+      type: object
+      additionalProperties: false
+      properties:
+        step:
+          description: Serving sequence number; equal values mean courses are served in parallel. Positive
+            integers are a draft assumption.
+          type: integer
+          minimum: 1
+        meal:
+          description: Meal served as this course, referring to exactly one recipe.
+          $ref: '#/components/schemas/CourseMeal'
+      required:
+      - step
+      - meal
+    MealPlan:
+      description: A stored plan is either incomplete or complete, determined from its content; there
+        is no explicit lifecycle command or status.
+      oneOf:
+      - $ref: '#/components/schemas/MealPlanDraft'
+      - $ref: '#/components/schemas/MealPlanComplete'
+    MealPlanDraft:
+      description: An incomplete plan, allowed by the canvas so it can be filled step by step.
+      type: object
+      additionalProperties: false
+      properties:
+        mealPlanId:
+          description: Unique meal plan identifier generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        owner:
+          description: Owner identifier derived by the server from the authenticated caller; immutable
+            and required even for an empty plan.
+          type: string
+          format: uuid
+          readOnly: true
+        occasion:
+          description: Occasion for which the cook is planning, such as parents in law visiting.
+          type: string
+          minLength: 1
+          examples:
+          - parents in law visiting
+        servings:
+          description: Number of servings planned for the occasion; assumed to be a positive whole number.
+          type: integer
+          minimum: 1
+          examples:
+          - 6
+        meal:
+          description: 'Category of the planned meal: breakfast, lunch, dinner, or supper.'
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional serving instructions, such as keeping course 2 warm while serving soup.
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          examples:
+          - hold course 2 warm while serving soup
+        courses:
+          description: Courses owned by this plan; zero while incomplete and 1–10 when complete. Equal
+            step numbers are allowed.
+          type: array
+          minItems: 0
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Course'
+      not:
+        required:
+        - occasion
+        - servings
+        - meal
+        - courses
+        properties:
+          courses:
+            description: At least one course is needed for a complete plan.
+            minItems: 1
+      required:
+      - mealPlanId
+      - owner
+    MealPlanComplete:
+      description: A fully populated plan satisfying glossary cardinalities, including 1–10 courses.
+      type: object
+      additionalProperties: false
+      properties:
+        mealPlanId:
+          description: Unique meal plan identifier generated by the server.
+          type: string
+          format: uuid
+          readOnly: true
+        owner:
+          description: Owner identifier derived by the server from the authenticated caller; immutable
+            and required even for an empty plan.
+          type: string
+          format: uuid
+          readOnly: true
+        occasion:
+          description: Occasion for which the cook is planning, such as parents in law visiting.
+          type: string
+          minLength: 1
+          examples:
+          - parents in law visiting
+        servings:
+          description: Number of servings planned for the occasion; assumed to be a positive whole number.
+          type: integer
+          minimum: 1
+          examples:
+          - 6
+        meal:
+          description: 'Category of the planned meal: breakfast, lunch, dinner, or supper.'
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional serving instructions, such as keeping course 2 warm while serving soup.
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          examples:
+          - hold course 2 warm while serving soup
+        courses:
+          description: Courses owned by this plan; zero while incomplete and 1–10 when complete. Equal
+            step numbers are allowed.
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Course'
+      required:
+      - mealPlanId
+      - owner
+      - occasion
+      - servings
+      - meal
+      - courses
+    MealPlanCreate:
+      description: Client-supplied initial values; an empty object creates an empty plan. Owner and identifier
+        are assigned by the server.
+      type: object
+      additionalProperties: false
+      properties:
+        occasion:
+          description: Occasion for which the cook is planning, such as parents in law visiting.
+          type: string
+          minLength: 1
+          examples:
+          - parents in law visiting
+        servings:
+          description: Number of servings planned for the occasion; assumed to be a positive whole number.
+          type: integer
+          minimum: 1
+          examples:
+          - 6
+        meal:
+          description: 'Category of the planned meal: breakfast, lunch, dinner, or supper.'
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional serving instructions, such as keeping course 2 warm while serving soup.
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          examples:
+          - hold course 2 warm while serving soup
+        courses:
+          description: Courses owned by this plan; zero while incomplete and 1–10 when complete. Equal
+            step numbers are allowed.
+          type: array
+          minItems: 0
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Course'
+    MealPlanUpdate:
+      description: JSON Merge Patch fields; omitted properties remain unchanged, null removes a field,
+        and courses replaces the entire array. The resulting plan must validate as MealPlan. An empty
+        object is a no-op.
+      type: object
+      additionalProperties: false
+      properties:
+        occasion:
+          description: Occasion for which the cook is planning, such as parents in law visiting. In a
+            merge patch, null removes the field and may leave an incomplete plan.
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          examples:
+          - parents in law visiting
+        servings:
+          description: Number of servings planned for the occasion; assumed to be a positive whole number.
+            In a merge patch, null removes the field and may leave an incomplete plan.
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          examples:
+          - 6
+        meal:
+          description: Replacement meal category; null removes the category and may leave an incomplete
+            plan.
+          anyOf:
+          - $ref: '#/components/schemas/Meal'
+          - type: 'null'
+        howToServe:
+          description: Optional serving instructions, such as keeping course 2 warm while serving soup.
+            Null removes these instructions.
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          examples:
+          - hold course 2 warm while serving soup
+        courses:
+          description: Courses owned by this plan; zero while incomplete and 1–10 when complete. Equal
+            step numbers are allowed. In a merge patch, null removes the field and may leave an incomplete
+            plan.
+          type:
+          - array
+          - 'null'
+          minItems: 0
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Course'
+    MealPlanList:
+      description: All matching visible plans; empty when no plans match. Pagination is not specified
+        by the canvas.
+      type: array
+      items:
+        $ref: '#/components/schemas/MealPlan'
+    MealPlanLink:
+      description: Link to a created or changed meal plan.
+      type: object
+      additionalProperties: false
+      properties:
+        href:
+          description: Absolute URL at which the meal plan can be retrieved.
+          type: string
+          format: uri
+          examples:
+          - https://larder.org/meal-planning/meal-plans/f64e07f0-f9e7-4b7a-8695-e7a8b3ef5074
+      required:
+      - href
+    Error:
+      description: Shared error response for unsuccessful operations.
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          description: Machine-readable error identifier.
+          type: string
+          minLength: 1
+        message:
+          description: Human-readable explanation of the failure.
+          type: string
+          minLength: 1
+        details:
+          description: Additional context about invalid fields or the failure.
+          type: object
+          additionalProperties: true
+      required:
+      - code
+      - message
+  responses:
+    MealPlanResponse:
+      description: Requested meal plan, including incomplete plans.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlan'
+    MealPlanListResponse:
+      description: Matching meal plans; an empty array if no matches exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanList'
+    MealPlanCreatedResponse:
+      description: Meal plan created; Location and href identify the new resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanLink'
+      headers:
+        Location:
+          description: Absolute URL of the newly created meal plan.
+          required: true
+          schema:
+            type: string
+            format: uri
+    MealPlanUpdatedResponse:
+      description: Meal plan changed; href identifies the updated resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanLink'
+    BadRequestResponse:
+      description: Invalid identifier, query, version header, or request body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ForbiddenResponse:
+      description: Insufficient scope, read access denied, or caller is not the owner for PATCH or DELETE.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: Meal plan does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: Unexpected server failure.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedErrorResponse:
+      description: An otherwise unspecified error occurred; inspect the HTTP status and error body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  requestBodies:
+    MealPlanCreateRequest:
+      description: Client-supplied initial values; an empty object creates an empty plan. Owner and identifier
+        are assigned by the server.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MealPlanCreate'
+          examples:
+            empty:
+              summary: Create an empty plan
+              value: {}
+            populated:
+              summary: Supply meal planning details
+              value:
+                occasion: parents in law visiting
+                servings: 6
+                meal: DINNER
+                courses:
+                - step: 2
+                  meal:
+                    recipe: 7cf09822-77a1-46bb-812f-b7852bca0913
+    MealPlanUpdateRequest:
+      description: JSON Merge Patch fields; omitted properties remain unchanged, null removes a field,
+        and courses replaces the entire array. The resulting plan must validate as MealPlan. An empty
+        object is a no-op.
+      required: true
+      content:
+        application/merge-patch+json:
+          schema:
+            $ref: '#/components/schemas/MealPlanUpdate'
+          examples:
+            empty:
+              summary: Leave the plan unchanged
+              value: {}
+            populated:
+              summary: Supply meal planning details
+              value:
+                occasion: parents in law visiting
+                servings: 6
+                meal: DINNER
+                courses:
+                - step: 2
+                  meal:
+                    recipe: 7cf09822-77a1-46bb-812f-b7852bca0913
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: Proposed OAuth2 authorization code flow with PKCE. URLs are placeholders and must be
+        replaced with confirmed identity-provider endpoints; owner enforcement is additional to scope
+        checks.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.org/authorize
+          tokenUrl: https://auth.example.org/token
+          scopes:
+            meal-plans:read: Read meal plans permitted by the visibility policy.
+            meal-plans:write: Create plans and change or delete owned plans.
+x-source-artifacts:
+- MealPlanningApiProductCanvaseSynchronous.jpg
+- MealPlanningMealPlanVisualGlossary.jpg
+x-open-questions:
+- Diet is a search parameter in the canvas but has no glossary definition. Confirm accepted identifiers,
+  derivation from recipes, and the most-restrictive compatibility rules before implementing diet filtering.
+- 'Confirm draft interpretation: incomplete plans may omit occasion, servings, meal, and courses; complete
+  plans require all four and 1–10 courses. No completion command or stored status is introduced.'
+- Confirm OAuth2, read/write scopes, audience, read visibility, and owner mapping. Authorization and token
+  URLs use non-production example.org placeholders.
+- Confirm occasion matching (proposed case-sensitive exact match), diet/occasion AND combination, and
+  pagination needs.
+- Confirm the required version header (house-style addition), JSON Merge Patch semantics, positive servings/step
+  values, and inferred UUID formats.
+- The glossary asks whether ingredient amounts can be calculated from servings. No calculation endpoint
+  or ingredient model is introduced until that question is resolved.
+- Confirm drafted property descriptions with domain experts. The PATCH response says changed recipient
+  in the canvas; interpreted here as changed meal plan.

@@ -1,5 +1,5 @@
 ---
-name: openapi-spec-author
+name: "openapi-spec-author"
 description: >-
   Author OpenAPI 3.1.0 API specifications in YAML following a consistent,
   componentized house style (the same style as the bundled Catalog Management
@@ -10,7 +10,11 @@ description: >-
   validating/linting one. Also derives specs from DDD modeling artifacts —
   EventStorming boards, Domain Stories, Visual Glossaries, or their
   interpreter briefs — scoped to one or all bounded contexts/modules.
-  Produces YAML file(s) that pass Spectral linting.
+  Applies SOLID-derived quality requirements (backward compatibility,
+  additive evolution, capability-based segregation, links, one bounded
+  context per API) mapped to ISO/IEC 25010, including when evolving or
+  versioning an existing spec. Produces YAML file(s) that pass Spectral
+  linting and a quality review.
 author: Annegret Junker
 ---
 
@@ -39,6 +43,13 @@ Establish, from the conversation or by asking briefly:
 - **Auth**: who calls it, what scopes/roles exist (default is OAuth2 with
   read/write/admin scopes).
 - **Audience**: public, partner, or internal (drives `x-audience`).
+- **Qualities**: which qualities matter is a business decision. If the
+  conversation, ADRs or architecture principles prioritize any, use them;
+  otherwise apply the defaults in `references/quality-requirements.md` and say
+  so. Don't quiz the user about ISO characteristics.
+- **New or evolving?** If an earlier version of the spec exists, this is an
+  evolution: the Liskov and Open/closed rules (backward compatibility, additive
+  change, versioned breaking changes with deprecation headers) become mandatory.
 
 If the user already gave a data model, feature description, or existing spec,
 extract the resources from that instead of interrogating them. Ask only what you
@@ -69,7 +80,7 @@ Visual Glossary), where a bounded context / module is the natural unit of an
 API, but it applies to any request that spans more than one obvious service.
 Confirm with the user:
 - **All bounded contexts / modules** — one `.yaml` per context; repeat steps
-  3–6 below once per context.
+  3–7 below once per context.
 - **One named bounded context / module** — a single `.yaml` for just that
   one.
 
@@ -77,12 +88,17 @@ If there's only one context in play (a single-service description, or a
 diagram with one context / no drawn grouping), skip the question and
 proceed with that single scope.
 
-### 3. Read the conventions
+### 3. Read the conventions and quality requirements
 
 Before writing, read `references/conventions.md` — it is the authoritative,
 detailed specification of the house style (naming, componentization rules,
 schema design, the standard response set, security patterns). The summary in
 this file is a reminder, not a substitute.
+
+Then read `references/quality-requirements.md` — the SOLID principles carried
+over to API design, each mapped to ISO/IEC 25010 qualities and turned into
+rules for the spec. They shape the design decisions (what goes in this API,
+how it evolves), so read them before writing, not only at review.
 
 ### 4. Write the spec
 
@@ -100,7 +116,16 @@ The single most important convention: **componentize and reuse via `$ref`.**
 Parameters, request bodies, responses, and any reused schema live under
 `components` and are referenced from the paths — exactly as in the example.
 
-### 5. Validate and lint
+### 5. Review against the quality requirements
+
+Walk the spec through the checklist in `references/quality-requirements.md` §8
+(Liskov, Interface segregation, Open/closed, Dependency inversion, Single
+responsibility). Fix what you can; keep a list of what stays open. When a
+previous version exists, run the oasdiff breaking-change check from
+`references/validation.md` and compare changed descriptions by hand — tools
+see structure, not meaning.
+
+### 6. Validate and lint
 
 Always validate the finished spec. Read `references/validation.md` for the exact
 commands. In short: lint with Spectral using the bundled ruleset:
@@ -115,11 +140,14 @@ Fix every **error** and review **warnings** (resolve them unless there's a
 deliberate reason). Re-run until clean. If Spectral can't be installed, fall
 back to the Python structural validator described in `references/validation.md`.
 
-### 6. Present
+### 7. Present
 
 Save the final `.yaml` (or one per bounded context, if scoped to several) to
 the outputs directory and present it/them. Briefly note the resources
-covered and the result of the lint run per file. When generating several
+covered and the result of the lint run per file, plus a short **Quality**
+section: one line per SOLID principle with its ISO/IEC 25010 characteristics,
+met or open, and what the user must decide for open items
+(`references/quality-requirements.md` §9). When generating several
 files, also restate anything flagged in
 `references/eventstorming-mapping.md` §6–9 that the user should resolve
 (unexposed commands, events not modeled, cross-context integration notes,
@@ -177,6 +205,25 @@ in `components.securitySchemes` and referenced at the root, with scopes such as
 **Versioning** — a required `version` header parameter whose `enum` is locked to
 the current version with a matching `default`, referenced by every operation.
 
+**Quality (SOLID → ISO/IEC 25010)** — full rules in
+`references/quality-requirements.md`:
+- *Liskov* (compatibility, replaceability): a new revision never adds required
+  inputs, tightens accepted inputs, removes response fields, or changes a
+  field's type or meaning.
+- *Interface segregation* (functional appropriateness, user error protection):
+  one shared API per capability, no consumer-specific operations or flags,
+  constrained inputs; consumer quirks go to a separate translator.
+- *Open/closed* (modifiability, co-existence): additive changes only within a
+  version; breaking changes as a new major running alongside the old one, old
+  operations `deprecated: true` with `Deprecation`/`Sunset`/`Link` headers;
+  `info.description` asks clients to be tolerant readers; no
+  `additionalProperties: false` on responses.
+- *Dependency inversion* (adaptability, testability): related resources
+  reachable via `...Link` URIs and OpenAPI `links`; `examples` that seed
+  contract tests.
+- *Single responsibility* (modularity, reusability, self-descriptiveness):
+  one Bounded Context per spec, never splitting a complete process.
+
 ## Bundled resources
 
 - `references/conventions.md` — full house-style specification. Read before writing.
@@ -188,7 +235,11 @@ the current version with a matching `default`, referenced by every operation.
   from a Domain Story's use cases and schemas/cardinalities from a Visual
   Glossary's terms, separately or reconciled together. Read when the input
   is a domain story and/or a visual glossary.
-- `references/validation.md` — how to install and run Spectral (and fallbacks).
+- `references/quality-requirements.md` — SOLID principles applied to API
+  design, mapped to ISO/IEC 25010, with rules, versioning/deprecation
+  patterns, the quality review checklist and sources. Read before writing.
+- `references/validation.md` — how to install and run Spectral (and fallbacks),
+  and the oasdiff breaking-change check for evolving specs.
 - `assets/example-catalog-management.yaml` — gold-standard example to mirror.
 - `assets/skeleton.yaml` — minimal starting template with the right structure.
 - `assets/house-style.spectral.yaml` — Spectral ruleset encoding the conventions.

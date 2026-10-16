@@ -1,7 +1,9 @@
 openapi: 3.1.0
 info:
   title: Catalog Management API
-  description: API for managing catalog entries and allows members to search for books and select them. Librarians can manage catalog entries and tag books for recommendations.
+  description: |
+    API for managing catalog entries and allows members to search for books and select them. Librarians can manage catalog entries and tag books for recommendations.
+    The API evolves additively within a major version: clients must ignore unknown response fields and handle unknown enumeration values.
   version: 2.0.0
   contact:
     name: Annegret Junker
@@ -231,8 +233,8 @@ paths:
         - Tags
       summary: Update tags for catalog entry
       description: |
-        Update the tags associated with a specific catalog entry. 
-        Tags can be added, removed, or modified to better categorize the book and improve recommendations for users.
+          Update the tags associated with a specific catalog entry. 
+          Tags can be added, removed, or modified to better categorize the book and improve recommendations for users.
       security:
         - oAuth2:
             - catalog:write

@@ -1,7 +1,9 @@
 openapi: 3.1.0
 info:
   title: <API Name>
-  description: <One or two sentences describing what this API does and who uses it.>
+  description: |
+    <One or two sentences describing what this API does and who uses it.>
+    The API evolves additively within a major version: clients must ignore unknown response fields and handle unknown enumeration values.
   version: 1.0.0
   contact:
     name: <Owning team or person>
@@ -137,14 +139,14 @@ components:
     <Resource>Create:
       type: object
       required:
-      # required client-supplied fields (no server-generated ones)
+        # required client-supplied fields (no server-generated ones)
       properties:
-      # ... domain fields — EVERY property carries a `description` ...
+        # ... domain fields — EVERY property carries a `description` ...
 
     <Resource>Update:
       type: object
       properties:
-      # mutable fields only, all optional
+        # mutable fields only, all optional
 
     Error:
       type: object

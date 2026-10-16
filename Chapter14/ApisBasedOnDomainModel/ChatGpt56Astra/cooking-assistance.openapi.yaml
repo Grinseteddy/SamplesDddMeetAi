@@ -1,0 +1,1179 @@
+openapi: 3.1.0
+info:
+  title: Cooking Assistance API
+  description: |-
+    Manage cooking help requests, provider answers, and atomic acceptance for requesters and help providers.
+    Derived from the nine supplied cookingassistance.domain Java files.
+    The API evolves additively within a major version: clients must ignore unknown response fields and handle unknown enumeration values.
+  version: 1.0.0
+  contact:
+    name: Cooking Assistance API owner (proposed)
+  x-api-id: 533e4cad-b8d0-4a6b-a479-b61b2bab6b72
+  x-audience: component-internal
+servers:
+- url: https://api.example.com/cooking-assistance
+  description: Placeholder; replace with the deployment URL.
+security:
+- OAuth2:
+  - cooking-assistance:read
+tags:
+- name: Help Requests
+  description: Create and retrieve requests for cooking assistance.
+- name: Helps
+  description: Submit, retrieve, and accept answers to cooking help requests.
+x-design-notes:
+  source-files:
+  - Answer.java
+  - CookingAssistance.java
+  - DomainViolation.java
+  - Help.java
+  - HelpRepository.java
+  - HelpRequest.java
+  - HelpRequestRepository.java
+  - Ids.java
+  - Values.java
+  assumptions:
+  - HTTP routes, generated resource UUIDs, links, error/status mapping, caller authorization, version header,
+    OAuth2 scopes, and internal audience are proposed adapter decisions, not implemented in these Java files.
+  - Empty strings and nonpositive quantities, servings, and dish numbers are intentionally permitted where
+    Java only checks presence.
+  - Optionals may be omitted or null. All collections are required and forbid null elements. Sets use uniqueItems;
+    lists permit duplicates. Java URI is represented with uri-reference to retain relative URIs.
+  - Domain references remain UUIDs; this API does not own recipes, ingredients, steps, or people.
+  - Default SOLID quality priorities applied. Responses allow additional fields. Version selector 1.0.0 remains
+    accepted for additive revisions; breaking changes require a new major alongside the old one.
+  open-items:
+  - Confirm audience, OAuth2 provider, scope grants, caller-to-domain identity mapping, and access policy.
+    Replace example.com endpoints.
+  - CLOSED exists but there is no close operation; no close, delete, edit, search, or list route is invented.
+  - A preparation request may omit howToStep, but no preparation answer can then satisfy the matching rule.
+    Confirm whether creation should require it in a future model revision.
+  - An ingredient-substitute request may have no ingredients, but a valid nonempty substitute answer then cannot
+    be produced.
+  - Multiple helps can be accepted. Chef identity may be absent, preventing enforcement of the self-answer
+    rule in that case. Confirm intended business policy.
+  - MODEL-DECISIONS.md and open question 7 are referenced by source comments but were not supplied; color conflict
+    and shared cook identity remain unresolved.
+  - Implement atomic persistence and concurrency detection for acceptance; Java repository interfaces do not
+    implement this.
+paths:
+  /help-requests:
+    post:
+      operationId: createHelpRequest
+      tags:
+      - Help Requests
+      summary: Create a help request
+      description: |-
+        Construct a HelpRequest and generate its UUID. Verify the caller may act for requester.
+        Preserve all constructor invariants; collections must be supplied even when empty.
+        No list, update, close, or delete capability is defined by the supplied model.
+      security:
+      - OAuth2:
+        - cooking-assistance:request
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpRequestCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/HelpRequestCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+  /help-requests/{helpRequestId}:
+    get:
+      operationId: getHelpRequest
+      tags:
+      - Help Requests
+      summary: Retrieve a help request
+      description: |-
+        Load a canonical request using HelpRequestRepository.findById. Apply resource-level authorization.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /help-requests/{helpRequestId}/helps:
+    post:
+      operationId: createHelp
+      tags:
+      - Helps
+      summary: Submit help for a request
+      description: |-
+        Load the canonical parent and call Help.answer with a generated HelpId.
+        Reject CLOSED requests with 409. Reject type, provider, recipe, step, and ingredient mismatches with 400.
+        CHEF is allowed only for menu proposals; when provider identity is present it must differ from requester.
+        The domain allows an absent chef identity; stronger identity rules remain an application decision.
+        For preparation explanations, the request must contain the same non-null howToStep.
+        Validate supplied provider identity against the authenticated caller or authorized service.
+        Persist with concurrency checks against the parent; do not change request status or accept the help.
+        New help for an ANSWERED request is permitted.
+      security:
+      - OAuth2:
+        - cooking-assistance:answer
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpRequestIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/HelpCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/HelpCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  /helps/{helpId}:
+    get:
+      operationId: getHelp
+      tags:
+      - Helps
+      summary: Retrieve help
+      description: |-
+        Load canonical help using HelpRepository.findById. Apply resource-level authorization.
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpIdParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/HelpResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+  /helps/{helpId}/acceptance:
+    put:
+      operationId: acceptHelp
+      tags:
+      - Helps
+      summary: Accept help
+      description: |-
+        Set acceptance to true; the authenticated caller must be authorized to act for the parent requester.
+        Load canonical Help and its HelpRequest, then call CookingAssistance.accept.
+        Revalidate all Help.validateAgainst rules before changing either aggregate.
+        Commit isAccepted=true and status=ANSWERED atomically with concurrency checks.
+        Return 409 on CLOSED or concurrency conflict, with no partial update. Other domain violations are 400.
+        Repeated acceptance succeeds while the request remains non-CLOSED.
+        Other accepted helps remain accepted: the model has no single-winner invariant.
+        The acceptance subresource is the projection of an existing boolean, so PUT returns 200.
+      security:
+      - OAuth2:
+        - cooking-assistance:accept
+      parameters:
+      - $ref: '#/components/parameters/VersionParameter'
+      - $ref: '#/components/parameters/HelpIdParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/AcceptanceCreateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AcceptanceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+components:
+  parameters:
+    VersionParameter:
+      name: version
+      in: header
+      required: true
+      description: Contract version. This baseline version selector remains accepted for compatible revisions.
+      schema:
+        type: string
+        enum:
+        - 1.0.0
+        default: 1.0.0
+    HelpRequestIdParameter:
+      name: helpRequestId
+      in: path
+      required: true
+      description: Identifier of the canonical HelpRequest.
+      schema:
+        $ref: '#/components/schemas/HelpRequestId'
+    HelpIdParameter:
+      name: helpId
+      in: path
+      required: true
+      description: Identifier of the canonical Help.
+      schema:
+        $ref: '#/components/schemas/HelpId'
+  schemas:
+    HelpId:
+      description: UUID identifying Help in the domain.
+      type: string
+      format: uuid
+      examples:
+      - 11111111-1111-4111-8111-111111111111
+    HelpRequestId:
+      description: UUID identifying HelpRequest in the domain.
+      type: string
+      format: uuid
+      examples:
+      - 11111111-1111-4111-8111-111111111111
+    RequesterId:
+      description: UUID identifying Requester in the domain.
+      type: string
+      format: uuid
+      examples:
+      - 11111111-1111-4111-8111-111111111111
+    HelpProviderId:
+      description: UUID identifying HelpProvider in the domain.
+      type: string
+      format: uuid
+      examples:
+      - 11111111-1111-4111-8111-111111111111
+    RecipeId:
+      description: UUID identifying Recipe in the domain.
+      type: string
+      format: uuid
+      examples:
+      - 11111111-1111-4111-8111-111111111111
+    HowToStepId:
+      description: UUID identifying HowToStep in the domain.
+      type: string
+      format: uuid
+      examples:
+      - 11111111-1111-4111-8111-111111111111
+    IngredientId:
+      description: UUID identifying Ingredient in the domain.
+      type: string
+      format: uuid
+      examples:
+      - 11111111-1111-4111-8111-111111111111
+    RequestType:
+      description: Domain RequestType values. Clients must handle future unknown response values without failing.
+      type: string
+      enum:
+      - INGREDIENT_SUBSTITUTE
+      - PREPARATION_STEP_EXPLANATION
+      - STEPS_TO_MITIGATE_CATASTROPHE
+      - MENU_PROPOSAL
+      examples:
+      - INGREDIENT_SUBSTITUTE
+    Provider:
+      description: Domain Provider values. Clients must handle future unknown response values without failing.
+      type: string
+      enum:
+      - CHEF
+      - GRANDMA_AVATAR
+      - COMMUNITY
+      examples:
+      - CHEF
+    Status:
+      description: Domain Status values. Clients must handle future unknown response values without failing.
+      type: string
+      enum:
+      - OPEN
+      - ANSWERED
+      - CLOSED
+      examples:
+      - OPEN
+    Meal:
+      description: Domain Meal values. Clients must handle future unknown response values without failing.
+      type: string
+      enum:
+      - BREAKFAST
+      - LUNCH
+      - DINNER
+      - SUPPER
+      examples:
+      - BREAKFAST
+    Unit:
+      description: Domain Unit values. Clients must handle future unknown response values without failing.
+      type: string
+      enum:
+      - PIECE
+      - CUP
+      - TABLE_SPOON
+      - TEA_SPOON
+      - FLUID_OUNCES
+      - PINT
+      - QUART
+      - POUND
+      - KILOGRAM
+      - GRAM
+      - LITER
+      - MILLILITER
+      - PINCH
+      examples:
+      - PIECE
+    SubstituteIngredient:
+      description: Replacement ingredient and its quantity; the model imposes no positivity or nonblank constraints.
+      type: object
+      required:
+      - name
+      - value
+      - unit
+      properties:
+        name:
+          description: Name of the replacement ingredient.
+          type: string
+        value:
+          description: Decimal quantity represented by Java BigDecimal; consumers must preserve decimal precision.
+          type: number
+        unit:
+          description: Unit used to measure the replacement ingredient.
+          $ref: '#/components/schemas/Unit'
+      examples:
+      - name: Oat milk
+        value: 1.5
+        unit: CUP
+    Substitute:
+      description: One requested ingredient paired with a substitute.
+      type: object
+      required:
+      - ingredient
+      - substituteIngredient
+      properties:
+        ingredient:
+          description: Original ingredient, which must belong to the request ingredient set.
+          $ref: '#/components/schemas/IngredientId'
+        substituteIngredient:
+          description: Replacement ingredient and quantity.
+          $ref: '#/components/schemas/SubstituteIngredient'
+    Course:
+      description: A course in a proposed menu. No unique, positive, or sequential dish-number rule exists
+        in the model.
+      type: object
+      required:
+      - dish
+      - recipe
+      properties:
+        dish:
+          description: Dish number supplied by the provider.
+          type: integer
+          format: int32
+          minimum: -2147483648
+          maximum: 2147483647
+        recipe:
+          description: Recipe proposed for this course.
+          $ref: '#/components/schemas/RecipeId'
+    Substitutes:
+      description: Immutable Substitutes answer variant.
+      type: object
+      required:
+      - answerType
+      - recipe
+      - substitutes
+      properties:
+        answerType:
+          description: Discriminator corresponding to Answer.answerType().
+          type: string
+          const: INGREDIENT_SUBSTITUTE
+        recipe:
+          description: Recipe, which must equal the request recipe.
+          $ref: '#/components/schemas/RecipeId'
+        substitutes:
+          description: At least one substitute; duplicates and partial coverage are permitted by the model.
+          type: array
+          items:
+            $ref: '#/components/schemas/Substitute'
+          minItems: 1
+      examples:
+      - &id001
+        answerType: INGREDIENT_SUBSTITUTE
+        recipe: 00000003-1111-4111-8111-111111111111
+        substitutes:
+        - ingredient: 00000004-1111-4111-8111-111111111111
+          substituteIngredient:
+            name: Oat milk
+            value: 1.5
+            unit: CUP
+    PreparationStepExplanation:
+      description: Immutable PreparationStepExplanation answer variant.
+      type: object
+      required:
+      - answerType
+      - recipe
+      - howToStep
+      - description
+      - images
+      properties:
+        answerType:
+          description: Discriminator corresponding to Answer.answerType().
+          type: string
+          const: PREPARATION_STEP_EXPLANATION
+        recipe:
+          description: Recipe, which must equal the request recipe.
+          $ref: '#/components/schemas/RecipeId'
+        howToStep:
+          description: Preparation step, which must equal the request step.
+          $ref: '#/components/schemas/HowToStepId'
+        description:
+          description: Explanation of how to carry out the preparation step.
+          type: string
+        images:
+          description: Illustrations represented as URI references; relative references are allowed.
+          type: array
+          items:
+            type: string
+            format: uri-reference
+      examples:
+      - &id002
+        answerType: PREPARATION_STEP_EXPLANATION
+        recipe: 00000003-1111-4111-8111-111111111111
+        howToStep: 00000005-1111-4111-8111-111111111111
+        description: Fold gently.
+        images:
+        - images/folding.jpg
+    CatastropheMitigation:
+      description: Immutable CatastropheMitigation answer variant.
+      type: object
+      required:
+      - answerType
+      - explanation
+      properties:
+        answerType:
+          description: Discriminator corresponding to Answer.answerType().
+          type: string
+          const: STEPS_TO_MITIGATE_CATASTROPHE
+        recipe:
+          description: Optional recipe; if present it must equal the request recipe.
+          anyOf:
+          - $ref: '#/components/schemas/RecipeId'
+          - type: 'null'
+        explanation:
+          description: Steps for mitigating the cooking catastrophe.
+          type: string
+      examples:
+      - &id003
+        answerType: STEPS_TO_MITIGATE_CATASTROPHE
+        recipe: null
+        explanation: Remove the pan from the heat.
+    MenuProposal:
+      description: Immutable MenuProposal answer variant.
+      type: object
+      required:
+      - answerType
+      - note
+      - servings
+      - meal
+      - courses
+      properties:
+        answerType:
+          description: Discriminator corresponding to Answer.answerType().
+          type: string
+          const: MENU_PROPOSAL
+        note:
+          description: Provider note accompanying the menu.
+          type: string
+        servings:
+          description: Number of servings; Java int with no positivity rule.
+          type: integer
+          format: int32
+          minimum: -2147483648
+          maximum: 2147483647
+        meal:
+          description: Meal occasion for the proposed menu.
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional serving advice; omitted or null maps to Optional.empty().
+          type:
+          - string
+          - 'null'
+        courses:
+          description: Ordered courses in this menu.
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+          minItems: 1
+          maxItems: 10
+      examples:
+      - &id004
+        answerType: MENU_PROPOSAL
+        note: A simple dinner.
+        servings: 2
+        meal: DINNER
+        howToServe: null
+        courses:
+        - dish: 1
+          recipe: 00000003-1111-4111-8111-111111111111
+    Answer:
+      description: Exactly one of the four sealed Java Answer variants. The answer type must match the associated
+        request type.
+      oneOf:
+      - $ref: '#/components/schemas/Substitutes'
+      - $ref: '#/components/schemas/PreparationStepExplanation'
+      - $ref: '#/components/schemas/CatastropheMitigation'
+      - $ref: '#/components/schemas/MenuProposal'
+      discriminator:
+        propertyName: answerType
+        mapping:
+          INGREDIENT_SUBSTITUTE: '#/components/schemas/Substitutes'
+          PREPARATION_STEP_EXPLANATION: '#/components/schemas/PreparationStepExplanation'
+          STEPS_TO_MITIGATE_CATASTROPHE: '#/components/schemas/CatastropheMitigation'
+          MENU_PROPOSAL: '#/components/schemas/MenuProposal'
+      examples:
+      - *id001
+      - *id002
+      - *id003
+      - *id004
+    HelpRequestCreate:
+      description: Inputs accepted by the HelpRequest constructor. Omitted or null optionals map to Optional.empty();
+        collections are required even when empty.
+      type: object
+      required:
+      - requester
+      - title
+      - type
+      - description
+      - ingredients
+      - preferredProviders
+      - pictures
+      properties:
+        requester:
+          description: Requester identity; the API must verify the caller may act for this identity.
+          $ref: '#/components/schemas/RequesterId'
+        title:
+          description: Title chosen by the requester; empty text is accepted by the model.
+          type: string
+        type:
+          description: Kind of cooking assistance requested.
+          $ref: '#/components/schemas/RequestType'
+        description:
+          description: Details of the assistance needed; empty text is accepted by the model.
+          type: string
+        recipe:
+          description: Recipe being discussed; required and non-null for substitute and preparation-step requests.
+          anyOf:
+          - $ref: '#/components/schemas/RecipeId'
+          - type: 'null'
+        howToStep:
+          description: Optional step, allowed only for a preparation-step request.
+          anyOf:
+          - $ref: '#/components/schemas/HowToStepId'
+          - type: 'null'
+        ingredients:
+          description: Requested ingredient identifiers, populated only for substitute requests; an empty set
+            is allowed.
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientId'
+          uniqueItems: true
+        preferredProviders:
+          description: One or two requested provider types; CHEF is exclusive and is allowed only for menu
+            proposals.
+          type: array
+          items:
+            $ref: '#/components/schemas/Provider'
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+        pictures:
+          description: Pictures represented by URI references, including relative references.
+          type: array
+          items:
+            type: string
+            format: uri-reference
+      allOf:
+      - if:
+          properties:
+            type:
+              enum:
+              - INGREDIENT_SUBSTITUTE
+              - PREPARATION_STEP_EXPLANATION
+              description: Select the applicable request-type invariant.
+          required:
+          - type
+        then:
+          required:
+          - recipe
+          properties:
+            recipe:
+              description: Recipe required for this request type.
+              $ref: '#/components/schemas/RecipeId'
+      - if:
+          properties:
+            type:
+              not:
+                const: PREPARATION_STEP_EXPLANATION
+              description: Select the applicable request-type invariant.
+          required:
+          - type
+        then:
+          properties:
+            howToStep:
+              description: Must be absent or null for other request types.
+              type: 'null'
+      - if:
+          properties:
+            type:
+              not:
+                const: INGREDIENT_SUBSTITUTE
+              description: Select the applicable request-type invariant.
+          required:
+          - type
+        then:
+          properties:
+            ingredients:
+              description: Must be empty for other request types.
+              type: array
+              items:
+                $ref: '#/components/schemas/IngredientId'
+              maxItems: 0
+      - if:
+          properties:
+            preferredProviders:
+              contains:
+                const: CHEF
+              description: Detect whether CHEF is among the preferred providers.
+          required:
+          - preferredProviders
+        then:
+          properties:
+            type:
+              description: Chef requests are exclusively menu proposals.
+              type: string
+              const: MENU_PROPOSAL
+            preferredProviders:
+              description: Chef must be the only preferred provider.
+              type: array
+              items:
+                $ref: '#/components/schemas/Provider'
+              maxItems: 1
+      examples:
+      - requester: 00000002-1111-4111-8111-111111111111
+        title: Replace milk
+        type: INGREDIENT_SUBSTITUTE
+        description: What can I use?
+        recipe: 00000003-1111-4111-8111-111111111111
+        ingredients: &id005
+        - 00000004-1111-4111-8111-111111111111
+        preferredProviders: &id006
+        - COMMUNITY
+        pictures: &id007 []
+    HelpRequest:
+      description: Persisted help request; new requests are OPEN and acceptance changes status to ANSWERED.
+      type: object
+      required:
+      - requester
+      - title
+      - type
+      - description
+      - ingredients
+      - preferredProviders
+      - pictures
+      - id
+      - status
+      - selfLink
+      - helpsLink
+      properties:
+        requester:
+          description: Requester identity; the API must verify the caller may act for this identity.
+          $ref: '#/components/schemas/RequesterId'
+        title:
+          description: Title chosen by the requester; empty text is accepted by the model.
+          type: string
+        type:
+          description: Kind of cooking assistance requested.
+          $ref: '#/components/schemas/RequestType'
+        description:
+          description: Details of the assistance needed; empty text is accepted by the model.
+          type: string
+        recipe:
+          description: Recipe being discussed; required and non-null for substitute and preparation-step requests.
+          anyOf:
+          - $ref: '#/components/schemas/RecipeId'
+          - type: 'null'
+        howToStep:
+          description: Optional step, allowed only for a preparation-step request.
+          anyOf:
+          - $ref: '#/components/schemas/HowToStepId'
+          - type: 'null'
+        ingredients:
+          description: Requested ingredient identifiers, populated only for substitute requests; an empty set
+            is allowed.
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientId'
+          uniqueItems: true
+        preferredProviders:
+          description: One or two requested provider types; CHEF is exclusive and is allowed only for menu
+            proposals.
+          type: array
+          items:
+            $ref: '#/components/schemas/Provider'
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+        pictures:
+          description: Pictures represented by URI references, including relative references.
+          type: array
+          items:
+            type: string
+            format: uri-reference
+        id:
+          description: Request identifier generated by the server.
+          $ref: '#/components/schemas/HelpRequestId'
+        status:
+          description: Current state; merely submitting help does not change OPEN to ANSWERED.
+          $ref: '#/components/schemas/Status'
+        selfLink:
+          description: Absolute URI for retrieving this request.
+          type: string
+          format: uri
+        helpsLink:
+          description: Absolute URI for submitting help for this request; collection listing is not provided.
+          type: string
+          format: uri
+      allOf:
+      - if:
+          properties:
+            type:
+              enum:
+              - INGREDIENT_SUBSTITUTE
+              - PREPARATION_STEP_EXPLANATION
+              description: Select the applicable request-type invariant.
+          required:
+          - type
+        then:
+          required:
+          - recipe
+          properties:
+            recipe:
+              description: Recipe required for this request type.
+              $ref: '#/components/schemas/RecipeId'
+      - if:
+          properties:
+            type:
+              not:
+                const: PREPARATION_STEP_EXPLANATION
+              description: Select the applicable request-type invariant.
+          required:
+          - type
+        then:
+          properties:
+            howToStep:
+              description: Must be absent or null for other request types.
+              type: 'null'
+      - if:
+          properties:
+            type:
+              not:
+                const: INGREDIENT_SUBSTITUTE
+              description: Select the applicable request-type invariant.
+          required:
+          - type
+        then:
+          properties:
+            ingredients:
+              description: Must be empty for other request types.
+              type: array
+              items:
+                $ref: '#/components/schemas/IngredientId'
+              maxItems: 0
+      - if:
+          properties:
+            preferredProviders:
+              contains:
+                const: CHEF
+              description: Detect whether CHEF is among the preferred providers.
+          required:
+          - preferredProviders
+        then:
+          properties:
+            type:
+              description: Chef requests are exclusively menu proposals.
+              type: string
+              const: MENU_PROPOSAL
+            preferredProviders:
+              description: Chef must be the only preferred provider.
+              type: array
+              items:
+                $ref: '#/components/schemas/Provider'
+              maxItems: 1
+      examples:
+      - requester: 00000002-1111-4111-8111-111111111111
+        title: Replace milk
+        type: INGREDIENT_SUBSTITUTE
+        description: What can I use?
+        recipe: 00000003-1111-4111-8111-111111111111
+        ingredients: *id005
+        preferredProviders: *id006
+        pictures: *id007
+        id: 00000001-1111-4111-8111-111111111111
+        status: OPEN
+        selfLink: https://api.example.com/cooking-assistance/help-requests/00000001-1111-4111-8111-111111111111
+        helpsLink: https://api.example.com/cooking-assistance/help-requests/00000001-1111-4111-8111-111111111111/helps
+    HelpCreate:
+      description: Inputs to Help.answer; the parent path supplies the canonical HelpRequest.
+      type: object
+      required:
+      - answerTitle
+      - helpProviderType
+      - answer
+      properties:
+        answerTitle:
+          description: Title of this answer.
+          type: string
+        helpProviderType:
+          description: Provider type, which must be among the request preferred providers.
+          $ref: '#/components/schemas/Provider'
+        helpProvider:
+          description: Optional provider identity. If CHEF and present, its UUID must differ from the requester
+            UUID.
+          anyOf:
+          - $ref: '#/components/schemas/HelpProviderId'
+          - type: 'null'
+        answer:
+          description: Immutable answer whose variant must match the request type.
+          $ref: '#/components/schemas/Answer'
+      examples:
+      - answerTitle: Use oat milk
+        helpProviderType: COMMUNITY
+        helpProvider: 00000006-1111-4111-8111-111111111111
+        answer: *id001
+    Help:
+      description: Persisted help, initially unaccepted; request and requester are derived from the canonical
+        parent.
+      type: object
+      required:
+      - answerTitle
+      - helpProviderType
+      - answer
+      - id
+      - helpRequest
+      - helpRequester
+      - isAccepted
+      - selfLink
+      - helpRequestLink
+      - acceptanceLink
+      properties:
+        answerTitle:
+          description: Title of this answer.
+          type: string
+        helpProviderType:
+          description: Provider type, which must be among the request preferred providers.
+          $ref: '#/components/schemas/Provider'
+        helpProvider:
+          description: Optional provider identity. If CHEF and present, its UUID must differ from the requester
+            UUID.
+          anyOf:
+          - $ref: '#/components/schemas/HelpProviderId'
+          - type: 'null'
+        answer:
+          description: Immutable answer whose variant must match the request type.
+          $ref: '#/components/schemas/Answer'
+        id:
+          description: Help identifier generated by the server.
+          $ref: '#/components/schemas/HelpId'
+        helpRequest:
+          description: Request that this help answers.
+          $ref: '#/components/schemas/HelpRequestId'
+        helpRequester:
+          description: Requester copied from the parent request.
+          $ref: '#/components/schemas/RequesterId'
+        isAccepted:
+          description: Whether CookingAssistance.accept has accepted this help.
+          type: boolean
+        selfLink:
+          description: Absolute URI for retrieving this help.
+          type: string
+          format: uri
+        helpRequestLink:
+          description: Absolute URI for retrieving its parent request.
+          type: string
+          format: uri
+        acceptanceLink:
+          description: Absolute URI for accepting this help with PUT.
+          type: string
+          format: uri
+      examples:
+      - answerTitle: Use oat milk
+        helpProviderType: COMMUNITY
+        helpProvider: 00000006-1111-4111-8111-111111111111
+        answer: *id001
+        id: 00000007-1111-4111-8111-111111111111
+        helpRequest: 00000001-1111-4111-8111-111111111111
+        helpRequester: 00000002-1111-4111-8111-111111111111
+        isAccepted: false
+        selfLink: https://api.example.com/cooking-assistance/helps/00000007-1111-4111-8111-111111111111
+        helpRequestLink: https://api.example.com/cooking-assistance/help-requests/00000001-1111-4111-8111-111111111111
+        acceptanceLink: https://api.example.com/cooking-assistance/helps/00000007-1111-4111-8111-111111111111/acceptance
+    AcceptanceCreate:
+      description: Desired acceptance state; revocation is not supported.
+      type: object
+      required:
+      - isAccepted
+      properties:
+        isAccepted:
+          description: Set to true to accept this help.
+          type: boolean
+          const: true
+      examples:
+      - isAccepted: true
+    Acceptance:
+      description: Consistent snapshot of both aggregates after atomic acceptance.
+      type: object
+      required:
+      - help
+      - helpRequest
+      properties:
+        help:
+          description: Help with isAccepted true.
+          $ref: '#/components/schemas/Help'
+        helpRequest:
+          description: Parent request with status ANSWERED.
+          $ref: '#/components/schemas/HelpRequest'
+      examples:
+      - help:
+          answerTitle: Use oat milk
+          helpProviderType: COMMUNITY
+          helpProvider: 00000006-1111-4111-8111-111111111111
+          answer: *id001
+          id: 00000007-1111-4111-8111-111111111111
+          helpRequest: 00000001-1111-4111-8111-111111111111
+          helpRequester: 00000002-1111-4111-8111-111111111111
+          isAccepted: true
+          selfLink: https://api.example.com/cooking-assistance/helps/00000007-1111-4111-8111-111111111111
+          helpRequestLink: https://api.example.com/cooking-assistance/help-requests/00000001-1111-4111-8111-111111111111
+          acceptanceLink: https://api.example.com/cooking-assistance/helps/00000007-1111-4111-8111-111111111111/acceptance
+        helpRequest:
+          requester: 00000002-1111-4111-8111-111111111111
+          title: Replace milk
+          type: INGREDIENT_SUBSTITUTE
+          description: What can I use?
+          recipe: 00000003-1111-4111-8111-111111111111
+          ingredients: *id005
+          preferredProviders: *id006
+          pictures: *id007
+          id: 00000001-1111-4111-8111-111111111111
+          status: ANSWERED
+          selfLink: https://api.example.com/cooking-assistance/help-requests/00000001-1111-4111-8111-111111111111
+          helpsLink: https://api.example.com/cooking-assistance/help-requests/00000001-1111-4111-8111-111111111111/helps
+    Error:
+      description: Shared error representation. Domain violations retain their Java rule name as code.
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          description: Machine-readable domain rule or protocol error code.
+          type: string
+        message:
+          description: Human-readable explanation of the failure.
+          type: string
+        details:
+          description: Optional structured diagnostic information.
+          type: object
+          additionalProperties: true
+      examples:
+      - code: ProviderMustBeRequested
+        message: The provider type is not among the preferred providers.
+  responses:
+    BadRequestResponse:
+      description: Malformed input, schema violation, unsupported version, or domain invariant violation (except
+        closed requests).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedResponse:
+      description: Missing or invalid access token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          description: Bearer authentication challenge.
+          schema:
+            type: string
+          example: Bearer
+    ForbiddenResponse:
+      description: Caller lacks a required scope or is not allowed to act for the specified identity or resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundResponse:
+      description: The referenced help or help request does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ConflictResponse:
+      description: Request is CLOSED or a concurrent change prevents committing both canonical aggregates consistently.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerErrorResponse:
+      description: Unexpected server failure; no partially committed acceptance is permitted.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    HelpRequestResponse:
+      description: Canonical help request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequest'
+    HelpRequestCreatedResponse:
+      description: New help request with status OPEN.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequest'
+      headers:
+        Location:
+          description: Absolute URI of the created help request.
+          schema:
+            type: string
+            format: uri
+      links:
+        GetHelpRequest:
+          operationId: getHelpRequest
+          parameters:
+            version: 1.0.0
+            helpRequestId: $response.body#/id
+    HelpResponse:
+      description: Canonical help.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Help'
+      links:
+        GetHelpRequest:
+          operationId: getHelpRequest
+          parameters:
+            version: 1.0.0
+            helpRequestId: $response.body#/helpRequest
+    HelpCreatedResponse:
+      description: New help with isAccepted false; the parent status is unchanged.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Help'
+      headers:
+        Location:
+          description: Absolute URI of the created help.
+          schema:
+            type: string
+            format: uri
+      links:
+        GetHelp:
+          operationId: getHelp
+          parameters:
+            version: 1.0.0
+            helpId: $response.body#/id
+    AcceptanceResponse:
+      description: Acceptance applied, or already applied to this help, with both aggregates returned.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Acceptance'
+      links:
+        GetHelp:
+          operationId: getHelp
+          parameters:
+            version: 1.0.0
+            helpId: $response.body#/help/id
+        GetHelpRequest:
+          operationId: getHelpRequest
+          parameters:
+            version: 1.0.0
+            helpRequestId: $response.body#/helpRequest/id
+  requestBodies:
+    HelpRequestCreateRequest:
+      description: Inputs accepted by the HelpRequest constructor. Omitted or null optionals map to Optional.empty();
+        collections are required even when empty.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpRequestCreate'
+    HelpCreateRequest:
+      description: Inputs to Help.answer; the parent path supplies the canonical HelpRequest.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HelpCreate'
+    AcceptanceCreateRequest:
+      description: Desired acceptance state; revocation is not supported.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AcceptanceCreate'
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: Proposed OAuth2 authorization-code flow with PKCE; identity provider must enforce PKCE.
+        URLs are placeholders.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/authorize
+          tokenUrl: https://auth.example.com/token
+          scopes:
+            cooking-assistance:read: Read authorized help requests and helps.
+            cooking-assistance:request: Create help requests for authorized requester identities.
+            cooking-assistance:answer: Provide answers for eligible requests.
+            cooking-assistance:accept: Accept help on behalf of an authorized requester.
+x-quality-review:
+  priorities: Default SOLID quality priorities applied; no earlier API contract was supplied.
+  liskov:
+    status: met-for-initial-contract
+    qualities: Compatibility (co-existence, interoperability); Flexibility (replaceability).
+    note: No prior version to compare; future releases need a breaking-change and semantic review.
+  interface-segregation:
+    status: met
+    qualities: Functional suitability (functional appropriateness); Interaction capability (user error protection).
+    note: Capability operations, domain constraints, and a dedicated acceptance operation. Answer discriminator selects data shape, not unrelated actions.
+  open-closed:
+    status: met-at-contract-level
+    qualities: Maintainability (modifiability); Compatibility (co-existence).
+    note: Open response objects and tolerant-reader guidance; retain the baseline version selector across compatible revisions.
+  dependency-inversion:
+    status: met-at-contract-level
+    qualities: Flexibility (adaptability); Maintainability (testability).
+    note: Resource links, OpenAPI operation links, and examples provided. Use the examples to seed provider and consumer contract tests.
+  single-responsibility:
+    status: met
+    qualities: Maintainability (modularity, reusability); Interaction capability (self-descriptiveness).
+    note: One Cooking Assistance bounded context, including the complete atomic acceptance operation.
+x-validation:
+  spectral: Passed bundled house-style ruleset with zero errors and zero warnings.
+  schema-checks: 50 JSON Schema example and boundary checks passed using Ajv 2020; those checks disabled format validation.
+  limitation: Contract validation only; application authentication, transactional persistence, and concurrency behavior require implementation tests.

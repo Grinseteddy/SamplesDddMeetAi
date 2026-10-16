@@ -1,17 +1,15 @@
 ---
-name: asyncapi-spec-author
+name: "asyncapi-spec-author"
 description: >-
-  Author AsyncAPI 3.1.0 event-driven API specifications in YAML following a
-  consistent, componentized house style (the same style as the bundled Task
-  Management example). Use this skill whenever the user wants to create, write,
-  draft, design, scaffold, or extend an AsyncAPI specification, model an
-  event-driven / message-driven / pub-sub / streaming API, describe Kafka, MQTT,
-  AMQP, WebSocket, or other broker topics, channels, messages, or events, or
-  produce an asyncapi.yaml file — even if they don't say "AsyncAPI 3.1.0"
-  explicitly. Also use it when adding channels, operations, messages, or schemas
-  to an existing spec so the additions match the house conventions, and when the
-  user asks to validate or lint an AsyncAPI document. Produces a single YAML file
-  that validates against the AsyncAPI 3.1.0 spec and passes Spectral linting.
+  Author AsyncAPI 3.1.0 event-driven API specs in YAML in a componentized house
+  style (mirrors the bundled Task Management example). Use to create, draft,
+  design, extend, validate or lint an AsyncAPI spec or asyncapi.yaml, or to
+  model event-driven, pub-sub or streaming APIs — Kafka, MQTT, AMQP, WebSocket
+  topics, channels, messages, events — even without saying "AsyncAPI". Applies
+  SOLID-based quality requirements (ISO/IEC 25010): backward compatibility,
+  additive evolution with versioned, deprecated channels, one bounded context
+  per spec — also when evolving an existing spec. Output validates and passes
+  Spectral linting and a quality review.
 author: Annegret Junker
 ---
 
@@ -79,17 +77,31 @@ Establish, from the conversation or by asking briefly:
   and partition key; for RabbitMQ the exchange name and type, the routing
   keys, and the queue names this application consumes from.
 - **Security** for the broker connection (default: `userPassword`).
+- **Qualities**: which qualities matter is a business decision. If the
+  conversation, ADRs or architecture principles prioritize any, use them;
+  otherwise apply the defaults in `references/quality-requirements.md` and say
+  so. Don't quiz the user about ISO characteristics.
+- **New or evolving?** If an earlier version of the spec exists, this is an
+  evolution: the Liskov and Open/closed rules become mandatory — nothing a
+  consumer relies on may break; a breaking change ships as a new versioned
+  channel running alongside the deprecated one.
 
 If the user already gave a message list, a state machine, an event-storming
 result, or an existing spec, extract the channels and messages from that instead
 of interrogating them. Ask only what you genuinely can't infer.
 
-### 2. Read the conventions
+### 2. Read the conventions and quality requirements
 
 Before writing, read `references/conventions.md` — it is the authoritative,
 detailed specification of the house style (naming, the channel/operation/message
 split, the shared message-header pattern, payload schema design, security). The
 summary in this file is a reminder, not a substitute.
+
+Then read `references/quality-requirements.md` — the SOLID principles carried
+over to event-driven APIs, each mapped to ISO/IEC 25010 qualities and turned
+into rules for channels, operations and messages. They shape design decisions
+(which events this context publishes, how it evolves), so read them before
+writing, not only at review.
 
 ### 3. Write the spec
 
@@ -118,7 +130,17 @@ Messages live under `components.messages`; their headers and payloads live under
 `components.schemas`; channels reference messages; operations reference channels
 and messages — exactly as in the example. Inline as little as possible.
 
-### 4. Validate and lint
+### 4. Review against the quality requirements
+
+Walk the spec through the checklist in `references/quality-requirements.md` §9
+(Liskov, Open/closed, Interface segregation, Dependency inversion, Single
+responsibility). Fix what you can; keep a list of what stays open. When a
+previous version exists, run both compatibility checks from
+`references/validation.md` — `asyncapi diff` for channels/operations and
+`scripts/payload_compat.py` for payloads and headers (direction-aware) — and
+compare changed descriptions by hand: tools see structure, not meaning.
+
+### 5. Validate and lint
 
 Always validate the finished spec. Read `references/validation.md` for the exact
 commands. Two complementary tools:
@@ -137,10 +159,13 @@ Fix every **error** and review **warnings** (resolve them unless there's a
 deliberate reason). Re-run until clean. If neither tool can be installed, fall
 back to the Python structural check described in `references/validation.md`.
 
-### 5. Present
+### 6. Present
 
 Save the final `.yaml` to the outputs directory and present it. Briefly note the
-channels, messages, and operations covered and the result of the validation run.
+channels, messages, and operations covered and the result of the validation run,
+plus a short **Quality** section: one line per SOLID principle with its
+ISO/IEC 25010 characteristics, met or open, and what the user must decide for
+open items (`references/quality-requirements.md` §10).
 
 ## House style at a glance
 
@@ -183,6 +208,10 @@ liberally: `format` (`uuid`, `date-time`, `uri`, `email`), `minLength`/
 machine by giving each event's `status` a single-value `enum`
 (`NEW`, `ASSIGNED`, `IN_PROGRESS`, `DONE`).
 
+**descriptions & examples** — every payload/header property has a
+`description` saying what the value means; every operation a `description` of
+when it fires; every message `examples` (headers + payload).
+
 **security** — define the broker auth scheme once in
 `components.securitySchemes` (default `userPassword`) and reference it from each
 server's `security` list.
@@ -202,10 +231,40 @@ dotted address like `task.{eventType}`), consumer channels are queues
 manually (`ack: true`); no server binding — `vhost` sits on the exchange/queue.
 Full detail in `references/conventions.md` §12.
 
+**Quality (SOLID → ISO/IEC 25010)** — full rules in
+`references/quality-requirements.md`:
+- *Liskov* (compatibility, replaceability): direction decides — for `send`
+  messages never remove/narrow properties, change type or meaning, rename
+  channels/messages or change the partition key; for `receive` messages never
+  add required properties or tighten constraints. Retained topics are replayed,
+  so compatibility runs both ways.
+- *Open/closed* (modifiability, co-existence): additive only within a version;
+  a new business requirement is a new event, not a new version; a breaking
+  change is a new `….v2` channel with dual publishing, old parts marked
+  `x-deprecated` + `x-sunset` with the successor named, and
+  `deprecation`/`sunset` in `MessageHeader`; `info.description` asks consumers
+  to ignore unknown message types, properties and enum values; no
+  `additionalProperties: false`.
+- *Interface segregation* (functional appropriateness, user error protection):
+  one shared event set for all consumers — no consumer-specific channels or
+  fields, no generic "Changed" events; constrained payloads.
+- *Dependency inversion* (adaptability, testability): consumers depend on the
+  spec (addresses and broker details live in it); notification events carry
+  `…Link` URIs; descriptions and examples seed contract tests.
+- *Single responsibility* (modularity, reusability, self-descriptiveness): one
+  Bounded Context per spec, publishing only its own events; keep a lifecycle
+  together.
+
 ## Bundled resources
 
 - `references/conventions.md` — full house-style specification. Read before writing.
-- `references/validation.md` — how to install and run the AsyncAPI CLI and Spectral (and fallbacks).
+- `references/quality-requirements.md` — SOLID principles applied to
+  event-driven APIs, mapped to ISO/IEC 25010, with rules, the versioned-channel
+  and deprecation pattern, the review checklist and sources. Read before writing.
+- `references/validation.md` — how to install and run the AsyncAPI CLI and
+  Spectral (and fallbacks), plus the compatibility checks for evolving specs.
+- `scripts/payload_compat.py` — direction-aware payload/header compatibility
+  check between two spec versions (fills the gap `asyncapi diff` leaves).
 - `assets/example-task-management.yaml` — gold-standard Kafka example (bindings) to mirror.
 - `assets/example-task-management-amqp.yaml` — gold-standard RabbitMQ/AMQP example (bindings) to mirror.
 - `assets/skeleton.yaml` — minimal starting template with the right structure (AMQP binding blocks commented in).

@@ -4,6 +4,8 @@ info:
   version: 1.0.0
   description: |
     <One or more sentences describing what this event-driven API does and who uses it.>
+    The API evolves additively within a major version: consumers must ignore
+    unknown message types, unknown properties and unknown enumeration values.
   contact:
     name: <Owning team or person>
     url: <https://example.org>
@@ -11,60 +13,22 @@ info:
 
 servers:
   production:
-    host: "<broker-host:port>"          # Kafka events.example.com:9092 | RabbitMQ rabbitmq.example.com:5672 — no scheme here
-    protocol: "<kafka|mqtt|amqp|amqps|ws|...>"
-    # protocolVersion: "0.9.1"          # AMQP/RabbitMQ only
+    host: "<broker-host:port>"          # e.g. events.example.com:9092 — no protocol scheme here
+    protocol: "<kafka|mqtt|amqp|ws|...>"
     description: "Production broker"
     security:
       - $ref: '#/components/securitySchemes/user-password'
-    # Kafka only (AMQP has no server binding):
-    # bindings:
-    #   kafka:
-    #     schemaRegistryUrl: "<https://schema-registry.example.com>"
-    #     schemaRegistryVendor: "confluent"
-    #     bindingVersion: "0.5.0"
 
 defaultContentType: application/json
 
 channels:
   <resourceEvents>:                      # camelCase channel key
-    address: "<resource-area/resources>" # kebab-case: Kafka/MQTT "area/resources"; AMQP routing key "resource.{eventType}"
+    address: "<resource-area/resources>" # kebab-case path segments
     messages:
       <resourceCreated>:
         $ref: '#/components/messages/<resourceCreated>'
-      <resourceUpdated>:
-        $ref: '#/components/messages/<resourceUpdated>'
-    # Every channel carries the binding for its protocol — keep ONE of these. See conventions.md §12.
-    # bindings:
-    #   kafka:
-    #     topic: <resource-area.resources>   # only if different from address
-    #     partitions: 6
-    #     replicas: 3
-    #     topicConfiguration:
-    #       cleanup.policy: ["delete"]
-    #       retention.ms: 604800000
-    #     bindingVersion: "0.5.0"
-    #
-    #   amqp:
-    #     is: routingKey                 # publisher: address is the routing key on this exchange
-    #     exchange:
-    #       name: <resource-area>
-    #       type: topic
-    #       durable: true
-    #       autoDelete: false
-    #       vhost: /
-    #     bindingVersion: "0.3.0"
-    #
-    #   For a CONSUMER channel use instead:
-    #   amqp:
-    #     is: queue                      # consumer: address is the queue name
-    #     queue:
-    #       name: <consumer-context>.<purpose>
-    #       durable: true
-    #       exclusive: false
-    #       autoDelete: false
-    #       vhost: /
-    #     bindingVersion: "0.3.0"
+      <resourceCompleted>:
+        $ref: '#/components/messages/<resourceCompleted>'
 
 operations:
   # action is from THIS application's perspective:
@@ -72,29 +36,21 @@ operations:
   #   receive = this app consumes the message
   publish<ResourceCreated>:
     action: send
+    description: |
+      <When this event is published and what it means for consumers.>
     channel:
       $ref: '#/channels/<resourceEvents>'
     messages:
       - $ref: '#/channels/<resourceEvents>/messages/<resourceCreated>'
-    # Keep ONE of these:
-    # bindings:
-    #   kafka:
-    #     clientId:                      # a `receive` operation carries `groupId` instead
-    #       type: string
-    #       enum: [<this-service-name>]
-    #     bindingVersion: "0.5.0"
-    #
-    #   amqp:
-    #     deliveryMode: 2                # 2 = persistent; 1 = transient
-    #     mandatory: true
-    #     bindingVersion: "0.3.0"        # a `receive` operation carries `ack: true` instead
 
-  publish<ResourceUpdated>:
+  publish<ResourceCompleted>:
     action: send
+    description: |
+      <When this event is published and what it means for consumers.>
     channel:
       $ref: '#/channels/<resourceEvents>'
     messages:
-      - $ref: '#/channels/<resourceEvents>/messages/<resourceUpdated>'
+      - $ref: '#/channels/<resourceEvents>/messages/<resourceCompleted>'
 
 components:
   messages:
@@ -106,28 +62,37 @@ components:
         $ref: '#/components/schemas/MessageHeader'
       payload:
         $ref: '#/components/schemas/<ResourceCreated>Payload'
-      # Keep ONE of these:
-      # bindings:
-      #   kafka:
-      #     key:                             # partition key = aggregate id
-      #       type: string
-      #       format: uuid
-      #     schemaIdLocation: header
-      #     bindingVersion: "0.5.0"
-      #
-      #   amqp:
-      #     contentEncoding: identity
-      #     messageType: <ResourceCreated>   # mirror `name`
-      #     bindingVersion: "0.3.0"
+      examples:                          # seed for consumer contract tests
+        - name: <exampleName>
+          summary: <One concrete situation in domain language>
+          headers:
+            correlationId: <uuid>
+            messageId: <uuid>
+            source: <source-system>
+          payload:
+            <resource>Id: <uuid>
+            status: CREATED
 
-    <resourceUpdated>:
-      name: <ResourceUpdated>
-      title: <Resource Updated Event>
-      summary: Indicates that a <resource> has been updated
+    # One specific past-tense domain fact per message — never a generic
+    # "<Resource>Updated"/"Changed" event with a change-type switch.
+    <resourceCompleted>:
+      name: <ResourceCompleted>
+      title: <Resource Completed Event>
+      summary: Indicates that a <resource> has been completed
       headers:
         $ref: '#/components/schemas/MessageHeader'
       payload:
-        $ref: '#/components/schemas/<ResourceUpdated>Payload'
+        $ref: '#/components/schemas/<ResourceCompleted>Payload'
+      examples:
+        - name: <exampleName>
+          summary: <One concrete situation in domain language>
+          headers:
+            correlationId: <uuid>
+            messageId: <uuid>
+            source: <source-system>
+          payload:
+            <resource>Id: <uuid>
+            status: COMPLETED
 
   schemas:
     # Shared by EVERY message — cross-cutting tracing/routing metadata.
@@ -159,28 +124,34 @@ components:
         - status
       properties:
         <resource>Id:
+          description: <What this identifier identifies, in domain language.>
           type: string
           format: uuid
         status:
+          description: <Lifecycle state after this event; always CREATED here.>
           type: string
           enum: [CREATED]                # single-value enum models the state machine
-        # ... domain fields with constraints (minLength/maxLength, format, etc.) ...
+        # ... domain fields with constraints (minLength/maxLength, format, etc.),
+        #     each with a description saying what the value MEANS ...
         createdAt:
+          description: <When the <resource> was created.>
           type: string
           format: date-time
 
-    <ResourceUpdated>Payload:
+    <ResourceCompleted>Payload:
       type: object
       required:
         - <resource>Id
         - status
       properties:
         <resource>Id:
+          description: <What this identifier identifies, in domain language.>
           type: string
           format: uuid
         status:
+          description: <Lifecycle state after this event; always COMPLETED here.>
           type: string
-          enum: [UPDATED]
+          enum: [COMPLETED]
 
   securitySchemes:
     user-password:

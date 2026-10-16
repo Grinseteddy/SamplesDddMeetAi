@@ -66,19 +66,71 @@ Useful flags:
 ### Interpret results
 
 - **Errors** — must all be fixed. The bundled ruleset raises errors for: missing
-  contact, non-camelCase operation or channel keys, non-PascalCase schema
-  names, and an `amqp` channel binding without `is: routingKey|queue`, on top
-  of the structural errors from `spectral:asyncapi`.
+  contact, non-camelCase operation or channel keys, and non-PascalCase schema
+  names, on top of the structural errors from `spectral:asyncapi`.
 - **Warnings** — review each and resolve unless there's a deliberate reason
   (missing operation/message descriptions, channel addresses that aren't
-  kebab-case `/`- or `.`-separated segments, message `name` not PascalCase, a
-  channel without a protocol binding, a `kafka` channel binding without
-  `partitions`/`replicas`, any binding without `bindingVersion`, etc.).
+  kebab-case, message `name` not PascalCase, etc.).
 
 Re-run after fixing until the output is clean. The built-in `spectral:asyncapi`
 rules also check things like header schemas being `type: object`, tag
 descriptions, and resolved-document structure — read
 `assets/house-style.spectral.yaml` to see or adjust the exact severities.
+
+### Quality rules in the ruleset
+
+These rules back `references/quality-requirements.md`:
+- `house-schema-properties-have-description` (warn) — every payload/header
+  property says what it means; the only place a change of meaning shows.
+- `house-messages-have-examples` (warn) — examples seed contract tests.
+- `house-no-closed-schemas` (warn) — `additionalProperties: false` breaks
+  tolerant readers on every additive change.
+- `house-info-tolerant-reader` (warn) — `info.description` asks consumers to
+  ignore unknown message types, properties and enum values.
+- `house-deprecated-needs-sunset` / `house-deprecated-explains-successor`
+  (error) — anything marked `x-deprecated: true` carries `x-sunset` and names
+  its successor and sunset in `description`.
+
+The rest of the checklist (§9 of that file) needs judgment.
+
+## Layer 3 — Compatibility checks (evolving an existing spec)
+
+Run these whenever an earlier version of the spec exists.
+
+**Channels and operations — `asyncapi diff`:**
+
+```bash
+asyncapi diff old.yaml new.yaml --type breaking --format md
+# exit code 1 if anything is classified as breaking
+```
+
+It reliably flags renamed/removed channels, address changes and operation
+changes, but leaves **payload-schema changes "unclassified"** — a removed
+payload property does not show up as breaking. (Ignore the many
+`x-parser-schema-id` lines in `--type all` output; they are parser noise.)
+
+**Payloads and headers — `scripts/payload_compat.py`:**
+
+```bash
+pip install pyyaml --break-system-packages -q
+python3 -I scripts/payload_compat.py old.yaml new.yaml
+# exit code 1 on any BREAKING finding
+```
+
+It reads each message's direction from the operations and applies the Liskov
+rules: for `send` messages, removed properties, required→optional, type/format
+changes, added enum values and changed Kafka partition keys are BREAKING
+(loosened constraints are CHECK); for `receive` messages, new required
+properties, tightened constraints, removed enum values and type/format changes
+are BREAKING. Every changed `description` is reported as MEANING — confirm by
+hand that the meaning did not change; no tool can.
+
+**At runtime**, also set the schema-registry subject compatibility for retained
+Kafka topics to `FULL_TRANSITIVE` (at least `BACKWARD_TRANSITIVE`), so old
+messages remain readable on replay.
+
+A breaking finding means: make the change additive, or ship it as a new
+versioned channel with the old one deprecated (quality requirements §5).
 
 ## Fallback — Python structural check
 

@@ -99,22 +99,33 @@ rules:
       field: description
       function: truthy
 
-  house-enum-values-screaming-snake-case:
-    description: "Enum values must be SCREAMING_SNAKE_CASE (e.g. ALREADY_READ). The `version` header parameter is exempt."
-    message: "Enum value {{value}} must be SCREAMING_SNAKE_CASE."
-    severity: error
+  # --- Quality requirements (references/quality-requirements.md) ---
+
+  house-no-closed-response-schemas:
+    description: "Open/closed: do not set additionalProperties: false on response or component schemas — it turns every additive change into a breaking one for strict clients (tolerant reader)."
+    severity: warn
     given:
-      # enums anywhere inside schemas, request bodies, responses and headers
-      - "$.components.schemas..enum[*]"
-      - "$.components.requestBodies..enum[*]"
-      - "$.components.responses..enum[*]"
-      - "$.components.headers..enum[*]"
-      - "$.paths..requestBody..enum[*]"
-      - "$.paths..responses..enum[*]"
-      # enums on parameters, except the version header (semver by convention)
-      - "$.components.parameters[?(@.name != 'version')]..enum[*]"
-      - "$.paths..parameters[?(@ && @.name && @.name != 'version')]..enum[*]"
+      - "$.components.schemas..additionalProperties"
+      - "$.components.responses..additionalProperties"
+      - "$.paths[*][*].responses..additionalProperties"
+    then:
+      function: truthy
+
+  house-deprecated-operation-explains:
+    description: "Open/closed: a deprecated operation must have a description naming its successor and sunset date."
+    severity: error
+    given: "$.paths[*][?(@.deprecated == true)]"
+    then:
+      field: description
+      function: pattern
+      functionOptions:
+        match: "/(successor|replac|migrat|use )[\\s\\S]*sunset|sunset[\\s\\S]*(successor|replac|migrat|use )/i"
+
+  house-info-tolerant-reader:
+    description: "Open/closed: info.description should tell clients to ignore unknown fields and handle unknown enum values (tolerant reader)."
+    severity: warn
+    given: "$.info.description"
     then:
       function: pattern
       functionOptions:
-        match: "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"
+        match: "/unknown/i"

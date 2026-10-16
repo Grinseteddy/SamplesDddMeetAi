@@ -85,53 +85,13 @@ rules:
         match: "^[A-Z][a-zA-Z0-9]*$"
 
   house-channel-address-kebab-case:
-    description: >-
-      Channel address segments should be lowercase kebab-case, separated by "/"
-      (Kafka/MQTT-style paths: task-management/tasks) or "." (AMQP routing keys
-      and queue names: task.created, task-management.assignment-requests).
-      A segment may be a {camelCase} channel parameter (task.{eventType}).
+    description: "Channel address segments should be kebab-case paths (e.g. task-management/tasks)."
     severity: warn
     given: "$.channels[*].address"
     then:
       function: pattern
       functionOptions:
-        match: "^([a-z0-9]+(-[a-z0-9]+)*|\\{[a-zA-Z][a-zA-Z0-9]*\\})([/.]([a-z0-9]+(-[a-z0-9]+)*|\\{[a-zA-Z][a-zA-Z0-9]*\\}))*$"
-
-  house-binding-version-pinned:
-    description: "Every protocol binding should pin bindingVersion (kafka 0.5.0, amqp 0.3.0) so the parser applies the right binding schema."
-    severity: warn
-    given: "$..bindings[*]"
-    then:
-      field: bindingVersion
-      function: truthy
-
-  house-channel-has-protocol-binding:
-    description: "Every channel should carry a bindings block for the server protocol (kafka: partitions/replicas/topicConfiguration; amqp: is + exchange or queue)."
-    severity: warn
-    given: "$.channels[*]"
-    then:
-      field: bindings
-      function: truthy
-
-  house-kafka-channel-binding-layout:
-    description: "A kafka channel binding should state partitions and replicas so the topic's physical layout is part of the contract."
-    severity: warn
-    given: "$.channels[*].bindings.kafka"
-    then:
-      - field: partitions
-        function: truthy
-      - field: replicas
-        function: truthy
-
-  house-amqp-channel-binding-is:
-    description: "An amqp channel binding must say whether the address is a routingKey (publisher, names the exchange) or a queue (consumer, names the queue)."
-    severity: error
-    given: "$.channels[*].bindings.amqp"
-    then:
-      field: is
-      function: enumeration
-      functionOptions:
-        values: [routingKey, queue]
+        match: "^[a-z0-9]+([-/][a-z0-9]+)*$"
 
   house-operations-have-description:
     description: "Operations should have a description explaining when the event fires and its side effects."
@@ -140,3 +100,62 @@ rules:
     then:
       field: description
       function: truthy
+
+  # --- Quality requirements (references/quality-requirements.md) ---
+
+  house-schema-properties-have-description:
+    description: "Dependency inversion / Liskov: every payload and header property needs a description saying what the value means — the only place a change of meaning becomes visible."
+    severity: warn
+    resolved: false
+    given: "$.components.schemas..properties[*]"
+    then:
+      field: description
+      function: truthy
+
+  house-messages-have-examples:
+    description: "Dependency inversion: every message should carry examples that seed consumer contract tests."
+    severity: warn
+    given: "$.components.messages[*]"
+    then:
+      field: examples
+      function: truthy
+
+  house-no-closed-schemas:
+    description: "Open/closed: do not set additionalProperties: false on payload or header schemas — it turns every additive change into a breaking one for strict consumers (tolerant reader)."
+    severity: warn
+    given: "$.components..additionalProperties"
+    then:
+      function: truthy
+
+  house-info-tolerant-reader:
+    description: "Open/closed: info.description should tell consumers to ignore unknown message types, properties and enum values (tolerant reader)."
+    severity: warn
+    given: "$.info.description"
+    then:
+      function: pattern
+      functionOptions:
+        match: "/unknown/i"
+
+  house-deprecated-needs-sunset:
+    description: "Open/closed: a channel, operation or message marked x-deprecated must declare x-sunset (ISO date)."
+    severity: error
+    given:
+      - "$.channels[?(@['x-deprecated'] == true)]"
+      - "$.operations[?(@['x-deprecated'] == true)]"
+      - "$.components.messages[?(@['x-deprecated'] == true)]"
+    then:
+      field: x-sunset
+      function: truthy
+
+  house-deprecated-explains-successor:
+    description: "Open/closed: a channel, operation or message marked x-deprecated must name its successor and sunset in its description."
+    severity: error
+    given:
+      - "$.channels[?(@['x-deprecated'] == true)]"
+      - "$.operations[?(@['x-deprecated'] == true)]"
+      - "$.components.messages[?(@['x-deprecated'] == true)]"
+    then:
+      field: description
+      function: pattern
+      functionOptions:
+        match: "/(successor|replac|migrat|use )[\\s\\S]*sunset|sunset[\\s\\S]*(successor|replac|migrat|use )/i"

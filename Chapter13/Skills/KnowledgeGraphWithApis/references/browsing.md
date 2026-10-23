@@ -1,13 +1,13 @@
 # Browsing the graph
 
-The graph is for reading. `scripts/views.py` renders six lenses plus a register
+The graph is for reading. `scripts/views.py` renders seven lenses plus a register
 and an orphan report into `views/index.md`; this file says what each lens is
 *for*, and gives the queries for the questions people actually ask out loud.
 
 Run all of it with `python3 scripts/views.py graph.ttl --out views/`, or one
 lens with `--lens language`.
 
-## The six lenses
+## The seven lenses
 
 **1. Strategy** — `Goal ← Impact ← Actor` and `Deliverable → Impact`, plus BMC
 value propositions and segments. Answers *"what are we trying to change, in
@@ -33,14 +33,20 @@ carrying two `dkg:inContext` edges are highlighted: they straddle a boundary.
 as a box with its style (`sync` / `async`) and protocol, synchronous operations
 as `METHOD /path`, channels as hexagons with their messages, `send` / `receive`
 arrows, and dotted `specifies` edges out to the commands, events and canvas
-messages each contract stands for; a coverage table underneath, and the API
-Product Canvases' quality requirements with what each constrains. An Api drawn
-on a canvas and specified in a file is one box with two sources. Answers *"what
+messages each contract stands for; a coverage table underneath. Answers *"what
 can be called, what is published, what is consumed from across a border — and
 does the contract match the model?"* Empty until a spec is ingested, and says
 so.
 
-**6. Traceability** — the vertical one, and the reason the graph exists.
+**6. Design** — per bounded context, per aggregate: the commands it accepts
+(with the actor or policy that issues them), the invariants it protects, the
+events it emits on success and on failure, the read models those events update,
+and the policies that loop events back into commands; a lifecycle table under
+any aggregate with `dkg:Transition`s. Fed by detail-level EventStorming boards
+and Detail Design Briefs. Answers *"what does this aggregate do, what does it
+refuse, and is it ready to build?"* Empty until a detail board is ingested.
+
+**7. Traceability** — the vertical one, and the reason the graph exists.
 Idea → Deliverable → Impact → Capability → Command → Event → Term, and
 Decision → Question, and now Command → Operation / Event → ApiMessage via
 `specifies`. Answers *"whatever happened to that idea?"*, *"whatever
@@ -107,6 +113,27 @@ SELECT ?label (COUNT(DISTINCT ?a) AS ?n) WHERE {
 SELECT ?label (COUNT(DISTINCT ?ctx) AS ?n) WHERE {
   ?n0 skos:prefLabel ?label ; dkg:inContext ?ctx .
 } GROUP BY ?label HAVING (COUNT(DISTINCT ?ctx) > 1)
+```
+
+**What one aggregate accepts, protects and emits** — the design lens as rows:
+
+```sparql
+SELECT ?cmd ?inv ?ev ?outcome WHERE {
+  ?agg skos:prefLabel "Reservation" .
+  ?c dkg:handledBy ?agg ; skos:prefLabel ?cmd .
+  OPTIONAL { ?r dkg:guards ?c ; skos:prefLabel ?inv }
+  OPTIONAL { ?c dkg:triggers ?e . ?e skos:prefLabel ?ev .
+             OPTIONAL { ?e dkg:outcome ?outcome } }
+} ORDER BY ?cmd
+```
+
+**Commands with no rejection path** — the happy-path-only list:
+
+```sparql
+SELECT ?label WHERE {
+  ?c a dkg:Command ; skos:prefLabel ?label ; dkg:handledBy ?agg .
+  FILTER NOT EXISTS { ?c dkg:triggers ?e . ?e dkg:outcome "failure" }
+}
 ```
 
 **Every open disagreement, with both sides:**

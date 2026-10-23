@@ -1,6 +1,7 @@
 ---
 name: user-story-author
 description: Write user stories for ONE bounded context from a Domain Knowledge Graph (dkg Turtle) — actor, goal and benefit traced to graph nodes, acceptance criteria from the graph's Given/When/Then rules, open questions from its hotspots. Asks for the graph and/or the bounded context if either is missing.
+author: Annegret Junker
 ---
 
 # User Story Author (from a Domain Knowledge Graph)

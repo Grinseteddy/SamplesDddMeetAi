@@ -39,7 +39,9 @@ BOOKKEEPING = {
     DKG.specFormat, DKG.interactionStyle, DKG.apiId, DKG.apiVersion,
     DKG.audience, DKG.protocol, DKG.operationId, DKG.httpMethod, DKG.path,
     DKG.action, DKG.requiresScope, DKG.address, DKG.schemaRole,
-    DKG.architecturePattern, DKG.contact, DKG.parameter,
+    # EventStorming detail level: literals only
+    DKG.flavour, DKG.triggerKind, DKG.outcome, DKG.condition,
+    DKG.policyScope, DKG.fromState, DKG.toState,
     OWL.imports,
 }
 
@@ -163,6 +165,13 @@ def check(g: Graph) -> tuple[list[str], list[str], dict]:
                 errors.append(f"{str(n).split('#')[-1]}: {str(cls).split('#')[-1]} with no "
                               "dkg:exposedBy — which API defines it?")
 
+    # A detail board is about one bounded context. The ingest asks for it;
+    # a board without it fills the graph with stickies that belong nowhere.
+    for b in sorted(typed(g, DKG.EventStormingDetailBoard), key=str):
+        if not list(g.objects(b, DKG.scopedTo)):
+            errors.append(f"{str(b).split('#')[-1]}: detail board with no dkg:scopedTo — "
+                          "ask the user which bounded context it zooms into; never guess it")
+
     for a in sorted(reifications, key=str):
         name = str(a).split("#")[-1]
         for p, why in ((RDF.subject, "rdf:subject"), (RDF.predicate, "rdf:predicate"),
@@ -210,6 +219,7 @@ def check(g: Graph) -> tuple[list[str], list[str], dict]:
                 "a finding, not a defect to patch")
 
     warnings += api_findings(g, apis)
+    warnings += detail_findings(g)
 
     # near-duplicate labels that were not merged or proposed
     labels = defaultdict(list)
@@ -223,8 +233,6 @@ def check(g: Graph) -> tuple[list[str], list[str], dict]:
     for s, _, o in g.triples((None, DKG.specifies, None)):
         known.add(frozenset({s, o}))
     for s, _, o in g.triples((None, DKG.mentions, None)):
-        known.add(frozenset({s, o}))
-    for s, _, o in g.triples((None, DKG.derivedFrom, None)):
         known.add(frozenset({s, o}))
     for op, _, m in g.triples((None, DKG.carriesMessage, None)):
         for t in g.objects(m, DKG.specifies):
@@ -244,7 +252,8 @@ def check(g: Graph) -> tuple[list[str], list[str], dict]:
     # deliberately repeated by label across collaborators (one row per
     # collaborator, same message name) — that repetition is the finding, not
     # a transcription error, so it is skipped here too.
-    skip = typed(g, DKG.Sentence) | typed(g, DKG.Slice) | typed(g, DKG.Message)
+    skip = (typed(g, DKG.Sentence) | typed(g, DKG.Slice) | typed(g, DKG.Message)
+            | typed(g, DKG.Transition) | typed(g, DKG.Invariant))
     fam_cache: dict = {}
 
     def family(n):
@@ -273,6 +282,11 @@ def check(g: Graph) -> tuple[list[str], list[str], dict]:
                     # a convention, not a duplicate.
                     if {fx, fy} == {DKG.Occurrence, DKG.Concept} or \
                        {fx, fy} == {DKG.Occurrence, DKG.Activity}:
+                        continue
+                    # A read model is named after what it shows: 'Available
+                    # bicycles at rack' containing 'Rack' is the same convention.
+                    rm = typed(g, DKG.ReadModel)
+                    if (x in rm) != (y in rm):
                         continue
                     if x in api_side or y in api_side:
                         if x in api_side and y in api_side:
@@ -343,32 +357,13 @@ def api_findings(g: Graph, apis: set) -> list[str]:
             out_ |= ctx_of(a)
         return out_
 
-    # 1. an Api straddling contexts; an Api whose sources disagree on protocol
-    PROTO_FAMILY = {"http": "http", "https": "http", "rest": "http", "restful": "http",
-                    "kafka": "kafka", "amqp": "amqp", "rabbitmq": "amqp", "mqtt": "mqtt",
-                    "grpc": "grpc", "ws": "ws", "wss": "ws", "websocket": "ws"}
+    # 1. an Api straddling contexts
     for a in sorted(apis, key=str):
         ctxs = ctx_of(a)
         if len(ctxs) > 1:
             out.append(f"API straddles contexts: {label_of(g, a)!r} is in "
                        + ", ".join(sorted(label_of(g, c) for c in ctxs))
                        + " — a boundary the spec ignores, or one context the graph holds twice")
-        protos = [str(p) for p in g.objects(a, DKG.protocol)]
-        fams = {PROTO_FAMILY.get(p.lower(), p.lower()) for p in protos}
-        if len(fams) > 1:
-            out.append(f"protocol disagreement: {label_of(g, a)!r} is said to run over "
-                       + ", ".join(sorted(repr(p) for p in protos))
-                       + " by its sources — canvas and spec do not agree; keep both, ask")
-    # 1b. a context with two Apis of one style — identity is context × style
-    seen_pair: dict = defaultdict(list)
-    for a in apis:
-        for c in ctx_of(a):
-            seen_pair[(c, str(g.value(a, DKG.interactionStyle) or ""))].append(a)
-    for (c, st), aa in sorted(seen_pair.items(), key=lambda kv: str(kv[0])):
-        if len(aa) > 1:
-            out.append(f"two {st} APIs in {label_of(g, c)!r}: "
-                       + ", ".join(sorted(repr(label_of(g, a)) for a in aa))
-                       + " — a canvas and a spec that should have merged, or two real APIs; say which")
 
     ops = typed(g, DKG.Operation)
     amsgs = typed(g, DKG.ApiMessage)
@@ -413,8 +408,7 @@ def api_findings(g: Graph, apis: set) -> list[str]:
         role = str(g.value(n, DKG.schemaRole) or "")
         if role in ("header", "error", "payload"):
             continue
-        linked = list(g.objects(n, DKG.specifies)) or list(g.objects(n, DKG.mentions)) \
-            or list(g.subjects(DKG.derivedFrom, n))   # a refined glossary lifted a term from it
+        linked = list(g.objects(n, DKG.specifies)) or list(g.objects(n, DKG.mentions))
         if not linked and n in ops:
             # an async operation is linked through the messages it carries
             linked = [t for m in g.objects(n, DKG.carriesMessage)
@@ -457,6 +451,142 @@ def api_findings(g: Graph, apis: set) -> list[str]:
                          "only description of this context's interface")
         if parts:
             out.append(f"API coverage of {label_of(g, c)!r}: " + "; ".join(parts))
+    return out
+
+
+def detail_findings(g: Graph) -> list[str]:
+    """The detail-board grammar, checked on every node a detail board sourced.
+
+    read model → actor / policy / clock → command → ONE receiver → event(s)
+    → read models. Each gap is a finding with the sticky named; none of them
+    is something the ingest should have filled in."""
+    out: list[str] = []
+    boards = typed(g, DKG.EventStormingDetailBoard)
+    if not boards:
+        return out
+
+    cmds_all, evs_all = typed(g, DKG.Command), typed(g, DKG.DomainEvent)
+    aggs_all = typed(g, DKG.Aggregate)
+    cands_all = typed(g, DKG.AggregateCandidate)
+    pols_all, rms_all = typed(g, DKG.Policy), typed(g, DKG.ReadModel)
+    invs_all = typed(g, DKG.Invariant)
+    scoped_kinds = cmds_all | evs_all | aggs_all | cands_all | pols_all | rms_all | invs_all
+
+    def L(n) -> str:
+        return repr(label_of(g, n))
+
+    def has_failure_path(c) -> bool:
+        if any(str(g.value(e, DKG.outcome) or "") == "failure" for e in g.objects(c, DKG.triggers)):
+            return True
+        return any(True for r in g.subjects(DKG.guards, c) if list(g.objects(r, DKG.rejectsWith)))
+
+    def has_trigger(c) -> bool:
+        return bool(list(g.objects(c, DKG.performedBy))
+                    or [p for p in g.subjects(DKG.triggers, c) if p in pols_all]
+                    or list(g.objects(c, DKG.triggerKind)))
+
+    for b in sorted(boards, key=str):
+        scope = set(g.objects(b, DKG.scopedTo))
+        flavour = str(g.value(b, DKG.flavour) or "")
+        mine = set(g.subjects(DKG.source, b))
+        cmds, evs = mine & cmds_all, mine & evs_all
+        aggs, cands = mine & aggs_all, mine & cands_all
+        pols, rms = mine & pols_all, mine & rms_all
+        design = flavour == "Design-Level" or bool(aggs)
+        tag = f"[{label_of(g, b)}]"
+
+        for c in sorted(cmds, key=lambda n: label_of(g, n)):
+            recv = list(g.objects(c, DKG.handledBy))
+            if not recv:
+                out.append(f"{tag} command without receiver: {L(c)} lands on no aggregate or system")
+            elif len(recv) > 1:
+                out.append(f"{tag} command on {len(recv)} receivers: {L(c)} → "
+                           + ", ".join(sorted(L(r) for r in recv))
+                           + " — a wrong boundary, or a policy step the board compressed")
+            if not has_trigger(c):
+                out.append(f"{tag} command without trigger: no actor, policy, clock or external "
+                           f"system issues {L(c)}")
+            evs_c = list(g.objects(c, DKG.triggers))
+            if not evs_c:
+                out.append(f"{tag} command with no event: {L(c)} results in nothing on the board")
+            elif not has_failure_path(c):
+                out.append(f"{tag} happy path only: {L(c)} has no rejection event")
+            if list(g.objects(c, DKG.performedBy)) and not list(g.objects(c, DKG.reads)):
+                out.append(f"{tag} decision without read model: the actor issues {L(c)} "
+                           "without a green sticky to decide on")
+            here = set(g.objects(c, DKG.inContext))
+            for r in recv:
+                there = set(g.objects(r, DKG.inContext))
+                if here and there and not (here & there):
+                    out.append(f"{tag} border: {L(c)} in "
+                               + ", ".join(sorted(label_of(g, x) for x in here))
+                               + f" lands on {L(r)} in "
+                               + ", ".join(sorted(label_of(g, x) for x in there))
+                               + " — an integration the context map must show")
+
+        for e in sorted(evs, key=lambda n: label_of(g, n)):
+            caused = ([c for c in g.subjects(DKG.triggers, e)]
+                      or list(g.objects(e, DKG.emittedBy))
+                      or list(g.objects(e, DKG.triggerKind)))
+            if not caused:
+                out.append(f"{tag} event without cause: nothing on the board produces {L(e)}")
+            if str(g.value(e, DKG.outcome) or "") == "failure":
+                reacted = [p for p in g.subjects(DKG.reactsTo, e) if p in pols_all]
+                if not reacted and not list(g.objects(e, DKG.updates)):
+                    out.append(f"{tag} dead end: failure event {L(e)} — no policy reacts and no read "
+                               "model shows it to anyone")
+
+        if design:
+            for a in sorted(aggs, key=lambda n: label_of(g, n)):
+                if not list(g.subjects(DKG.handledBy, a)):
+                    out.append(f"{tag} aggregate receives no command: {L(a)}")
+                if not [r for r in g.subjects(DKG.enforcedBy, a) if r in invs_all]:
+                    out.append(f"{tag} aggregate without invariant: {L(a)} protects nothing "
+                               "the board wrote down — CRUD, or rules nobody voiced yet")
+        for a in sorted(cands, key=lambda n: label_of(g, n)):
+            out.append(f"{tag} aggregate candidate: {L(a)} receives commands but is not drawn as "
+                       "an aggregate — a question for the next session, not a promotion")
+
+        for p in sorted(pols, key=lambda n: label_of(g, n)):
+            if not list(g.objects(p, DKG.reactsTo)):
+                out.append(f"{tag} policy reacts to nothing: {L(p)}")
+            if not [c for c in g.objects(p, DKG.triggers)]:
+                out.append(f"{tag} policy issues no command: {L(p)} — the 'then' is blank")
+            if list(g.objects(p, DKG.condition)) and not list(g.objects(p, DKG.reads)):
+                out.append(f"{tag} policy condition decided blind: {L(p)} has a condition and "
+                           "no read model to evaluate it")
+
+        for r in sorted(rms, key=lambda n: label_of(g, n)):
+            if not list(g.subjects(DKG.updates, r)):
+                out.append(f"{tag} read model nothing updates: {L(r)} — a missing producer, often "
+                           "a missing context")
+            if not list(g.subjects(DKG.reads, r)):
+                out.append(f"{tag} read model nobody reads: {L(r)}")
+
+        for n in sorted(mine & scoped_kinds, key=lambda n: label_of(g, n)):
+            ctx = set(g.objects(n, DKG.inContext))
+            if not ctx:
+                out.append(f"{tag} unscoped: {L(n)} has no dkg:inContext — the board's scope "
+                           "was not applied, or the region map did not cover it")
+            elif scope and not (ctx & scope):
+                out.append(f"{tag} outside the board's scope: {L(n)} is in "
+                           + ", ".join(sorted(label_of(g, x) for x in ctx))
+                           + ", the board is scoped to "
+                           + ", ".join(sorted(label_of(g, x) for x in scope)))
+
+        ready, not_ready = [], []
+        for a in sorted(aggs, key=lambda n: label_of(g, n)):
+            handled = list(g.subjects(DKG.handledBy, a))
+            ok = (handled and [r for r in g.subjects(DKG.enforcedBy, a) if r in invs_all]
+                  and all(has_trigger(c) and has_failure_path(c) for c in handled))
+            (ready if ok else not_ready).append(label_of(g, a))
+        complete = [c for c in cmds if len(list(g.objects(c, DKG.handledBy))) == 1
+                    and has_trigger(c) and list(g.objects(c, DKG.triggers))]
+        out.append(f"{tag} detail coverage: {flavour or 'flavour not recorded'}, scoped to "
+                   + (", ".join(sorted(label_of(g, x) for x in scope)) or "NOTHING")
+                   + f" — {len(complete)} of {len(cmds)} commands complete the grammar"
+                   + (f"; aggregates ready to build: {', '.join(ready)}" if ready else "")
+                   + (f"; not yet: {', '.join(not_ready)}" if not_ready else ""))
     return out
 
 

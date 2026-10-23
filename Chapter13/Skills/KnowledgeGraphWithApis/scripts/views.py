@@ -4,8 +4,8 @@
     python3 views.py graph.ttl --out views/
     python3 views.py graph.ttl --out views/ --lens language
 
-Writes views/index.md: the artifact register, six Mermaid lenses (strategy,
-capability, language, flow, interface, traceability), the orphan report and a
+Writes views/index.md: the artifact register, seven Mermaid lenses (strategy,
+capability, language, flow, design, interface, traceability), the orphan report and a
 "worth a second look" section. The .ttl stays the source of truth; this is how
 a person reads it.
 """
@@ -23,7 +23,7 @@ except ImportError:
     sys.exit("rdflib is required:  pip install rdflib --break-system-packages")
 
 DKG = Namespace("https://w3id.org/dkg/ns#")
-LENSES = ["strategy", "capability", "language", "flow", "interface", "traceability"]
+LENSES = ["strategy", "capability", "language", "flow", "design", "interface", "traceability"]
 
 BOOKKEEPING = {
     RDF.type, RDFS.label, RDFS.comment, SKOS.prefLabel, SKOS.altLabel,
@@ -36,7 +36,8 @@ BOOKKEEPING = {
     DKG.specFormat, DKG.interactionStyle, DKG.apiId, DKG.apiVersion,
     DKG.audience, DKG.protocol, DKG.operationId, DKG.httpMethod, DKG.path,
     DKG.action, DKG.requiresScope, DKG.address, DKG.schemaRole,
-    DKG.architecturePattern, DKG.contact, DKG.parameter,
+    DKG.flavour, DKG.triggerKind, DKG.outcome, DKG.condition,
+    DKG.policyScope, DKG.fromState, DKG.toState,
     OWL.imports,
 }
 
@@ -231,6 +232,121 @@ def language_lens(g):
     return "\n".join(lines)
 
 
+def design_lens(g):
+    """Per context, per aggregate: what it accepts, what it protects, what it
+    emits — the detail-board grammar laid out for whoever builds it."""
+    receivers = set(g.objects(None, DKG.handledBy)) | typed(g, DKG.Aggregate) \
+        | typed(g, DKG.AggregateCandidate)
+    if not receivers:
+        return ("_No detail-level EventStorming in the graph yet. When a Process- or "
+                "Design-Level board is ingested, this lens shows each aggregate with the "
+                "commands it accepts, the invariants it protects and the events it emits._")
+    boards = typed(g, DKG.EventStormingDetailBoard)
+    lines = []
+    if boards:
+        lines.append("| Detail board | Flavour | Scoped to | Refines |")
+        lines.append("|---|---|---|---|")
+        for b in sorted(boards, key=lambda n: lbl(g, n)):
+            sc = ", ".join(sorted(lbl(g, c) for c in g.objects(b, DKG.scopedTo))) or "**not scoped**"
+            rf = ", ".join(sorted(lbl(g, c) for c in g.objects(b, DKG.refines))) or "—"
+            lines.append(f"| {esc(lbl(g, b), 80)} | {g.value(b, DKG.flavour) or '—'} | {sc} | {esc(rf, 80)} |")
+        lines.append("")
+    lines += ["```mermaid", "flowchart LR",
+              "  %% rectangles = commands · stadium = aggregates · rounded = events "
+              "(✗ = failure) · cylinders = read models · hexagons = policies"]
+    cands = typed(g, DKG.AggregateCandidate)
+    externals = typed(g, DKG.ExternalSystem)
+    by_ctx = defaultdict(list)
+    for r in receivers:
+        ctxs = list(g.objects(r, DKG.inContext))
+        by_ctx[ctxs[0] if ctxs else None].append(r)
+    drawn = set()
+
+    def node(n, shape):
+        if n in drawn:
+            return
+        drawn.add(n)
+        t = esc(lbl(g, n))
+        lines.append({"cmd": f'    {mid(n)}["{t}"]',
+                      "agg": f'    {mid(n)}(["{t}"])',
+                      "cand": f'    {mid(n)}(["{t} ?"])',
+                      "ext": f'    {mid(n)}[/"{t}"/]',
+                      "ev": f'    {mid(n)}("{t}")',
+                      "evx": f'    {mid(n)}("✗ {t}")',
+                      "rm": f'    {mid(n)}[("{t}")]',
+                      "pol": f'    {mid(n)}{{{{"{t}"}}}}'}[shape])
+
+    for ctx, rr in sorted(by_ctx.items(), key=lambda kv: lbl(g, kv[0]) if kv[0] else "~"):
+        lines.append(f'  subgraph {mid(ctx) if ctx else "nocontext_design"}["{esc(lbl(g, ctx)) if ctx else "no context"}"]')
+        for r in sorted(rr, key=lambda n: lbl(g, n)):
+            node(r, "cand" if r in cands else "ext" if r in externals else "agg")
+            for c in sorted(g.subjects(DKG.handledBy, r), key=lambda n: lbl(g, n)):
+                node(c, "cmd")
+                for e in g.objects(c, DKG.triggers):
+                    node(e, "evx" if str(g.value(e, DKG.outcome) or "") == "failure" else "ev")
+            for e in g.subjects(DKG.emittedBy, r):
+                node(e, "evx" if str(g.value(e, DKG.outcome) or "") == "failure" else "ev")
+        lines.append("  end")
+    for r in receivers:
+        for c in g.subjects(DKG.handledBy, r):
+            for a in g.objects(c, DKG.performedBy):
+                lines.append(f'  {mid(a)}>"{esc(lbl(g, a))}"] --> {mid(c)}')
+            for rm in g.objects(c, DKG.reads):
+                node(rm, "rm")
+                lines.append(f"  {mid(rm)} -.-> {mid(c)}")
+            lines.append(f"  {mid(c)} --> {mid(r)}")
+            for e in g.objects(c, DKG.triggers):
+                lines.append(f"  {mid(r)} --> {mid(e)}")
+                for rm in g.objects(e, DKG.updates):
+                    node(rm, "rm")
+                    lines.append(f"  {mid(e)} --> {mid(rm)}")
+    for p in typed(g, DKG.Policy):
+        cmds = [c for c in g.objects(p, DKG.triggers) if c in drawn]
+        evs = list(g.objects(p, DKG.reactsTo))
+        if not cmds and not any(e in drawn for e in evs):
+            continue
+        for e in evs:   # an event no command here produces still feeds the loop
+            node(e, "evx" if str(g.value(e, DKG.outcome) or "") == "failure" else "ev")
+        node(p, "pol")
+        for e in evs:
+            lines.append(f"  {mid(e)} -.-> {mid(p)}")
+        for c in cmds:
+            lines.append(f"  {mid(p)} -.-> {mid(c)}")
+    lines.append("```")
+    loose = sorted((c for c in typed(g, DKG.Command)
+                    if not list(g.objects(c, DKG.handledBy))
+                    and any(b in typed(g, DKG.EventStormingDetailBoard)
+                            for b in g.objects(c, DKG.source))), key=lambda n: lbl(g, n))
+    if loose:
+        lines += ["", "**Commands on a detail board that land nowhere:** "
+                  + ", ".join(f"`{lbl(g, c)}`" for c in loose)]
+
+    invs = sorted(typed(g, DKG.Invariant), key=lambda n: lbl(g, n))
+    if invs:
+        lines += ["", "**Invariants**", "",
+                  "| Aggregate | Invariant | Guards | Rejects with | Confidence | Source |",
+                  "|---|---|---|---|---|---|"]
+        for r in invs:
+            def names(p):
+                return ", ".join(sorted(f"`{lbl(g, x)}`" for x in g.objects(r, p))) or "—"
+            conf = str(g.value(r, DKG.confidence) or "").split("#")[-1]
+            src = ", ".join(sorted(lbl(g, x) for x in g.objects(r, DKG.source)))
+            lines.append(f"| {names(DKG.enforcedBy)} | {esc(lbl(g, r), 90)} | {names(DKG.guards)} | "
+                         f"{names(DKG.rejectsWith)} | {conf} | {esc(src, 60)} |")
+    trs = typed(g, DKG.Transition)
+    if trs:
+        lines += ["", "**Lifecycles** — from state stickies (on-artifact) or a brief (inferred)", "",
+                  "| Aggregate | From | Event | To | Confidence |", "|---|---|---|---|---|"]
+        for t in sorted(trs, key=lambda n: (lbl(g, g.value(n, DKG.ofAggregate)), str(g.value(n, DKG.fromState)))):
+            ev = g.value(t, DKG.via)
+            conf = str(g.value(t, DKG.confidence) or "").split("#")[-1]
+            lines.append(f"| `{lbl(g, g.value(t, DKG.ofAggregate))}` | {g.value(t, DKG.fromState) or '—'} | "
+                         f"{('`' + lbl(g, ev) + '`') if ev else '—'} | {g.value(t, DKG.toState) or '—'} | {conf} |")
+    lines += ["", "`?` after an aggregate = a candidate (yellow system sticky). "
+              "`check_graph.py` lists every gap in the grammar, sticky by sticky."]
+    return "\n".join(lines)
+
+
 def interface_lens(g):
     """Per context: what can be called (sync) and what is published or consumed
     (async), and which model element each contract specifies."""
@@ -314,13 +430,6 @@ def interface_lens(g):
             return ", ".join(missing) if missing else "none missing"
         lines.append(f"| {lbl(g, ctx)} | {len(sync)} API, {n_ops} operations | {len(asyn)} API, {n_ch} channels, {n_msg} messages | "
                      f"{cell(miss_c, my_cmd, sync)} | {cell(miss_e, my_ev, asyn)} |")
-    qrs = typed(g, DKG.QualityRequirement)
-    if qrs:
-        lines.append("")
-        lines.append("**Quality requirements** (from API Product Canvases):")
-        for q in sorted(qrs, key=lambda n: lbl(g, n)):
-            tgt = ", ".join(sorted(f"`{lbl(g, t)}`" for t in g.objects(q, DKG.constrains))) or "—"
-            lines.append(f"- {esc(lbl(g, q), 140)} — constrains {tgt}")
     lines.append("")
     lines.append("A contract with no model element behind it, and a model element with no contract, "
                  "are both findings; `check_graph.py` lists them one by one.")
@@ -330,8 +439,7 @@ def interface_lens(g):
 def traceability_lens(g):
     lines = ["```mermaid", "flowchart LR"]
     chain = [DKG.proposedSameAs, DKG.realises, DKG.towardsGoal,
-             DKG.supports, DKG.mentions, DKG.triggers, DKG.answers, DKG.specifies,
-             DKG.derivedFrom, DKG.unrepresentedIn]
+             DKG.supports, DKG.mentions, DKG.triggers, DKG.answers, DKG.specifies]
     seen = set()
     for p in chain:
         for s, o in g.subject_objects(p):
@@ -582,7 +690,7 @@ def patches(g, key):
 LENS_FN = {
     "strategy": strategy_lens, "capability": capability_lens,
     "language": language_lens, "flow": flow_lens,
-    "interface": interface_lens, "traceability": traceability_lens,
+    "design": design_lens, "interface": interface_lens, "traceability": traceability_lens,
 }
 
 LENS_BLURB = {
@@ -590,6 +698,7 @@ LENS_BLURB = {
     "capability": "What do we build, buy, and depend on?",
     "language": "What do we call things, and where does the word change?",
     "flow": "What happens, in what order, and who is involved?",
+    "design": "Per aggregate: what it accepts, what it protects, what it emits — and is it ready to build?",
     "interface": "Per context: what can be called, what is published — and does the contract match the model?",
     "traceability": "Whatever happened to that idea? — and, backwards, why are we building this?",
 }

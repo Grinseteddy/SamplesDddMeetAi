@@ -457,32 +457,8 @@ class Model:
             return f" (in {names} — ANOTHER CONTEXT: a receive across a border, or this API exposing another context's model)"
         return f" (in {names})"
 
-    def api_for(self, ctx_suffix: str, style: str):
-        """An Api is identified by context × interaction style (a canvas may have minted it)."""
-        for a in self.by_class["Api"]:
-            if str(self.g.value(a, self.DKG.interactionStyle) or "") != style:
-                continue
-            if any(str(c).split("#")[-1] == ctx_suffix for c in self.context_of(a)):
-                return a
-        return None
-
-    def exposed_by(self, api, cls) -> dict:
-        """normalised label → node, for nodes of cls that an existing Api exposes."""
-        out = {}
-        for n in self.g.subjects(self.DKG.exposedBy, api):
-            if (n, self.RDF.type, self.DKG[cls]) in self.g:
-                for lb in self.labels(n):
-                    out.setdefault(normalise(decamel(lb)), n)
-        return out
-
-    def by_suffix(self, suffix: str):
-        for s in self.g.subjects():
-            if str(s).endswith("#" + suffix):
-                return s
-        return None
-
     def taken(self, suffix: str) -> bool:
-        return self.by_suffix(suffix) is not None
+        return any(str(s).endswith("#" + suffix) for s in self.g.subjects())
 
     def api_with_id(self, api_id: str):
         for a in self.by_class["Api"]:
@@ -515,14 +491,8 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
         L.append(f"# !!! REVISION of {model.curie(revision_of)} (same x-api-id). This skeleton is for DIFFING,")
         L.append("# !!! not appending: unchanged nodes get the new artifact as a second dkg:source; changed")
         L.append("# !!! paths/methods become dkg:supersedes pairs; dropped ones get dkg:absentFrom.")
-    existing_api = model.api_for(ctx, inv["style"]) if model is not None else None
     api = "Api_" + camel(inv["title"])
-    if existing_api is not None:
-        api = str(existing_api).split("#")[-1]
-        srcs = ", ".join(model.label(a) for a in model.g.objects(existing_api, model.DKG.source))
-        ledger.append(f"ENRICH   :{api} already is the {inv['style']} API of :{ctx} (from {srcs}) — "
-                      "enriched, not re-minted; operations / messages / schemas merge by exact label")
-    elif model is not None and model.taken(api):
+    if model is not None and model.taken(api):
         api = f"{api}_{date.replace('-', '_')}"
         if revision_of is None:
             ledger.append(f"IRI      an Api with this title already exists — minted :{api}; "
@@ -561,12 +531,8 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
             ctx_conf, ctx_note = "dkg:Implied", f"info names the context: {ctx_label!r}"
 
     # api
-    if existing_api is not None:
-        L.append(f":{api}   # existing {inv['style']} API of :{ctx} — enriched by this spec")
-        L.append(f"    skos:altLabel {lit(inv['title'])} ;")
-    else:
-        L.append(f":{api} a dkg:Api ;")
-        L.append(f"    skos:prefLabel {lit(inv['title'])} ;")
+    L.append(f":{api} a dkg:Api ;")
+    L.append(f"    skos:prefLabel {lit(inv['title'])} ;")
     if inv["description"]:
         L.append(f"    rdfs:comment {lit(inv['description'].splitlines()[0])} ;")
     L.append(f"    dkg:interactionStyle {lit(inv['style'])} ;")
@@ -578,12 +544,9 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
         L.append(f"    dkg:audience {lit(inv['audience'])} ;")
     for p in inv["protocols"]:
         L.append(f"    dkg:protocol {lit(p)} ;")
-    if existing_api is None:
-        L.append(f"    dkg:inContext :{ctx} ;   # {ctx_note}")
-        L.append(f"    dkg:source :{art} ; dkg:locator \"info\" ; dkg:confidence dkg:OnArtifact .")
-    else:
-        L.append(f"    dkg:source :{art} ; dkg:locator \"info\" .")
-    if ctx_conf != "dkg:OnArtifact" and existing_api is None:
+    L.append(f"    dkg:inContext :{ctx} ;   # {ctx_note}")
+    L.append(f"    dkg:source :{art} ; dkg:locator \"info\" ; dkg:confidence dkg:OnArtifact .")
+    if ctx_conf != "dkg:OnArtifact":
         L.append(f"# NOTE the Api node itself is on-artifact; its dkg:inContext is {ctx_conf} — {ctx_note}.")
         L.append(f"# If the room disputes the context, reify that one edge as a dkg:Assertion; do not weaken the node.")
     L.append("")
@@ -601,65 +564,12 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
             return alt
         return iri
 
-    L_pending: list[str] = []   # PROPOSE lines against canvas stickies, appended at the end
-    have = {cls: (model.exposed_by(existing_api, cls) if existing_api is not None else {})
-            for cls in ("Schema", "Operation", "ApiMessage", "Channel")}
-    merged: set[str] = set()   # IRI suffixes that already exist: emit enrichment, not a new node
-
-    def near_existing(cls: str, label: str, suffix: str):
-        """A canvas sticky this spec element nearly matches: propose, never merge."""
-        key = normalise(decamel(label))
-        for k, n in have[cls].items():
-            r = difflib.SequenceMatcher(None, key, k).ratio()
-            if r >= 0.8 or (len(key) >= 5 and (key in k or k in key)):
-                ledger.append(f"PROPOSE  {cls} {label!r} ~ existing :{str(n).split('#')[-1]} "
-                              f"({model.label(n)!r}, ratio {r:.2f}) — a canvas sticky and a spec element for one "
-                              "thing? if confirmed, collapse onto the spec's IRI and keep the sticky's wording as altLabel")
-                L_pending.append(f"# PROPOSE :{suffix} dkg:proposedSameAs {model.curie(n)} .   # {cls} {model.label(n)!r}, ratio {r:.2f}")
-
-    def reuse(cls: str, label: str, fallback: str) -> str:
-        n = have[cls].get(normalise(decamel(label)))
-        if n is not None:
-            suf = str(n).split("#")[-1]
-            merged.add(suf)
-            ledger.append(f"MERGE    {cls} {label!r} = existing :{suf} ({model.label(n)!r}) — exact label, same class; "
-                          "second source added")
-            return suf
-        iri = fresh(fallback)
-        near_existing(cls, label, iri)
-        return iri
-
-    schema_iri = {s["key"]: reuse("Schema", s["key"], "Sch_" + camel(s["key"])) for s in inv["schemas"]}
-    msg_iri = {m["name"]: reuse("ApiMessage", m["name"], "Amsg_" + camel(m["name"])) for m in inv["messages"]}
+    schema_iri = {s["key"]: fresh("Sch_" + camel(s["key"])) for s in inv["schemas"]}
+    msg_iri = {m["name"]: fresh("Amsg_" + camel(m["name"])) for m in inv["messages"]}
     for m in inv["messages"]:
         msg_iri.setdefault(m["key"], msg_iri[m["name"]])
-    chan_iri = {c["key"]: reuse("Channel", c["key"], "Ch_" + camel(c["key"])) for c in inv["channels"]}
-    op_iri = {}
-    for o in inv["operations"]:
-        # a canvas sticky is matched on the summary first, then the key
-        n = have["Operation"].get(normalise(decamel(op_label(o)))) or \
-            have["Operation"].get(normalise(decamel(o["id"])))
-        if n is not None:
-            suf = str(n).split("#")[-1]
-            merged.add(suf)
-            ledger.append(f"MERGE    operation {op_label(o)!r} = existing :{suf} ({model.label(n)!r}) — "
-                          "exact label, same class; the spec adds method/path and a second source")
-            op_iri[o["id"]] = suf
-        else:
-            op_iri[o["id"]] = fresh("Op_" + camel(o["id"]))
-            near_existing("Operation", op_label(o), op_iri[o["id"]])
-
-    def tail(suffix: str, locator: str) -> str:
-        if suffix in merged:
-            return f"    dkg:source :{art} ; dkg:locator {lit(locator)} ."
-        return f"    dkg:exposedBy :{api} ; dkg:source :{art} ; dkg:locator {lit(locator)} ; dkg:confidence dkg:OnArtifact ."
-
-    def head(suffix: str, cls: str, label: str) -> str:
-        """Opening line of a node block: a new node, or an enrichment of an existing one."""
-        if suffix in merged:
-            alt = f" skos:altLabel {lit(label)} ;" if normalise(label) != normalise(model.label(model.by_suffix(suffix))) else ""
-            return f":{suffix}{alt}   # existing {cls}, enriched"
-        return f":{suffix} a dkg:{cls} ; skos:prefLabel {lit(label)} ;"
+    chan_iri = {c["key"]: fresh("Ch_" + camel(c["key"])) for c in inv["channels"]}
+    op_iri = {o["id"]: fresh("Op_" + camel(o["id"])) for o in inv["operations"]}
 
     def link(subj_iri: str, label: str, families: list[str], pred: str, what: str,
              require_ctx: str | None = None):
@@ -685,11 +595,11 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
     L.append("# --- schemas (API nouns) ------------------------------------------------")
     for s in inv["schemas"]:
         iri = schema_iri[s["key"]]
-        L.append(head(iri, "Schema", s["key"]))
-        L.append(f"    dkg:schemaRole {lit(s['role'])} ;")
+        L.append(f":{iri} a dkg:Schema ; skos:prefLabel {lit(s['key'])} ; dkg:schemaRole {lit(s['role'])} ;")
         if s["description"]:
             L.append(f"    rdfs:comment {lit(s['description'])} ;")
-        L.append(tail(iri, 'components.schemas.' + s['key']))
+        L.append(f"    dkg:exposedBy :{api} ; dkg:source :{art} ; dkg:locator {lit('components.schemas.' + s['key'])} ; "
+                 f"dkg:confidence dkg:OnArtifact .")
         if s["role"] not in ("header", "error", "payload"):
             # a payload schema's stem is an event name; the ApiMessage links to the event
             got = link(iri, s["stem"], ["Concept"], "dkg:specifies", "schema")
@@ -702,7 +612,7 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
         for o in inv["operations"]:
             iri = op_iri[o["id"]]
             label = op_label(o)
-            L.append(head(iri, "Operation", label))
+            L.append(f":{iri} a dkg:Operation ; skos:prefLabel {lit(label)} ;")
             if o["summary"] and normalise(o["summary"]) != normalise(decamel(o["id"])):
                 L.append(f"    skos:altLabel {lit(o['id'])} ;")
             L.append(f"    dkg:operationId {lit(o['id'])} ; dkg:httpMethod {lit(o['method'])} ; dkg:path {lit(o['path'])} ;")
@@ -713,7 +623,8 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
                 L.append(f"    dkg:requestSchema :{schema_iri[o['request']]} ;")
             if o["response"] and o["response"] in schema_iri:
                 L.append(f"    dkg:responseSchema :{schema_iri[o['response']]} ;")
-            L.append(tail(iri, o['method'] + ' ' + o['path']))
+            L.append(f"    dkg:exposedBy :{api} ; dkg:source :{art} ; "
+                     f"dkg:locator {lit(o['method'] + ' ' + o['path'])} ; dkg:confidence dkg:OnArtifact .")
             # Occurrence is deliberately in the list: a sync operation that matches an
             # EVENT is the style mismatch check_graph.py exists to catch.
             fams = ["Activity", "Message", "Occurrence"]
@@ -741,24 +652,25 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
         L.append("# --- channels -------------------------------------------------------------")
         for c in inv["channels"]:
             iri = chan_iri[c["key"]]
-            L.append(head(iri, "Channel", c["key"]))
-            L.append(f"    dkg:address {lit(c['address'])} ;")
+            L.append(f":{iri} a dkg:Channel ; skos:prefLabel {lit(c['key'])} ; dkg:address {lit(c['address'])} ;")
             for m in c["messages"]:
                 if m in msg_iri:
                     L.append(f"    dkg:carriesMessage :{msg_iri[m]} ;")
-            L.append(tail(iri, 'channels.' + c['key']))
+            L.append(f"    dkg:exposedBy :{api} ; dkg:source :{art} ; dkg:locator {lit('channels.' + c['key'])} ; "
+                     f"dkg:confidence dkg:OnArtifact .")
         L.append("")
         L.append("# --- messages (contracts for facts) ---------------------------------------")
         for m in inv["messages"]:
             iri = msg_iri[m["name"]]
-            L.append(head(iri, "ApiMessage", m["name"]))
+            L.append(f":{iri} a dkg:ApiMessage ; skos:prefLabel {lit(m['name'])} ;")
             if m["title"]:
                 L.append(f"    skos:altLabel {lit(m['title'])} ;")
             if m["summary"]:
                 L.append(f"    rdfs:comment {lit(m['summary'])} ;")
             if m["payload"] and m["payload"] in schema_iri:
                 L.append(f"    dkg:payloadSchema :{schema_iri[m['payload']]} ;")
-            L.append(tail(iri, 'components.messages.' + m['key']))
+            L.append(f"    dkg:exposedBy :{api} ; dkg:source :{art} ; "
+                     f"dkg:locator {lit('components.messages.' + m['key'])} ; dkg:confidence dkg:OnArtifact .")
             L += link(iri, m["name"], ["Occurrence", "Message"], "dkg:specifies", "message", require_ctx=ctx)
             if not is_past_tense(m["name"]):
                 ledger.append(f"TENSE    message {m['name']!r} is not past tense — a state or a command on an event "
@@ -767,7 +679,7 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
         L.append("# --- operations (asynchronous: send / receive from this context) ----------")
         for o in inv["operations"]:
             iri = op_iri[o["id"]]
-            L.append(head(iri, "Operation", op_label(o)))
+            L.append(f":{iri} a dkg:Operation ; skos:prefLabel {lit(op_label(o))} ;")
             L.append(f"    dkg:operationId {lit(o['id'])} ; dkg:action {lit(o['action'] or '?')} ;")
             if o["kind"]:
                 L.append(f"    dkg:messageKind {lit(o['kind'])} ;   # implied: past-tense message names")
@@ -776,14 +688,11 @@ def emit_ttl(inv: dict, art: str, ctx: str, date: str, base: str | None,
             for m in o["messages"]:
                 if m in msg_iri:
                     L.append(f"    dkg:carriesMessage :{msg_iri[m]} ;")
-            L.append(tail(iri, 'operations.' + o['id']))
+            L.append(f"    dkg:exposedBy :{api} ; dkg:source :{art} ; dkg:locator {lit('operations.' + o['id'])} ; "
+                     f"dkg:confidence dkg:OnArtifact .")
             if o["action"] == "receive":
                 L.append(f"# NOTE :{iri} RECEIVES — this context consumes {', '.join(o['messages'])}; "
                          "whoever produces it is on the other side of a border.")
-        L.append("")
-    if L_pending:
-        L.append("# --- near-matches against the canvas's stickies (decide in the ledger) ----")
-        L += L_pending
         L.append("")
     return "\n".join(L), ledger
 

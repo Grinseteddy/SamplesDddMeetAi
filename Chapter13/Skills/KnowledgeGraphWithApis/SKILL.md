@@ -1,17 +1,6 @@
 ---
 name: domain-knowledge-graph
-description: >-
-  Build and grow ONE browsable knowledge graph (Turtle/RDF) from DDD modelling
-  artifacts — brainstorm, BMC, Wardley/Impact/Capability maps, Core Domain
-  Chart, Domain Stories, Visual Glossaries (incl. refined per-context redraws),
-  EventStorming boards, Event Models, Bounded Context Canvases, API Product
-  Canvases, ADR logs — and each context's OpenAPI (sync) and AsyncAPI (async)
-  specs. Keeps every spelling and provenance; reports what connects,
-  contradicts, is orphaned, and which commands/events have a contract. Use for
-  "make a knowledge graph of…", "add our canvas / API spec / glossary to the
-  graph", "does our API match the board" — any request to combine, reconcile
-  or navigate two or more artifacts, even without the words "knowledge graph".
-author: Annegret Junker
+description: Build and grow ONE browsable knowledge graph (Turtle/RDF) from DDD modelling artifacts — brainstorm, BMC, Wardley/Impact/Capability maps, Core Domain Chart, Domain Stories, Visual Glossaries, EventStorming boards (Big Picture, and Process-/Design-Level detail boards or their Detail Design Briefs — scoped to one bounded context, which the skill asks for when none is named), Event Models, Bounded Context Canvases, ADR logs — and each bounded context's OpenAPI (sync) and AsyncAPI (async) specs. Keeps every spelling and provenance; reports what connects, contradicts, is orphaned, and which commands/events have a contract. Use for "make a knowledge graph of…", "add our canvas / API spec / design-level board to the graph", "does our API match the board", "what happened to that idea" — any request to combine, reconcile or navigate two or more artifacts, even without the words "knowledge graph" or "ontology".
 ---
 
 # Domain Knowledge Graph
@@ -42,13 +31,11 @@ Three commitments make it worth trusting.
 Any artifact may arrive first, and none is required. The usual ladder runs
 brainstorm → BMC / Wardley / Impact Map → Domain Stories / Visual Glossary →
 EventStorming board or Event Model, then — once a context has a name — a
-Bounded Context Canvas per context, an API Product Canvas per context (the
-interface sketched on stickies: aggregates with their operations, events in and
-out, protocols, quality requirements), and finally that context's API
+detail-level EventStorming board per context (the zoom: commands landing on
+aggregates, invariants, policies, read models), a Bounded Context Canvas per
+context, and finally that context's API
 specifications: an OpenAPI document for what can be called, an AsyncAPI
-document for what it publishes and consumes — after which the context's Visual
-Glossary is usually redrawn from the spec, one refined glossary per context.
-A small ADR log accumulates
+document for what it publishes and consumes. A small ADR log accumulates
 alongside the whole ladder. The graph gets more useful as it descends, because
 each layer says where the layer above landed — and the specs are the first
 layer that says what will be *built* rather than what was modelled, which is
@@ -126,13 +113,12 @@ hidden every merge decision inside it.
 | Capability Map, Core Domain Chart | `references/ingest-capability-and-core-domain.md` |
 | Domain Story (picture, egon.io export, numbered sentences) | `references/ingest-domain-story.md` |
 | Visual Glossary | `references/ingest-visual-glossary.md` |
-| EventStorming board | `references/ingest-event-storming.md` |
+| EventStorming board — Big Picture | `references/ingest-event-storming.md` |
+| EventStorming detail board (Process-Level / Design-Level) or its Detail Design Brief from `event-storming-detail-interpreter` | `references/ingest-event-storming-detail.md` — **asks for the bounded context first** (below) |
 | Event Model | `references/ingest-event-model.md` |
 | Bounded Context Canvas (DDD Crew; Mermaid, PNG or the Markdown behind it) | `references/ingest-bounded-context-canvas.md` |
 | Small ADR log (a decision table: date · id · status · question · options · decision) | `references/ingest-small-adr.md` |
-| API Product Canvas (one context: sync side, async side, quality requirements, notes) | `references/ingest-api-product-canvas.md` |
 | API specification for one context — OpenAPI (sync), AsyncAPI (async), gRPC `.proto` or GraphQL SDL (sync) | `references/ingest-api-specification.md` |
-| Refined Visual Glossary — one context, redrawn from its schema by `visual-glossary-updater` (model YAML + changelog + SVG) | `references/ingest-visual-glossary.md`, section "A refined glossary" — always a revision |
 
 Read the one that applies. Read two if the input is two things. If the input is
 a *derived analysis* rather than a workshop artifact — an invariant sheet, a
@@ -142,6 +128,19 @@ markers; its reference file says how those markers relax the rule.
 
 If the artifact type is unclear, ask. Guessing wrong quietly mis-types thirty
 nodes.
+
+**A detail board needs its bounded context — ask for it.** A Process- or
+Design-Level board zooms into one context, and that scope becomes the
+`dkg:inContext` of every command, event, aggregate, policy, read model and
+invariant on it. If the user's request does not name the context explicitly,
+ask before transcribing — one `AskUserQuestion`, offering the graph's
+best-matching `dkg:BoundedContext` nodes and the board's own title as
+candidates, plus *"a process across several contexts"*. The file name, the
+board title, a brief's heading and where the graph already put these labels are
+candidates, never answers. No answer, no emit: transcribe, set out the
+candidates, and stop. `ingest-event-storming-detail.md` §0 has the table of
+answers and what each does; the scope is recorded once, as `dkg:scopedTo` on
+the artifact, and `check_graph.py` fails a detail board without it.
 
 ### Step 2 — Transcribe before you model
 
@@ -155,11 +154,8 @@ Flag illegible stickies as illegible. Do not complete a half-visible word.
 
 An API specification is machine-readable, so its transcription is a script:
 `python3 scripts/api_inventory.py spec.yaml` prints the operations, channels,
-messages and schemas as tables. So is a refined glossary's model file:
-`python3 scripts/glossary_inventory.py model.yaml` prints its terms by colour
-group and its edges. Show those instead of retyping them; the judgment in
-either ingest is all in Step 3. An API Product Canvas is a photo of stickies
-and is transcribed by hand like any canvas.
+messages and schemas as tables. Show those instead of retyping them; the
+judgment in a spec ingest is all in Step 3.
 
 ### Step 3 — Resolve identity, and write the merge ledger
 
@@ -203,12 +199,8 @@ order is a history.
 
 For a spec, `api_inventory.py --ttl --graph graph.ttl` drafts the skeleton —
 nodes, verbatim literals, and `dkg:specifies` links for exact matches only —
-with every looser match left as a `# PROPOSE` comment; when an API Product
-Canvas already minted the context's Api of that style, the draft enriches that
-node and merges operations by exact label. For a refined glossary,
-`glossary_inventory.py --ttl --graph graph.ttl --revision-of <earlier>` drafts
-the revision diff — unchanged / changed / added / removed — and leaves renames
-to the ledger. Decide those before appending; neither script writes to the graph.
+with every looser match left as a `# PROPOSE` comment. Decide those in the
+ledger before appending; the script never writes to the graph.
 
 ### Step 5 — Check
 
@@ -222,7 +214,10 @@ orphans (nodes nothing points at) and near-duplicate labels the ingest may have
 missed. Once a spec is in, it also reports API coverage per context (which
 commands and events have a contract), unlinked operations / messages / schemas,
 style mismatches (an event behind a synchronous call, a query on a channel) and
-borders a `receive` operation draws. **Fix the errors; report the warnings — do not fix them by inventing
+borders a `receive` operation draws. Once a detail board is in, it runs the
+detail grammar on its stickies (receiver, trigger, cause, failure path,
+invariant, read model, dead ends, scope) and fails a board with no
+`dkg:scopedTo`. **Fix the errors; report the warnings — do not fix them by inventing
 edges.** An orphan is a finding. Requires `rdflib` (`pip install rdflib
 --break-system-packages`).
 
@@ -243,7 +238,10 @@ skill says *what* and *why*, and stops there, because a graph that edits its own
 sources can no longer be checked against them.
 
 Writes an `index.md` plus one Mermaid lens per perspective — strategy, capability,
-language, flow, interface, traceability — and an orphan report. The interface
+language, flow, design, interface, traceability — and an orphan report. The
+design lens is the per-aggregate view of the detail boards: commands in,
+invariants protected, events out (failures marked), read models updated,
+policies looping back, and lifecycle tables where state stickies exist. The interface
 lens is the per-context view of the APIs: sync operations, async channels and
 messages, send/receive direction, and dotted edges to the model elements each
 contract specifies, with a coverage table underneath. Details and hand-written
@@ -273,16 +271,17 @@ Short, and in this order. This is the part people read.
    raised. Never answer these yourself. Once an ADR log is in the graph, add
    which of the graph's open questions a Decision now `dkg:answers`, and which
    still have none.
-8. **Interface coverage** — once an API Product Canvas or a spec is in the
-   graph. Per context with an API: how many of its commands and inbound rows
-   have an operation, how many of its events and outbound rows have a message,
-   which contracts the model never named, every `receive` that draws a border
-   no canvas drew, and — once both canvas and spec are in — where they
-   disagree (protocol, an operation on one side only). `check_graph.py` prints
-   these; repeat them rather than pointing at the file.
-9. **Glossary against schema** — once a refined glossary is in: terms the
-   redraw lifted from the schema, terms it kept despite the schema's silence,
-   cardinalities that changed and whether they were drawn or lifted.
+8. **Design completeness** — only once a detail board is in the graph. The
+   scope (and whether this ingest minted the context), the flavour, how many
+   commands complete the grammar (trigger → one receiver → events, with a
+   failure path), the grammar findings per aggregate, borders the board draws,
+   and which aggregates are ready for `aggregate-behavior-author`.
+   `check_graph.py` prints these.
+9. **Interface coverage** — only once a spec is in the graph. Per context with
+   an API: how many of its commands and inbound rows have an operation, how
+   many of its events and outbound rows have a message, which contracts the
+   model never named, and every `receive` that draws a border no canvas drew.
+   `check_graph.py` prints these; repeat them rather than pointing at the file.
 
 ---
 
@@ -302,6 +301,12 @@ board the analysis read. Otherwise a proposal quietly acquires the standing of
 something a team drew. The useful parts are usually `dkg:Question` nodes,
 `dkg:proposedSameAs` candidates, and proposed `dkg:BoundedContext` nodes — all
 of which are honest as proposals and dangerous as facts.
+
+A **Detail Design Brief** from `event-storming-detail-interpreter` is one too.
+Its transcription (§2–3) is the board's, sourced to the board; its *on board*
+invariants are on-artifact, its *inferred* invariants, reconstructed lifecycles,
+policy classifications and completeness findings are `dkg:Inferred` and
+sourced to the brief (`ingest-event-storming-detail.md` §5).
 
 Two derived documents get their own reference files because they are structured
 enough to ingest field by field: a **Bounded Context Canvas** (which marks each
@@ -349,6 +354,13 @@ the graph is the input, not the answer.
   `:Ctx_CookingAssistance_BCC` is a duplicate with a nicer name. The same for
   a spec: *Rack Management API* is a `dkg:Api` inside `:Ctx_RackManagement`,
   not a new context.
+- **Guessing a detail board's context.** It is invisible afterwards — every
+  `inContext` looks equally sure. Ask (Step 1). And never let the detail board
+  re-mint the context, or the Big Picture events it repeats: merge on exact
+  label, and the zoom becomes a second source.
+- **Repairing the grammar.** A command with no aggregate, an event with no
+  cause, a policy with a blank *then* — ingest as drawn. The gap is what
+  `check_graph.py` is for.
 - **Merging a contract into the model.** `reserveBicycle` is not the board's
   *Reserve a bicycle*; it is the POST that carries it. One `dkg:specifies`
   edge keeps both nodes and the question "which commands have no endpoint?"
@@ -367,7 +379,7 @@ the graph is the input, not the answer.
 - `references/merging.md` — identity resolution, the merge ledger, the
   one-word-two-concepts and two-words-one-concept tests. Read on the first
   grow-mode ingest.
-- `references/browsing.md` — the five lenses, what each is for, SPARQL recipes
+- `references/browsing.md` — the seven lenses, what each is for, SPARQL recipes
   for the questions people actually ask.
 - `references/ingest-*.md` — one per artifact type, per the table in Step 1.
   `ingest-api-specification.md` covers OpenAPI, AsyncAPI and the hand-transcribed
@@ -385,18 +397,15 @@ writes its labels for the overlap test, and drafts the Turtle skeleton with
 exact-match links against an existing graph. Needs `pyyaml`; `rdflib` for
 `--graph`.
 
-`scripts/glossary_inventory.py` — the same for a Visual Glossary model file
-(the format `visual-glossary-updater` renders from): transcription, labels,
-and with `--revision-of` the binned revision diff. Same dependencies.
-
 ## Working with neighbouring skills
 
-- An API Product Canvas is drawn in a room (the Miro template); it is the
-  sketch the spec authors work from, and the first artifact that mints a
-  context's `dkg:Api` nodes.
-- A refined glossary comes from `visual-glossary-updater` — hand it the
-  context's earlier glossary and the spec the graph holds; ingest its model
-  file, not a transcription of its picture.
+- A detail board usually arrives with, or as, a Detail Design Brief from
+  `event-storming-detail-interpreter`; ingest the board first, then the brief.
+  Once it is in, the design lens and `check_graph.py` say which aggregates are
+  ready for `aggregate-behavior-author`, and `event-storming-invariant-finder`
+  turns the board's constraint notes into Given/When/Then — its sheet comes back
+  in as `dkg:Inferred` rules beside the on-board invariants.
+
 - A spec to ingest usually comes from `openapi-spec-author` or
   `asyncapi-spec-author`, scoped to one context; `context-map-api-proposer`
   reads this graph to propose which borders need which style, and once the

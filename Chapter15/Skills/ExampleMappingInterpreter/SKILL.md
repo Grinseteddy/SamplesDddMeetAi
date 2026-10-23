@@ -1,7 +1,7 @@
 ---
 name: "example-mapping-interpreter"
 description: "Interpret an Example Mapping session (Matt Wynne's BDD technique: yellow story, blue rules, green examples, red questions) from a photo or description into a checked brief with acceptance criteria and Gherkin."
-author: Annegret Junker
+author: "Annegret Junker"
 ---
 
 # Example Mapping Interpreter

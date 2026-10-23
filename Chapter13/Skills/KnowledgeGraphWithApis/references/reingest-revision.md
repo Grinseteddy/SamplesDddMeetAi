@@ -51,6 +51,13 @@ lineage:
    the arriving glossary has a legend and says Menu, the revision is the loop
    closing — name that Decision in the artifact's `rdfs:comment`.
 
+A **detail board** is compared only with detail boards of the **same
+`dkg:scopedTo`**. A Big Picture board is never its v1 — the detail board
+`dkg:refines` it — and a detail board of another context is a neighbour, not a
+predecessor. A Process-Level board redrawn at Design-Level is a revision: its
+diff is mostly aggregates added and command receivers re-pointed
+(`dkg:supersedes` on the old `handledBy` assertion when the receiver changed).
+
 Two artifacts of the same type can legitimately both be new: two domain
 stories, two canvases for two contexts. The overlap test tells them apart from
 a redraw; the subclass alone does not. When the register holds several

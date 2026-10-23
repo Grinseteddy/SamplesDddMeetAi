@@ -1,6 +1,7 @@
 ---
 name: architecture-question-finder
 description: Mine a domain knowledge graph (or raw DDD artifacts — EventStorming board, Event Model, context map, Bounded Context Canvases, Core Domain Chart, Business Model Canvas, invariants sheet) for the specific, evidenced questions that must be answered before the system's architecture can be designed — context boundaries and ownership, sync vs async integration, consistency windows, build vs buy, deployment seams. Produces a prioritized, cited Architecture Question Agenda that drops straight into a small-ADR log. Use whenever someone has run domain-knowledge-graph, or has the underlying artifacts, and asks what needs deciding before architecting or building the system, wants an "architecture backlog" or "decision agenda", or asks "what do we need to figure out before we design this" or "what's blocking us from picking services and integration patterns". Not for generating the architecture itself or a generic checklist unconnected to the artifacts.
+author: Annegret Junker
 ---
 
 # Architecture Question Finder

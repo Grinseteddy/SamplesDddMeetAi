@@ -14,6 +14,7 @@ description: >-
   workshop". Trigger on any request to combine, reconcile or navigate two or
   more modelling artifacts, and on follow-ups adding one more — even if nobody
   says "knowledge graph", "RDF" or "ontology". Outputs a .ttl plus browsable views.
+author: Annegret Junker
 ---
 
 # Domain Knowledge Graph

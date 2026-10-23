@@ -5,6 +5,11 @@ aggregates, green read models, lilac policies and external systems, red
 hotspots, and sometimes context bubbles drawn around clusters. Usually a photo,
 often several photos of one wall.
 
+**Detail level?** If commands land on aggregates or systems for one process —
+a Process-Level or Design-Level board, or a Detail Design Brief from
+`event-storming-detail-interpreter` — read `ingest-event-storming-detail.md`
+instead. That ingest asks for the bounded context first.
+
 The board is the densest artifact in the set and will contribute more nodes than
 anything else. That is a hazard: read the register warning in
 `references/browsing.md` and say plainly in the report if the board now

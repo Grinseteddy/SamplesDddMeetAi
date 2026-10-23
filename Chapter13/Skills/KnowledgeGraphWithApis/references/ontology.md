@@ -45,7 +45,7 @@ IRIs matter more than short ones — a person will read this file.
 
 | Prefix | For |
 |---|---|
-| `Con_` | Concept, Term, WorkObject, Aggregate, ReadModel, BusinessObject |
+| `Con_` | Concept, Term, WorkObject, Aggregate, AggregateCandidate, ReadModel, BusinessObject |
 | `Act_` | Actor, CustomerSegment, KeyPartner, ExternalSystem |
 | `Cap_` | Capability, Component, KeyActivity |
 | `Ev_`  | Occurrence, DomainEvent |
@@ -53,7 +53,8 @@ IRIs matter more than short ones — a person will read this file.
 | `Goal_`, `Imp_`, `Del_`, `Idea_` | Goal, Impact, Deliverable, Idea |
 | `Ctx_` | BoundedContext, Lane, Swimlane |
 | `Q_`   | Question, Hotspot |
-| `R_`   | Rule, Policy |
+| `R_`   | Rule, Policy, Invariant |
+| `Tr_`  | Transition — `Tr_<Aggregate>_<From>_<To>`, from state stickies |
 | `Rel_` | glossary Relationship |
 | `Art_` | Artifact |
 | `As_`  | Assertion |
@@ -64,11 +65,6 @@ IRIs matter more than short ones — a person will read this file.
 | `Ch_`  | Channel — from the AsyncAPI channel key: `Ch_BicycleEvents` |
 | `Amsg_` | ApiMessage — from the AsyncAPI message `name`: `Amsg_BicycleReturned` (`Msg_` is the canvas's) |
 | `Sch_` | Schema — the components key verbatim: `Sch_ReservationCreate` |
-| `QR_`  | QualityRequirement — from an API Product Canvas: `QR_FreeBikeCountWithinOneSecond` |
-
-A canvas sticky and a spec element that are one thing share one IRI: the
-first artifact to arrive mints it, the second enriches it. When the canvas came
-first its suffix `_APC` stays — the IRI records who wrote it down first.
 
 Slugging: strip punctuation, upper-camel the words, keep the artifact's own
 spelling. `Meal plan settled` → `:Ev_MealPlanSettled`. `Cooking Assistance` →
@@ -111,6 +107,13 @@ one refinement: a Bounded Context Canvas marks each field `(given)`,
 `(derived)`, `(proposed)` or `(unknown)`, and those map to `dkg:OnArtifact`,
 `dkg:Implied`, `dkg:Inferred` and *emit nothing* respectively —
 see `ingest-bounded-context-canvas.md`.
+
+A *Detail Design Brief* (from `event-storming-detail-interpreter`) marks its
+invariants *on board* or *inferred*; those map to `dkg:OnArtifact` sourced to
+the **board** and `dkg:Inferred` sourced to the **brief** — see
+`ingest-event-storming-detail.md` §5. A detail board's scope
+(`dkg:scopedTo`) is named by the user at ingest, never read off a title; the
+`dkg:inContext` edges it hands to every scoped node are `dkg:Implied`.
 
 An *API specification* is the other direction: its nodes and literals are
 `dkg:OnArtifact` (the YAML says so), but its edges **into the model** —

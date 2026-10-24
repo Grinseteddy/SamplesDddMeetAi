@@ -5,7 +5,7 @@ import {
   type HelpProviderType,
   type HelpRequestStatus,
 } from "../../../domain/help-request/help-request.js";
-import type { HelpRequestEvent } from "../../../domain/help-request/help-request-events.js";
+import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-request/help-request-events.js";
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
@@ -81,21 +81,27 @@ function toOutboxRow(event: HelpRequestEvent): Omit<OutboxRow, "id"> {
     aggregate_type: "HelpRequest",
     aggregate_id: event.helpRequestId,
     event_type: event.type,
-    payload: {
-      helpRequestId: event.helpRequestId,
-      requester: event.requester,
-      title: event.title,
-      topic: event.topic,
-      description: event.question,
-      recipeId: event.recipeId,
-      howToStepId: event.howToStepId,
-      addressees: event.addressees,
-      pictures: [],
-      status: event.status,
-      answerDeadline: event.answerDeadline.toISOString(),
-      requestedAt: event.requestedAt.toISOString(),
-    },
+    payload: toHelpRequestedMessage(event),
     occurred_at: event.requestedAt,
+  };
+}
+
+// AsyncAPI message HelpRequested: the question is its description, timestamps are ISO strings, a preparation
+// step has no pictures; helpRequestLink is added by the relay.
+function toHelpRequestedMessage(event: HelpRequested): Record<string, unknown> {
+  return {
+    helpRequestId: event.helpRequestId,
+    requester: event.requester,
+    title: event.title,
+    topic: event.topic,
+    description: event.question,
+    recipeId: event.recipeId,
+    howToStepId: event.howToStepId,
+    addressees: event.addressees,
+    pictures: [],
+    status: event.status,
+    answerDeadline: event.answerDeadline.toISOString(),
+    requestedAt: event.requestedAt.toISOString(),
   };
 }
 

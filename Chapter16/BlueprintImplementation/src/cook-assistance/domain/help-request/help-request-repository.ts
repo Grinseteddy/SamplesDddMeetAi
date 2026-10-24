@@ -4,4 +4,7 @@ import type { HelpRequest, HelpRequestId } from "./help-request.js";
 export interface HelpRequestRepository {
   /** The help request with this id, or undefined if there is none. */
   findById(id: HelpRequestId): Promise<HelpRequest | undefined>;
+
+  /** Keeps the help request and what it announced; throws ConcurrencyConflict if it changed since it was loaded. */
+  save(helpRequest: HelpRequest): Promise<void>;
 }

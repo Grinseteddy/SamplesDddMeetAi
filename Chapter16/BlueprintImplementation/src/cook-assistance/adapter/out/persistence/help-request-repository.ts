@@ -37,7 +37,7 @@ interface OutboxRow {
 const HELP_REQUEST_TABLE = "cook_assistance.help_request";
 const OUTBOX_TABLE = "cook_assistance.outbox";
 
-interface Tables {
+interface CookAssistanceTables {
   [HELP_REQUEST_TABLE]: HelpRequestRow;
   [OUTBOX_TABLE]: OutboxRow;
 }
@@ -105,17 +105,17 @@ function toHelpRequestedMessage(event: HelpRequested): Record<string, unknown> {
   };
 }
 
-async function appendToOutbox(tx: Transaction<Tables>, events: readonly HelpRequestEvent[]): Promise<void> {
+async function appendToOutbox(tx: Transaction<CookAssistanceTables>, events: readonly HelpRequestEvent[]): Promise<void> {
   for (const event of events) {
     await tx.insertInto(OUTBOX_TABLE).values(toOutboxRow(event)).execute();
   }
 }
 
 export class KyselyHelpRequestRepository implements HelpRequestRepository {
-  private readonly db: Kysely<Tables>;
+  private readonly db: Kysely<CookAssistanceTables>;
 
   constructor(db: Kysely<unknown>) {
-    this.db = db as Kysely<Tables>;
+    this.db = db as Kysely<CookAssistanceTables>;
   }
 
   async findById(id: HelpRequestId): Promise<HelpRequest | undefined> {
@@ -135,7 +135,7 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
     });
   }
 
-  private async writeState(tx: Transaction<Tables>, helpRequest: HelpRequest): Promise<void> {
+  private async writeState(tx: Transaction<CookAssistanceTables>, helpRequest: HelpRequest): Promise<void> {
     const row = toHelpRequestRow(helpRequest);
     if (helpRequest.version === 0) {
       await this.insertNew(tx, row);
@@ -144,12 +144,12 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
     }
   }
 
-  private async insertNew(tx: Transaction<Tables>, row: HelpRequestRow): Promise<void> {
+  private async insertNew(tx: Transaction<CookAssistanceTables>, row: HelpRequestRow): Promise<void> {
     await tx.insertInto(HELP_REQUEST_TABLE).values({ ...row, version: 1 }).execute();
   }
 
   private async updateUnlessChangedMeanwhile(
-    tx: Transaction<Tables>,
+    tx: Transaction<CookAssistanceTables>,
     helpRequest: HelpRequest,
     row: HelpRequestRow,
   ): Promise<void> {

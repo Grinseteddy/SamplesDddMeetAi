@@ -1,4 +1,4 @@
-import type { Generated, Kysely, Transaction } from "kysely";
+import type { Kysely, Transaction } from "kysely";
 import {
   HelpRequest,
   HelpRequestId,
@@ -9,6 +9,7 @@ import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-reque
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
+import { appendToOutbox, type NewOutboxRow, type OutboxTables } from "./outbox.js";
 import { withinTransaction } from "./unit-of-work.js";
 
 interface HelpRequestRow {
@@ -25,21 +26,10 @@ interface HelpRequestRow {
   version: number;
 }
 
-interface OutboxRow {
-  id: Generated<string>;
-  aggregate_type: string;
-  aggregate_id: string;
-  event_type: string;
-  payload: unknown;
-  occurred_at: Date;
-}
-
 const HELP_REQUEST_TABLE = "cook_assistance.help_request";
-const OUTBOX_TABLE = "cook_assistance.outbox";
 
-interface CookAssistanceTables {
+interface CookAssistanceTables extends OutboxTables {
   [HELP_REQUEST_TABLE]: HelpRequestRow;
-  [OUTBOX_TABLE]: OutboxRow;
 }
 
 // mapping: stored row → Help request (always through reconstitute, ADR-CA-003)
@@ -76,7 +66,7 @@ function toHelpRequestRow(helpRequest: HelpRequest): HelpRequestRow {
 }
 
 // mapping: Help request event → outbox row, payload under the AsyncAPI message's field names (ADR-CA-004)
-function toOutboxRow(event: HelpRequestEvent): Omit<OutboxRow, "id"> {
+function toOutboxRow(event: HelpRequestEvent): NewOutboxRow {
   return {
     aggregate_type: "HelpRequest",
     aggregate_id: event.helpRequestId,
@@ -105,12 +95,6 @@ function toHelpRequestedMessage(event: HelpRequested): Record<string, unknown> {
   };
 }
 
-async function appendToOutbox(tx: Transaction<CookAssistanceTables>, events: readonly HelpRequestEvent[]): Promise<void> {
-  for (const event of events) {
-    await tx.insertInto(OUTBOX_TABLE).values(toOutboxRow(event)).execute();
-  }
-}
-
 export class KyselyHelpRequestRepository implements HelpRequestRepository {
   private readonly db: Kysely<CookAssistanceTables>;
 
@@ -131,7 +115,7 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
   async save(helpRequest: HelpRequest): Promise<void> {
     await withinTransaction(this.db, async (tx) => {
       await this.writeState(tx, helpRequest);
-      await appendToOutbox(tx, helpRequest.pullEvents());
+      await appendToOutbox(tx, helpRequest.pullEvents().map(toOutboxRow));
     });
   }
 

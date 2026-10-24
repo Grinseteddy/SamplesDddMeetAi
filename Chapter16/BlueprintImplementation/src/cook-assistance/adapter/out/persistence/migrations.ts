@@ -56,6 +56,26 @@ const migrations: Record<string, Migration> = {
         .execute();
     },
   },
+  // ADR-CA-003 · the Help aggregate, state-stored
+  "003_help": {
+    async up(db) {
+      await db.schema
+        .withSchema(SCHEMA)
+        .createTable("help")
+        .addColumn("id", "uuid", (c) => c.primaryKey())
+        .addColumn("help_request_id", "uuid", (c) => c.notNull())
+        .addColumn("help_requester", "uuid", (c) => c.notNull())
+        .addColumn("answer_title", "text", (c) => c.notNull())
+        .addColumn("provider_type", "text", (c) => c.notNull())
+        .addColumn("provider_id", "uuid")
+        .addColumn("answer", "jsonb", (c) => c.notNull())
+        .addColumn("status", "text", (c) => c.notNull())
+        .addColumn("version", "integer", (c) => c.notNull())
+        .execute();
+      // a reference to another aggregate: plain id column with an index, no foreign key
+      await db.schema.withSchema(SCHEMA).createIndex("help_help_request_id_idx").on("help").column("help_request_id").execute();
+    },
+  },
 };
 
 export async function migrateToLatest(db: Kysely<unknown>): Promise<void> {

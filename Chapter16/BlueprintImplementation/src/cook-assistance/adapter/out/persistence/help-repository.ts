@@ -129,7 +129,7 @@ export class KyselyHelpRepository implements HelpRepository {
       .set({ ...row, version: help.version + 1 })
       .where("id", "=", help.id)
       .where("version", "=", help.version)
-      .executeTakeFirst();
+      .executeTakeFirstOrThrow(); // an UPDATE always yields one result (possibly 0 rows)
     if (updated.numUpdatedRows === 0n) {
       throw new ConcurrencyConflict("Help", help.id);
     }

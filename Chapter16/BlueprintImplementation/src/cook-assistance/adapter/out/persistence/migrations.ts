@@ -76,6 +76,16 @@ const migrations: Record<string, Migration> = {
       await db.schema.withSchema(SCHEMA).createIndex("help_help_request_id_idx").on("help").column("help_request_id").execute();
     },
   },
+  // ADR-CA-004 · idempotent consumers: one row per message already handled, written in the handler's transaction
+  "004_processed_message": {
+    async up(db) {
+      await db.schema
+        .withSchema(SCHEMA)
+        .createTable("processed_message")
+        .addColumn("message_id", "uuid", (c) => c.primaryKey())
+        .execute();
+    },
+  },
 };
 
 export async function migrateToLatest(db: Kysely<unknown>): Promise<void> {

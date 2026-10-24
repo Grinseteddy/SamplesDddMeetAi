@@ -28,10 +28,8 @@ export type HelpProviderType = "COMMUNITY" | "GRANDMA_AVATAR" | "CHEF";
 
 export type HelpRequestStatus = "REQUESTED";
 
-const HOUR_IN_MS = 60 * 60 * 1000;
-
-// INV-07 · F6: a preparation-step request waits 5 h for an answer the cook accepts
-const PREPARATION_STEP_ANSWER_TIME_MS = 5 * HOUR_IN_MS;
+/** What a help request is about (discriminator "topic"); only a preparation step in this slice. */
+export type HelpRequestTopic = "PREPARATION_STEP";
 
 // INV-19 · a help request carries the cook's question (blank counts as missing)
 function ensureQuestion(question: string): void {
@@ -64,6 +62,12 @@ function ensureRecipeAndStep(
   return { recipeId, howToStepId };
 }
 
+const HOUR_IN_MS = 60 * 60 * 1000;
+
+// INV-07 · F6: a preparation-step request waits 5 h for an answer the cook accepts
+const PREPARATION_STEP_ANSWER_TIME_MS = 5 * HOUR_IN_MS;
+
+// INV-07 · answer deadline = request time + the topic's answer time
 function preparationStepAnswerDeadline(requestedAt: Date): Date {
   return new Date(requestedAt.getTime() + PREPARATION_STEP_ANSWER_TIME_MS);
 }
@@ -83,7 +87,7 @@ export interface HelpRequestState {
 }
 
 export class HelpRequest {
-  readonly topic = "PREPARATION_STEP";
+  readonly topic: HelpRequestTopic = "PREPARATION_STEP";
 
   private readonly pending: HelpRequestEvent[] = [];
 

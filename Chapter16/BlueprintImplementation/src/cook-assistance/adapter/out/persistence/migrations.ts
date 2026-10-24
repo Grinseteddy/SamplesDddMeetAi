@@ -36,6 +36,26 @@ const migrations: Record<string, Migration> = {
         .execute();
     },
   },
+  // ADR-CA-003 · the Help request aggregate, state-stored
+  "002_help_request": {
+    async up(db) {
+      await db.schema
+        .withSchema(SCHEMA)
+        .createTable("help_request")
+        .addColumn("id", "uuid", (c) => c.primaryKey())
+        .addColumn("requester", "uuid", (c) => c.notNull())
+        .addColumn("title", "text", (c) => c.notNull())
+        .addColumn("topic", "text", (c) => c.notNull())
+        .addColumn("question", "text", (c) => c.notNull())
+        .addColumn("recipe_id", "uuid", (c) => c.notNull())
+        .addColumn("how_to_step_id", "uuid", (c) => c.notNull())
+        .addColumn("addressees", sql`text[]`, (c) => c.notNull())
+        .addColumn("status", "text", (c) => c.notNull())
+        .addColumn("answer_deadline", "timestamptz", (c) => c.notNull())
+        .addColumn("version", "integer", (c) => c.notNull())
+        .execute();
+    },
+  },
 };
 
 export async function migrateToLatest(db: Kysely<unknown>): Promise<void> {

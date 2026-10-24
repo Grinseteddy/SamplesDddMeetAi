@@ -9,3 +9,12 @@ export class KyselyUnitOfWork {
     return this.db.transaction().execute(work);
   }
 }
+
+/** Runs work in the caller's transaction when there is one (inside a unit of work), otherwise in a new one. */
+export async function withinTransaction<DB>(db: Kysely<DB>, work: (tx: Transaction<DB>) => Promise<void>): Promise<void> {
+  if (db.isTransaction) {
+    await work(db as Transaction<DB>);
+  } else {
+    await db.transaction().execute(work);
+  }
+}

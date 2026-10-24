@@ -1,0 +1,980 @@
+asyncapi: 3.1.0
+info:
+  title: Cooking Assistance – Help Events
+  version: 1.0.0
+  description: |
+    **Deprecated** — superseded by "Cook Assistance – Help Events" 2.0.0 (RabbitMQ, ADR0003);
+    sunset date 2027-04-30. Kept as the released record; the Cook Assistance service publishes 2.0.0 only.
+
+    Domain events of the Cooking Assistance bounded context. Cooks raise help requests about an
+    ingredient substitute, a preparation step, a kitchen catastrophe or a menu; a chef, the
+    Grandma Avatar or the community answers them with typed helps that the requester accepts.
+    This service publishes the lifecycle of its two aggregates, Help Request
+    (OPEN → ANSWERED → CLOSED) and Help (provided → accepted), so that notification, profile,
+    recommendation and analytics services can react without polling the Help API.
+
+    Derived from the Help and Help Request aggregates of the Cooking Assistance domain model
+    (Java, Chapter 13) and aligned with the Cooking Assistance – Help REST API
+    (`cooking-assistance-help.openapi.yaml`): identifiers, enumerations and answer shapes are
+    the same, and every event links to the resource it is about.
+
+    Rejected commands (rule violations) produce no events. Cook, Recipe, howTo step and
+    ingredient belong to other contexts and appear only as identifiers.
+
+    The API evolves additively within a major version: consumers must ignore
+    unknown message types, unknown properties and unknown enumeration values.
+  contact:
+    name: Annegret Junker
+    url: https://larder.org/cooking-assistance
+    email: annegret.junker@codecentric.de
+  tags:
+    - name: help-request
+      description: Lifecycle events of the Help Request aggregate.
+    - name: help
+      description: Lifecycle events of the Help aggregate.
+
+servers:
+  production:
+    host: "events.larder.org:9092"
+    protocol: "kafka"
+    description: "Production Kafka cluster of the Larder platform"
+    security:
+      - $ref: '#/components/securitySchemes/user-password'
+    bindings:
+      kafka:
+        schemaRegistryUrl: "https://schema-registry.larder.org"
+        schemaRegistryVendor: "confluent"
+        bindingVersion: "0.5.0"
+
+defaultContentType: application/json
+
+channels:
+  helpRequestEvents:
+    address: "cooking-assistance/help-requests"
+    description: |
+      Lifecycle of help requests (aggregate Help Request). Keyed by `helpRequestId`, so all events
+      of one request arrive in order.
+    messages:
+      helpRequested:
+        $ref: '#/components/messages/helpRequested'
+      helpRequestAnswered:
+        $ref: '#/components/messages/helpRequestAnswered'
+      helpRequestClosed:
+        $ref: '#/components/messages/helpRequestClosed'
+    bindings:
+      kafka:
+        topic: "cooking-assistance.help-requests"
+        partitions: 6
+        replicas: 3
+        topicConfiguration:
+          cleanup.policy: ["delete"]
+          retention.ms: 2592000000
+        bindingVersion: "0.5.0"
+
+  helpEvents:
+    address: "cooking-assistance/helps"
+    description: |
+      Lifecycle of helps (aggregate Help). Keyed by `helpId`, so all events of one help arrive in
+      order.
+    messages:
+      helpProvided:
+        $ref: '#/components/messages/helpProvided'
+      helpAccepted:
+        $ref: '#/components/messages/helpAccepted'
+    bindings:
+      kafka:
+        topic: "cooking-assistance.helps"
+        partitions: 6
+        replicas: 3
+        topicConfiguration:
+          cleanup.policy: ["delete"]
+          retention.ms: 2592000000
+        bindingVersion: "0.5.0"
+
+operations:
+  publishHelpRequested:
+    action: send
+    description: |
+      Published once when a cook has raised a help request that satisfies every rule of the Help
+      Request glossary (`HelpRequest.request(...)`). Starts the help request lifecycle
+      (status OPEN). Helpers subscribe to find requests they can answer.
+    channel:
+      $ref: '#/channels/helpRequestEvents'
+    messages:
+      - $ref: '#/channels/helpRequestEvents/messages/helpRequested'
+    bindings:
+      kafka:
+        clientId:
+          type: string
+          enum: ["cooking-assistance"]
+        bindingVersion: "0.5.0"
+
+  publishHelpRequestAnswered:
+    action: send
+    description: |
+      Published once when the first help of a request has been accepted and the request moved
+      from OPEN to ANSWERED (`HelpRequest.acceptHelp(HelpAccepted)`). Further accepted helps keep
+      the request ANSWERED and do not publish this event again — they appear only as
+      HelpAccepted. An ANSWERED request can still be answered.
+    channel:
+      $ref: '#/channels/helpRequestEvents'
+    messages:
+      - $ref: '#/channels/helpRequestEvents/messages/helpRequestAnswered'
+    bindings:
+      kafka:
+        clientId:
+          type: string
+          enum: ["cooking-assistance"]
+        bindingVersion: "0.5.0"
+
+  publishHelpRequestClosed:
+    action: send
+    description: |
+      Published once when a help request has been closed (`HelpRequest.close()`), from OPEN or
+      ANSWERED. Ends the lifecycle (status CLOSED, terminal): no further help can be provided or
+      accepted, so helpers should drop the request from their lists.
+    channel:
+      $ref: '#/channels/helpRequestEvents'
+    messages:
+      - $ref: '#/channels/helpRequestEvents/messages/helpRequestClosed'
+    bindings:
+      kafka:
+        clientId:
+          type: string
+          enum: ["cooking-assistance"]
+        bindingVersion: "0.5.0"
+
+  publishHelpProvided:
+    action: send
+    description: |
+      Published once when a helper has answered a help request (`Help.provide(...)`) with an
+      answer of the requested kind that passed every rule of the Help glossary. The help starts
+      not accepted. The requester is the main consumer (for example via a notification service).
+    channel:
+      $ref: '#/channels/helpEvents'
+    messages:
+      - $ref: '#/channels/helpEvents/messages/helpProvided'
+    bindings:
+      kafka:
+        clientId:
+          type: string
+          enum: ["cooking-assistance"]
+        bindingVersion: "0.5.0"
+
+  publishHelpAccepted:
+    action: send
+    description: |
+      Published once per help when the requester has accepted it (`Help.accept(...)`). This is
+      the HelpAccepted fact of the domain model that carries the acceptance from the Help
+      aggregate to the Help Request aggregate. An acceptance is never withdrawn; several helps
+      of one request may be accepted.
+    channel:
+      $ref: '#/channels/helpEvents'
+    messages:
+      - $ref: '#/channels/helpEvents/messages/helpAccepted'
+    bindings:
+      kafka:
+        clientId:
+          type: string
+          enum: ["cooking-assistance"]
+        bindingVersion: "0.5.0"
+
+components:
+  messages:
+    helpRequested:
+      name: HelpRequested
+      title: Help Requested Event
+      summary: A cook has raised a new help request, which is now open for answers.
+      description: |
+        Carries the complete help request as raised (event-carried state), so helpers can decide
+        whether to answer without calling back.
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpRequestedPayload'
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: The helpRequestId — keeps all events of one help request in order.
+          schemaIdLocation: header
+          bindingVersion: "0.5.0"
+      examples:
+        - name: buttermilkSubstituteRequested
+          summary: A cook has no buttermilk for the pancakes and asks the Grandma Avatar or the community.
+          headers:
+            correlationId: 0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e
+            messageId: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+            source: cooking-assistance
+          payload:
+            helpRequestId: 3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+            requester: 8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d
+            title: No buttermilk for the pancakes
+            type: INGREDIENT_SUBSTITUTE
+            description: The recipe needs 250 ml buttermilk and I only have whole milk and lemons.
+            recipeId: c4d5e6f7-8a9b-4c0d-9e1f-2a3b4c5d6e7f
+            ingredientIds:
+              - e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b
+            preferredProviders:
+              - GRANDMA_AVATAR
+              - COMMUNITY
+            pictures: []
+            status: OPEN
+            requestedAt: "2026-10-13T08:15:00Z"
+            helpRequestLink: https://larder.org/cooking-assistance/help-requests/3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+        - name: birthdayMenuRequestedFromChef
+          summary: A cook asks a chef — exclusively — for a birthday dinner menu.
+          headers:
+            correlationId: 6c7d8e9f-0a1b-4c2d-8e3f-4a5b6c7d8e9f
+            messageId: 7d8e9f0a-1b2c-4d3e-9f4a-5b6c7d8e9f0a
+            source: cooking-assistance
+          payload:
+            helpRequestId: 9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b
+            requester: 8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d
+            title: Birthday dinner for six
+            type: MENU_PROPOSAL
+            description: Three courses, one guest is vegetarian.
+            ingredientIds: []
+            preferredProviders:
+              - CHEF
+            pictures: []
+            status: OPEN
+            requestedAt: "2026-10-14T18:02:00Z"
+            helpRequestLink: https://larder.org/cooking-assistance/help-requests/9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b
+
+    helpRequestAnswered:
+      name: HelpRequestAnswered
+      title: Help Request Answered Event
+      summary: The first help of a help request has been accepted; the request is now answered.
+      description: |
+        Published only on the transition OPEN → ANSWERED. Notification only: the accepted help is
+        identified and linked, not copied.
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpRequestAnsweredPayload'
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: The helpRequestId — keeps all events of one help request in order.
+          schemaIdLocation: header
+          bindingVersion: "0.5.0"
+      examples:
+        - name: buttermilkRequestAnswered
+          summary: The requester accepted the lemon-juice tip, so the buttermilk request is answered.
+          headers:
+            correlationId: 0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e
+            messageId: 2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e
+            source: cooking-assistance
+          payload:
+            helpRequestId: 3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+            requester: 8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d
+            acceptedHelpId: 5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e
+            status: ANSWERED
+            answeredAt: "2026-10-13T08:51:00Z"
+            helpRequestLink: https://larder.org/cooking-assistance/help-requests/3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+            acceptedHelpLink: https://larder.org/cooking-assistance/helps/5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e
+
+    helpRequestClosed:
+      name: HelpRequestClosed
+      title: Help Request Closed Event
+      summary: A help request has been closed and accepts no further help.
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpRequestClosedPayload'
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: The helpRequestId — keeps all events of one help request in order.
+          schemaIdLocation: header
+          bindingVersion: "0.5.0"
+      examples:
+        - name: buttermilkRequestClosed
+          summary: The pancakes are done; the cook closes the answered request.
+          headers:
+            correlationId: 0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e
+            messageId: 3c4d5e6f-7a8b-4c9d-8e1f-2a3b4c5d6e7f
+            source: cooking-assistance
+          payload:
+            helpRequestId: 3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+            requester: 8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d
+            previousStatus: ANSWERED
+            status: CLOSED
+            closedAt: "2026-10-13T09:30:00Z"
+            helpRequestLink: https://larder.org/cooking-assistance/help-requests/3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+
+    helpProvided:
+      name: HelpProvided
+      title: Help Provided Event
+      summary: A helper has answered a help request with one typed answer.
+      description: |
+        Carries the complete help including its answer (event-carried state), so the requester's
+        app can show it without calling back.
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpProvidedPayload'
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: The helpId — keeps all events of one help in order.
+          schemaIdLocation: header
+          bindingVersion: "0.5.0"
+      examples:
+        - name: lemonJuiceSubstituteProvided
+          summary: A community cook suggests soured milk instead of buttermilk.
+          headers:
+            correlationId: 0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e
+            messageId: 4d5e6f7a-8b9c-4d0e-9f2a-3b4c5d6e7f8a
+            source: cooking-assistance
+          payload:
+            helpId: 5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e
+            helpRequestId: 3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+            helpRequester: 8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d
+            answerTitle: Sour your milk with lemon juice
+            helpProviderType: COMMUNITY
+            helpProvider: 9d8c7b6a-5f4e-4d3c-8b2a-1f0e9d8c7b6a
+            answer:
+              answerType: INGREDIENT_SUBSTITUTE
+              recipeId: c4d5e6f7-8a9b-4c0d-9e1f-2a3b4c5d6e7f
+              substitutes:
+                - ingredientId: e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b
+                  substituteIngredient:
+                    name: Whole milk with one tablespoon of lemon juice, rested 10 minutes
+                    value: 250
+                    unit: MILLILITER
+            isAccepted: false
+            providedAt: "2026-10-13T08:42:00Z"
+            helpLink: https://larder.org/cooking-assistance/helps/5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e
+            helpRequestLink: https://larder.org/cooking-assistance/help-requests/3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+        - name: birthdayMenuProvidedByChef
+          summary: A chef proposes a three-course birthday dinner.
+          headers:
+            correlationId: 6c7d8e9f-0a1b-4c2d-8e3f-4a5b6c7d8e9f
+            messageId: 8e9f0a1b-2c3d-4e4f-8a5b-6c7d8e9f0a1b
+            source: cooking-assistance
+          payload:
+            helpId: 2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d
+            helpRequestId: 9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b
+            helpRequester: 8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d
+            answerTitle: Autumn birthday dinner
+            helpProviderType: CHEF
+            helpProvider: 4f5e6d7c-8b9a-4f0e-9d1c-2b3a4f5e6d7c
+            answer:
+              answerType: MENU_PROPOSAL
+              note: Pumpkin soup works for everyone; the vegetarian guest gets the mushroom main.
+              servings: 6
+              meal: DINNER
+              howToServe: Serve both mains in parallel, family style.
+              courses:
+                - dish: 1
+                  recipeId: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+                - dish: 2
+                  recipeId: b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e
+                - dish: 2
+                  recipeId: c3d4e5f6-a7b8-4c9d-8e0f-2a3b4c5d6e7f
+                - dish: 3
+                  recipeId: d4e5f6a7-b8c9-4d0e-9f1a-3b4c5d6e7f8a
+            isAccepted: false
+            providedAt: "2026-10-14T20:10:00Z"
+            helpLink: https://larder.org/cooking-assistance/helps/2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d
+            helpRequestLink: https://larder.org/cooking-assistance/help-requests/9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b
+
+    helpAccepted:
+      name: HelpAccepted
+      title: Help Accepted Event
+      summary: The requester has accepted a help.
+      description: |
+        The HelpAccepted fact of the domain model (helpId, helpRequestId), published. Notification
+        only: the help and its request are linked, not copied.
+      headers:
+        $ref: '#/components/schemas/MessageHeader'
+      payload:
+        $ref: '#/components/schemas/HelpAcceptedPayload'
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: The helpId — keeps all events of one help in order.
+          schemaIdLocation: header
+          bindingVersion: "0.5.0"
+      examples:
+        - name: lemonJuiceTipAccepted
+          summary: The cook accepts the soured-milk tip.
+          headers:
+            correlationId: 0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e
+            messageId: 5e6f7a8b-9c0d-4e1f-8a3b-4c5d6e7f8a9b
+            source: cooking-assistance
+          payload:
+            helpId: 5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e
+            helpRequestId: 3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+            helpRequester: 8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d
+            helpProviderType: COMMUNITY
+            helpProvider: 9d8c7b6a-5f4e-4d3c-8b2a-1f0e9d8c7b6a
+            isAccepted: true
+            acceptedAt: "2026-10-13T08:51:00Z"
+            helpLink: https://larder.org/cooking-assistance/helps/5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e
+            helpRequestLink: https://larder.org/cooking-assistance/help-requests/3f1c9a52-7d4e-4b8a-9c21-5e6f7a8b9c0d
+
+  schemas:
+    MessageHeader:
+      description: Tracing and routing metadata shared by every message of this API.
+      type: object
+      required:
+        - correlationId
+        - messageId
+        - source
+      properties:
+        correlationId:
+          type: string
+          format: uuid
+          description: |
+            Identifier to trace one cook's help journey end to end, from the help request through
+            its helps to its closure.
+        messageId:
+          type: string
+          format: uuid
+          description: Unique identifier for this message; consumers use it to drop duplicates.
+        source:
+          type: string
+          description: Source system generating the event; always cooking-assistance for this API.
+          minLength: 2
+          maxLength: 20
+
+    # ---- shared value sets --------------------------------------------------
+    AnswerType:
+      description: |
+        The kind of help. Called `type` on a help request and `answerType` on a help's answer; both
+        are always the same. New values may be added — treat an unknown value as a kind of help
+        the consumer cannot display in detail.
+      type: string
+      enum:
+        - INGREDIENT_SUBSTITUTE
+        - PREPARATION_STEP_EXPLANATION
+        - STEPS_TO_MITIGATE_CATASTROPHE
+        - MENU_PROPOSAL
+
+    HelpProviderType:
+      description: |
+        Who provides help. Called `preferredProviders` on a help request and `helpProviderType` on
+        a help. New values may be added — treat an unknown value as COMMUNITY.
+      type: string
+      enum:
+        - CHEF
+        - GRANDMA_AVATAR
+        - COMMUNITY
+
+    Unit:
+      description: |
+        Unit of measure of a substitute ingredient — the closed set drawn on the Help glossary.
+        New values may be added; show an unknown unit as its raw name.
+      type: string
+      enum:
+        - PIECE
+        - CUP
+        - TABLE_SPOON
+        - TEA_SPOON
+        - FLUID_OUNCES
+        - PINT
+        - QUART
+        - POUND
+        - KILOGRAM
+        - GRAM
+        - LITER
+        - MILLILITER
+        - PINCH
+
+    Meal:
+      description: The meal a menu proposal is meant for. New values may be added.
+      type: string
+      enum:
+        - BREAKFAST
+        - LUNCH
+        - DINNER
+        - SUPPER
+
+    # ---- Help Request payloads ---------------------------------------------
+    HelpRequestedPayload:
+      description: |
+        A help request at the moment the cook raised it. The domain rules already hold: a recipe
+        is given for an ingredient substitute or a preparation step explanation; a howTo step only
+        for a preparation step explanation; ingredients only for an ingredient substitute; CHEF is
+        always the only preferred provider and only for a menu proposal.
+      type: object
+      required:
+        - helpRequestId
+        - requester
+        - title
+        - type
+        - description
+        - ingredientIds
+        - preferredProviders
+        - pictures
+        - status
+        - requestedAt
+        - helpRequestLink
+      properties:
+        helpRequestId:
+          description: Identifier of the help request this event is about; also the partition key.
+          type: string
+          format: uuid
+        requester:
+          description: The cook who asks for help (Cook Profile context).
+          type: string
+          format: uuid
+        title:
+          description: Short headline of what the cook needs help with.
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          description: The kind of help asked for; every help for this request is of the same kind.
+          $ref: '#/components/schemas/AnswerType'
+        description:
+          description: The cook's own words describing the problem or wish.
+          type: string
+          minLength: 1
+          maxLength: 4000
+        recipeId:
+          description: |
+            The recipe the request is about (Recipe Catalogue context). Always present for an
+            ingredient substitute or a preparation step explanation; optional otherwise.
+          type: string
+          format: uuid
+        howToStepId:
+          description: |
+            The recipe step the cook does not understand (Recipe Catalogue context). Only present
+            for a preparation step explanation.
+          type: string
+          format: uuid
+        ingredientIds:
+          description: |
+            The ingredients the cook is missing and wants substitutes for (Recipe Catalogue
+            context). Empty unless the type is an ingredient substitute.
+          type: array
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        preferredProviders:
+          description: |
+            Who the cook would like help from — one or two distinct provider types. CHEF is always
+            the only preferred provider.
+          type: array
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/HelpProviderType'
+        pictures:
+          description: Links to photos the cook attached to illustrate the problem.
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            format: uri
+        status:
+          description: Lifecycle state after the request was raised; always OPEN for this event.
+          type: string
+          enum: [OPEN]
+        requestedAt:
+          description: Date and time at which the cook raised the request.
+          type: string
+          format: date-time
+        helpRequestLink:
+          description: Link to the help request in the Cooking Assistance – Help REST API.
+          type: string
+          format: uri
+
+    HelpRequestAnsweredPayload:
+      description: Facts about a help request at the moment its first help was accepted.
+      type: object
+      required:
+        - helpRequestId
+        - requester
+        - acceptedHelpId
+        - status
+        - answeredAt
+        - helpRequestLink
+        - acceptedHelpLink
+      properties:
+        helpRequestId:
+          description: Identifier of the help request this event is about; also the partition key.
+          type: string
+          format: uuid
+        requester:
+          description: The cook who asked for help and accepted the help (Cook Profile context).
+          type: string
+          format: uuid
+        acceptedHelpId:
+          description: The help whose acceptance moved the request from OPEN to ANSWERED.
+          type: string
+          format: uuid
+        status:
+          description: Lifecycle state after the first acceptance; always ANSWERED for this event.
+          type: string
+          enum: [ANSWERED]
+        answeredAt:
+          description: Date and time at which the first help was accepted.
+          type: string
+          format: date-time
+        helpRequestLink:
+          description: Link to the help request in the Cooking Assistance – Help REST API.
+          type: string
+          format: uri
+        acceptedHelpLink:
+          description: Link to the accepted help in the Cooking Assistance – Help REST API.
+          type: string
+          format: uri
+
+    HelpRequestClosedPayload:
+      description: Facts about a help request at the moment it was closed.
+      type: object
+      required:
+        - helpRequestId
+        - requester
+        - previousStatus
+        - status
+        - closedAt
+        - helpRequestLink
+      properties:
+        helpRequestId:
+          description: Identifier of the help request this event is about; also the partition key.
+          type: string
+          format: uuid
+        requester:
+          description: The cook who raised the help request (Cook Profile context).
+          type: string
+          format: uuid
+        previousStatus:
+          description: |
+            Status before closing. OPEN means the request was closed without any accepted help
+            (withdrawn); ANSWERED means at least one help had been accepted.
+          type: string
+          enum: [OPEN, ANSWERED]
+        status:
+          description: Lifecycle state after closing; always CLOSED for this event.
+          type: string
+          enum: [CLOSED]
+        closedAt:
+          description: Date and time at which the request was closed.
+          type: string
+          format: date-time
+        helpRequestLink:
+          description: Link to the help request in the Cooking Assistance – Help REST API.
+          type: string
+          format: uri
+
+    # ---- Help payloads ------------------------------------------------------
+    HelpProvidedPayload:
+      description: |
+        A help at the moment a helper provided it. The domain rules already hold: the answer is of
+        the requested kind and refers to the same recipe, howTo step and ingredients as the request.
+      type: object
+      required:
+        - helpId
+        - helpRequestId
+        - helpRequester
+        - answerTitle
+        - helpProviderType
+        - answer
+        - isAccepted
+        - providedAt
+        - helpLink
+        - helpRequestLink
+      properties:
+        helpId:
+          description: Identifier of the help this event is about; also the partition key.
+          type: string
+          format: uuid
+        helpRequestId:
+          description: The help request this help answers.
+          type: string
+          format: uuid
+        helpRequester:
+          description: The cook who asked for help, copied from the help request (Cook Profile context).
+          type: string
+          format: uuid
+        answerTitle:
+          description: Short headline of the answer.
+          type: string
+          minLength: 1
+          maxLength: 200
+        helpProviderType:
+          description: Whether the help comes from a chef, the Grandma Avatar or the community.
+          $ref: '#/components/schemas/HelpProviderType'
+        helpProvider:
+          description: |
+            The cook who provided the help (Cook Profile context); absent when the Grandma Avatar
+            answers.
+          type: string
+          format: uuid
+        answer:
+          description: The content of the help — exactly one of the four kinds of answer.
+          $ref: '#/components/schemas/Answer'
+        isAccepted:
+          description: Whether the requester has accepted this help; always false for this event.
+          type: boolean
+          enum: [false]
+        providedAt:
+          description: Date and time at which the help was provided.
+          type: string
+          format: date-time
+        helpLink:
+          description: Link to the help in the Cooking Assistance – Help REST API.
+          type: string
+          format: uri
+        helpRequestLink:
+          description: Link to the help request this help answers.
+          type: string
+          format: uri
+
+    HelpAcceptedPayload:
+      description: Facts about a help at the moment the requester accepted it.
+      type: object
+      required:
+        - helpId
+        - helpRequestId
+        - helpRequester
+        - helpProviderType
+        - isAccepted
+        - acceptedAt
+        - helpLink
+        - helpRequestLink
+      properties:
+        helpId:
+          description: Identifier of the accepted help; also the partition key.
+          type: string
+          format: uuid
+        helpRequestId:
+          description: The help request whose help was accepted; its status is now ANSWERED.
+          type: string
+          format: uuid
+        helpRequester:
+          description: The cook who asked for help and accepted it (Cook Profile context).
+          type: string
+          format: uuid
+        helpProviderType:
+          description: Whether the accepted help came from a chef, the Grandma Avatar or the community.
+          $ref: '#/components/schemas/HelpProviderType'
+        helpProvider:
+          description: |
+            The cook whose help was accepted (Cook Profile context); absent when the Grandma Avatar
+            answered. Lets reputation features credit the helper without a callback.
+          type: string
+          format: uuid
+        isAccepted:
+          description: Whether the help is accepted; always true for this event and never withdrawn.
+          type: boolean
+          enum: [true]
+        acceptedAt:
+          description: Date and time at which the requester accepted the help.
+          type: string
+          format: date-time
+        helpLink:
+          description: Link to the accepted help in the Cooking Assistance – Help REST API.
+          type: string
+          format: uri
+        helpRequestLink:
+          description: Link to the help request the help belongs to.
+          type: string
+          format: uri
+
+    # ---- Answer (value object, one of four kinds) ---------------------------
+    Answer:
+      description: |
+        The content of a help — exactly one of four kinds, told apart by `answerType`. Each kind
+        fixes its `answerType`, so an answer never contradicts its own content. New kinds may be
+        added together with a new AnswerType value.
+      discriminator: answerType
+      oneOf:
+        - $ref: '#/components/schemas/Substitutes'
+        - $ref: '#/components/schemas/PreparationStepExplanation'
+        - $ref: '#/components/schemas/CatastropheMitigation'
+        - $ref: '#/components/schemas/MenuProposal'
+
+    Substitutes:
+      description: The answer to an ingredient substitute request — what to use instead of the missing ingredients.
+      type: object
+      required:
+        - answerType
+        - recipeId
+        - substitutes
+      properties:
+        answerType:
+          description: Marks this answer as an ingredient substitute.
+          type: string
+          const: INGREDIENT_SUBSTITUTE
+        recipeId:
+          description: The recipe the substitutes are for; the same recipe as in the request.
+          type: string
+          format: uuid
+        substitutes:
+          description: One substitute per missing ingredient; every ingredient was asked about in the request.
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/Substitute'
+
+    Substitute:
+      description: What replaces one missing ingredient.
+      type: object
+      required:
+        - ingredientId
+        - substituteIngredient
+      properties:
+        ingredientId:
+          description: The missing ingredient from the request (Recipe Catalogue context).
+          type: string
+          format: uuid
+        substituteIngredient:
+          description: What to use instead, and how much of it.
+          $ref: '#/components/schemas/SubstituteIngredient'
+
+    SubstituteIngredient:
+      description: An ingredient to use instead, with its quantity — name, value and unit always travel together.
+      type: object
+      required:
+        - name
+        - value
+        - unit
+      properties:
+        name:
+          description: Name of the replacement ingredient, as the helper wrote it.
+          type: string
+          minLength: 1
+          maxLength: 200
+        value:
+          description: Quantity of the replacement ingredient; greater than zero (inferred rule, to be confirmed).
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          description: Unit the quantity is measured in.
+          $ref: '#/components/schemas/Unit'
+
+    PreparationStepExplanation:
+      description: The answer to a preparation step explanation request — how to perform one recipe step.
+      type: object
+      required:
+        - answerType
+        - recipeId
+        - howToStepId
+        - description
+      properties:
+        answerType:
+          description: Marks this answer as a preparation step explanation.
+          type: string
+          const: PREPARATION_STEP_EXPLANATION
+        recipeId:
+          description: The recipe the step belongs to; the same recipe as in the request.
+          type: string
+          format: uuid
+        howToStepId:
+          description: The step being explained; the same howTo step as in the request.
+          type: string
+          format: uuid
+        description:
+          description: The helper's explanation of how to perform the step.
+          type: string
+          minLength: 1
+          maxLength: 8000
+        images:
+          description: Links to images that illustrate the step.
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            format: uri
+
+    CatastropheMitigation:
+      description: The answer to a steps-to-mitigate-catastrophe request — how to rescue a dish that went wrong.
+      type: object
+      required:
+        - answerType
+        - explanation
+      properties:
+        answerType:
+          description: Marks this answer as a catastrophe mitigation.
+          type: string
+          const: STEPS_TO_MITIGATE_CATASTROPHE
+        recipeId:
+          description: The recipe concerned, if any; when given, the same recipe as in the request.
+          type: string
+          format: uuid
+        explanation:
+          description: The steps the cook should take to save the dish.
+          type: string
+          minLength: 1
+          maxLength: 8000
+
+    MenuProposal:
+      description: The answer to a menu proposal request — a sequence of courses for a meal.
+      type: object
+      required:
+        - answerType
+        - note
+        - servings
+        - meal
+        - courses
+      properties:
+        answerType:
+          description: Marks this answer as a menu proposal.
+          type: string
+          const: MENU_PROPOSAL
+        note:
+          description: The helper's remarks on the menu as a whole.
+          type: string
+          minLength: 1
+          maxLength: 4000
+        servings:
+          description: Number of people the menu is planned for; at least one (inferred rule, to be confirmed).
+          type: integer
+          minimum: 1
+        meal:
+          description: The meal the menu is meant for.
+          $ref: '#/components/schemas/Meal'
+        howToServe:
+          description: Optional advice on how to serve the menu.
+          type: string
+          maxLength: 4000
+        courses:
+          description: The courses of the menu, one to ten.
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Course'
+
+    Course:
+      description: One course of a menu proposal.
+      type: object
+      required:
+        - dish
+        - recipeId
+      properties:
+        dish:
+          description: |
+            The serving step this course belongs to, starting at 1. Not unique — different courses
+            can share a step when served in parallel (meaning marked "!" on the glossary).
+          type: integer
+          minimum: 1
+        recipeId:
+          description: The recipe to cook for this course (Recipe Catalogue context).
+          type: string
+          format: uuid
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+      description: Basic (SASL) authentication of the Cooking Assistance service at the Kafka broker

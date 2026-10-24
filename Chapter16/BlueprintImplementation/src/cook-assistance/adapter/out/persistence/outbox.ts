@@ -19,8 +19,10 @@ export interface OutboxTables {
   [OUTBOX_TABLE]: OutboxRow;
 }
 
-export async function appendToOutbox(tx: Transaction<OutboxTables>, rows: readonly NewOutboxRow[]): Promise<void> {
+/** Appends rows in the caller's transaction; works for any repository whose table map contains the outbox. */
+export async function appendToOutbox<DB extends OutboxTables>(tx: Transaction<DB>, rows: readonly NewOutboxRow[]): Promise<void> {
+  const outbox = tx as unknown as Transaction<OutboxTables>; // narrow to the outbox table only (TS < 6 rejects the wider map)
   for (const row of rows) {
-    await tx.insertInto(OUTBOX_TABLE).values(row).execute();
+    await outbox.insertInto(OUTBOX_TABLE).values(row).execute();
   }
 }

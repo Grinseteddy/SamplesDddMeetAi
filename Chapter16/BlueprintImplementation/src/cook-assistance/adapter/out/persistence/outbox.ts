@@ -2,9 +2,9 @@ import type { Generated, Transaction } from "kysely";
 
 // ADR-CA-004 · the transactional outbox: repositories append their aggregate's events here, in the transaction
 // that saves the aggregate; the relay (step 10) owns the delivery columns.
-export const OUTBOX_TABLE = "cook_assistance.outbox";
+const OUTBOX_TABLE = "cook_assistance.outbox";
 
-export interface OutboxRow {
+interface OutboxRow {
   id: Generated<string>;
   aggregate_type: string;
   aggregate_id: string;

@@ -181,6 +181,30 @@ describe("Help request — B2-S01 Request help preparation step", () => {
       expect(rejection).toBeInstanceOf(RecipeRequired);
       expect(rejection).toMatchObject({ rule: "INV-17" });
     });
+    it("for any combination of a present or missing recipe and step, a preparation-step request is accepted exactly when both are present, otherwise rejected with rule INV-17 -- B2-S01 INV-17 property", () => {
+      fc.assert(
+        fc.property(
+          fc.option(fc.uuid(), { nil: null }),
+          fc.option(fc.uuid(), { nil: null }),
+          (recipe, step) => {
+            const rejection = rejectionOf(() =>
+              HelpRequest.requestPreparationStepHelp({
+                ...sundaySconesStep3,
+                recipeId: recipe === null ? null : RecipeId.of(recipe),
+                howToStepId: step === null ? null : HowToStepId.of(step),
+              }),
+            );
+
+            if (recipe !== null && step !== null) {
+              expect(rejection).toBeUndefined();
+            } else {
+              expect(rejection).toMatchObject({ rule: "INV-17" });
+            }
+          },
+        ),
+        propertyRuns,
+      );
+    });
   });
 
   describe("events", () => {

@@ -16,6 +16,8 @@ export class StubRecipeCatalog {
   private body: unknown = { code: "NOT_FOUND", message: "No such how-to step" };
   private delayMs = 0;
   private dropsLeft = 0;
+  /** Answers for particular paths (a recipe's steps); every other path gets the general answer. */
+  private readonly answersByPath = new Map<string, { readonly status: number; readonly body: unknown }>();
 
   private constructor(private readonly server: Server) {}
 
@@ -36,6 +38,11 @@ export class StubRecipeCatalog {
     this.body = body;
   }
 
+  /** This path answers with this status and body, whatever the general answer is. */
+  answerAt(path: string, status: number, body: unknown): void {
+    this.answersByPath.set(path, { status, body });
+  }
+
   /** Answers only after this many milliseconds — Recipe Catalog is slow. */
   delayBy(milliseconds: number): void {
     this.delayMs = milliseconds;
@@ -51,6 +58,7 @@ export class StubRecipeCatalog {
     this.requests.length = 0;
     this.delayMs = 0;
     this.dropsLeft = 0;
+    this.answersByPath.clear();
   }
 
   async stop(): Promise<void> {
@@ -68,9 +76,10 @@ export class StubRecipeCatalog {
       request.socket.destroy();
       return;
     }
+    const { status, body } = this.answersByPath.get(request.url ?? "") ?? { status: this.status, body: this.body };
     setTimeout(() => {
-      response.writeHead(this.status, { "content-type": "application/json" });
-      response.end(JSON.stringify(this.body));
+      response.writeHead(status, { "content-type": "application/json" });
+      response.end(JSON.stringify(body));
     }, this.delayMs);
   }
 }

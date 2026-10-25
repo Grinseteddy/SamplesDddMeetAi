@@ -22,4 +22,10 @@ export default [
       "sonarjs/no-identical-functions": "warn",
     },
   },
+  {
+    // Cucumber passes one argument per placeholder of the step's text, plus `this` for the world: the step's wording
+    // decides the count, not the design — max-params stays on everywhere else.
+    files: ["src/cook-assistance/acceptance/steps/**/*.ts"],
+    rules: { "max-params": "off" },
+  },
 ];

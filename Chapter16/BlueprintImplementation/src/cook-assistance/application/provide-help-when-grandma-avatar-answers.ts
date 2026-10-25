@@ -3,6 +3,7 @@ import {
   type AnsweredHelpRequest,
   Help,
   type HelpId,
+  type HelpProvider,
   type PreparationStepExplanation,
   type ProvideHelp,
 } from "../domain/help/help.js";
@@ -43,6 +44,8 @@ function answeredRequestOf(helpRequest: HelpRequest): AnsweredHelpRequest {
   };
 }
 
+/** The provider who answers through this policy: the Grandma Avatar AI, which has no provider id. */
+const grandmaAvatar: HelpProvider = { type: "GRANDMA_AVATAR", id: null };
 const MAX_ATTEMPTS = 3;
 
 /** Provide Help, with a domain rejection (INV-10) handed back as a value; every other error is thrown. */
@@ -98,14 +101,14 @@ export class ProvideHelpWhenGrandmaAvatarAnswers {
         return refuse(scope, message, { because: "help request not found", rule: null });
       }
       // INV-09 · only an addressee may answer (resource check in the application, ADR-CA-009)
-      if (!helpRequest.addressees.includes("GRANDMA_AVATAR")) {
+      if (!helpRequest.addressees.includes(grandmaAvatar.type)) {
         return refuse(scope, message, { because: "not an addressee", rule: "INV-09" });
       }
       const help = provideOrRejection({
         id: message.helpId,
         helpRequest: answeredRequestOf(helpRequest),
         answerTitle: message.answerTitle,
-        provider: { type: "GRANDMA_AVATAR", id: null },
+        provider: grandmaAvatar,
         answer: message.answer,
         providedAt: this.ports.clock.now(),
       });

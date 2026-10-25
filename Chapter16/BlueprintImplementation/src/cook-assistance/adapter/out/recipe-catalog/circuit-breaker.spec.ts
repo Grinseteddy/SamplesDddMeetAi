@@ -13,14 +13,9 @@ async function unreachable(): Promise<never> {
   throw new Error("connection refused");
 }
 
-async function failTimes(
-  breaker: CircuitBreaker,
-  times: number,
-): Promise<void> {
+async function failTimes(breaker: CircuitBreaker, times: number): Promise<void> {
   for (let attempt = 0; attempt < times; attempt += 1) {
-    await expect(breaker.call(unreachable)).rejects.toThrow(
-      "connection refused",
-    );
+    await expect(breaker.call(unreachable)).rejects.toThrow("connection refused");
   }
 }
 

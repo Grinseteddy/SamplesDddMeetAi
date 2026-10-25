@@ -121,6 +121,43 @@ TDD (steps 6–12): inc 0 · step 10 · unit 10.3 RabbitMQ adapters on Testconta
 - Green: `trialRunning` set and cleared only by the trial call; `attempt` (close on success, record failure); `isOpen` also while the trial runs. Predicted 198 passed | 15 todo, tsc 0, ESLint 62 (`call` 2, `attempt` 1, `isOpen` 1, `recordFailure` 1) — match. Refactor review: no change; boundary trial: thresholds are ADR-CA-015 resilience settings, infrastructure, no domain seam.
 - Unit 10.5a complete: 8/8 active (7 listed + 1 added).
 
+- Unit 10.5a approved and committed (d46a58f, path-scoped; the 10.4 work stays uncommitted until its end-to-end item).
+
+- 10.5b item 1 Red: scaffold `TokenProvider` port, `HttpRecipeCatalog({ baseUrl, tokenProvider, breaker })`, `test-support/http/stub-recipe-catalog.ts` (node:http, port 0, server path /recipe-catalog, records requests). Predicted 1 failed | 28 passed files, 1 failed | 198 passed | 14 todo (213), "promise rejected … not built yet", tsc 0, ESLint 62 — match.
+
+- Process slip (formatting): this session ran `npx prettier --write` (3.9.10, not a project dependency, no config) at its default 80 columns; the project has no formatter and is hand-wrapped at ~140. The files of units 10.4/10.5 (bootstrap spec, configuration, relay poller, breaker + spec, recipe-catalog adapter/spec/token port, settable clock, stub) were re-wrapped at 140; nothing older was touched. d46a58f carries the 80-column breaker; the next commit carries the re-wrap.
+- 10.5b item 1 Green: `fetch` of `STEP_PATH` (typed `keyof paths` from the generated upstream types), returns the asked IDs. Predicted 29 passed, 199 passed | 14 todo (213), tsc 0, ESLint 62 — match. Refactor review: no change (headers, status and breaker come with items 2, 3, 9).
+
+- 10.5b item 2 Red (STEP_3 response hoisted in the spec): predicted 1 failed | 199 passed | 13 todo, equality failure on the recorded request (headers missing), tsc 0, ESLint 62 — match (counts from a re-run; the first output filter cut them).
+
+- 10.5b item 2 Green: headers version (typed by the generated operation), accept, bearer from the TokenProvider. Predicted 200 passed | 13 todo, tsc 0, ESLint 62 — match. Boundary trial: UPSTREAM_VERSION "2.0.0" → predicted TS2322 on that line — match; restored, tsc 0.
+
+- 10.5b item 3 Red: predicted 1 failed | 200 passed | 12 todo, "expected { … } to be undefined", tsc 0, ESLint 62 — match.
+
+- 10.5b item 3 Green: 404 → undefined. Predicted 201 passed | 12 todo, tsc 0, ESLint 63 (`findHowToStep` 1) — match. Refactor review: no change (the request/answer split waits for items 4–9).
+
+- 10.5b item 4 Red: predicted 1 failed | 201 passed | 11 todo, "promise resolved { … } instead of rejecting", tsc 0, ESLint 63 — match.
+
+- 10.5b item 4 Green: not ok (after 404) → RecipeCatalogUnavailable. Predicted 202 passed | 11 todo, tsc 0, ESLint 63 — match. Refactor review: no change.
+
+- 10.5b item 5 (guard, as `it.each([401, 403])`): MISMATCH on counts — predicted 203 passed | 10 todo (213); `it.each` makes two tests (my error), and the first full run had help-repository.spec.ts fail in setup (its 9 tests + 1 todo skipped; error text lost to the output filter). The file passed alone (9 passed | 1 todo); full re-run: 29 passed, 204 passed | 10 todo (214), tsc 0, ESLint 63. Open risk for step 12: suspected Testcontainers PostgreSQL start under parallel load — capture the error if it recurs (full output now kept in the scratchpad).
+
+- 10.5b item 6 Red: stub `delayBy(ms)` and `reset()`. Predicted 1 failed | 204 passed | 9 todo (214), "promise resolved { … } instead of rejecting", tsc 0, ESLint 63 — match.
+
+- 10.5b item 6 Green: `AbortSignal.timeout(TIMEOUT_MS = 150)`, fetch failure → RecipeCatalogUnavailable. Predicted 205 passed | 9 todo (214), tsc 0, ESLint 63 — match. Refactor trial: extract `get(path)` (token, headers, timeout). Predicted 205 | 9, tsc 0, ESLint 64 (`get` 1) — match; retained.
+
+- 10.5b item 7 Red: stub `dropNext(n)` (records, then destroys the socket). Predicted 1 failed | 205 passed | 8 todo, "promise rejected RecipeCatalogUnavailable … instead of resolving", tsc 0, ESLint 65 — match.
+
+- 10.5b item 7 Green: `get` retries once on a network failure, never on a timeout; `send` does one GET. Predicted 206 passed | 8 todo, tsc 0, ESLint 65 (`get` 4) — match. Refactor trial: `isTimeout(error)`. Predicted 206 | 8, tsc 0, ESLint 66 (`get` 3, `isTimeout` 1) — match; retained.
+
+- 10.5b item 8 (guard): green on activation as predicted — 207 passed | 7 todo, tsc 0, ESLint 66.
+- 10.5b item 9 Red: predicted 1 failed | 207 passed | 6 todo, "expected [ … ] to have a length of 5 but got 6", tsc 0, ESLint 66 — match.
+
+- 10.5b item 9 Green: `lookUp` (breaker; CircuitOpen → unavailable), `answered` (non-404 error status throws inside the breaker), `findHowToStep` maps 404 → undefined. Predicted 208 passed | 6 todo, tsc 0, ESLint 68 (findHowToStep 1, lookUp 3, answered 2, get 3, isTimeout 1) — match. Refactor review: no change (one responsibility per layer).
+
+- 10.5b item 10 (gate, type-level by user decision): `expectTypeOf` on the generated upstream types (path → operation, version "1.0.0"). Green on activation as predicted — 209 passed | 5 todo (214), tsc 0, ESLint 68. Trial: expected "2.0.0" → predicted tsc error at the gate line — TS2344, match; restored, tsc 0.
+- Unit 10.5b complete: 10/10 active (11 tests). Recipe-catalog files run 3× — 19/19 each. Leak check (domain, application: generated/, recipe-catalog/, fetch, node:http): no hits. Decisions in the adapter: breaker — refuse while open or a trial runs; closed vs half-open; reopen on a failed trial or 5 failures in 30 s. HTTP — 404 → undefined (INV-18 answer); CircuitOpen → unavailable; error status other than 404 → unavailable (counted by the breaker); timeout → no retry (QS-08). Each maps a status or applies ADR-CA-015; no business rule.
+
 Commits (inc 0): b16877b feat(help-request) B2-S01 aggregate; d795038 refactor(help-request); 79f6e06 feat(help) B1-S04 aggregate
 Delivery (step 0): repo SamplesDddMeetAi (book repo), default branch main, work scoped to Chapter16/BlueprintImplementation; branches one per increment — feature/<context>-inc0-walking-skeleton, feature/<context>-inc<k>-<board>, steps 1–5 docs on docs/<context>-design; commits Conventional Commits at each approved unit checkpoint (refactor commits separate); remote GitHub origin github.com/Grinseteddy/SamplesDddMeetAi, PRs one per increment via gh (gh 2.103.2 installed and logged in as Grinseteddy, scopes repo + workflow — verified 2026-10-24), run never merges; CI GitHub Actions in book repo .github/workflows, path filter Chapter16/BlueprintImplementation/**, load tests on PR only; hooks tool chosen with the stack in step 5 (format, lint, types, secret scan, commit-msg), written in the walking skeleton; docs Chapter16/BlueprintImplementation/docs/<context>/, project memory CLAUDE.md in BlueprintImplementation; Definition of Done default unchanged; declined parts: none
 

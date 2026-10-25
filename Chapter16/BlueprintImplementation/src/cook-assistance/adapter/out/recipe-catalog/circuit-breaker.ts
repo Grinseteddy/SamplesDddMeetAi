@@ -40,10 +40,7 @@ export class CircuitBreaker {
 
   /** Open: opened less than 30 s ago, or half-open with its trial call running — no call is made. */
   private isOpen(now: number): boolean {
-    return (
-      this.openedAt !== undefined &&
-      (this.trialRunning || now - this.openedAt < OPEN_MS)
-    );
+    return this.openedAt !== undefined && (this.trialRunning || now - this.openedAt < OPEN_MS);
   }
 
   /** A success closes the circuit; a failure is recorded. */
@@ -61,10 +58,7 @@ export class CircuitBreaker {
   /** A failed call: a failed trial reopens at once; otherwise 5 failures within 30 s open the circuit. */
   private recordFailure(at: number): void {
     const trialFailed = this.openedAt !== undefined;
-    this.failures = [
-      ...this.failures.filter((failedAt) => at - failedAt < WINDOW_MS),
-      at,
-    ];
+    this.failures = [...this.failures.filter((failedAt) => at - failedAt < WINDOW_MS), at];
     if (trialFailed || this.failures.length >= FAILURE_THRESHOLD) {
       this.openedAt = at;
     }

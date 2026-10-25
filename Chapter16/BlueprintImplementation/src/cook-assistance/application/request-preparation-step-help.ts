@@ -41,7 +41,8 @@ export class RequestPreparationStepHelp {
   // INV-18 · the step exists in the recipe — Recipe Catalog owns recipes (ADR-CA-015), so the lookup
   // runs here, after the domain's own guards and outside the transaction
   private async ensureStepInRecipe(helpRequest: HelpRequest): Promise<void> {
-    if ((await this.ports.recipeCatalog.findHowToStep(helpRequest.recipeId, helpRequest.howToStepId)) === undefined) {
+    const step = await this.ports.recipeCatalog.findHowToStep(helpRequest.recipeId, helpRequest.howToStepId);
+    if (step === undefined) {
       throw new StepNotInRecipe();
     }
   }

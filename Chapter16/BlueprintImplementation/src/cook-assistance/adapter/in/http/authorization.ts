@@ -14,11 +14,16 @@ interface Permission {
   readonly roles: readonly ActorRole[];
 }
 
+/** ADR-CA-009 · every GET operation: read scope, any of the three roles (what each may see is the query's visibility). */
+const READ: Permission = { scope: "cooking-assistance:read", roles: ["COOK", "COMMUNITY_COOK", "CHEF"] };
+
 // ADR-CA-009 · scope and role per operation, checked at the adapter before the use case (deny by default).
 const PERMISSIONS: Partial<Record<keyof operations, Permission>> = {
   requestHelp: { scope: "cooking-assistance:write", roles: ["COOK"] },
-  getHelpRequestById: { scope: "cooking-assistance:read", roles: ["COOK", "COMMUNITY_COOK", "CHEF"] },
-  listHelpRequests: { scope: "cooking-assistance:read", roles: ["COOK", "COMMUNITY_COOK", "CHEF"] },
+  getHelpRequestById: READ,
+  listHelpRequests: READ,
+  getHelpById: READ,
+  listHelpsForHelpRequest: READ,
 };
 
 export function ensurePermitted(actor: Actor, operation: keyof operations): void {

@@ -10,6 +10,7 @@ import * as OpenApiValidator from "express-openapi-validator";
 import { authenticate } from "./authentication.js";
 import { MAX_BODY_MEGABYTES, RATE_LIMIT, rateLimitKeyOf } from "./edge-limits.js";
 import { HelpRequestsController } from "./help-requests.controller.js";
+import { HelpsController } from "./helps.controller.js";
 import { HTTP_SETTINGS, type HttpSettings } from "./http-settings.js";
 import { ProblemFilter, problemErrorHandler } from "./problem.js";
 
@@ -24,7 +25,7 @@ export class CookAssistanceHttpModule {
     return {
       module: CookAssistanceHttpModule,
       imports: [ThrottlerModule.forRoot({ throttlers: [RATE_LIMIT], getTracker: (request) => rateLimitKeyOf(request as Request) })],
-      controllers: [HelpRequestsController],
+      controllers: [HelpRequestsController, HelpsController],
       providers: [
         { provide: HTTP_SETTINGS, useValue: settings },
         { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -3,6 +3,7 @@ import type { Actor } from "../../../application/actor.js";
 import type { HelpRequestView } from "../../../application/help-request-view.js";
 import type { HelpRequestReadModel } from "../../../application/queries/help-request-queries.js";
 import type { Page } from "../../../application/queries/page.js";
+import { toPageResource } from "./page.mapper.js";
 import type { RequestPreparationStepHelpCommand } from "../../../application/request-preparation-step-help.js";
 import { HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
 
@@ -81,8 +82,5 @@ export type HelpRequestPageResource = operations["listHelpRequests"]["responses"
 
 /** A page of RM Help request → the spec's HelpRequestPage. */
 export function toHelpRequestPage(page: Page<HelpRequestReadModel>, publicBaseUrl: string): HelpRequestPageResource {
-  return {
-    items: page.items.map((readModel) => toHelpRequestResource(readModel, publicBaseUrl)),
-    page: { number: page.number, size: page.size, totalElements: page.totalElements, totalPages: page.totalPages },
-  };
+  return toPageResource(page, (readModel) => toHelpRequestResource(readModel, publicBaseUrl));
 }

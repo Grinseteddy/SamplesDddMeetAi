@@ -245,6 +245,34 @@ TDD (steps 6–12): inc 0 · step 10 · unit 10.3 RabbitMQ adapters on Testconta
 - 11.2 items 8–11 (guards, user decision: one by one, stop on mismatch): paging (228 | 12), list visibility (229 | 11), invalid filter 400 (230 | 10), wiring POST then GET (231 | 9; the GET body equals the 201 body — lag 0) — each green on activation as predicted, tsc 0, ESLint 71. Setup: the test's Recipe Catalog stand-in knows step 3 (for the POST).
 - Unit 11.2 complete: 11/11.
 
+- Unit 11.2 approved and committed (a2e5e5f).
+- 11.3 item 1 Red: predicted 1 failed | 231 passed | 8 todo (240), "expected 500 to be 200" (no route), tsc 0, ESLint 71 — match.
+
+- 11.3 item 1 Green: application/queries/help-queries.ts (HelpReadModel, HelpNotFound, HelpQueries.get), KyselyHelpQueries on help_view, composeCookAssistance.helpQueries, HelpsController GET /helps/:helpId (PERMISSIONS getHelpById), help.mapper.ts toHelpResource, NO_HELP_QUERIES stand-in, gate getHelpById served. Predicted 232 | 8, tsc 0, ESLint 73 — MISMATCH on ESLint only: 75. The two predicted measurements are there (controller not-found check, adapter ternary); not predicted: two no-duplicate-string smells — "cooking-assistance:read" 3× in authorization.ts and the stand-ins' error text 3× in start-http-test-app.ts (the third copy of each literal crosses the rule's threshold).
+
+- Refactor trial: one READ permission for every GET operation (authorization.ts), one throwing `queried()` for the query stand-ins. Predicted 232 | 8, tsc 0, ESLint 73 — match; retained.
+
+- 11.3 item 2 Red: predicted 1 failed | 232 passed | 7 todo, [500, 200] vs [404, 404], tsc 0, ESLint 73 — match.
+
+- 11.3 item 2 Green: HelpNotFound → 404; HelpQueries.get(id, viewer) with visibleTo = help_requester or provider_id is the viewer. Predicted 233 | 7, tsc 0, ESLint 73 — match. Refactor review: no change.
+
+- 11.3 item 3 Red: predicted 1 failed | 233 passed | 6 todo, "expected 500 to be 200" (no route), tsc 0, ESLint 73 — match.
+
+- 11.3 item 3 Green: HelpQueries.listForHelpRequest (help_request_id, visibility, count, created_at/id order, limit/offset), GET /help-requests/:id/helps, toHelpPage, PERMISSIONS READ, gate listHelpsForHelpRequest served, stand-in. Predicted 234 | 6, tsc 0, ESLint 73 — match. Refactor trial: generic toPageResource (page.mapper.ts) used by both page mappers. Predicted 234 | 6, tsc 0, ESLint 73 — match; retained.
+
+- 11.3 item 4 Red: predicted 1 failed | 234 passed | 5 todo, "expected [ { … } ] to deeply equal []", tsc 0, ESLint 73 — match.
+
+- 11.3 item 4 Green: HelpFilter { status } and $if in the adapter, the controller passes query.status. Predicted 235 | 5, tsc 0, ESLint 73 — MISMATCH on ESLint only: 74, a max-params smell (listForHelpRequest now takes 4 parameters) I did not account for. Tests and tsc as predicted.
+
+- Refactor trial: HelpFilter { helpRequestId, status }; listForHelpRequest(filter, page, viewer) like HelpRequestQueries.list. Predicted 235 | 5, tsc 0, ESLint 73 — match; retained.
+
+- 11.3 item 5 Red: predicted 1 failed | 235 passed | 4 todo, [200, 200] vs [404, 404], tsc 0, ESLint 73 — match.
+
+- 11.3 item 5 Green: listHelpsForHelpRequest first asks helpRequestQueries.get(id, actor); absent or hidden → HelpRequestNotFound (404). Predicted 236 | 4, tsc 0, ESLint 74 — match.
+
+- 11.3 item 6 (gate): green on activation as predicted — 237 passed | 3 todo (240): four GETs served, five planned for increment 1. Refactor: unused QUERY_SIDE removed; predicted 237 | 3, tsc 0, ESLint 74 — match. Unit 11.3 complete: 6/6.
+- Step 11 finish checks: coverage gate green (tsc + gate test); leaks in domain/application — only two doc comments naming the persistence adapters, no imports; the query side loads no aggregate (query ports and views only; the one use-case call is the POST); branches: absent row → undefined/404, $if per spec filter, hidden request → 404, undecided event type → UnhandledEvent — no business rule. Wiring (read-your-writes, lag 0) shown in 11.2 item 11; projection tests run 3×.
+
 Commits (inc 0): b16877b feat(help-request) B2-S01 aggregate; d795038 refactor(help-request); 79f6e06 feat(help) B1-S04 aggregate
 Delivery (step 0): repo SamplesDddMeetAi (book repo), default branch main, work scoped to Chapter16/BlueprintImplementation; branches one per increment — feature/<context>-inc0-walking-skeleton, feature/<context>-inc<k>-<board>, steps 1–5 docs on docs/<context>-design; commits Conventional Commits at each approved unit checkpoint (refactor commits separate); remote GitHub origin github.com/Grinseteddy/SamplesDddMeetAi, PRs one per increment via gh (gh 2.103.2 installed and logged in as Grinseteddy, scopes repo + workflow — verified 2026-10-24), run never merges; CI GitHub Actions in book repo .github/workflows, path filter Chapter16/BlueprintImplementation/**, load tests on PR only; hooks tool chosen with the stack in step 5 (format, lint, types, secret scan, commit-msg), written in the walking skeleton; docs Chapter16/BlueprintImplementation/docs/<context>/, project memory CLAUDE.md in BlueprintImplementation; Definition of Done default unchanged; declined parts: none
 

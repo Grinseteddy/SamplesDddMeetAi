@@ -7,6 +7,7 @@ import { HelpRequestId } from "../../../domain/help-request/help-request.js";
 import type { CookId } from "../../../domain/shared/ids.js";
 import { CurrentActor } from "./authentication.js";
 import { ensurePermitted } from "./authorization.js";
+import { type HelpPageResource, type ListHelpsQuery, toHelpPage } from "./help.mapper.js";
 import { HTTP_SETTINGS, type HttpSettings } from "./http-settings.js";
 import {
   type HelpRequestPageResource,
@@ -65,5 +66,25 @@ export class HelpRequestsController {
       actor,
     );
     return toHelpRequestPage(page, this.settings.publicBaseUrl);
+  }
+
+  // op: listHelpsForHelpRequest (cook-assistance.openapi.yaml) · RM: Help
+  @Get(":helpRequestId/helps")
+  async listHelpsForHelpRequest(
+    @Param("helpRequestId") helpRequestId: string,
+    @Query() query: ListHelpsQuery,
+    @CurrentActor() actor: Actor,
+  ): Promise<HelpPageResource> {
+    ensurePermitted(actor, "listHelpsForHelpRequest");
+    // ADR-CA-009 · a help request the caller may not see answers 404, as getHelpRequestById does
+    if ((await this.settings.cookAssistance.helpRequestQueries.get(HelpRequestId.of(helpRequestId), actor)) === undefined) {
+      throw new HelpRequestNotFound(helpRequestId);
+    }
+    const page = await this.settings.cookAssistance.helpQueries.listForHelpRequest(
+      { helpRequestId: HelpRequestId.of(helpRequestId), status: query.status }, // status validated by the spec
+      { number: query.page, size: query.size },
+      actor,
+    );
+    return toHelpPage(page, this.settings.publicBaseUrl);
   }
 }

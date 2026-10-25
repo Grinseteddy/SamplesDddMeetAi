@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { error as validatorErrors } from "express-openapi-validator";
 import type { components } from "../../../../generated/openapi/cook-assistance.js";
 import { RecipeCatalogUnavailable } from "../../../application/ports/recipe-catalog.js";
+import { HelpNotFound } from "../../../application/queries/help-queries.js";
 import { HelpRequestNotFound } from "../../../application/queries/help-request-queries.js";
 import { TopicNotYetSupported } from "../../../application/topic-not-yet-supported.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
@@ -38,6 +39,7 @@ export function toProblem(error: unknown): Problem {
   if (error instanceof HttpException && error.getStatus() === 429) return problemOf(429, "TooManyRequests", `more than ${REQUESTS_PER_MINUTE} requests per minute`);
   if (error instanceof validatorErrors.NotFound) return problemOf(404, "NotFound", error.message);
   if (error instanceof HelpRequestNotFound) return problemOf(404, "NotFound", error.message);
+  if (error instanceof HelpNotFound) return problemOf(404, "NotFound", error.message);
   if (error instanceof validatorErrors.MethodNotAllowed) return problemOf(405, "MethodNotAllowed", error.message);
   if (error instanceof validatorErrors.UnsupportedMediaType) return problemOf(415, "UnsupportedMediaType", error.message);
   if (error instanceof Unauthenticated) return problemOf(401, "Unauthenticated", error.message);

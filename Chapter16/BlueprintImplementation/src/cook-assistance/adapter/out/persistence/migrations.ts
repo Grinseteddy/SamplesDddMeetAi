@@ -86,6 +86,16 @@ const migrations: Record<string, Migration> = {
         .execute();
     },
   },
+  // ADR-CA-004 (amended) · each outbox row's message id: generated once, stable across every retry of the relay
+  "005_outbox_message_id": {
+    async up(db) {
+      await db.schema
+        .withSchema(SCHEMA)
+        .alterTable("outbox")
+        .addColumn("message_id", "uuid", (c) => c.notNull().defaultTo(sql`gen_random_uuid()`))
+        .execute();
+    },
+  },
 };
 
 export async function migrateToLatest(db: Kysely<unknown>): Promise<void> {

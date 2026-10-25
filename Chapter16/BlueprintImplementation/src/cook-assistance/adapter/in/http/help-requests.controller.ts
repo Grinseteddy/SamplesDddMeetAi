@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Query, Res } from "@nestjs/common";
 import type { Response } from "express";
 import type { Actor } from "../../../application/actor.js";
-import { HelpRequestNotFound } from "../../../application/queries/help-request-queries.js";
+import { visibleHelpRequest } from "../../../application/queries/help-request-queries.js";
 import { TopicNotYetSupported } from "../../../application/topic-not-yet-supported.js";
 import { HelpRequestId } from "../../../domain/help-request/help-request.js";
 import type { CookId } from "../../../domain/shared/ids.js";
@@ -9,6 +9,7 @@ import { CurrentActor } from "./authentication.js";
 import { ensurePermitted } from "./authorization.js";
 import { type HelpPageResource, type ListHelpsQuery, toHelpPage } from "./help.mapper.js";
 import { HTTP_SETTINGS, type HttpSettings } from "./http-settings.js";
+import { toPageRequest } from "./page.mapper.js";
 import {
   type HelpRequestPageResource,
   type HelpRequestResource,
@@ -48,10 +49,7 @@ export class HelpRequestsController {
   @Get(":helpRequestId")
   async getHelpRequestById(@Param("helpRequestId") helpRequestId: string, @CurrentActor() actor: Actor): Promise<HelpRequestResource> {
     ensurePermitted(actor, "getHelpRequestById");
-    const readModel = await this.settings.cookAssistance.helpRequestQueries.get(HelpRequestId.of(helpRequestId), actor);
-    if (readModel === undefined) {
-      throw new HelpRequestNotFound(helpRequestId);
-    }
+    const readModel = await visibleHelpRequest(this.settings.cookAssistance.helpRequestQueries, HelpRequestId.of(helpRequestId), actor);
     return toHelpRequestResource(readModel, this.settings.publicBaseUrl);
   }
 
@@ -62,7 +60,7 @@ export class HelpRequestsController {
     const page = await this.settings.cookAssistance.helpRequestQueries.list(
       // validated by the spec: enum values and a uuid
       { status: query.status, topic: query.topic, addressee: query.addressee, requester: query.requester as CookId | undefined },
-      { number: query.page, size: query.size },
+      toPageRequest(query),
       actor,
     );
     return toHelpRequestPage(page, this.settings.publicBaseUrl);
@@ -76,13 +74,11 @@ export class HelpRequestsController {
     @CurrentActor() actor: Actor,
   ): Promise<HelpPageResource> {
     ensurePermitted(actor, "listHelpsForHelpRequest");
-    // ADR-CA-009 · a help request the caller may not see answers 404, as getHelpRequestById does
-    if ((await this.settings.cookAssistance.helpRequestQueries.get(HelpRequestId.of(helpRequestId), actor)) === undefined) {
-      throw new HelpRequestNotFound(helpRequestId);
-    }
+    // ADR-CA-009 · the helps of a help request the caller may not see answer 404, as getHelpRequestById does
+    const helpRequest = await visibleHelpRequest(this.settings.cookAssistance.helpRequestQueries, HelpRequestId.of(helpRequestId), actor);
     const page = await this.settings.cookAssistance.helpQueries.listForHelpRequest(
-      { helpRequestId: HelpRequestId.of(helpRequestId), status: query.status }, // status validated by the spec
-      { number: query.page, size: query.size },
+      { helpRequestId: helpRequest.id, status: query.status }, // status validated by the spec
+      toPageRequest(query),
       actor,
     );
     return toHelpPage(page, this.settings.publicBaseUrl);

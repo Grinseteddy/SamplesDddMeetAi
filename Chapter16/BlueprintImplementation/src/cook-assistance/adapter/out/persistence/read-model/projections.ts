@@ -4,10 +4,11 @@ import type { NewOutboxRow } from "../outbox.js";
 
 // ADR-CA-012 (amended) · the read models, projected from outbox records: in the save transaction, and again on a rebuild.
 
-const HELP_REQUEST_VIEW = "cook_assistance.help_request_view";
-const HELP_VIEW = "cook_assistance.help_view";
+// the read models' schema (migration 006_read_models), written here and read by the query adapters
+export const HELP_REQUEST_VIEW = "cook_assistance.help_request_view";
+export const HELP_VIEW = "cook_assistance.help_view";
 
-interface HelpRequestViewRow {
+export interface HelpRequestViewRow {
   id: string;
   requester: string;
   title: string;
@@ -22,7 +23,7 @@ interface HelpRequestViewRow {
   updated_at: Date;
 }
 
-interface HelpViewRow {
+export interface HelpViewRow {
   id: string;
   help_request_id: string;
   help_requester: string;
@@ -35,7 +36,7 @@ interface HelpViewRow {
   updated_at: Date;
 }
 
-interface ViewTables {
+export interface ViewTables {
   [HELP_REQUEST_VIEW]: HelpRequestViewRow;
   [HELP_VIEW]: HelpViewRow;
 }
@@ -122,7 +123,7 @@ export async function project<DB>(tx: Transaction<DB>, records: readonly Project
 /** ADR-CA-012 (amended) · empties the read models and replays the outbox through the same projections. */
 export async function rebuildViews(db: Kysely<unknown>): Promise<void> {
   await db.transaction().execute(async (tx) => {
-    await sql`truncate cook_assistance.help_request_view, cook_assistance.help_view`.execute(tx);
+    await sql`truncate ${sql.table(HELP_REQUEST_VIEW)}, ${sql.table(HELP_VIEW)}`.execute(tx);
     const history = await sql<ProjectedRecord>`select event_type, payload, occurred_at from cook_assistance.outbox order by id`.execute(tx);
     await project(tx, history.rows);
   });

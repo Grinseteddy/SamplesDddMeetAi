@@ -5,25 +5,7 @@ import type { Page, PageRequest } from "../../../../application/queries/page.js"
 import type { HelpProviderType, HelpRequestId } from "../../../../domain/help-request/help-request.js";
 import type { HelpId, HelpStatus, PreparationStepExplanation } from "../../../../domain/help/help.js";
 import type { CookId } from "../../../../domain/shared/ids.js";
-
-const HELP_VIEW = "cook_assistance.help_view";
-
-interface HelpViewRow {
-  id: string;
-  help_request_id: string;
-  help_requester: string;
-  answer_title: string;
-  provider_type: string;
-  provider_id: string | null;
-  answer: unknown;
-  status: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-interface ViewTables {
-  [HELP_VIEW]: HelpViewRow;
-}
+import { HELP_VIEW, type HelpViewRow, type ViewTables } from "./projections.js";
 
 // mapping: view row → read model (the view holds only values the domain validated)
 function toReadModel(row: HelpViewRow): HelpReadModel {

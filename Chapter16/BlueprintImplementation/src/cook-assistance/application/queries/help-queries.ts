@@ -39,3 +39,12 @@ export interface HelpQueries {
   /** One page of the helps given to a help request that the viewer may see, ordered by createdAt, id. */
   listForHelpRequest(filter: HelpFilter, page: PageRequest, viewer: Actor): Promise<Page<HelpReadModel>>;
 }
+
+/** ADR-CA-009 · the help the viewer may see; one that is hidden from them is not found, hiding its existence. */
+export async function visibleHelp(queries: HelpQueries, id: HelpId, viewer: Actor): Promise<HelpReadModel> {
+  const readModel = await queries.get(id, viewer);
+  if (readModel === undefined) {
+    throw new HelpNotFound(id);
+  }
+  return readModel;
+}

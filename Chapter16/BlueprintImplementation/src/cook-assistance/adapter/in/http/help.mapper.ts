@@ -1,7 +1,7 @@
 import type { operations } from "../../../../generated/openapi/cook-assistance.js";
 import type { HelpReadModel } from "../../../application/queries/help-queries.js";
 import type { Page } from "../../../application/queries/page.js";
-import { toPageResource } from "./page.mapper.js";
+import { type PagedQuery, toPageResource } from "./page.mapper.js";
 
 export type HelpResource = operations["getHelpById"]["responses"]["200"]["content"]["application/json"];
 
@@ -23,9 +23,7 @@ export function toHelpResource(readModel: HelpReadModel, publicBaseUrl: string):
   };
 }
 
-type ListHelpsParameters = NonNullable<operations["listHelpsForHelpRequest"]["parameters"]["query"]>;
-/** As the validator hands it over: page and size defaulted by the spec, the filter optional. */
-export type ListHelpsQuery = Omit<ListHelpsParameters, "page" | "size"> & Required<Pick<ListHelpsParameters, "page" | "size">>;
+export type ListHelpsQuery = PagedQuery<NonNullable<operations["listHelpsForHelpRequest"]["parameters"]["query"]>>;
 export type HelpPageResource = operations["listHelpsForHelpRequest"]["responses"]["200"]["content"]["application/json"];
 
 /** A page of RM Help → the spec's HelpPage. */

@@ -1,6 +1,6 @@
 import { Controller, Get, Inject, Param } from "@nestjs/common";
 import type { Actor } from "../../../application/actor.js";
-import { HelpNotFound } from "../../../application/queries/help-queries.js";
+import { visibleHelp } from "../../../application/queries/help-queries.js";
 import { HelpId } from "../../../domain/help/help.js";
 import { CurrentActor } from "./authentication.js";
 import { ensurePermitted } from "./authorization.js";
@@ -15,10 +15,7 @@ export class HelpsController {
   @Get(":helpId")
   async getHelpById(@Param("helpId") helpId: string, @CurrentActor() actor: Actor): Promise<HelpResource> {
     ensurePermitted(actor, "getHelpById");
-    const readModel = await this.settings.cookAssistance.helpQueries.get(HelpId.of(helpId), actor);
-    if (readModel === undefined) {
-      throw new HelpNotFound(helpId);
-    }
+    const readModel = await visibleHelp(this.settings.cookAssistance.helpQueries, HelpId.of(helpId), actor);
     return toHelpResource(readModel, this.settings.publicBaseUrl);
   }
 }

@@ -3,7 +3,7 @@ import type { Actor } from "../../../application/actor.js";
 import type { HelpRequestView } from "../../../application/help-request-view.js";
 import type { HelpRequestReadModel } from "../../../application/queries/help-request-queries.js";
 import type { Page } from "../../../application/queries/page.js";
-import { toPageResource } from "./page.mapper.js";
+import { type PagedQuery, toPageResource } from "./page.mapper.js";
 import type { RequestPreparationStepHelpCommand } from "../../../application/request-preparation-step-help.js";
 import { HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
 
@@ -75,9 +75,7 @@ export function toHelpRequestResource(readModel: HelpRequestReadModel, publicBas
   };
 }
 
-type ListHelpRequestsParameters = NonNullable<operations["listHelpRequests"]["parameters"]["query"]>;
-/** As the validator hands it over: page and size defaulted by the spec, the filters optional. */
-export type ListHelpRequestsQuery = Omit<ListHelpRequestsParameters, "page" | "size"> & Required<Pick<ListHelpRequestsParameters, "page" | "size">>;
+export type ListHelpRequestsQuery = PagedQuery<NonNullable<operations["listHelpRequests"]["parameters"]["query"]>>;
 export type HelpRequestPageResource = operations["listHelpRequests"]["responses"]["200"]["content"]["application/json"];
 
 /** A page of RM Help request → the spec's HelpRequestPage. */

@@ -10,27 +10,7 @@ import {
   type HelpRequestTopic,
 } from "../../../../domain/help-request/help-request.js";
 import { CookId, type HowToStepId, type RecipeId } from "../../../../domain/shared/ids.js";
-
-const HELP_REQUEST_VIEW = "cook_assistance.help_request_view";
-
-interface HelpRequestViewRow {
-  id: string;
-  requester: string;
-  title: string;
-  topic: string;
-  description: string;
-  recipe_id: string | null;
-  how_to_step_id: string | null;
-  addressees: string[];
-  status: string;
-  answer_deadline: Date;
-  created_at: Date;
-  updated_at: Date;
-}
-
-interface ViewTables {
-  [HELP_REQUEST_VIEW]: HelpRequestViewRow;
-}
+import { HELP_REQUEST_VIEW, type HelpRequestViewRow, type ViewTables } from "./projections.js";
 
 // mapping: view row → read model
 function toReadModel(row: HelpRequestViewRow): HelpRequestReadModel {

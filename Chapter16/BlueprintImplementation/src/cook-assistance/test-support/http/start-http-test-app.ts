@@ -1,5 +1,6 @@
 import type { INestApplication } from "@nestjs/common";
 import { createHttpApp } from "../../adapter/in/http/http-app.js";
+import type { HelpRequestQueries } from "../../application/queries/help-request-queries.js";
 import { RequestPreparationStepHelp } from "../../application/request-preparation-step-help.js";
 import { FixedClock } from "../fakes/fixed-clock.js";
 import { InMemoryRecipeCatalog } from "../fakes/in-memory-recipe-catalog.js";
@@ -9,6 +10,16 @@ import { sundaySconesStep3 } from "../fixtures/sunday-scones.js";
 import { LocalIssuer } from "./local-issuer.js";
 
 export const PUBLIC_BASE_URL = "https://larder.org/cooking-assistance";
+
+/** The command side's tests never query: any call is a visible bug (step 11). */
+const NO_QUERIES: HelpRequestQueries = {
+  get: () => {
+    throw new Error("a command test called the query side");
+  },
+  list: () => {
+    throw new Error("a command test called the query side");
+  },
+};
 
 export interface HttpTestApp {
   readonly app: INestApplication;
@@ -31,7 +42,11 @@ export async function startHttpTestApp(): Promise<HttpTestApp> {
     idGenerator: new SequentialIdGenerator([sundaySconesStep3.id]),
     clock: new FixedClock(sundaySconesStep3.requestedAt),
   });
-  const app = await createHttpApp({ cookAssistance: { requestPreparationStepHelp }, tokenVerifier: issuer.verifier, publicBaseUrl: PUBLIC_BASE_URL });
+  const app = await createHttpApp({
+    cookAssistance: { requestPreparationStepHelp, helpRequestQueries: NO_QUERIES },
+    tokenVerifier: issuer.verifier,
+    publicBaseUrl: PUBLIC_BASE_URL,
+  });
   return {
     app,
     issuer,

@@ -17,6 +17,8 @@ interface Permission {
 // ADR-CA-009 · scope and role per operation, checked at the adapter before the use case (deny by default).
 const PERMISSIONS: Partial<Record<keyof operations, Permission>> = {
   requestHelp: { scope: "cooking-assistance:write", roles: ["COOK"] },
+  getHelpRequestById: { scope: "cooking-assistance:read", roles: ["COOK", "COMMUNITY_COOK", "CHEF"] },
+  listHelpRequests: { scope: "cooking-assistance:read", roles: ["COOK", "COMMUNITY_COOK", "CHEF"] },
 };
 
 export function ensurePermitted(actor: Actor, operation: keyof operations): void {

@@ -216,6 +216,35 @@ TDD (steps 6–12): inc 0 · step 10 · unit 10.3 RabbitMQ adapters on Testconta
 
 - 11.1 item 7 Green: `project` throws UnhandledEvent for an event type without a decision (the rebuild rolls back, truncate included). Predicted 220 passed | 20 todo (240), tsc 0, ESLint 69 (`project` 3) — match. Unit 11.1 complete: 7/7; projections.spec.ts run twice more.
 
+- Unit 11.1 approved and committed (8806a9d).
+- 11.2 item 1 Red (no production scaffold; HTTP over composeCookAssistance on PostgreSQL, seeded through the repository): predicted 1 failed | 220 passed | 19 todo (240), "expected 500 to be 200" (no route: Nest's 404 HttpException is unmapped → 500), tsc 0, ESLint 69 — match.
+
+- 11.2 item 1 Green: query port application/queries/help-request-queries.ts (HelpRequestReadModel, HelpRequestQueries.get, HelpRequestNotFound), KyselyHelpRequestQueries on help_request_view, composeCookAssistance.helpRequestQueries, GET :helpRequestId (PERMISSIONS getHelpRequestById: read; COOK, COMMUNITY_COOK, CHEF), toHelpRequestResource, NO_QUERIES stand-in in the step 9 test app, gate: getHelpRequestById served. Approved prediction 221 | 19, tsc 0, ESLint 70 — revised BEFORE the run to 71 (the adapter's `get` ternary; toReadModel's null checks replaced by casts, so no further finding). Actual: 221 passed | 19 todo (240), tsc 0, ESLint 71 — match with the revision.
+- Refactor trial: the 201 mapper hands the use case's view to toHelpRequestResource (one HelpRequest builder; step 9's open item "shared mapper" closed). Predicted 221 | 19, tsc 0, ESLint 71 — match; retained.
+
+- 11.2 item 2 Red: predicted 1 failed | 221 passed | 18 todo, "expected 500 to be 404", tsc 0, ESLint 71 — match.
+
+- 11.2 item 2 Green: HelpRequestNotFound → 404 NotFound in the error map. Predicted 222 | 18, tsc 0, ESLint 71 — match. Refactor review: no change.
+
+- 11.2 item 3 Red: predicted 1 failed | 222 passed | 17 todo, "expected 200 to be 404", tsc 0, ESLint 71 — match.
+
+- 11.2 item 3 Green: HelpRequestQueries.get(id, viewer); the adapter filters requester = viewer.cookId; the controller passes the actor. Predicted 223 | 17, tsc 0, ESLint 71 — match. Refactor review: no change.
+
+- 11.2 item 4 Red: predicted 1 failed | 223 passed | 16 todo, COMMUNITY_COOK 404 instead of 200 ([404, 404] vs [200, 404]), tsc 0, ESLint 71 — match. Chef visibility by chefId → increment 1 (no chef column before Menu requests).
+
+- 11.2 item 4 Green: application/queries/visibility.ts helperTypesOf (COMMUNITY_COOK → COMMUNITY; CHEF by chefId in increment 1), adapter condition visibleTo(viewer) = requester or (REQUESTED and addressees && helper types). Predicted 224 | 16, tsc 0, ESLint 71 — match. Refactor review: no change; the REQUESTED condition is not discriminated by a test in increment 0 (no CLOSED/CANCELLED requests yet) — covered when cancellation exists (increment 1).
+
+- 11.2 item 5 (guard): green on activation as predicted — 225 passed | 15 todo, tsc 0, ESLint 71.
+- 11.2 item 6 Red: predicted 1 failed | 225 passed | 14 todo, "expected 500 to be 200" (no list route), tsc 0, ESLint 71 — match.
+
+- 11.2 item 6 Green: port list(filter, page, viewer) → Page (application/queries/page.ts), adapter count + page ordered by created_at, id (limit/offset), GET /help-requests with the spec-defaulted page/size (no default in code), toHelpRequestPage, PERMISSIONS and gate listHelpRequests. Before the run: query type corrected (only page/size required) and the requester ternary replaced by a validated cast. Predicted 226 | 14, tsc 0, ESLint 72 — match (the validator coerces and defaults the query parameters).
+- 11.2 item 7 Red: predicted 1 failed | 226 passed | 13 todo, all three filters returning both requests, tsc 0, ESLint 72 — match.
+
+- 11.2 item 7 Green: filters status, topic, addressee (`addressees @> array` — corrected before writing from "= any", which the GIN index does not serve); a first tsc error (domain HelpRequestStatus/Topic are narrow in increment 0) resolved by typing the port's status/topic filters as the spec's plain values (a value the domain does not produce yet matches nothing). Predicted 227 | 13, tsc 0, ESLint 72 — match. Refactor trial: Kysely $if per filter, `list` without branches. Predicted 227 | 13, tsc 0, ESLint 71 — match; retained.
+
+- 11.2 items 8–11 (guards, user decision: one by one, stop on mismatch): paging (228 | 12), list visibility (229 | 11), invalid filter 400 (230 | 10), wiring POST then GET (231 | 9; the GET body equals the 201 body — lag 0) — each green on activation as predicted, tsc 0, ESLint 71. Setup: the test's Recipe Catalog stand-in knows step 3 (for the POST).
+- Unit 11.2 complete: 11/11.
+
 Commits (inc 0): b16877b feat(help-request) B2-S01 aggregate; d795038 refactor(help-request); 79f6e06 feat(help) B1-S04 aggregate
 Delivery (step 0): repo SamplesDddMeetAi (book repo), default branch main, work scoped to Chapter16/BlueprintImplementation; branches one per increment — feature/<context>-inc0-walking-skeleton, feature/<context>-inc<k>-<board>, steps 1–5 docs on docs/<context>-design; commits Conventional Commits at each approved unit checkpoint (refactor commits separate); remote GitHub origin github.com/Grinseteddy/SamplesDddMeetAi, PRs one per increment via gh (gh 2.103.2 installed and logged in as Grinseteddy, scopes repo + workflow — verified 2026-10-24), run never merges; CI GitHub Actions in book repo .github/workflows, path filter Chapter16/BlueprintImplementation/**, load tests on PR only; hooks tool chosen with the stack in step 5 (format, lint, types, secret scan, commit-msg), written in the walking skeleton; docs Chapter16/BlueprintImplementation/docs/<context>/, project memory CLAUDE.md in BlueprintImplementation; Definition of Done default unchanged; declined parts: none
 

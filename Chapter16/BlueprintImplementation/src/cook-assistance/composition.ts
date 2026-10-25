@@ -1,10 +1,12 @@
 import type { Kysely } from "kysely";
+import { KyselyHelpRequestQueries } from "./adapter/out/persistence/read-model/kysely-help-request-queries.js";
 import { KyselyScopedUnitOfWork } from "./adapter/out/persistence/scoped-unit-of-work.js";
 import { SystemClock } from "./adapter/out/system/system-clock.js";
 import { UuidV7Generator } from "./adapter/out/system/uuid-v7-generator.js";
 import type { Clock } from "./application/ports/clock.js";
 import type { IdGenerator } from "./application/ports/id-generator.js";
 import type { RecipeCatalog } from "./application/ports/recipe-catalog.js";
+import type { HelpRequestQueries } from "./application/queries/help-request-queries.js";
 import { ProvideHelpWhenGrandmaAvatarAnswers } from "./application/provide-help-when-grandma-avatar-answers.js";
 import { RequestPreparationStepHelp } from "./application/request-preparation-step-help.js";
 
@@ -20,6 +22,8 @@ export interface CookAssistanceDependencies {
 export interface CookAssistance {
   readonly requestPreparationStepHelp: RequestPreparationStepHelp;
   readonly provideHelpWhenGrandmaAvatarAnswers: ProvideHelpWhenGrandmaAvatarAnswers;
+  /** ADR-CA-012 · the query side: GET operations read the views, never the aggregates. */
+  readonly helpRequestQueries: HelpRequestQueries;
 }
 
 export function composeCookAssistance({
@@ -32,5 +36,6 @@ export function composeCookAssistance({
   return {
     requestPreparationStepHelp: new RequestPreparationStepHelp({ unitOfWork, recipeCatalog, idGenerator, clock }),
     provideHelpWhenGrandmaAvatarAnswers: new ProvideHelpWhenGrandmaAvatarAnswers({ unitOfWork, clock }),
+    helpRequestQueries: new KyselyHelpRequestQueries(db),
   };
 }

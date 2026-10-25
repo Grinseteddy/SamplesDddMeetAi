@@ -9,8 +9,8 @@ const QUERY_SIDE = "planned: step 11, query side";
 // operation in the spec fails type checking until it is wired or planned here.
 export const SERVED_OPERATIONS = {
   requestHelp: "served: HelpRequestsController.requestHelp (B2-S01)",
-  listHelpRequests: QUERY_SIDE,
-  getHelpRequestById: QUERY_SIDE,
+  listHelpRequests: "served: HelpRequestsController.listHelpRequests (RM Help request)",
+  getHelpRequestById: "served: HelpRequestsController.getHelpRequestById (RM Help request)",
   listHelpsForHelpRequest: QUERY_SIDE,
   getHelpById: QUERY_SIDE,
   requestChefReview: "planned: increment 1, B1-S02",

@@ -1,12 +1,12 @@
 import type { ChannelWrapper } from "amqp-connection-manager";
 import type { ConfirmChannel } from "amqplib";
 import type { Delivery, RawMessage } from "../../in/messaging/grandma-avatar-help-provided.consumer.js";
-import type { OutgoingMessage } from "./outbound-messages.js";
+import { type OutgoingMessage, PUBLISH_EXCHANGE } from "./outbound-messages.js";
 import type { Publisher } from "./outbox-relay.js";
 
 // ADR-CA-004 · RabbitMQ: names of the exchanges and queues Cook Assistance uses.
 export const TOPOLOGY = {
-  publishExchange: "cook-assistance",
+  publishExchange: PUBLISH_EXCHANGE,
   grandmaAvatarExchange: "grandma-avatar",
   grandmaAvatarQueue: "cook-assistance.grandma-avatar-help-provided",
   grandmaAvatarRoutingKey: "grandma-avatar.help.provided",

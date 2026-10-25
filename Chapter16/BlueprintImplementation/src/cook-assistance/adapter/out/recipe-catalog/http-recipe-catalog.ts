@@ -28,26 +28,30 @@ export class HttpRecipeCatalog implements RecipeCatalog {
   constructor(private readonly settings: HttpRecipeCatalogSettings) {}
 
   async findHowToStep(recipeId: RecipeId, howToStepId: HowToStepId): Promise<HowToStep | undefined> {
-    const response = await this.lookUp(STEP_PATH.replace("{recipeId}", recipeId).replace("{howToStepId}", howToStepId));
-    return response.status === 404 ? undefined : { recipeId, howToStepId }; // 404 · INV-18, the recipe has no such step
+    const exists = await this.lookUp(STEP_PATH.replace("{recipeId}", recipeId).replace("{howToStepId}", howToStepId));
+    return exists ? { recipeId, howToStepId } : undefined;
   }
 
   /** ADR-CA-015 · through the circuit breaker; an open circuit means unavailable, without a request. */
-  private async lookUp(path: string): Promise<Response> {
+  private async lookUp(path: string): Promise<boolean> {
     try {
-      return await this.settings.breaker.call(() => this.answered(path));
+      return await this.settings.breaker.call(() => this.stepExists(path));
     } catch (error) {
       throw error instanceof CircuitOpen ? new RecipeCatalogUnavailable() : error;
     }
   }
 
-  /** An answer is 2xx or 404; any other status (5xx, or our token refused: 401/403) is a failure the breaker counts. */
-  private async answered(path: string): Promise<Response> {
+  /** 2xx: the step exists; 404: the recipe has no such step (INV-18). Any other status (5xx, or our token refused:
+   *  401/403) is a failure the breaker counts. */
+  private async stepExists(path: string): Promise<boolean> {
     const response = await this.get(path);
-    if (!response.ok && response.status !== 404) {
+    if (response.status === 404) {
+      return false;
+    }
+    if (!response.ok) {
       throw new RecipeCatalogUnavailable();
     }
-    return response;
+    return true;
   }
 
   /** ADR-CA-015 · a network failure is retried once; no answer within 150 ms is not (QS-08). Either way → unavailable. */

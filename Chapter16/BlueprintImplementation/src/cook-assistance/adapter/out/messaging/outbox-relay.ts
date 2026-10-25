@@ -129,12 +129,12 @@ export class OutboxRelay {
   }
 }
 
-/** One UPDATE per outcome; the row's other columns stay as they are. */
 /** A dead letter after a failed publish counts as an attempt; one the relay refused before sending does not. */
 function attemptsAdded(outcome: { readonly attempted: boolean }): number {
   return outcome.attempted ? 1 : 0;
 }
 
+/** One UPDATE per outcome; the row's other columns stay as they are. */
 async function record({ tx, now }: Run, row: OutboxRow, outcome: Outcome): Promise<void> {
   switch (outcome.kind) {
     case "published":

@@ -28,7 +28,7 @@ export class UnmappedEvent extends Error {
 }
 
 /** The topic exchange Cook Assistance publishes on, and the source it names in every header (AsyncAPI 2.0.0). */
-const EXCHANGE = "cook-assistance";
+export const PUBLISH_EXCHANGE = "cook-assistance";
 const SOURCE = "cook-assistance";
 
 /** Every event type the domain raises: a new one fails type checking until it has a publish decision. */
@@ -37,11 +37,13 @@ type DomainEventType = (HelpRequestEvent | HelpEvent)["type"];
 interface EventMapper {
   readonly operation: string;
   readonly routingKey: string;
-  /** The correlation id and the payload with its links (G1, G3). */
-  map(payload: Readonly<Record<string, unknown>>, publicBaseUrl: string): {
-    readonly correlationId: string;
-    readonly payload: Readonly<Record<string, unknown>>;
-  };
+  /** The stored payload plus its links (G1). */
+  withLinks(payload: Readonly<Record<string, unknown>>, publicBaseUrl: string): Readonly<Record<string, unknown>>;
+}
+
+/** G1 · the help request the event belongs to, as a resource of the Cook Assistance API. */
+function helpRequestLinkOf(payload: Readonly<Record<string, unknown>>, publicBaseUrl: string): string {
+  return `${publicBaseUrl}/help-requests/${String(payload.helpRequestId)}`;
 }
 
 // G5 · one publish decision per domain event type
@@ -50,28 +52,24 @@ const EVENT_MESSAGES = {
   HelpRequested: {
     operation: "publishHelpRequested",
     routingKey: "help.requested",
-    map: (payload, publicBaseUrl) => {
-      const helpRequestId = String(payload.helpRequestId);
-      return { correlationId: helpRequestId, payload: { ...payload, helpRequestLink: `${publicBaseUrl}/help-requests/${helpRequestId}` } };
-    },
+    withLinks: (payload, publicBaseUrl) => ({ ...payload, helpRequestLink: helpRequestLinkOf(payload, publicBaseUrl) }),
   },
   // op: publishHelpProvided · channel help.provided · evt: HelpProvided
   HelpProvided: {
     operation: "publishHelpProvided",
     routingKey: "help.provided",
-    map: (payload, publicBaseUrl) => {
-      const helpRequestId = String(payload.helpRequestId);
-      return {
-        correlationId: helpRequestId,
-        payload: {
-          ...payload,
-          helpLink: `${publicBaseUrl}/helps/${String(payload.helpId)}`,
-          helpRequestLink: `${publicBaseUrl}/help-requests/${helpRequestId}`,
-        },
-      };
-    },
+    withLinks: (payload, publicBaseUrl) => ({
+      ...payload,
+      helpLink: `${publicBaseUrl}/helps/${String(payload.helpId)}`,
+      helpRequestLink: helpRequestLinkOf(payload, publicBaseUrl),
+    }),
   },
 } satisfies Record<DomainEventType, EventMapper>;
+
+/** G3 · the help request is the cook's journey the correlation id traces — for every message, whatever its event. */
+function journeyOf(payload: Readonly<Record<string, unknown>>): string {
+  return String(payload.helpRequestId);
+}
 
 function isDecided(eventType: string): eventType is keyof typeof EVENT_MESSAGES {
   return Object.hasOwn(EVENT_MESSAGES, eventType);
@@ -82,13 +80,11 @@ export function toOutgoingMessage(record: OutboxRecord, publicBaseUrl: string): 
     throw new UnmappedEvent(record.eventType);
   }
   const mapper: EventMapper = EVENT_MESSAGES[record.eventType];
-  const { correlationId, payload } = mapper.map(record.payload, publicBaseUrl);
   return {
-    exchange: EXCHANGE,
+    exchange: PUBLISH_EXCHANGE,
     routingKey: mapper.routingKey,
-    // G3 · the help request is the cook's journey the correlation id traces
-    headers: { messageId: record.messageId, correlationId, source: SOURCE },
-    payload,
+    headers: { messageId: record.messageId, correlationId: journeyOf(record.payload), source: SOURCE },
+    payload: mapper.withLinks(record.payload, publicBaseUrl),
   };
 }
 

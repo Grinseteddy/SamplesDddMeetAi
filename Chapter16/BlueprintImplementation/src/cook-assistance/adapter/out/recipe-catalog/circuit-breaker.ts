@@ -27,12 +27,17 @@ export class CircuitBreaker {
     if (this.isOpen(this.clock.now().getTime())) {
       throw new CircuitOpen();
     }
-    if (this.openedAt === undefined) {
-      return this.attempt(action);
-    }
+    return this.openedAt === undefined ? this.attempt(action) : this.trial(action);
+  }
+
+  /** Half-open: the one trial call; it succeeds → closed, with the failures forgotten. */
+  private async trial<T>(action: () => Promise<T>): Promise<T> {
     this.trialRunning = true;
     try {
-      return await this.attempt(action);
+      const result = await this.attempt(action);
+      this.openedAt = undefined;
+      this.failures = [];
+      return result;
     } finally {
       this.trialRunning = false;
     }
@@ -43,12 +48,10 @@ export class CircuitBreaker {
     return this.openedAt !== undefined && (this.trialRunning || now - this.openedAt < OPEN_MS);
   }
 
-  /** A success closes the circuit; a failure is recorded. */
+  /** A failed call is recorded. */
   private async attempt<T>(action: () => Promise<T>): Promise<T> {
     try {
-      const result = await action();
-      this.openedAt = undefined;
-      return result;
+      return await action();
     } catch (error) {
       this.recordFailure(this.clock.now().getTime());
       throw error;

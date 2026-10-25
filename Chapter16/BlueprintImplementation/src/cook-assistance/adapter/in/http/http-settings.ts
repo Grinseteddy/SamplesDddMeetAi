@@ -1,4 +1,4 @@
-import type { CookAssistance } from "../../../composition.js";
+import type { CookAssistance } from "../../../application/cook-assistance.js";
 import type { JoseTokenVerifier } from "./token-verifier.js";
 
 /** What the HTTP adapter needs: the use cases it serves, the token verifier and its public address. */

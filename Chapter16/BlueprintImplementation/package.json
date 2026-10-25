@@ -18,7 +18,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"tools/**/*.mjs\" \"*.{js,ts,json}\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"tools/**/*.mjs\" \"*.{js,ts,json}\"",
     "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js",
-    "test:contract:openapi": "tools/contract/run-openapi.sh"
+    "test:contract:openapi": "tools/contract/run-openapi.sh",
+    "depcruise": "depcruise src --config .dependency-cruiser.cjs"
   },
   "devDependencies": {
     "@cucumber/cucumber": "13.3.0",
@@ -29,6 +30,7 @@
     "@types/node": "22.20.5",
     "@types/pg": "8.23.1",
     "@types/supertest": "7.2.1",
+    "dependency-cruiser": "18.5.0",
     "eslint": "10.13.0",
     "eslint-plugin-sonarjs": "4.2.2",
     "fast-check": "4.10.2",

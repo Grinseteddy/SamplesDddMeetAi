@@ -4,11 +4,10 @@ import { KyselyHelpRequestQueries } from "./adapter/out/persistence/read-model/k
 import { KyselyScopedUnitOfWork } from "./adapter/out/persistence/scoped-unit-of-work.js";
 import { SystemClock } from "./adapter/out/system/system-clock.js";
 import { UuidV7Generator } from "./adapter/out/system/uuid-v7-generator.js";
+import type { CookAssistance } from "./application/cook-assistance.js";
 import type { Clock } from "./application/ports/clock.js";
 import type { IdGenerator } from "./application/ports/id-generator.js";
 import type { RecipeCatalog } from "./application/ports/recipe-catalog.js";
-import type { HelpQueries } from "./application/queries/help-queries.js";
-import type { HelpRequestQueries } from "./application/queries/help-request-queries.js";
 import { ProvideHelpWhenGrandmaAvatarAnswers } from "./application/provide-help-when-grandma-avatar-answers.js";
 import { RequestPreparationStepHelp } from "./application/request-preparation-step-help.js";
 
@@ -18,15 +17,6 @@ export interface CookAssistanceDependencies {
   readonly recipeCatalog: RecipeCatalog;
   readonly clock?: Clock;
   readonly idGenerator?: IdGenerator;
-}
-
-/** The use cases and policy handlers, wired to their adapters (ADR-CA-002); step 9's NestJS module wraps this. */
-export interface CookAssistance {
-  readonly requestPreparationStepHelp: RequestPreparationStepHelp;
-  readonly provideHelpWhenGrandmaAvatarAnswers: ProvideHelpWhenGrandmaAvatarAnswers;
-  /** ADR-CA-012 · the query side: GET operations read the views, never the aggregates. */
-  readonly helpRequestQueries: HelpRequestQueries;
-  readonly helpQueries: HelpQueries;
 }
 
 export function composeCookAssistance({

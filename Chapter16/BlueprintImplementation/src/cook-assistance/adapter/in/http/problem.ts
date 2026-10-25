@@ -8,6 +8,7 @@ import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict
 import { DomainRejection } from "../../../domain/shared/domain-rejection.js";
 import { Unauthenticated } from "./authentication.js";
 import { NotAuthorized } from "./authorization.js";
+import { MAX_BODY_MEGABYTES, REQUESTS_PER_MINUTE } from "./edge-limits.js";
 
 export type Problem = components["schemas"]["Problem"];
 
@@ -32,8 +33,8 @@ export function toProblem(error: unknown): Problem {
   if (error instanceof validatorErrors.BadRequest) return problemOf(400, "InvalidRequest", error.message);
   // Nest wraps a body that is not valid JSON in its own BadRequestException before any filter sees it
   if (error instanceof HttpException && error.getStatus() === 400) return problemOf(400, "InvalidRequest", "the body is not valid JSON");
-  if (bodyParserErrorTypeOf(error) === "entity.too.large") return problemOf(413, "PayloadTooLarge", "the body is larger than 1 MB");
-  if (error instanceof HttpException && error.getStatus() === 429) return problemOf(429, "TooManyRequests", "more than 60 requests per minute");
+  if (bodyParserErrorTypeOf(error) === "entity.too.large") return problemOf(413, "PayloadTooLarge", `the body is larger than ${MAX_BODY_MEGABYTES} MB`);
+  if (error instanceof HttpException && error.getStatus() === 429) return problemOf(429, "TooManyRequests", `more than ${REQUESTS_PER_MINUTE} requests per minute`);
   if (error instanceof validatorErrors.NotFound) return problemOf(404, "NotFound", error.message);
   if (error instanceof validatorErrors.MethodNotAllowed) return problemOf(405, "MethodNotAllowed", error.message);
   if (error instanceof validatorErrors.UnsupportedMediaType) return problemOf(415, "UnsupportedMediaType", error.message);

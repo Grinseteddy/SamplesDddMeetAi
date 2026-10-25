@@ -8,6 +8,7 @@ import express from "express";
 import helmet from "helmet";
 import * as OpenApiValidator from "express-openapi-validator";
 import { authenticate } from "./authentication.js";
+import { MAX_BODY_MEGABYTES, RATE_LIMIT, rateLimitKeyOf } from "./edge-limits.js";
 import { HelpRequestsController } from "./help-requests.controller.js";
 import { HTTP_SETTINGS, type HttpSettings } from "./http-settings.js";
 import { ProblemFilter, problemErrorHandler } from "./problem.js";
@@ -16,13 +17,6 @@ const API_SPEC = fileURLToPath(new URL("../../../../../contracts/openapi/cook-as
 
 /** The path of the spec's server (https://larder.org/cooking-assistance): the service serves exactly the spec's paths. */
 const SERVER_PATH = "cooking-assistance";
-
-/** ADR-CA-010 · 60 requests per minute and cook (the authenticated actor), by address otherwise. Counted per instance. */
-const RATE_LIMIT = { ttl: 60_000, limit: 60 };
-
-function rateLimitKeyOf(request: Request): string {
-  return request.res?.locals.actor?.cookId ?? request.ip ?? "unknown";
-}
 
 @Module({})
 export class CookAssistanceHttpModule {
@@ -46,7 +40,7 @@ export async function createHttpApp(settings: HttpSettings): Promise<INestApplic
   // ADR-CA-010 · security headers on every answer, 401s included; a JSON API loads nothing (CSP default-src 'none')
   app.use(helmet({ contentSecurityPolicy: { useDefaults: false, directives: { defaultSrc: ["'none'"] } } }));
   app.use(authenticate(settings.tokenVerifier));
-  app.use(express.json({ type: ["application/json", "application/*+json"], limit: "1mb" })); // ADR-CA-010
+  app.use(express.json({ type: ["application/json", "application/*+json"], limit: `${MAX_BODY_MEGABYTES}mb` }));
   // ADR-CA-011 · the spec is enforced at the edge: requests before any mapping, responses before they leave
   app.use(OpenApiValidator.middleware({ apiSpec: API_SPEC, validateRequests: true, validateResponses: true, validateSecurity: false }));
   app.useGlobalFilters(new ProblemFilter());

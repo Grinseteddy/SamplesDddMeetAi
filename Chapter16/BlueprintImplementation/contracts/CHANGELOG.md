@@ -37,3 +37,6 @@ sunset date **2027-04-30**. The service implements 2.0.0 only.
 ### 2.0.0 revision r4 — 2026-10-25 (step 9, item "version header missing", back to step 4; before release)
 - OpenAPI: `VersionParameter` keeps `required: true` and `enum: ["2.0.0"]` but drops `default: "2.0.0"`. A default cannot apply to a parameter the client must send, and express-openapi-validator 5.6.2 fills request defaults (`useDefaults: true`, not configurable) before checking `required` — with the default, a missing header was silently accepted. Deliberate deviation from the house-style convention "required version header with a matching default". Lint clean.
 
+### 2.0.0 revision r5 — 2026-10-25 (step 9, item "addressees [CHEF]" mismatch, back to step 4; before release)
+- OpenAPI: r3's split of `requestHelp` errors missed the schema's Chef rule (INV-01, INV-03, SADR0001: a Chef only for Menu, as the only addressee, with `chefId` and `plannedMealDate`). Those cases answer `400`, so `ChefOnlyForMenu`, `ChefMustBeExclusive` and `ChefRequired` move from the `422` list into the `400` sentence, and the unreachable `ChefOnlyForMenu` 422 example is removed. All seven conditional rules of `HelpRequestCreate` are now reflected. Lint clean.
+

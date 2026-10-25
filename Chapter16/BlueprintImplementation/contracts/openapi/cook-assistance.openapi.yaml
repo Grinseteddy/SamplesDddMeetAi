@@ -62,7 +62,9 @@ paths:
         Answered with `400` (`InvalidRequest`) when the body breaks the schema, including its
         conditional rules: a recipe for every topic but Menu (INV-17, INV-21, INV-23), exactly one
         step for Preparation step (INV-17), exactly one ingredient for Ingredients (INV-21), at least
-        one addressee (INV-20), pictures for Catastrophe only and at most 10 of them (INV-24).
+        one addressee (INV-20), pictures for Catastrophe only and at most 10 of them (INV-24), a Chef
+        only for Menu, as the only addressee, with the selected Chef and the meal date (INV-01,
+        INV-03, SADR0001).
 
         Refused with `403` and code `PremiumRequiredForChef` when a cook who is not premium
         addresses a Chef (INV-02). Refused with `422` and the rule as `code` for the rules the
@@ -70,9 +72,6 @@ paths:
         - `QuestionRequired` — the cook's question consists of blanks only (INV-19).
         - `StepNotInRecipe` — the named step does not exist in the recipe (INV-18, INV-23).
         - `IngredientNotInRecipe` — the ingredient does not exist in the recipe (INV-22).
-        - `ChefOnlyForMenu` — a Chef can only be asked for meal planning (INV-01, INV-20).
-        - `ChefMustBeExclusive` — a Chef is never addressed together with others (SADR0001).
-        - `ChefRequired` — a Chef-addressed Menu request names exactly one Chef (INV-03).
         - `ChefNotLocal`, `ChefNotTimelyAvailable` — the selected Chef is not in the cook's city or
           not free before the planned meal (INV-03).
         - `TopicNotYetSupported` — the service does not serve this topic yet (rule `null`); topics
@@ -1604,15 +1603,6 @@ components:
                 detail: Sunday scones has 8 steps; step 9 does not exist
                 code: StepNotInRecipe
                 rule: INV-18
-            ChefOnlyForMenu:
-              summary: A Chef was addressed for another topic
-              value:
-                type: https://larder.org/problems/cook-assistance/chef-only-for-menu
-                title: ChefOnlyForMenu
-                status: 422
-                detail: Chefs are only allowed for Meal plan
-                code: ChefOnlyForMenu
-                rule: INV-20
             TopicNotYetSupported:
               summary: The topic is not served yet
               value:

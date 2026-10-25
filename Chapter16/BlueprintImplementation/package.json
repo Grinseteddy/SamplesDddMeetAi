@@ -2,7 +2,7 @@
   "name": "cook-assistance",
   "version": "0.1.0",
   "private": true,
-  "description": "Cook Assistance bounded context of Larder \u2014 built with the implementation blueprint and EXACT Coding",
+  "description": "Cook Assistance bounded context of Larder — built with the implementation blueprint and EXACT Coding",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
@@ -36,11 +36,13 @@
     "@nestjs/common": "11.2.7",
     "@nestjs/core": "11.2.7",
     "@nestjs/platform-express": "11.2.7",
+    "@nestjs/throttler": "6.7.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "amqplib": "2.2.0",
     "express": "5.2.1",
     "express-openapi-validator": "5.6.2",
+    "helmet": "8.3.0",
     "jose": "6.2.12",
     "kysely": "0.29.7",
     "pg": "8.23.1",

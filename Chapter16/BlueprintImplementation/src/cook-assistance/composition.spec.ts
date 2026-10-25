@@ -48,7 +48,7 @@ describe("composeCookAssistance — PostgreSQL 16", () => {
   }
 
   it("the composed requestPreparationStepHelp stores Sunday scones step 3 with HelpRequested in the outbox, under a UUIDv7 id -- B2-S01 wiring ADR-CA-004 ADR-CA-007", async () => {
-    const id = await compose().requestPreparationStepHelp.execute(askWhatWarmMeans);
+    const { id } = await compose().requestPreparationStepHelp.execute(askWhatWarmMeans);
 
     expect(id).toMatch(UUID_V7);
     const stored = await sql<{ status: string }>`select status from cook_assistance.help_request where id = ${id}`.execute(database.db);
@@ -60,7 +60,7 @@ describe("composeCookAssistance — PostgreSQL 16", () => {
   });
   it("the composed provideHelpWhenGrandmaAvatarAnswers provides help for that request: the help row, HelpProvided in the outbox, the message recorded -- B1-S04 wiring ADR-CA-004", async () => {
     const cookAssistance = compose();
-    const helpRequestId = await cookAssistance.requestPreparationStepHelp.execute(askWhatWarmMeans);
+    const { id: helpRequestId } = await cookAssistance.requestPreparationStepHelp.execute(askWhatWarmMeans);
     const messageId = MessageId.of("8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d");
 
     const outcome = await cookAssistance.provideHelpWhenGrandmaAvatarAnswers.handle({

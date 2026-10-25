@@ -50,15 +50,27 @@ async function expectNothingSaved(unitOfWork: InMemoryUnitOfWork): Promise<void>
 }
 
 describe("RequestPreparationStepHelp", () => {
-  it("Sunday scones step 3 returns the id the id generator handed out -- B2-S01 ADR-CA-007", async () => {
+  it("Sunday scones step 3 returns the view of the created request: the generated id, requester, title, topic PREPARATION_STEP, question, recipe, step, addressees, status REQUESTED, requested at 10:00 with the answer deadline 15:00 -- B2-S01 ADR-CA-007 op requestHelp", async () => {
     const { useCase } = setUp();
 
-    expect(await useCase.execute(askWhatWarmMeans)).toBe("0192f1a0-0000-7000-8000-000000000001");
+    expect(await useCase.execute(askWhatWarmMeans)).toEqual({
+      id: "0192f1a0-0000-7000-8000-000000000001",
+      requester: "8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d",
+      title: "Sunday scones, step 3",
+      topic: "PREPARATION_STEP",
+      question: "What means 'warm'?",
+      recipeId: "c4d5e6f7-8a9b-4c0d-9e1f-2a3b4c5d6e7f",
+      howToStepId: "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
+      addressees: ["COMMUNITY", "GRANDMA_AVATAR"],
+      status: "REQUESTED",
+      requestedAt: new Date("2026-10-24T10:00:00Z"),
+      answerDeadline: new Date("2026-10-24T15:00:00Z"),
+    });
   });
   it("the saved help request is REQUESTED with requester, title, question, recipe, step, addressees COMMUNITY and GRANDMA_AVATAR, requested at the clock's 10:00 so its answer deadline is 15:00 -- B2-S01 INV-07 ADR-CA-007", async () => {
     const { useCase, unitOfWork } = setUp();
 
-    const id = await useCase.execute(askWhatWarmMeans);
+    const { id } = await useCase.execute(askWhatWarmMeans);
 
     const saved = await unitOfWork.helpRequests.findById(id);
     expect(saved?.status).toBe("REQUESTED");

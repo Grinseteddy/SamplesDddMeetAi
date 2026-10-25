@@ -23,4 +23,13 @@ export class InMemoryVersionedStore<State extends VersionedState> {
     }
     this.stored.set(state.id, { ...state, version: state.version + 1 });
   }
+
+  /** Remembers the stored snapshots; the returned function puts them back (the fake unit of work's rollback). */
+  checkpoint(): () => void {
+    const remembered = new Map(this.stored);
+    return () => {
+      this.stored.clear();
+      remembered.forEach((state, id) => this.stored.set(id, state));
+    };
+  }
 }

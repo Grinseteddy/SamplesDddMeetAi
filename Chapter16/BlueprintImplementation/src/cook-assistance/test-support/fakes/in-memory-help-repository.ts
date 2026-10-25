@@ -29,4 +29,14 @@ export class InMemoryHelpRepository implements HelpRepository {
     });
     this.savedEvents.push(...help.pullEvents());
   }
+
+  /** Remembers stored state and handed-over events; the returned function puts them back. */
+  checkpoint(): () => void {
+    const restoreStored = this.stored.checkpoint();
+    const savedEventCount = this.savedEvents.length;
+    return () => {
+      restoreStored();
+      this.savedEvents.length = savedEventCount;
+    };
+  }
 }

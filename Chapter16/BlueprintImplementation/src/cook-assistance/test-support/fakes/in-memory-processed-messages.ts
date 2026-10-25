@@ -15,4 +15,13 @@ export class InMemoryProcessedMessages implements ProcessedMessages {
     }
     this.recorded.add(messageId);
   }
+
+  /** Remembers the recorded ids; the returned function puts them back. */
+  checkpoint(): () => void {
+    const remembered = new Set(this.recorded);
+    return () => {
+      this.recorded.clear();
+      remembered.forEach((messageId) => this.recorded.add(messageId));
+    };
+  }
 }

@@ -1,0 +1,10 @@
+# Schemathesis configuration of the OpenAPI contract run (step 12, unit 12.4). Every check stays on; each exclusion
+# below names the rule the spec cannot express and the tests that cover it instead.
+
+[[operations]]
+include-operation-id = "requestHelp"
+# A schema-valid request may still break a rule the schema cannot express — the spec answers those with 422:
+# F5 TopicNotYetSupported (only PREPARATION_STEP is served in increment 0; MENU, INGREDIENTS, CATASTROPHE later) and
+# INV-18 StepNotInRecipe (Recipe Catalog decides). Covered by request-help.spec.ts (422 items) and the acceptance
+# scenario @R2. The default list, plus 422:
+checks.positive_data_acceptance.expected-statuses = ["2xx", "3xx", "401", "403", "404", "409", "422", "429", "5xx"]

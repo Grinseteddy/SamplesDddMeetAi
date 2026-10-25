@@ -17,7 +17,8 @@
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.ts\" \"tools/**/*.mjs\" \"*.{js,ts,json}\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"tools/**/*.mjs\" \"*.{js,ts,json}\"",
-    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js"
+    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js",
+    "test:contract:openapi": "tools/contract/run-openapi.sh"
   },
   "devDependencies": {
     "@cucumber/cucumber": "13.3.0",

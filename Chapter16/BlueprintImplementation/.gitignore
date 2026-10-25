@@ -4,3 +4,4 @@ src/generated/
 .env
 coverage/
 reports/
+tools/contract/.venv/

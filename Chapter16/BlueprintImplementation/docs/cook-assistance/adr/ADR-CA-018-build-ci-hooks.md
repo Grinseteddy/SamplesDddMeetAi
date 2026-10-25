@@ -37,3 +37,7 @@ Serves QS-02, QS-03, QS-01; supports the Definition of Done.
 - **Repository root:** exactly two root paths are created for this service — `.github/workflows/cook-assistance.yml`
   (path filter `Chapter16/BlueprintImplementation/**`) and `.husky/`, whose hooks act only on staged files under
   `Chapter16/BlueprintImplementation`. No root `package.json`; nothing else at the root.
+- **OpenAPI contract run on the pull request** (user decision, step 12): at the API's rate limit (60 requests/min per
+  cook, ADR-CA-010) a Schemathesis run over the served operations takes about 11 minutes, which would break QS-02
+  (build ≤ 10 min). `npm run verify` keeps the AsyncAPI contract (Vitest, fast); the Schemathesis run
+  (`npm run test:contract:openapi`) is its own pull-request job, like the load tests.

@@ -5,3 +5,4 @@ src/generated/
 coverage/
 reports/
 tools/contract/.venv/
+.schemathesis/

@@ -10,13 +10,13 @@ const ASYNCAPI_SPEC = fileURLToPath(new URL("../../../../../contracts/asyncapi/c
 const Ajv = (AjvModule as unknown as { default?: typeof AjvModule }).default ?? AjvModule;
 const addFormats = (addFormatsModule as unknown as { default?: typeof addFormatsModule }).default ?? addFormatsModule;
 
-/** The validators of one receive operation's message, compiled from the approved AsyncAPI spec (ADR-CA-011). */
+/** The validators of one operation's message (receive or send), compiled from the approved AsyncAPI spec (ADR-CA-011). */
 export interface MessageSchemas {
   readonly headers: ValidateFunction;
   readonly payload: ValidateFunction;
 }
 
-export async function loadReceiveSchemas(operationId: string): Promise<MessageSchemas> {
+export async function loadMessageSchemas(operationId: string): Promise<MessageSchemas> {
   const { document } = await new Parser().parse(await readFile(ASYNCAPI_SPEC, "utf8"));
   const message = document?.operations().get(operationId)?.messages().all()[0];
   if (message === undefined) {

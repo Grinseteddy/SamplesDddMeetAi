@@ -6,7 +6,7 @@ import type {
 } from "../../../application/provide-help-when-grandma-avatar-answers.js";
 import { TopicNotYetSupported } from "../../../application/topic-not-yet-supported.js";
 import { toGrandmaAvatarAnswered } from "./grandma-avatar.acl.js";
-import { loadReceiveSchemas, type MessageSchemas } from "./message-schemas.js";
+import { loadMessageSchemas, type MessageSchemas } from "./message-schemas.js";
 
 /** A message as the transport hands it over: AMQP headers and the JSON payload, not yet trusted. */
 export interface RawMessage {
@@ -90,5 +90,5 @@ export class GrandmaAvatarHelpProvidedConsumer {
 
 /** Builds the consumer once the spec's schemas are loaded. */
 export async function createGrandmaAvatarHelpProvidedConsumer(ports: GrandmaAvatarConsumerPorts): Promise<GrandmaAvatarHelpProvidedConsumer> {
-  return new GrandmaAvatarHelpProvidedConsumer(ports, await loadReceiveSchemas("receiveGrandmaAvatarHelpProvided"));
+  return new GrandmaAvatarHelpProvidedConsumer(ports, await loadMessageSchemas("receiveGrandmaAvatarHelpProvided"));
 }

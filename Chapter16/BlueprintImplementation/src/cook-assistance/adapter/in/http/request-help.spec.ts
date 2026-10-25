@@ -1,20 +1,17 @@
 import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { RequestPreparationStepHelp } from "../../../application/request-preparation-step-help.js";
 import { HelpRequest } from "../../../domain/help-request/help-request.js";
-import { FixedClock } from "../../../test-support/fakes/fixed-clock.js";
-import { InMemoryRecipeCatalog } from "../../../test-support/fakes/in-memory-recipe-catalog.js";
-import { InMemoryUnitOfWork } from "../../../test-support/fakes/in-memory-unit-of-work.js";
-import { SequentialIdGenerator } from "../../../test-support/fakes/sequential-id-generator.js";
+import type { InMemoryRecipeCatalog } from "../../../test-support/fakes/in-memory-recipe-catalog.js";
+import type { InMemoryUnitOfWork } from "../../../test-support/fakes/in-memory-unit-of-work.js";
 import { sundaySconesStep3 } from "../../../test-support/fixtures/sunday-scones.js";
 import { LocalIssuer } from "../../../test-support/http/local-issuer.js";
-import { createHttpApp } from "./http-app.js";
+import { type HttpTestApp, PUBLIC_BASE_URL, startHttpTestApp } from "../../../test-support/http/start-http-test-app.js";
 
 // Inbound HTTP — increment 0, step 9, unit 9.1: op requestHelp (cook-assistance.openapi.yaml 2.0.0 r3) → RequestPreparationStepHelp.
 // In-process HTTP against the real NestJS app with the step 8 fakes and a local JWKS; no database.
 
-const BASE_URL = "https://larder.org/cooking-assistance";
+const BASE_URL = PUBLIC_BASE_URL;
 
 /** The Cook asks what "warm" means in Sunday scones, step 3 — as the Larder app sends it. */
 const askWhatWarmMeans = {
@@ -31,19 +28,10 @@ describe("op requestHelp", () => {
   let issuer: LocalIssuer;
   let unitOfWork: InMemoryUnitOfWork;
   let recipeCatalog: InMemoryRecipeCatalog;
+  let asCook: HttpTestApp["asCook"];
 
   beforeEach(async () => {
-    issuer = await LocalIssuer.start();
-    unitOfWork = new InMemoryUnitOfWork();
-    recipeCatalog = new InMemoryRecipeCatalog();
-    recipeCatalog.addHowToStep(sundaySconesStep3.recipeId, sundaySconesStep3.howToStepId);
-    const requestPreparationStepHelp = new RequestPreparationStepHelp({
-      unitOfWork,
-      recipeCatalog,
-      idGenerator: new SequentialIdGenerator([sundaySconesStep3.id]),
-      clock: new FixedClock(sundaySconesStep3.requestedAt),
-    });
-    app = await createHttpApp({ cookAssistance: { requestPreparationStepHelp }, tokenVerifier: issuer.verifier, publicBaseUrl: BASE_URL });
+    ({ app, issuer, unitOfWork, recipeCatalog, asCook } = await startHttpTestApp());
   });
 
   afterEach(async () => {
@@ -68,9 +56,6 @@ describe("op requestHelp", () => {
     expect(unitOfWork.helpRequests.savedEvents).toEqual([]);
   }
 
-  async function asCook() {
-    return { Authorization: `Bearer ${await issuer.tokenFor({ sub: sundaySconesStep3.requester })}`, version: "2.0.0" };
-  }
 
   it("a COOK with write scope asks about Sunday scones step 3: 201 with the HelpRequest body (generated id, requester = token sub, description = the question, pictures [], ingredientId/chefId/plannedMealDate null, REQUESTED, answerDeadline 15:00, createdAt = updatedAt = 10:00, selfLink, helpsLink) and Location /help-requests/{id} -- op requestHelp B2-S01", async () => {
     const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(askWhatWarmMeans);

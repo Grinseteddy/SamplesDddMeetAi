@@ -1,8 +1,11 @@
 import "reflect-metadata";
 import { fileURLToPath } from "node:url";
 import { type DynamicModule, type INestApplication, Module } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
+import { APP_GUARD, NestFactory } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import type { Request } from "express";
 import express from "express";
+import helmet from "helmet";
 import * as OpenApiValidator from "express-openapi-validator";
 import { authenticate } from "./authentication.js";
 import { HelpRequestsController } from "./help-requests.controller.js";
@@ -14,13 +17,24 @@ const API_SPEC = fileURLToPath(new URL("../../../../../contracts/openapi/cook-as
 /** The path of the spec's server (https://larder.org/cooking-assistance): the service serves exactly the spec's paths. */
 const SERVER_PATH = "cooking-assistance";
 
+/** ADR-CA-010 · 60 requests per minute and cook (the authenticated actor), by address otherwise. Counted per instance. */
+const RATE_LIMIT = { ttl: 60_000, limit: 60 };
+
+function rateLimitKeyOf(request: Request): string {
+  return request.res?.locals.actor?.cookId ?? request.ip ?? "unknown";
+}
+
 @Module({})
 export class CookAssistanceHttpModule {
   static with(settings: HttpSettings): DynamicModule {
     return {
       module: CookAssistanceHttpModule,
+      imports: [ThrottlerModule.forRoot({ throttlers: [RATE_LIMIT], getTracker: (request) => rateLimitKeyOf(request as Request) })],
       controllers: [HelpRequestsController],
-      providers: [{ provide: HTTP_SETTINGS, useValue: settings }],
+      providers: [
+        { provide: HTTP_SETTINGS, useValue: settings },
+        { provide: APP_GUARD, useClass: ThrottlerGuard },
+      ],
     };
   }
 }
@@ -29,8 +43,10 @@ export class CookAssistanceHttpModule {
 export async function createHttpApp(settings: HttpSettings): Promise<INestApplication> {
   const app = await NestFactory.create(CookAssistanceHttpModule.with(settings), { bodyParser: false, logger: false });
   app.setGlobalPrefix(SERVER_PATH);
+  // ADR-CA-010 · security headers on every answer, 401s included; a JSON API loads nothing (CSP default-src 'none')
+  app.use(helmet({ contentSecurityPolicy: { useDefaults: false, directives: { defaultSrc: ["'none'"] } } }));
   app.use(authenticate(settings.tokenVerifier));
-  app.use(express.json({ type: ["application/json", "application/*+json"] }));
+  app.use(express.json({ type: ["application/json", "application/*+json"], limit: "1mb" })); // ADR-CA-010
   // ADR-CA-011 · the spec is enforced at the edge: requests before any mapping, responses before they leave
   app.use(OpenApiValidator.middleware({ apiSpec: API_SPEC, validateRequests: true, validateResponses: true, validateSecurity: false }));
   app.useGlobalFilters(new ProblemFilter());

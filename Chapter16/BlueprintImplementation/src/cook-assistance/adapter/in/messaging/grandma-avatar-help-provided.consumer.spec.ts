@@ -13,11 +13,11 @@ import { grandmaExplainsWarm, sundaySconesStep3 } from "../../../test-support/fi
 import {
   type ConsumerLogEvent,
   createGrandmaAvatarHelpProvidedConsumer,
-  type Delivery,
   type GrandmaAvatarHelpProvidedConsumer,
   type RawMessage,
 } from "./grandma-avatar-help-provided.consumer.js";
 import { CONSUMERS } from "./consumers.js";
+import { RecordingDelivery } from "../../../test-support/messaging/recording-delivery.js";
 
 // Inbound messaging — increment 0, step 9, unit 9.3: op receiveGrandmaAvatarHelpProvided (cook-assistance.asyncapi.yaml 2.0.0 r2)
 // → ACL → ProvideHelpWhenGrandmaAvatarAnswers. Raw messages as the transport hands them over; a fake delivery for ack/nack.
@@ -43,20 +43,6 @@ const warmExplainedByAvatar: RawMessage = {
     },
   },
 };
-
-/** Records how the consumer settled a message. */
-class RecordingDelivery implements Delivery {
-  readonly settled: string[] = [];
-  ack(): void {
-    this.settled.push("ack");
-  }
-  deadLetter(): void {
-    this.settled.push("dead-letter");
-  }
-  retry(): void {
-    this.settled.push("retry");
-  }
-}
 
 describe("op receiveGrandmaAvatarHelpProvided", () => {
   let consumer: GrandmaAvatarHelpProvidedConsumer;

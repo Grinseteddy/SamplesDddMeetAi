@@ -313,7 +313,8 @@ operations:
     description: |
       Fires for every help the Grandma Avatar AI publishes (slice B1-S04). Cook Assistance
       translates it, checks the same rules as for any help (INV-09, INV-10, INV-11, INV-12) and
-      records it; a help that breaks a rule is refused and nothing is recorded. Side effect:
+      records it; a help that breaks a rule — or answers a topic the service does not serve yet
+      (`TopicNotYetSupported`) — is refused and nothing is recorded. Side effect:
       HelpProvided on `help.provided`. Idempotent by `messageId` — the same message twice has one
       effect.
     channel:
@@ -903,16 +904,86 @@ components:
           enum: [GRANDMA_AVATAR]
           description: Always GRANDMA_AVATAR.
         answer:
-          type: object
-          description: |
-            The avatar's answer, discriminated by `answerType` (Grandma Avatar AI values). Its other
-            properties follow the answer shapes of this API; unknown properties are ignored.
-          required: [answerType]
-          properties:
-            answerType:
-              type: string
-              enum: [MENU_PROPOSAL, PREPARATION_STEP_EXPLANATION, INGREDIENT_SUBSTITUTE, STEPS_TO_MITIGATE_CATASTROPHE]
-              description: The avatar's answer type, mapped to a topic by the anticorruption layer.
+          $ref: '#/components/schemas/GrandmaAvatarAnswer'
+          description: The avatar's answer, discriminated by `answerType` (Grandma Avatar AI values).
+
+    GrandmaAvatarAnswer:
+      description: |
+        The avatar's answer in its published language, one of four kinds told apart by `answerType`.
+        The anticorruption layer maps `answerType` to a topic. Unknown properties are ignored.
+      oneOf:
+        - $ref: '#/components/schemas/GrandmaAvatarPreparationStepExplanation'
+        - $ref: '#/components/schemas/GrandmaAvatarMenuProposal'
+        - $ref: '#/components/schemas/GrandmaAvatarIngredientSubstitute'
+        - $ref: '#/components/schemas/GrandmaAvatarCatastropheMitigation'
+      discriminator: answerType
+
+    GrandmaAvatarPreparationStepExplanation:
+      type: object
+      description: The avatar explains the one recipe step (mapped to topic PREPARATION_STEP).
+      required: [answerType, recipeId, howToStepId, description]
+      properties:
+        answerType:
+          type: string
+          const: PREPARATION_STEP_EXPLANATION
+          description: Marks this answer as a preparation step explanation.
+        recipeId:
+          type: string
+          format: uuid
+          description: Same recipe as in the request.
+        howToStepId:
+          type: string
+          format: uuid
+          description: Same step as in the request.
+        description:
+          type: string
+          minLength: 1
+          maxLength: 8000
+          description: The explanation.
+        images:
+          type: array
+          maxItems: 20
+          default: []
+          description: Links to images that illustrate the step; none when absent.
+          items:
+            type: string
+            format: uri
+
+    GrandmaAvatarMenuProposal:
+      type: object
+      description: |
+        The avatar proposes a menu (mapped to topic MENU). Its full shape is specified with the Meal plan
+        increment; until then Cook Assistance refuses it as TopicNotYetSupported.
+      required: [answerType]
+      properties:
+        answerType:
+          type: string
+          const: MENU_PROPOSAL
+          description: Marks this answer as a menu proposal.
+
+    GrandmaAvatarIngredientSubstitute:
+      type: object
+      description: |
+        The avatar proposes substitutes for one ingredient (mapped to topic INGREDIENTS). Its full shape is
+        specified with the Ingredients increment; until then Cook Assistance refuses it as TopicNotYetSupported.
+      required: [answerType]
+      properties:
+        answerType:
+          type: string
+          const: INGREDIENT_SUBSTITUTE
+          description: Marks this answer as an ingredient substitute.
+
+    GrandmaAvatarCatastropheMitigation:
+      type: object
+      description: |
+        The avatar lists steps to mitigate a kitchen catastrophe (mapped to topic CATASTROPHE). Its full shape
+        is specified with the Catastrophe increment; until then Cook Assistance refuses it as TopicNotYetSupported.
+      required: [answerType]
+      properties:
+        answerType:
+          type: string
+          const: STEPS_TO_MITIGATE_CATASTROPHE
+          description: Marks this answer as catastrophe mitigation.
 
     # ---- answers --------------------------------------------------------------
     Answer:

@@ -74,6 +74,11 @@ paths:
           not free before the planned meal (INV-03).
         - `PicturesOnlyForCatastrophe`, `TooManyPictures` — 0 to 10 pictures, Catastrophe only
           (INV-24).
+        - `TopicNotYetSupported` — the service does not serve this topic yet (rule `null`); topics
+          are added one at a time, Preparation step first.
+
+        Refused with `409` and code `ConcurrencyConflict` in the rare case that the generated
+        identity is already taken (ADR-CA-005); the client may retry.
       security:
         - oAuth2:
             - cooking-assistance:write
@@ -90,10 +95,14 @@ paths:
           $ref: '#/components/responses/UnauthorizedResponse'
         '403':
           $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeResponse'
         '422':
           $ref: '#/components/responses/DomainRuleViolationResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -127,7 +136,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -155,7 +164,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -195,7 +204,7 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -237,10 +246,12 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeResponse'
         '422':
           $ref: '#/components/responses/DomainRuleViolationResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -285,10 +296,12 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaTypeResponse'
         '422':
           $ref: '#/components/responses/DomainRuleViolationResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -319,7 +332,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -348,7 +361,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -387,7 +400,7 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -426,7 +439,7 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictResponse'
         '500':
-          $ref: '#/components/responses/ServiceNotAvailableResponse'
+          $ref: '#/components/responses/InternalErrorResponse'
         '503':
           $ref: '#/components/responses/ServiceUnavailableResponse'
 
@@ -1539,6 +1552,15 @@ components:
                 detail: help 5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e is ACCEPTED
                 code: HelpNotProvided
                 rule: INV-13
+            ConcurrencyConflict:
+              summary: Someone else changed the resource, or a generated identity was already taken
+              value:
+                type: https://larder.org/problems/cook-assistance/concurrency-conflict
+                title: ConcurrencyConflict
+                status: 409
+                detail: the help request was changed by someone else; load it again and retry
+                code: ConcurrencyConflict
+                rule: null
 
     DomainRuleViolationResponse:
       description: The request is well-formed but violates a rule of Cook Assistance
@@ -1564,7 +1586,16 @@ components:
                 status: 422
                 detail: Chefs are only allowed for Meal plan
                 code: ChefOnlyForMenu
-                rule: INV-01
+                rule: INV-20
+            TopicNotYetSupported:
+              summary: The topic is not served yet
+              value:
+                type: https://larder.org/problems/cook-assistance/topic-not-yet-supported
+                title: TopicNotYetSupported
+                status: 422
+                detail: help with MENU is not offered yet
+                code: TopicNotYetSupported
+                rule: null
             SubstituteCountOutOfRange:
               summary: Too many or no substitutes
               value:
@@ -1588,7 +1619,14 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
 
-    ServiceNotAvailableResponse:
+    UnsupportedMediaTypeResponse:
+      description: The request body is not in a content type this operation accepts (application/json)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+    InternalErrorResponse:
       description: Unexpected server error
       content:
         application/problem+json:

@@ -12,6 +12,9 @@ export interface HelpRepositoryUnderTest {
   savedEventTypes(): Promise<string[]>;
 }
 
+/** The repository set up for the running test. */
+type Current = () => HelpRepositoryUnderTest;
+
 /** Everything a help exposes except its version, for equality checks. */
 function snapshotOf(help: Help | undefined) {
   return help === undefined
@@ -27,6 +30,59 @@ function snapshotOf(help: Help | undefined) {
       };
 }
 
+const newGrandmaHelp = () => Help.provide(grandmaExplainsWarm);
+
+function lookupAndRoundTrip(current: Current): void {
+  it("an unknown help id is absent -- B1-S04 contract", async () => {
+    const found = await current().repository.findById(HelpId.of("0192f1a0-0000-7000-8000-0000000000ff"));
+
+    expect(found).toBeUndefined();
+  });
+  it("a saved help is found again equal, with no pending events -- B1-S04 contract ADR-CA-003", async () => {
+    const help = newGrandmaHelp();
+    const expected = snapshotOf(help);
+    await current().repository.save(help);
+
+    const found = await current().repository.findById(grandmaExplainsWarm.id);
+
+    expect(snapshotOf(found)).toEqual(expected);
+    expect(found?.pullEvents()).toEqual([]);
+  });
+}
+
+function versionAndOptimisticLocking(current: Current): void {
+  it("saving a new help stores version 1; saving the loaded one stores version 2 -- B1-S04 contract ADR-CA-005", async () => {
+    await current().repository.save(newGrandmaHelp());
+    const loaded = (await current().repository.findById(grandmaExplainsWarm.id)) as Help;
+    expect(loaded.version).toBe(1);
+
+    await current().repository.save(loaded);
+
+    expect((await current().repository.findById(grandmaExplainsWarm.id))?.version).toBe(2);
+  });
+  it("of two saves of the same loaded help, the second fails with ConcurrencyConflict -- B1-S04 contract ADR-CA-005", async () => {
+    await current().repository.save(newGrandmaHelp());
+    const first = (await current().repository.findById(grandmaExplainsWarm.id)) as Help;
+    const second = (await current().repository.findById(grandmaExplainsWarm.id)) as Help;
+    await current().repository.save(first);
+
+    await expect(current().repository.save(second)).rejects.toBeInstanceOf(ConcurrencyConflict);
+  });
+}
+
+function savingANewHelp(current: Current): void {
+  it("saving records the help's pending events (HelpProvided) -- B1-S04 contract ADR-CA-004", async () => {
+    await current().repository.save(newGrandmaHelp());
+
+    expect(await current().savedEventTypes()).toEqual(["HelpProvided"]);
+  });
+  it("saving a new help under an id that is already stored fails with ConcurrencyConflict -- B1-S04 contract ADR-CA-005", async () => {
+    await current().repository.save(newGrandmaHelp());
+
+    await expect(current().repository.save(newGrandmaHelp())).rejects.toBeInstanceOf(ConcurrencyConflict);
+  });
+}
+
 export function helpRepositoryContract(name: string, setUp: () => Promise<HelpRepositoryUnderTest>): void {
   describe(`HelpRepository contract — ${name}`, () => {
     let underTest: HelpRepositoryUnderTest;
@@ -35,47 +91,9 @@ export function helpRepositoryContract(name: string, setUp: () => Promise<HelpRe
       underTest = await setUp();
     });
 
-    it("an unknown help id is absent -- B1-S04 contract", async () => {
-      const found = await underTest.repository.findById(HelpId.of("0192f1a0-0000-7000-8000-0000000000ff"));
-
-      expect(found).toBeUndefined();
-    });
-    it("a saved help is found again equal, with no pending events -- B1-S04 contract ADR-CA-003", async () => {
-      const help = Help.provide(grandmaExplainsWarm);
-      const expected = snapshotOf(help);
-      await underTest.repository.save(help);
-
-      const found = await underTest.repository.findById(grandmaExplainsWarm.id);
-
-      expect(snapshotOf(found)).toEqual(expected);
-      expect(found?.pullEvents()).toEqual([]);
-    });
-    it("saving a new help stores version 1; saving the loaded one stores version 2 -- B1-S04 contract ADR-CA-005", async () => {
-      await underTest.repository.save(Help.provide(grandmaExplainsWarm));
-      const loaded = (await underTest.repository.findById(grandmaExplainsWarm.id)) as Help;
-      expect(loaded.version).toBe(1);
-
-      await underTest.repository.save(loaded);
-
-      expect((await underTest.repository.findById(grandmaExplainsWarm.id))?.version).toBe(2);
-    });
-    it("of two saves of the same loaded help, the second fails with ConcurrencyConflict -- B1-S04 contract ADR-CA-005", async () => {
-      await underTest.repository.save(Help.provide(grandmaExplainsWarm));
-      const first = (await underTest.repository.findById(grandmaExplainsWarm.id)) as Help;
-      const second = (await underTest.repository.findById(grandmaExplainsWarm.id)) as Help;
-      await underTest.repository.save(first);
-
-      await expect(underTest.repository.save(second)).rejects.toBeInstanceOf(ConcurrencyConflict);
-    });
-    it("saving records the help's pending events (HelpProvided) -- B1-S04 contract ADR-CA-004", async () => {
-      await underTest.repository.save(Help.provide(grandmaExplainsWarm));
-
-      expect(await underTest.savedEventTypes()).toEqual(["HelpProvided"]);
-    });
-    it("saving a new help under an id that is already stored fails with ConcurrencyConflict -- B1-S04 contract ADR-CA-005", async () => {
-      await underTest.repository.save(Help.provide(grandmaExplainsWarm));
-
-      await expect(underTest.repository.save(Help.provide(grandmaExplainsWarm))).rejects.toBeInstanceOf(ConcurrencyConflict);
-    });
+    const current: Current = () => underTest;
+    lookupAndRoundTrip(current);
+    versionAndOptimisticLocking(current);
+    savingANewHelp(current);
   });
 }

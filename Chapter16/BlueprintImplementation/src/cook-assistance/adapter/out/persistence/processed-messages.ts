@@ -4,6 +4,7 @@ import {
   type MessageId,
   type ProcessedMessages,
 } from "../../../application/ports/processed-messages.js";
+import { isUniqueViolation } from "./postgres-errors.js";
 
 interface ProcessedMessageRow {
   message_id: string;
@@ -13,11 +14,6 @@ const PROCESSED_MESSAGE_TABLE = "cook_assistance.processed_message";
 
 interface CookAssistanceTables {
   [PROCESSED_MESSAGE_TABLE]: ProcessedMessageRow;
-}
-
-/** PostgreSQL SQLSTATE 23505: a unique or primary-key constraint refused the row. */
-function isUniqueViolation(error: unknown): boolean {
-  return (error as { code?: string }).code === "23505";
 }
 
 export class KyselyProcessedMessages implements ProcessedMessages {

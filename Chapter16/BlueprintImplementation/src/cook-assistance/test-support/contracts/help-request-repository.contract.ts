@@ -12,6 +12,9 @@ export interface HelpRequestRepositoryUnderTest {
   savedEventTypes(): Promise<string[]>;
 }
 
+/** The repository set up for the running test. */
+type Current = () => HelpRequestRepositoryUnderTest;
+
 /** Everything a help request exposes except its version, for equality checks. */
 function snapshotOf(helpRequest: HelpRequest | undefined) {
   return helpRequest === undefined
@@ -30,6 +33,59 @@ function snapshotOf(helpRequest: HelpRequest | undefined) {
       };
 }
 
+const newSundaySconesRequest = () => HelpRequest.requestPreparationStepHelp(sundaySconesStep3);
+
+function lookupAndRoundTrip(current: Current): void {
+  it("an unknown help request id is absent -- B2-S01 contract", async () => {
+    const found = await current().repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-0000000000ff"));
+
+    expect(found).toBeUndefined();
+  });
+  it("a saved help request is found again equal, with no pending events -- B2-S01 contract ADR-CA-003", async () => {
+    const helpRequest = newSundaySconesRequest();
+    const expected = snapshotOf(helpRequest);
+    await current().repository.save(helpRequest);
+
+    const found = await current().repository.findById(sundaySconesStep3.id);
+
+    expect(snapshotOf(found)).toEqual(expected);
+    expect(found?.pullEvents()).toEqual([]);
+  });
+}
+
+function versionAndOptimisticLocking(current: Current): void {
+  it("saving a new help request stores version 1; saving the loaded one stores version 2 -- B2-S01 contract ADR-CA-005", async () => {
+    await current().repository.save(newSundaySconesRequest());
+    const loaded = (await current().repository.findById(sundaySconesStep3.id)) as HelpRequest;
+    expect(loaded.version).toBe(1);
+
+    await current().repository.save(loaded);
+
+    expect((await current().repository.findById(sundaySconesStep3.id))?.version).toBe(2);
+  });
+  it("of two saves of the same loaded help request, the second fails with ConcurrencyConflict -- B2-S01 contract ADR-CA-005", async () => {
+    await current().repository.save(newSundaySconesRequest());
+    const first = (await current().repository.findById(sundaySconesStep3.id)) as HelpRequest;
+    const second = (await current().repository.findById(sundaySconesStep3.id)) as HelpRequest;
+    await current().repository.save(first);
+
+    await expect(current().repository.save(second)).rejects.toBeInstanceOf(ConcurrencyConflict);
+  });
+}
+
+function savingANewHelpRequest(current: Current): void {
+  it("saving records the help request's pending events (HelpRequested) -- B2-S01 contract ADR-CA-004", async () => {
+    await current().repository.save(newSundaySconesRequest());
+
+    expect(await current().savedEventTypes()).toEqual(["HelpRequested"]);
+  });
+  it("saving a new help request under an id that is already stored fails with ConcurrencyConflict -- B2-S01 contract ADR-CA-005", async () => {
+    await current().repository.save(newSundaySconesRequest());
+
+    await expect(current().repository.save(newSundaySconesRequest())).rejects.toBeInstanceOf(ConcurrencyConflict);
+  });
+}
+
 export function helpRequestRepositoryContract(name: string, setUp: () => Promise<HelpRequestRepositoryUnderTest>): void {
   describe(`HelpRequestRepository contract — ${name}`, () => {
     let underTest: HelpRequestRepositoryUnderTest;
@@ -38,49 +94,9 @@ export function helpRequestRepositoryContract(name: string, setUp: () => Promise
       underTest = await setUp();
     });
 
-    it("an unknown help request id is absent -- B2-S01 contract", async () => {
-      const found = await underTest.repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-0000000000ff"));
-
-      expect(found).toBeUndefined();
-    });
-    it("a saved help request is found again equal, with no pending events -- B2-S01 contract ADR-CA-003", async () => {
-      const helpRequest = HelpRequest.requestPreparationStepHelp(sundaySconesStep3);
-      const expected = snapshotOf(helpRequest);
-      await underTest.repository.save(helpRequest);
-
-      const found = await underTest.repository.findById(sundaySconesStep3.id);
-
-      expect(snapshotOf(found)).toEqual(expected);
-      expect(found?.pullEvents()).toEqual([]);
-    });
-    it("saving a new help request stores version 1; saving the loaded one stores version 2 -- B2-S01 contract ADR-CA-005", async () => {
-      await underTest.repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));
-      const loaded = (await underTest.repository.findById(sundaySconesStep3.id)) as HelpRequest;
-      expect(loaded.version).toBe(1);
-
-      await underTest.repository.save(loaded);
-
-      expect((await underTest.repository.findById(sundaySconesStep3.id))?.version).toBe(2);
-    });
-    it("of two saves of the same loaded help request, the second fails with ConcurrencyConflict -- B2-S01 contract ADR-CA-005", async () => {
-      await underTest.repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));
-      const first = (await underTest.repository.findById(sundaySconesStep3.id)) as HelpRequest;
-      const second = (await underTest.repository.findById(sundaySconesStep3.id)) as HelpRequest;
-      await underTest.repository.save(first);
-
-      await expect(underTest.repository.save(second)).rejects.toBeInstanceOf(ConcurrencyConflict);
-    });
-    it("saving records the help request's pending events (HelpRequested) -- B2-S01 contract ADR-CA-004", async () => {
-      await underTest.repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));
-
-      expect(await underTest.savedEventTypes()).toEqual(["HelpRequested"]);
-    });
-    it("saving a new help request under an id that is already stored fails with ConcurrencyConflict -- B2-S01 contract ADR-CA-005", async () => {
-      await underTest.repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));
-
-      await expect(
-        underTest.repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3)),
-      ).rejects.toBeInstanceOf(ConcurrencyConflict);
-    });
+    const current: Current = () => underTest;
+    lookupAndRoundTrip(current);
+    versionAndOptimisticLocking(current);
+    savingANewHelpRequest(current);
   });
 }

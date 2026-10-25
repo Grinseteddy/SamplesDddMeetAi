@@ -27,3 +27,10 @@ never written by hand. TypeScript has no reliable NestJS server generator for Op
 
 ## Quality scenarios
 Serves QS-01, QS-03.
+
+## Amendment — 2026-10-25 (step 9, user decisions)
+- **AsyncAPI message types:** `@asyncapi/modelina` 5.10.1 is **replaced** — it reads AsyncAPI only up to 3.0.0 (`supportedVersions`), and the spec is 3.1.0; it also pulled in legacy 1.x/2.x and RAML parsers with critical advisories (jsonpath-plus RCE). Instead, `tools/codegen/generate-asyncapi.mjs` checks that the spec parses with `@asyncapi/parser` and compiles the named component schemas with **`json-schema-to-typescript` 16.0.0** (option `maxItems: -1`; array limits stay a runtime check) into `src/generated/asyncapi/cook-assistance.ts`; raw schemas are read with **`yaml` 2.9.1**. The script fails on parse errors and on anonymous or numbered type names.
+- **`@asyncapi/parser` 3.6.3** instead of 3.6.6: 3.6.4–3.6.6 were younger than two weeks when installed. Revisit after 2026-10-30.
+- **Tool package:** the generators live in `tools/codegen/` with their own pinned `package.json` (openapi-typescript needs TypeScript 5: `typescript` 5.9.3 there; the project stays on 6.0.3). The root `npm run generate` calls it; `pretest` and `pretypecheck` run it first. `src/generated/` is git-ignored and excluded from ESLint.
+- Audit after the change: root 0 apart from the accepted multer finding (see the implementation log), `tools/codegen` 0.
+

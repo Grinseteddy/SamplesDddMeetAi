@@ -1,0 +1,18 @@
+{
+  "name": "cook-assistance-codegen",
+  "private": true,
+  "type": "module",
+  "description": "Pinned generators for the Cook Assistance contracts (ADR-CA-011); its own package because openapi-typescript needs TypeScript 5.",
+  "devDependencies": {
+    "@asyncapi/parser": "3.6.3",
+    "json-schema-to-typescript": "16.0.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3",
+    "yaml": "2.9.1"
+  },
+  "scripts": {
+    "generate": "npm run generate:openapi && npm run generate:asyncapi",
+    "generate:openapi": "openapi-typescript ../../contracts/openapi/cook-assistance.openapi.yaml --output ../../src/generated/openapi/cook-assistance.ts",
+    "generate:asyncapi": "node generate-asyncapi.mjs"
+  }
+}

@@ -5,7 +5,7 @@ import sonarjs from "eslint-plugin-sonarjs";
 // threshold 0, so every branching function reports its score in the message
 // text: those findings are measurements, not smells. Everything else is a smell.
 export default [
-  { ignores: ["**/*.spec.ts"] },
+  { ignores: ["**/*.spec.ts", "src/generated/**"] }, // generated code is never edited, so never linted (ADR-CA-011)
   tseslint.configs.base,
   {
     files: ["src/**/*.ts"],

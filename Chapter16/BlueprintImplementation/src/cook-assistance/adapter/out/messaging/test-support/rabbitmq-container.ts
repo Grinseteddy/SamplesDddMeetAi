@@ -1,8 +1,13 @@
 import { RabbitMQContainer, type StartedRabbitMQContainer } from "@testcontainers/rabbitmq";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import amqp from "amqplib";
 
 export interface TestBroker {
   readonly url: string;
+  /** Freezes the broker (an outage without a new port, QS-04) and thaws it again. */
+  pause(): Promise<void>;
+  resume(): Promise<void>;
   stop(): Promise<void>;
 }
 
@@ -31,5 +36,11 @@ async function untilAcceptingConnections(url: string): Promise<void> {
 export async function startRabbitMq(): Promise<TestBroker> {
   const container: StartedRabbitMQContainer = await new RabbitMQContainer("rabbitmq:3.13.7-alpine").start();
   await untilAcceptingConnections(container.getAmqpUrl());
-  return { url: container.getAmqpUrl(), stop: async () => void (await container.stop()) };
+  const docker = (command: string) => promisify(execFile)("docker", [command, container.getId()]);
+  return {
+    url: container.getAmqpUrl(),
+    pause: async () => void (await docker("pause")),
+    resume: async () => void (await docker("unpause")),
+    stop: async () => void (await container.stop()),
+  };
 }

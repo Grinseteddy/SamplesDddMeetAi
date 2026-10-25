@@ -6,6 +6,7 @@ import { sundaySconesStep3 } from "../../../test-support/fixtures/sunday-scones.
 import { StubRecipeCatalog } from "../../../test-support/http/stub-recipe-catalog.js";
 import { CircuitBreaker } from "./circuit-breaker.js";
 import { HttpRecipeCatalog } from "./http-recipe-catalog.js";
+import { NoTokenYet } from "./no-token-yet.js";
 
 // Recipe Catalog lookup — increment 0, step 10, unit 10.5b: the RecipeCatalog port over HTTP (ADR-CA-015, amended),
 // built-in fetch typed by the generated upstream paths; a stub HTTP server plays Recipe Catalog 1.0.0
@@ -136,6 +137,17 @@ describe("op getRecipeHowToStepById (Recipe Catalog 1.0.0) — HttpRecipeCatalog
       await expect(lookUpStep3(unopened)).resolves.toBeUndefined();
     }
     expect(upstream.requests).toHaveLength(6);
+  });
+  it("with NoTokenYet, every Recipe Catalog lookup is RecipeCatalogUnavailable and no request is sent -- ADR-CA-015 amendment", async () => {
+    upstream.respondWith(200, STEP_3);
+    const withoutToken = new HttpRecipeCatalog({
+      baseUrl: upstream.baseUrl,
+      tokenProvider: new NoTokenYet(),
+      breaker: new CircuitBreaker(new FixedClock(NOW)),
+    });
+
+    await expect(lookUpStep3(withoutToken)).rejects.toThrow(RecipeCatalogUnavailable);
+    expect(upstream.requests).toEqual([]);
   });
   it("gate: getRecipeHowToStepById exists in the pinned upstream spec with the path and version header the adapter uses -- ADR-CA-015", () => {
     // checked by tsc against the types generated from contracts/upstream/recipe-catalog.openapi.yaml

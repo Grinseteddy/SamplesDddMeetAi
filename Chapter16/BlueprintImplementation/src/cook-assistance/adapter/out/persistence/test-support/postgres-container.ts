@@ -5,6 +5,8 @@ import pg from "pg";
 
 export interface TestDatabase {
   readonly db: Kysely<any>; // tests inspect the catalog freely
+  /** The connection URL, for a service started against this database. */
+  readonly url: string;
   stop(): Promise<void>;
 }
 
@@ -15,6 +17,7 @@ export async function startPostgres(): Promise<TestDatabase> {
   });
   return {
     db,
+    url: container.getConnectionUri(),
     async stop() {
       await db.destroy();
       await container.stop();

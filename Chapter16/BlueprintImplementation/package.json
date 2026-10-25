@@ -2,7 +2,7 @@
   "name": "cook-assistance",
   "version": "0.1.0",
   "private": true,
-  "description": "Cook Assistance bounded context of Larder \u2014 built with the implementation blueprint and EXACT Coding",
+  "description": "Cook Assistance bounded context of Larder — built with the implementation blueprint and EXACT Coding",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
@@ -22,6 +22,7 @@
     "depcruise": "depcruise src --config .dependency-cruiser.cjs"
   },
   "devDependencies": {
+    "@asyncapi/diff": "0.5.0",
     "@cucumber/cucumber": "13.3.0",
     "@nestjs/testing": "11.2.7",
     "@testcontainers/postgresql": "12.2.1",

@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { HelpRequestId } from "../../domain/help-request/help-request.js";
 import { Help, HelpId } from "../../domain/help/help.js";
 import { ConcurrencyConflict } from "../../domain/shared/concurrency-conflict.js";
-import { CookId, HowToStepId, RecipeId } from "../../domain/shared/ids.js";
 import type { HelpRepository } from "../../domain/help/help-repository.js";
+import { grandmaExplainsWarm } from "../fixtures/sunday-scones.js";
 
 // Shared repository contract (step 8, unit 1b): run against the in-memory fake AND the Kysely adapter,
 // so the fake the policy handler is tested with behaves like the real one (ADR-CA-003, ADR-CA-004, ADR-CA-005).
@@ -12,28 +11,6 @@ export interface HelpRepositoryUnderTest {
   /** The event types the repository recorded with its saves (the fake's list or the outbox rows), in order. */
   savedEventTypes(): Promise<string[]>;
 }
-
-// Grandma Avatar explains what "warm" means in Sunday scones, step 3 (Example Mapping Preparation step).
-const grandmaExplainsWarm = {
-  id: HelpId.of("0192f1a0-0000-7000-8000-0000000000a1"),
-  helpRequest: {
-    id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000001"),
-    requester: CookId.of("8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d"),
-    topic: "PREPARATION_STEP",
-    recipeId: RecipeId.of("c4d5e6f7-8a9b-4c0d-9e1f-2a3b4c5d6e7f"),
-    howToStepId: HowToStepId.of("7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d"),
-  },
-  answerTitle: "Warm means about 30 °C",
-  provider: { type: "GRANDMA_AVATAR", id: null },
-  answer: {
-    topic: "PREPARATION_STEP",
-    recipeId: RecipeId.of("c4d5e6f7-8a9b-4c0d-9e1f-2a3b4c5d6e7f"),
-    howToStepId: HowToStepId.of("7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d"),
-    description: "Put the bowl next to the heater or in the oven with only the light on.",
-    images: [],
-  },
-  providedAt: new Date("2026-10-24T12:00:00Z"),
-} as const;
 
 /** Everything a help exposes except its version, for equality checks. */
 function snapshotOf(help: Help | undefined) {

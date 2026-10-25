@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { HelpRequest, HelpRequestId } from "../../domain/help-request/help-request.js";
 import { ConcurrencyConflict } from "../../domain/shared/concurrency-conflict.js";
-import { CookId, HowToStepId, RecipeId } from "../../domain/shared/ids.js";
 import type { HelpRequestRepository } from "../../domain/help-request/help-request-repository.js";
+import { sundaySconesStep3 } from "../fixtures/sunday-scones.js";
 
 // Shared repository contract (step 8, unit 1a): run against the in-memory fake AND the Kysely adapter,
 // so the fake the use cases are tested with behaves like the real one (ADR-CA-003, ADR-CA-004, ADR-CA-005).
@@ -11,18 +11,6 @@ export interface HelpRequestRepositoryUnderTest {
   /** The event types the repository recorded with its saves (the fake's list or the outbox rows), in order. */
   savedEventTypes(): Promise<string[]>;
 }
-
-// Sunday scones, step 3 (Example Mapping Preparation step).
-const sundaySconesStep3 = {
-  id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000001"),
-  requester: CookId.of("8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d"),
-  title: "Sunday scones, step 3",
-  question: "What means 'warm'?",
-  recipeId: RecipeId.of("c4d5e6f7-8a9b-4c0d-9e1f-2a3b4c5d6e7f"),
-  howToStepId: HowToStepId.of("7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d"),
-  addressees: ["COMMUNITY", "GRANDMA_AVATAR"],
-  requestedAt: new Date("2026-10-24T10:00:00Z"),
-} as const;
 
 /** Everything a help request exposes except its version, for equality checks. */
 function snapshotOf(helpRequest: HelpRequest | undefined) {

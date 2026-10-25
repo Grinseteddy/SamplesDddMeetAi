@@ -27,7 +27,13 @@ export class LocalIssuer {
     return new LocalIssuer(privateKey, verifier);
   }
 
-  async tokenFor({ sub, roles = ["COOK"], scope = "cooking-assistance:write", premium = false, expiresIn = 300 }: TokenClaims): Promise<string> {
+  async tokenFor({
+    sub,
+    roles = ["COOK"],
+    scope = "cooking-assistance:write",
+    premium = false,
+    expiresIn = 300,
+  }: TokenClaims): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
     return new SignJWT({ realm_access: { roles: [...roles] }, scope, premium })
       .setProtectedHeader({ alg: "ES256", kid: "test-key" })

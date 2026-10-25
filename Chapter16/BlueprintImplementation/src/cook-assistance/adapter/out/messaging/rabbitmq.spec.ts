@@ -51,7 +51,11 @@ describe("RabbitMQ adapters", () => {
     const message = {
       exchange: "cook-assistance",
       routingKey: "help.requested",
-      headers: { messageId: "5d7e9f1a-2b3c-4d5e-8f6a-7b8c9d0e1f2a", correlationId: "0192f1a0-0000-7000-8000-000000000001", source: "cook-assistance" },
+      headers: {
+        messageId: "5d7e9f1a-2b3c-4d5e-8f6a-7b8c9d0e1f2a",
+        correlationId: "0192f1a0-0000-7000-8000-000000000001",
+        source: "cook-assistance",
+      },
       payload: { helpRequestId: "0192f1a0-0000-7000-8000-000000000001", title: "Sunday scones, step 3" },
     };
 
@@ -85,7 +89,11 @@ describe("RabbitMQ adapters", () => {
       await subscribeConsumer(wrapper, acking);
 
       channel.publish(TOPOLOGY.grandmaAvatarExchange, TOPOLOGY.grandmaAvatarRoutingKey, Buffer.from('{"helpId":"a1"}'), {
-        headers: { messageId: "8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d", correlationId: "0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e", source: "grandma-avatar" },
+        headers: {
+          messageId: "8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d",
+          correlationId: "0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e",
+          source: "grandma-avatar",
+        },
       });
       await channel.waitForConfirms();
       await eventually(() => received.length === 1);

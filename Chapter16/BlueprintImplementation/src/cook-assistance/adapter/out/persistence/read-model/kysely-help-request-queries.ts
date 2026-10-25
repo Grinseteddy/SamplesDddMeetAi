@@ -44,12 +44,7 @@ export class KyselyHelpRequestQueries implements HelpRequestQueries {
   }
 
   async get(id: HelpRequestId, viewer: Actor): Promise<HelpRequestReadModel | undefined> {
-    const row = await this.db
-      .selectFrom(HELP_REQUEST_VIEW)
-      .selectAll()
-      .where("id", "=", id)
-      .where(visibleTo(viewer))
-      .executeTakeFirst();
+    const row = await this.db.selectFrom(HELP_REQUEST_VIEW).selectAll().where("id", "=", id).where(visibleTo(viewer)).executeTakeFirst();
     return row === undefined ? undefined : toReadModel(row);
   }
 
@@ -63,7 +58,13 @@ export class KyselyHelpRequestQueries implements HelpRequestQueries {
       .$if(filter.addressee !== undefined, (query) => query.where(sql<boolean>`addressees @> ${[filter.addressee]}::text[]`)) // GIN index
       .$if(filter.requester !== undefined, (query) => query.where("requester", "=", filter.requester as string));
     const { count } = await matching.select(sql<string>`count(*)`.as("count")).executeTakeFirstOrThrow();
-    const rows = await matching.selectAll().orderBy("created_at").orderBy("id").limit(size).offset(number * size).execute();
+    const rows = await matching
+      .selectAll()
+      .orderBy("created_at")
+      .orderBy("id")
+      .limit(size)
+      .offset(number * size)
+      .execute();
     const totalElements = Number(count);
     return { items: rows.map(toReadModel), number, size, totalElements, totalPages: Math.ceil(totalElements / size) };
   }

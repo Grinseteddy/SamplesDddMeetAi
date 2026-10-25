@@ -1,0 +1,6 @@
+# generated code is never edited (ADR-CA-011); approved specs and docs keep their reviewed form
+src/generated/
+contracts/
+docs/
+node_modules/
+tools/codegen/node_modules/

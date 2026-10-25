@@ -35,8 +35,10 @@ export function toProblem(error: unknown): Problem {
   if (error instanceof validatorErrors.BadRequest) return problemOf(400, "InvalidRequest", error.message);
   // Nest wraps a body that is not valid JSON in its own BadRequestException before any filter sees it
   if (error instanceof HttpException && error.getStatus() === 400) return problemOf(400, "InvalidRequest", "the body is not valid JSON");
-  if (bodyParserErrorTypeOf(error) === "entity.too.large") return problemOf(413, "PayloadTooLarge", `the body is larger than ${MAX_BODY_MEGABYTES} MB`);
-  if (error instanceof HttpException && error.getStatus() === 429) return problemOf(429, "TooManyRequests", `more than ${REQUESTS_PER_MINUTE} requests per minute`);
+  if (bodyParserErrorTypeOf(error) === "entity.too.large")
+    return problemOf(413, "PayloadTooLarge", `the body is larger than ${MAX_BODY_MEGABYTES} MB`);
+  if (error instanceof HttpException && error.getStatus() === 429)
+    return problemOf(429, "TooManyRequests", `more than ${REQUESTS_PER_MINUTE} requests per minute`);
   if (error instanceof validatorErrors.NotFound) return problemOf(404, "NotFound", error.message);
   if (error instanceof HelpRequestNotFound) return problemOf(404, "NotFound", error.message);
   if (error instanceof HelpNotFound) return problemOf(404, "NotFound", error.message);

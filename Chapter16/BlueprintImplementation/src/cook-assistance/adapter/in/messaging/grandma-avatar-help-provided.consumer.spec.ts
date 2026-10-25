@@ -172,7 +172,10 @@ describe("op receiveGrandmaAvatarHelpProvided", () => {
     expect(JSON.stringify(logged)).not.toMatch(/warm|heater|scones/i);
   });
   it("gate: every receive operation of the AsyncAPI spec has a registered consumer -- ADR-CA-011", async () => {
-    const spec = await readFile(fileURLToPath(new URL("../../../../../contracts/asyncapi/cook-assistance.asyncapi.yaml", import.meta.url)), "utf8");
+    const spec = await readFile(
+      fileURLToPath(new URL("../../../../../contracts/asyncapi/cook-assistance.asyncapi.yaml", import.meta.url)),
+      "utf8",
+    );
     const { document } = await new Parser().parse(spec);
     const receiveOperations = (document?.operations().filterByReceive() ?? []).map((operation) => operation.id());
 

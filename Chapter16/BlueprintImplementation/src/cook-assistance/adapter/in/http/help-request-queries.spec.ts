@@ -133,8 +133,12 @@ describe("ops getHelpRequestById, listHelpRequests — read model Help request",
     await saveSundaySconesStep3();
     const path = `/cooking-assistance/help-requests/${sundaySconesStep3.id}`;
 
-    const communityCook = await request(app.getHttpServer()).get(path).set(await as({ sub: ANOTHER_COOK, roles: ["COMMUNITY_COOK"] }));
-    const chef = await request(app.getHttpServer()).get(path).set(await as({ sub: ANOTHER_COOK, roles: ["CHEF"] }));
+    const communityCook = await request(app.getHttpServer())
+      .get(path)
+      .set(await as({ sub: ANOTHER_COOK, roles: ["COMMUNITY_COOK"] }));
+    const chef = await request(app.getHttpServer())
+      .get(path)
+      .set(await as({ sub: ANOTHER_COOK, roles: ["CHEF"] }));
 
     expect([communityCook.status, chef.status]).toEqual([200, 404]);
   });
@@ -184,7 +188,11 @@ describe("ops getHelpRequestById, listHelpRequests — read model Help request",
     const headers = await as({ sub: sundaySconesStep3.requester });
     const pageOf = async (number: number) => {
       const response = await request(app.getHttpServer()).get(`/cooking-assistance/help-requests?page=${number}&size=2`).set(headers);
-      return { status: response.status, ids: response.body.items.map((item: { helpRequestId: string }) => item.helpRequestId), page: response.body.page };
+      return {
+        status: response.status,
+        ids: response.body.items.map((item: { helpRequestId: string }) => item.helpRequestId),
+        page: response.body.page,
+      };
     };
 
     expect(await pageOf(0)).toEqual({
@@ -200,7 +208,9 @@ describe("ops getHelpRequestById, listHelpRequests — read model Help request",
     await saveRequest(OF_ANOTHER_COOK, "2026-10-24T10:30:00Z", ANOTHER_COOK);
     await saveRequest(THIRD, "2026-10-24T12:00:00Z", ANOTHER_COOK, ["GRANDMA_AVATAR"]);
     const idsSeenBy = async (claims: TokenClaims): Promise<string[]> => {
-      const response = await request(app.getHttpServer()).get("/cooking-assistance/help-requests").set(await as(claims));
+      const response = await request(app.getHttpServer())
+        .get("/cooking-assistance/help-requests")
+        .set(await as(claims));
       return response.body.items.map((item: { helpRequestId: string }) => item.helpRequestId);
     };
 
@@ -229,7 +239,9 @@ describe("ops getHelpRequestById, listHelpRequests — read model Help request",
         addressees: [...sundaySconesStep3.addressees],
       });
 
-    const read = await request(app.getHttpServer()).get(new URL(created.body.selfLink).pathname).set(await as({ sub: sundaySconesStep3.requester }));
+    const read = await request(app.getHttpServer())
+      .get(new URL(created.body.selfLink).pathname)
+      .set(await as({ sub: sundaySconesStep3.requester }));
 
     expect(created.status).toBe(201);
     expect(read.status).toBe(200);

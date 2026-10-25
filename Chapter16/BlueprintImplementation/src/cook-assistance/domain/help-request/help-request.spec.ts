@@ -2,13 +2,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { CookId, HowToStepId, RecipeId } from "../shared/ids.js";
 import { HelpRequest, HelpRequestId } from "./help-request.js";
-import {
-  AddresseeRequired,
-  ChefOnlyForMenu,
-  QuestionRequired,
-  RecipeRequired,
-  StepRequired,
-} from "./help-request-rejections.js";
+import { AddresseeRequired, ChefOnlyForMenu, QuestionRequired, RecipeRequired, StepRequired } from "./help-request-rejections.js";
 
 // Aggregate Help request — increment 0 (walking skeleton), slice B2-S01
 // Request help preparation step → Help request → Help requested.
@@ -117,38 +111,29 @@ describe("Help request — B2-S01 Request help preparation step", () => {
       expect(helpRequest.addressees).toEqual(["COMMUNITY"]);
     });
     it("addressed to nobody, the request is rejected with AddresseeRequired (rule INV-20) -- B2-S01 INV-20 EM-P R3 ex.3", () => {
-      const rejection = rejectionOf(() =>
-        HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, addressees: [] }),
-      );
+      const rejection = rejectionOf(() => HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, addressees: [] }));
 
       expect(rejection).toBeInstanceOf(AddresseeRequired);
       expect(rejection).toMatchObject({ rule: "INV-20" });
     });
     it("addressed to Chef A, the request is rejected with ChefOnlyForMenu (rule INV-20) -- B2-S01 INV-20 EM-P R3 ex.2", () => {
-      const rejection = rejectionOf(() =>
-        HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, addressees: ["CHEF"] }),
-      );
+      const rejection = rejectionOf(() => HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, addressees: ["CHEF"] }));
 
       expect(rejection).toBeInstanceOf(ChefOnlyForMenu);
       expect(rejection).toMatchObject({ rule: "INV-20" });
     });
     it("for any set of addressees, a preparation-step request is accepted exactly when it names at least one addressee and no CHEF -- B2-S01 INV-20 property", () => {
       fc.assert(
-        fc.property(
-          fc.uniqueArray(fc.constantFrom("COMMUNITY", "GRANDMA_AVATAR", "CHEF" as const), { maxLength: 3 }),
-          (addressees) => {
-            const acceptable = addressees.length >= 1 && !addressees.includes("CHEF");
-            const rejection = rejectionOf(() =>
-              HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, addressees }),
-            );
+        fc.property(fc.uniqueArray(fc.constantFrom("COMMUNITY", "GRANDMA_AVATAR", "CHEF" as const), { maxLength: 3 }), (addressees) => {
+          const acceptable = addressees.length >= 1 && !addressees.includes("CHEF");
+          const rejection = rejectionOf(() => HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, addressees }));
 
-            if (acceptable) {
-              expect(rejection).toBeUndefined();
-            } else {
-              expect(rejection).toMatchObject({ rule: "INV-20" });
-            }
-          },
-        ),
+          if (acceptable) {
+            expect(rejection).toBeUndefined();
+          } else {
+            expect(rejection).toMatchObject({ rule: "INV-20" });
+          }
+        }),
         propertyRuns,
       );
     });
@@ -157,51 +142,41 @@ describe("Help request — B2-S01 Request help preparation step", () => {
   describe("question, recipe and step", () => {
     it("without a question (empty or only whitespace — read as missing), the request is rejected with QuestionRequired (rule INV-19) -- B2-S01 INV-19 EM-P R8 ex.1", () => {
       for (const question of ["", "   "]) {
-        const rejection = rejectionOf(() =>
-          HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, question }),
-        );
+        const rejection = rejectionOf(() => HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, question }));
 
         expect(rejection).toBeInstanceOf(QuestionRequired);
         expect(rejection).toMatchObject({ rule: "INV-19" });
       }
     });
     it("Sunday scones without a step is rejected with StepRequired (rule INV-17) -- B2-S01 INV-17 EM-P R1 ex.2", () => {
-      const rejection = rejectionOf(() =>
-        HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, howToStepId: null }),
-      );
+      const rejection = rejectionOf(() => HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, howToStepId: null }));
 
       expect(rejection).toBeInstanceOf(StepRequired);
       expect(rejection).toMatchObject({ rule: "INV-17" });
     });
     it("a step without a recipe is rejected with RecipeRequired (rule INV-17) -- B2-S01 INV-17", () => {
-      const rejection = rejectionOf(() =>
-        HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, recipeId: null }),
-      );
+      const rejection = rejectionOf(() => HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, recipeId: null }));
 
       expect(rejection).toBeInstanceOf(RecipeRequired);
       expect(rejection).toMatchObject({ rule: "INV-17" });
     });
     it("for any combination of a present or missing recipe and step, a preparation-step request is accepted exactly when both are present, otherwise rejected with rule INV-17 -- B2-S01 INV-17 property", () => {
       fc.assert(
-        fc.property(
-          fc.option(fc.uuid(), { nil: null }),
-          fc.option(fc.uuid(), { nil: null }),
-          (recipe, step) => {
-            const rejection = rejectionOf(() =>
-              HelpRequest.requestPreparationStepHelp({
-                ...sundaySconesStep3,
-                recipeId: recipe === null ? null : RecipeId.of(recipe),
-                howToStepId: step === null ? null : HowToStepId.of(step),
-              }),
-            );
+        fc.property(fc.option(fc.uuid(), { nil: null }), fc.option(fc.uuid(), { nil: null }), (recipe, step) => {
+          const rejection = rejectionOf(() =>
+            HelpRequest.requestPreparationStepHelp({
+              ...sundaySconesStep3,
+              recipeId: recipe === null ? null : RecipeId.of(recipe),
+              howToStepId: step === null ? null : HowToStepId.of(step),
+            }),
+          );
 
-            if (recipe !== null && step !== null) {
-              expect(rejection).toBeUndefined();
-            } else {
-              expect(rejection).toMatchObject({ rule: "INV-17" });
-            }
-          },
-        ),
+          if (recipe !== null && step !== null) {
+            expect(rejection).toBeUndefined();
+          } else {
+            expect(rejection).toMatchObject({ rule: "INV-17" });
+          }
+        }),
         propertyRuns,
       );
     });

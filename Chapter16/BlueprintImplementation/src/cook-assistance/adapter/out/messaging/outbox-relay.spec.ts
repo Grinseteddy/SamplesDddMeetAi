@@ -124,7 +124,9 @@ describe("outbox relay — PostgreSQL 16", () => {
   it("a message that breaks the spec is dead-lettered at once and nothing is sent -- ADR-CA-004 ADR-CA-011", async () => {
     await sql`
       insert into cook_assistance.outbox (aggregate_type, aggregate_id, event_type, payload, occurred_at)
-      values ('HelpRequest', '0192f1a0-0000-7000-8000-000000000001', 'HelpRequested', '{"title": "no ids, no status"}', ${NOW})`.execute(database.db);
+      values ('HelpRequest', '0192f1a0-0000-7000-8000-000000000001', 'HelpRequested', '{"title": "no ids, no status"}', ${NOW})`.execute(
+      database.db,
+    );
 
     await relayAt(NOW).runOnce();
 
@@ -147,7 +149,9 @@ describe("outbox relay — PostgreSQL 16", () => {
   it("a dead-lettered row is reported with message id, event type and last error -- ADR-CA-004", async () => {
     await sql`
       insert into cook_assistance.outbox (aggregate_type, aggregate_id, event_type, payload, occurred_at)
-      values ('HelpRequest', '0192f1a0-0000-7000-8000-000000000001', 'HelpRequested', '{"title": "no ids, no status"}', ${NOW})`.execute(database.db);
+      values ('HelpRequest', '0192f1a0-0000-7000-8000-000000000001', 'HelpRequested', '{"title": "no ids, no status"}', ${NOW})`.execute(
+      database.db,
+    );
 
     await relayAt(NOW).runOnce();
 
@@ -182,7 +186,9 @@ describe("outbox relay — PostgreSQL 16", () => {
   it("several relays at once publish every row exactly once -- ADR-CA-004 QS-14", async () => {
     const repository = new KyselyHelpRequestRepository(database.db);
     for (let n = 1; n <= 5; n += 1) {
-      await repository.save(HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, id: HelpRequestId.of(`0192f1a0-0000-7000-8000-00000000000${n}`) }));
+      await repository.save(
+        HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, id: HelpRequestId.of(`0192f1a0-0000-7000-8000-00000000000${n}`) }),
+      );
     }
     const slowBroker = new FakePublisher(50);
 

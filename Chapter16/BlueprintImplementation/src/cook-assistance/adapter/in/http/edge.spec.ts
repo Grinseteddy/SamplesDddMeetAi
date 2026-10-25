@@ -21,14 +21,18 @@ describe("HTTP edge", () => {
   });
 
   it("an undeclared path: 404 Problem code NotFound -- ADR-CA-006", async () => {
-    const response = await request(app.getHttpServer()).get("/cooking-assistance/recipes").set(await asCook());
+    const response = await request(app.getHttpServer())
+      .get("/cooking-assistance/recipes")
+      .set(await asCook());
 
     expect(response.status).toBe(404);
     expect(response.headers["content-type"]).toMatch(/^application\/problem\+json/);
     expect(response.body).toMatchObject({ status: 404, code: "NotFound", title: "NotFound" });
   });
   it("DELETE /help-requests (undeclared method): 405 Problem with Allow: POST, GET -- ADR-CA-006 RFC 9110", async () => {
-    const response = await request(app.getHttpServer()).delete("/cooking-assistance/help-requests").set(await asCook());
+    const response = await request(app.getHttpServer())
+      .delete("/cooking-assistance/help-requests")
+      .set(await asCook());
 
     expect(response.status).toBe(405);
     expect(response.headers["content-type"]).toMatch(/^application\/problem\+json/);
@@ -82,14 +86,19 @@ describe("HTTP edge", () => {
     expect(Number(response.headers["retry-after"])).toBeGreaterThanOrEqual(1);
   });
   it("security headers: no X-Powered-By, Content-Security-Policy default-src 'none', Strict-Transport-Security -- ADR-CA-010", async () => {
-    const response = await request(app.getHttpServer()).get("/cooking-assistance/recipes").set(await asCook());
+    const response = await request(app.getHttpServer())
+      .get("/cooking-assistance/recipes")
+      .set(await asCook());
 
     expect(response.headers["x-powered-by"]).toBeUndefined();
     expect(response.headers["content-security-policy"]).toBe("default-src 'none'");
     expect(response.headers["strict-transport-security"]).toMatch(/max-age=\d+/);
   });
   it("gate: every OpenAPI operation is served or on the planned list (SERVED_OPERATIONS satisfies the generated operations) -- ADR-CA-011", async () => {
-    const spec = await readFile(fileURLToPath(new URL("../../../../../contracts/openapi/cook-assistance.openapi.yaml", import.meta.url)), "utf8");
+    const spec = await readFile(
+      fileURLToPath(new URL("../../../../../contracts/openapi/cook-assistance.openapi.yaml", import.meta.url)),
+      "utf8",
+    );
     const paths = spec.slice(0, spec.indexOf("\ncomponents:"));
     const operationIds = [...paths.matchAll(/^\s+operationId: (\w+)$/gm)].map((match) => match[1]);
 
@@ -100,7 +109,9 @@ describe("HTTP edge", () => {
     const files = (await readdir(src, { recursive: true })).filter((file) => file.endsWith(".ts") && !file.endsWith(".spec.ts"));
     const offending: string[] = [];
     for (const file of files) {
-      if (/FileInterceptor|FilesInterceptor|AnyFilesInterceptor|\bmulter\b|multipart\/form-data/.test(await readFile(`${src}${file}`, "utf8"))) {
+      if (
+        /FileInterceptor|FilesInterceptor|AnyFilesInterceptor|\bmulter\b|multipart\/form-data/.test(await readFile(`${src}${file}`, "utf8"))
+      ) {
         offending.push(file);
       }
     }

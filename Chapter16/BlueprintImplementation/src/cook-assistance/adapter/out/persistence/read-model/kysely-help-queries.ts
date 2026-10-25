@@ -48,7 +48,13 @@ export class KyselyHelpQueries implements HelpQueries {
       .where(visibleTo(viewer))
       .$if(filter.status !== undefined, (query) => query.where("status", "=", filter.status as string));
     const { count } = await matching.select(sql<string>`count(*)`.as("count")).executeTakeFirstOrThrow();
-    const rows = await matching.selectAll().orderBy("created_at").orderBy("id").limit(size).offset(number * size).execute();
+    const rows = await matching
+      .selectAll()
+      .orderBy("created_at")
+      .orderBy("id")
+      .limit(size)
+      .offset(number * size)
+      .execute();
     const totalElements = Number(count);
     return { items: rows.map(toReadModel), number, size, totalElements, totalPages: Math.ceil(totalElements / size) };
   }

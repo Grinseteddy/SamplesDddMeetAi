@@ -1,9 +1,4 @@
-import type {
-  HelpProviderType,
-  HelpRequestId,
-  HelpRequestStatus,
-  HelpRequestTopic,
-} from "../domain/help-request/help-request.js";
+import type { HelpProviderType, HelpRequestId, HelpRequestStatus, HelpRequestTopic } from "../domain/help-request/help-request.js";
 import type { CookId, HowToStepId, RecipeId } from "../domain/shared/ids.js";
 
 /** A help request as the application hands it to an inbound adapter: plain values, no aggregate behavior. */

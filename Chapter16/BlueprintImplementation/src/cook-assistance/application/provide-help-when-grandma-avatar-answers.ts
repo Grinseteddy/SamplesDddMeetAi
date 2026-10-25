@@ -63,11 +63,7 @@ function provideOrRejection(command: ProvideHelp): Help | DomainRejection {
 type Refused = Extract<GrandmaAvatarAnswerOutcome, { outcome: "REFUSED" }>;
 
 /** Step 8 decision · a refused help is acknowledged: nothing is stored, but the message counts as handled. */
-async function refuse(
-  scope: TransactionScope,
-  message: GrandmaAvatarAnswered,
-  reason: Omit<Refused, "outcome">,
-): Promise<Refused> {
+async function refuse(scope: TransactionScope, message: GrandmaAvatarAnswered, reason: Omit<Refused, "outcome">): Promise<Refused> {
   await scope.processedMessages.record(message.messageId);
   return { outcome: "REFUSED", ...reason };
 }

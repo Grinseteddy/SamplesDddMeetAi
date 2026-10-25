@@ -29,9 +29,7 @@ describe("KyselyProcessedMessages — PostgreSQL 16", () => {
     expect(tables.rows).toEqual([{ table_name: "processed_message" }]);
   });
   it("a message id that was never recorded has not been processed -- B1-S04 ADR-CA-004", async () => {
-    const processed = await new KyselyProcessedMessages(database.db).hasBeenProcessed(
-      MessageId.of("8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d"),
-    );
+    const processed = await new KyselyProcessedMessages(database.db).hasBeenProcessed(MessageId.of("8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d"));
 
     expect(processed).toBe(false);
   });

@@ -103,7 +103,10 @@ describe("outbound messages", () => {
     expect(() => toOutgoingMessage({ ...helpRequestedRecord, eventType: "HelpRequestArchived" }, BASE_URL)).toThrow(UnmappedEvent);
   });
   it("gate: every send operation of the spec is mapped or planned, and the publish decisions cover every domain event type -- ADR-CA-011 G5", async () => {
-    const spec = await readFile(fileURLToPath(new URL("../../../../../contracts/asyncapi/cook-assistance.asyncapi.yaml", import.meta.url)), "utf8");
+    const spec = await readFile(
+      fileURLToPath(new URL("../../../../../contracts/asyncapi/cook-assistance.asyncapi.yaml", import.meta.url)),
+      "utf8",
+    );
     const { document } = await new Parser().parse(spec);
     const sendOperations = (document?.operations().filterBySend() ?? []).map((operation) => operation.id());
 

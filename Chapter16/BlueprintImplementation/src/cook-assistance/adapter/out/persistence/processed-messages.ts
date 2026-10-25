@@ -1,9 +1,5 @@
 import type { Kysely } from "kysely";
-import {
-  MessageAlreadyProcessed,
-  type MessageId,
-  type ProcessedMessages,
-} from "../../../application/ports/processed-messages.js";
+import { MessageAlreadyProcessed, type MessageId, type ProcessedMessages } from "../../../application/ports/processed-messages.js";
 import { isUniqueViolation } from "./postgres-errors.js";
 
 interface ProcessedMessageRow {

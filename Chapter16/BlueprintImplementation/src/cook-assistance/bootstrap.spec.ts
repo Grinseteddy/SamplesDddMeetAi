@@ -128,7 +128,12 @@ describe("bootstrap — end to end (PostgreSQL 16, RabbitMQ 3.13, stub Recipe Ca
   let check: SendCheck;
 
   beforeAll(async () => {
-    [database, broker, upstream, issuer] = await Promise.all([startPostgres(), startRabbitMq(), StubRecipeCatalog.start(), LocalIssuer.start()]);
+    [database, broker, upstream, issuer] = await Promise.all([
+      startPostgres(),
+      startRabbitMq(),
+      StubRecipeCatalog.start(),
+      LocalIssuer.start(),
+    ]);
     connection = await amqp.connect(broker.url);
     channel = await connection.createChannel();
     // the Grandma Avatar AI context owns and declares its exchange; the test stands in for it
@@ -217,9 +222,15 @@ describe("bootstrap — end to end (PostgreSQL 16, RabbitMQ 3.13, stub Recipe Ca
       await settle(requested);
 
       expect(requested).toHaveLength(1);
-      expect(requested[0]).toMatchObject({ routingKey: "help.requested", headers: { correlationId: helpRequestId }, payload: { helpRequestId } });
+      expect(requested[0]).toMatchObject({
+        routingKey: "help.requested",
+        headers: { correlationId: helpRequestId },
+        payload: { helpRequestId },
+      });
       expect(check(requested[0] as OutgoingMessage)).toBe(true);
-      const pending = await sql<{ count: string }>`select count(*) from cook_assistance.outbox where published_at is null`.execute(database.db);
+      const pending = await sql<{ count: string }>`select count(*) from cook_assistance.outbox where published_at is null`.execute(
+        database.db,
+      );
       expect(pending.rows).toEqual([{ count: "0" }]);
     } finally {
       await service.stop();

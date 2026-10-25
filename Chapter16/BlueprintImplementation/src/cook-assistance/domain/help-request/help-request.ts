@@ -1,12 +1,6 @@
 import { CookId, HowToStepId, RecipeId } from "../shared/ids.js";
 import type { HelpRequestEvent } from "./help-request-events.js";
-import {
-  AddresseeRequired,
-  ChefOnlyForMenu,
-  QuestionRequired,
-  RecipeRequired,
-  StepRequired,
-} from "./help-request-rejections.js";
+import { AddresseeRequired, ChefOnlyForMenu, QuestionRequired, RecipeRequired, StepRequired } from "./help-request-rejections.js";
 
 /** Identity of a help request. */
 export type HelpRequestId = string & { readonly __brand: "HelpRequestId" };

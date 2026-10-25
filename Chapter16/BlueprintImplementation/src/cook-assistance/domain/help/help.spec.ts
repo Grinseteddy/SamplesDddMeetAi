@@ -149,8 +149,14 @@ describe("Help — B1-S04 Provide Help (Preparation step)", () => {
     });
     it("a rejected help records no event and creates no help -- B1-S04 INV-10", () => {
       const rejectedCommands = [
-        { ...grandmaExplainsWarm, answer: { ...grandmaExplainsWarm.answer, howToStepId: HowToStepId.of("7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c04") } },
-        { ...grandmaExplainsWarm, answer: { ...grandmaExplainsWarm.answer, recipeId: RecipeId.of("d5e6f7a8-9b0c-4d1e-8f2a-3b4c5d6e7f80") } },
+        {
+          ...grandmaExplainsWarm,
+          answer: { ...grandmaExplainsWarm.answer, howToStepId: HowToStepId.of("7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c04") },
+        },
+        {
+          ...grandmaExplainsWarm,
+          answer: { ...grandmaExplainsWarm.answer, recipeId: RecipeId.of("d5e6f7a8-9b0c-4d1e-8f2a-3b4c5d6e7f80") },
+        },
       ];
 
       for (const command of rejectedCommands) {

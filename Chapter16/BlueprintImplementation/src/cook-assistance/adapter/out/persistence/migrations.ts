@@ -118,9 +118,25 @@ const migrations: Record<string, Migration> = {
       // the spec's filters (status, topic, addressee, requester) and its order (createdAt, id)
       await db.schema.withSchema(SCHEMA).createIndex("help_request_view_status_idx").on("help_request_view").column("status").execute();
       await db.schema.withSchema(SCHEMA).createIndex("help_request_view_topic_idx").on("help_request_view").column("topic").execute();
-      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_requester_idx").on("help_request_view").column("requester").execute();
-      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_addressees_idx").on("help_request_view").using("gin").column("addressees").execute();
-      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_created_at_id_idx").on("help_request_view").columns(["created_at", "id"]).execute();
+      await db.schema
+        .withSchema(SCHEMA)
+        .createIndex("help_request_view_requester_idx")
+        .on("help_request_view")
+        .column("requester")
+        .execute();
+      await db.schema
+        .withSchema(SCHEMA)
+        .createIndex("help_request_view_addressees_idx")
+        .on("help_request_view")
+        .using("gin")
+        .column("addressees")
+        .execute();
+      await db.schema
+        .withSchema(SCHEMA)
+        .createIndex("help_request_view_created_at_id_idx")
+        .on("help_request_view")
+        .columns(["created_at", "id"])
+        .execute();
       await db.schema
         .withSchema(SCHEMA)
         .createTable("help_view")
@@ -136,7 +152,12 @@ const migrations: Record<string, Migration> = {
         .addColumn("updated_at", "timestamptz", (c) => c.notNull())
         .execute();
       // the helps of one request, in the spec's order
-      await db.schema.withSchema(SCHEMA).createIndex("help_view_help_request_id_created_at_idx").on("help_view").columns(["help_request_id", "created_at"]).execute();
+      await db.schema
+        .withSchema(SCHEMA)
+        .createIndex("help_view_help_request_id_created_at_idx")
+        .on("help_view")
+        .columns(["help_request_id", "created_at"])
+        .execute();
     },
   },
 };

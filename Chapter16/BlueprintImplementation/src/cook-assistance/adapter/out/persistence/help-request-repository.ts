@@ -1,10 +1,5 @@
 import type { Kysely } from "kysely";
-import {
-  HelpRequest,
-  HelpRequestId,
-  type HelpProviderType,
-  type HelpRequestStatus,
-} from "../../../domain/help-request/help-request.js";
+import { HelpRequest, HelpRequestId, type HelpProviderType, type HelpRequestStatus } from "../../../domain/help-request/help-request.js";
 import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-request/help-request-events.js";
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
@@ -124,5 +119,4 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
       await recordEvents(tx, helpRequest.pullEvents().map(toOutboxRow));
     });
   }
-
 }

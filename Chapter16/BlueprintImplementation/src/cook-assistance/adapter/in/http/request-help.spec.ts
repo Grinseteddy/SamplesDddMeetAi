@@ -56,9 +56,11 @@ describe("op requestHelp", () => {
     expect(unitOfWork.helpRequests.savedEvents).toEqual([]);
   }
 
-
   it("a COOK with write scope asks about Sunday scones step 3: 201 with the HelpRequest body (generated id, requester = token sub, description = the question, pictures [], ingredientId/chefId/plannedMealDate null, REQUESTED, answerDeadline 15:00, createdAt = updatedAt = 10:00, selfLink, helpsLink) and Location /help-requests/{id} -- op requestHelp B2-S01", async () => {
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(askWhatWarmMeans);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(askWhatWarmMeans);
 
     expect(response.status).toBe(201);
     expect(response.headers.location).toBe(`${BASE_URL}/help-requests/0192f1a0-0000-7000-8000-000000000001`);
@@ -97,7 +99,10 @@ describe("op requestHelp", () => {
   it("title missing: 400 InvalidRequest Problem, use case not called, nothing saved -- op requestHelp", async () => {
     const { title: _omitted, ...withoutTitle } = askWhatWarmMeans;
 
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(withoutTitle);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(withoutTitle);
 
     expectProblem(response, 400, "InvalidRequest");
     await expectNothingSaved();
@@ -123,7 +128,10 @@ describe("op requestHelp", () => {
   it("version header missing: 400 InvalidRequest Problem, nothing saved -- op requestHelp", async () => {
     const { version: _omitted, ...withoutVersion } = await asCook();
 
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(withoutVersion).send(askWhatWarmMeans);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(withoutVersion)
+      .send(askWhatWarmMeans);
 
     expectProblem(response, 400, "InvalidRequest");
     await expectNothingSaved();
@@ -131,7 +139,10 @@ describe("op requestHelp", () => {
   it("PREPARATION_STEP without howToStepId (conditional rule): 400 InvalidRequest Problem, use case not called -- op requestHelp INV-17 F9", async () => {
     const { howToStepId: _omitted, ...withoutStep } = askWhatWarmMeans;
 
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(withoutStep);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(withoutStep);
 
     expectProblem(response, 400, "InvalidRequest");
     await expectNothingSaved();
@@ -180,7 +191,10 @@ describe("op requestHelp", () => {
       addressees: ["COMMUNITY"],
     };
 
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(dinnerForSix);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(dinnerForSix);
 
     expectProblem(response, 422, "TopicNotYetSupported");
     await expectNothingSaved();
@@ -188,14 +202,20 @@ describe("op requestHelp", () => {
   it("a generated id that is already taken: 409 Problem code ConcurrencyConflict -- op requestHelp ADR-CA-005", async () => {
     await unitOfWork.helpRequests.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));
 
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(askWhatWarmMeans);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(askWhatWarmMeans);
 
     expectProblem(response, 409, "ConcurrencyConflict");
   });
   it("Recipe Catalog unavailable: 503 Problem code ServiceUnavailable with Retry-After -- op requestHelp ADR-CA-015", async () => {
     recipeCatalog.becomeUnavailable();
 
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(askWhatWarmMeans);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(askWhatWarmMeans);
 
     expectProblem(response, 503, "ServiceUnavailable");
     expect(Number(response.headers["retry-after"])).toBeGreaterThanOrEqual(1);
@@ -270,7 +290,10 @@ describe("op requestHelp", () => {
       throw new Error("connect ECONNREFUSED 10.0.0.5:5432 password=not-for-clients");
     };
 
-    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(await asCook()).send(askWhatWarmMeans);
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(askWhatWarmMeans);
 
     expectProblem(response, 500, "InternalError");
     expect(JSON.stringify(response.body)).not.toMatch(/ECONNREFUSED|10\.0\.0\.5|password/);

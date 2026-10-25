@@ -70,11 +70,7 @@ export class GrandmaAvatarHelpProvidedConsumer {
 
   /** ADR-CA-011 · valid per the spec; ADR-CA-008 · published by the Grandma Avatar AI. Anything else is never retried. */
   private isTrusted(message: RawMessage): boolean {
-    return (
-      this.schemas.headers(message.headers) &&
-      this.schemas.payload(message.payload) &&
-      message.headers.source === EXPECTED_SOURCE
-    );
+    return this.schemas.headers(message.headers) && this.schemas.payload(message.payload) && message.headers.source === EXPECTED_SOURCE;
   }
 
   /** ADR-CA-010 · the named outcome, without question or answer text. */
@@ -89,6 +85,8 @@ export class GrandmaAvatarHelpProvidedConsumer {
 }
 
 /** Builds the consumer once the spec's schemas are loaded. */
-export async function createGrandmaAvatarHelpProvidedConsumer(ports: GrandmaAvatarConsumerPorts): Promise<GrandmaAvatarHelpProvidedConsumer> {
+export async function createGrandmaAvatarHelpProvidedConsumer(
+  ports: GrandmaAvatarConsumerPorts,
+): Promise<GrandmaAvatarHelpProvidedConsumer> {
   return new GrandmaAvatarHelpProvidedConsumer(ports, await loadMessageSchemas("receiveGrandmaAvatarHelpProvided"));
 }

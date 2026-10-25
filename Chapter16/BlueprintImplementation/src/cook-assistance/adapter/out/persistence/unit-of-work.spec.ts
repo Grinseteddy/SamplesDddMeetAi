@@ -65,9 +65,7 @@ describe("Migrations and unit of work — PostgreSQL 16", () => {
                last_error, dead_lettered_at, published_at
         from cook_assistance.outbox where id = ${inserted.rows[0]?.id}`.execute(database.db);
 
-      expect(row.rows).toEqual([
-        { attempts: 0, due_at_once: true, last_error: null, dead_lettered_at: null, published_at: null },
-      ]);
+      expect(row.rows).toEqual([{ attempts: 0, due_at_once: true, last_error: null, dead_lettered_at: null, published_at: null }]);
     });
     it("the outbox has the relay's claim index on (aggregate_id, id) for rows neither published nor dead-lettered -- ADR-CA-004", async () => {
       const indexes = await sql<{ indexdef: string }>`
@@ -80,8 +78,8 @@ describe("Migrations and unit of work — PostgreSQL 16", () => {
     });
     it("running the migrations a second time applies nothing -- ADR-CA-003", async () => {
       const countApplied = async () =>
-        (await sql<{ applied: string }>`select count(*) as applied from cook_assistance.kysely_migration`.execute(database.db))
-          .rows[0]?.applied;
+        (await sql<{ applied: string }>`select count(*) as applied from cook_assistance.kysely_migration`.execute(database.db)).rows[0]
+          ?.applied;
       const before = await countApplied();
 
       await migrateToLatest(database.db);

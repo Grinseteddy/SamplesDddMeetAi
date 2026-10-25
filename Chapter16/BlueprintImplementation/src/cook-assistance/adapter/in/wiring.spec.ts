@@ -75,12 +75,19 @@ describe("inbound wiring — PostgreSQL 16", () => {
       howToStepId: sundaySconesStep3.howToStepId,
       addressees: sundaySconesStep3.addressees,
     });
-    const consumer = await createGrandmaAvatarHelpProvidedConsumer({ handler: cookAssistance.provideHelpWhenGrandmaAvatarAnswers, log: () => {} });
+    const consumer = await createGrandmaAvatarHelpProvidedConsumer({
+      handler: cookAssistance.provideHelpWhenGrandmaAvatarAnswers,
+      log: () => {},
+    });
     const delivery = new RecordingDelivery();
 
     await consumer.consume(
       {
-        headers: { correlationId: "0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e", messageId: "8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d", source: "grandma-avatar" },
+        headers: {
+          correlationId: "0b1c2d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e",
+          messageId: "8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d",
+          source: "grandma-avatar",
+        },
         payload: {
           helpId: grandmaExplainsWarm.id,
           helpRequest: helpRequestId,

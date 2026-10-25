@@ -19,12 +19,12 @@ export interface VersionedWrite {
 }
 
 /** ADR-CA-005 · a new aggregate is inserted as version 1; an id that is already taken → ConcurrencyConflict. */
-async function insertFirstVersion(
-  versioned: Transaction<VersionedTables>,
-  { table, aggregateName, row }: VersionedWrite,
-): Promise<void> {
+async function insertFirstVersion(versioned: Transaction<VersionedTables>, { table, aggregateName, row }: VersionedWrite): Promise<void> {
   try {
-    await versioned.insertInto(table).values({ ...row, version: 1 }).execute();
+    await versioned
+      .insertInto(table)
+      .values({ ...row, version: 1 })
+      .execute();
   } catch (error) {
     // constraint translation: the id is the primary key, so a unique violation means it is already taken
     if (isUniqueViolation(error)) {

@@ -1,9 +1,4 @@
-import type {
-  HelpProviderType,
-  HelpRequestId,
-  HelpRequestStatus,
-  HelpRequestTopic,
-} from "../../domain/help-request/help-request.js";
+import type { HelpProviderType, HelpRequestId, HelpRequestStatus, HelpRequestTopic } from "../../domain/help-request/help-request.js";
 import type { CookId, HowToStepId, RecipeId } from "../../domain/shared/ids.js";
 import type { Actor } from "../actor.js";
 import type { Page, PageRequest } from "./page.js";

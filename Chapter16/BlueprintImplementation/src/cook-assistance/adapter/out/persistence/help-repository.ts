@@ -111,5 +111,4 @@ export class KyselyHelpRepository implements HelpRepository {
       await recordEvents(tx, help.pullEvents().map(toOutboxRow));
     });
   }
-
 }

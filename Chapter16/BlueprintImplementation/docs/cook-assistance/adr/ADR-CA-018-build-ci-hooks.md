@@ -29,3 +29,11 @@ its pull request.
 
 ## Quality scenarios
 Serves QS-02, QS-03, QS-01; supports the Definition of Done.
+
+## Amendment — 2026-10-25 (step 12, user decisions)
+- **Prettier 3.9.10** adopted at `printWidth: 140` (the hand-wrapped width of the code so far); one style-only commit
+  reformatted the source. Scope: `src/**/*.ts`, `tools/**/*.mjs` and the root config files; generated code,
+  approved specs (`contracts/`) and `docs/` keep their reviewed form.
+- **Repository root:** exactly two root paths are created for this service — `.github/workflows/cook-assistance.yml`
+  (path filter `Chapter16/BlueprintImplementation/**`) and `.husky/`, whose hooks act only on staged files under
+  `Chapter16/BlueprintImplementation`. No root `package.json`; nothing else at the root.

@@ -26,3 +26,10 @@ All tool versions are pinned in `package.json` / CI. Results in the test environ
 
 ## Quality scenarios
 Serves QS-01 … QS-21 verification; QS-06 stays an open verification.
+
+## Amendment — 2026-10-25 (step 12, user decision)
+- **Recipe Catalog in tests:** the in-process `StubRecipeCatalog` (test-support, `node:http` on a free port, under the
+  upstream server path `/recipe-catalog`) instead of a Prism mock — it answers per scenario (a step, 404, 500, a
+  delay, a dropped connection), which the acceptance examples need ("step 9 does not exist"); Prism answers from the
+  spec's examples only. The adapter's requests are tied to the pinned upstream spec by the type-level gate in
+  `http-recipe-catalog.spec.ts` (ADR-CA-015, amended).

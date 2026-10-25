@@ -15,7 +15,9 @@ info:
 
     Errors are RFC 9457 Problem Details (`application/problem+json`) with the extensions `code` and
     `rule`. An undeclared path answers 404, an undeclared method 405 with `Allow`, an undeclared
-    content type 415 and an unparsable body 400 — always as a Problem.
+    content type 415 and an unparsable body 400 — always as a Problem. A request body larger than
+    1 MB answers 413, and more than 60 requests per minute from one cook (anonymous callers: per
+    address) answer 429 with `Retry-After` (ADR-CA-010).
 
     The API evolves additively within a major version: clients must ignore unknown response fields
     and handle unknown enumeration values in responses.
@@ -57,23 +59,22 @@ paths:
         the `requester` from the authenticated cook, sets the status to `REQUESTED` and starts the
         answer deadline (Menu 48 h, Ingredients 24 h, Catastrophe 10 min, Preparation step 5 h).
 
+        Answered with `400` (`InvalidRequest`) when the body breaks the schema, including its
+        conditional rules: a recipe for every topic but Menu (INV-17, INV-21, INV-23), exactly one
+        step for Preparation step (INV-17), exactly one ingredient for Ingredients (INV-21), at least
+        one addressee (INV-20), pictures for Catastrophe only and at most 10 of them (INV-24).
+
         Refused with `403` and code `PremiumRequiredForChef` when a cook who is not premium
-        addresses a Chef (INV-02). Refused with `422` and the rule as `code`:
-        - `QuestionRequired` — the cook's question is missing (INV-19).
-        - `RecipeRequired` — a recipe is required for Preparation step, Ingredients and
-          Catastrophe (INV-17, INV-21, INV-23).
-        - `StepRequired` — Preparation step needs exactly one step (INV-17).
+        addresses a Chef (INV-02). Refused with `422` and the rule as `code` for the rules the
+        schema cannot express:
+        - `QuestionRequired` — the cook's question consists of blanks only (INV-19).
         - `StepNotInRecipe` — the named step does not exist in the recipe (INV-18, INV-23).
-        - `IngredientRequired` — Ingredients needs exactly one ingredient (INV-21).
         - `IngredientNotInRecipe` — the ingredient does not exist in the recipe (INV-22).
-        - `AddresseeRequired` — at least one addressee (INV-20).
         - `ChefOnlyForMenu` — a Chef can only be asked for meal planning (INV-01, INV-20).
         - `ChefMustBeExclusive` — a Chef is never addressed together with others (SADR0001).
         - `ChefRequired` — a Chef-addressed Menu request names exactly one Chef (INV-03).
         - `ChefNotLocal`, `ChefNotTimelyAvailable` — the selected Chef is not in the cook's city or
           not free before the planned meal (INV-03).
-        - `PicturesOnlyForCatastrophe`, `TooManyPictures` — 0 to 10 pictures, Catastrophe only
-          (INV-24).
         - `TopicNotYetSupported` — the service does not serve this topic yet (rule `null`); topics
           are added one at a time, Preparation step first.
 
@@ -97,10 +98,14 @@ paths:
           $ref: '#/components/responses/ForbiddenResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeResponse'
         '415':
           $ref: '#/components/responses/UnsupportedMediaTypeResponse'
         '422':
           $ref: '#/components/responses/DomainRuleViolationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -135,6 +140,8 @@ paths:
           $ref: '#/components/responses/ForbiddenResponse'
         '404':
           $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -163,6 +170,8 @@ paths:
           $ref: '#/components/responses/ForbiddenResponse'
         '404':
           $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -203,6 +212,8 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -246,10 +257,14 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeResponse'
         '415':
           $ref: '#/components/responses/UnsupportedMediaTypeResponse'
         '422':
           $ref: '#/components/responses/DomainRuleViolationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -296,10 +311,14 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '413':
+          $ref: '#/components/responses/PayloadTooLargeResponse'
         '415':
           $ref: '#/components/responses/UnsupportedMediaTypeResponse'
         '422':
           $ref: '#/components/responses/DomainRuleViolationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -331,6 +350,8 @@ paths:
           $ref: '#/components/responses/ForbiddenResponse'
         '404':
           $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -360,6 +381,8 @@ paths:
           $ref: '#/components/responses/ForbiddenResponse'
         '404':
           $ref: '#/components/responses/NotFoundResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -399,6 +422,8 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -438,6 +463,8 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         '409':
           $ref: '#/components/responses/ConflictResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalErrorResponse'
         '503':
@@ -1608,6 +1635,26 @@ components:
 
     ServiceUnavailableResponse:
       description: A dependency (database, Recipe Catalog) is unavailable; retry later
+      headers:
+        Retry-After:
+          description: Seconds after which the client may retry.
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+    PayloadTooLargeResponse:
+      description: The request body is larger than 1 MB (ADR-CA-010)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+    TooManyRequestsResponse:
+      description: More than 60 requests per minute from this cook (or address); retry later (ADR-CA-010)
       headers:
         Retry-After:
           description: Seconds after which the client may retry.

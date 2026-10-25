@@ -560,10 +560,9 @@ components:
       name: version
       in: header
       required: true
-      description: Version of the API contract the client was built against.
+      description: Version of the API contract the client was built against; must be sent (no default).
       schema:
         type: string
-        default: "2.0.0"
         enum: ["2.0.0"]
 
   headers:

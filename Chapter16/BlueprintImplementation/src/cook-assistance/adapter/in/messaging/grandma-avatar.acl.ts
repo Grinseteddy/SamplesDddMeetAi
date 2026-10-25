@@ -26,7 +26,7 @@ export function toGrandmaAvatarAnswered(messageId: string, payload: GrandmaAvata
     helpRequestId: HelpRequestId.of(payload.helpRequest),
     answerTitle: payload.answerTitle,
     answer: {
-      topic: "PREPARATION_STEP",
+      topic: TOPIC_OF_ANSWER_TYPE[answer.answerType],
       recipeId: RecipeId.of(answer.recipeId),
       howToStepId: HowToStepId.of(answer.howToStepId),
       description: answer.description,

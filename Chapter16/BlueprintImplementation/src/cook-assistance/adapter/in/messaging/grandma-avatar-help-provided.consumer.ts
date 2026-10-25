@@ -25,7 +25,7 @@ export interface Delivery {
 export interface ConsumerLogEvent {
   readonly event: "grandma-avatar-help-provided";
   readonly messageId: string | null;
-  readonly outcome: GrandmaAvatarAnswerOutcome["outcome"] | "INVALID_MESSAGE";
+  readonly outcome: GrandmaAvatarAnswerOutcome["outcome"];
   readonly rule: string | null;
 }
 
@@ -35,6 +35,17 @@ export interface GrandmaAvatarConsumerPorts {
 }
 
 const EXPECTED_SOURCE = "grandma-avatar";
+
+/** How a trusted message that could not be handled is settled. */
+function settleFailure(error: unknown, delivery: Delivery): void {
+  // F5 · a topic not served yet is refused for good: acknowledged, never redelivered
+  if (error instanceof TopicNotYetSupported) {
+    delivery.ack();
+    return;
+  }
+  // ADR-CA-004 · anything else is redelivered; the quorum queue dead-letters it after 5 deliveries
+  delivery.retry();
+}
 
 // op: receiveGrandmaAvatarHelpProvided (channel cook-assistance.grandma-avatar-help-provided) · policy: P2
 export class GrandmaAvatarHelpProvidedConsumer {
@@ -53,13 +64,7 @@ export class GrandmaAvatarHelpProvidedConsumer {
       this.logOutcome(input, await this.ports.handler.handle(input));
       delivery.ack();
     } catch (error) {
-      // F5 · a topic not served yet is refused for good: acknowledged, never redelivered
-      if (error instanceof TopicNotYetSupported) {
-        delivery.ack();
-        return;
-      }
-      // ADR-CA-004 · anything else is redelivered; the quorum queue dead-letters it after 5 deliveries
-      delivery.retry();
+      settleFailure(error, delivery);
     }
   }
 

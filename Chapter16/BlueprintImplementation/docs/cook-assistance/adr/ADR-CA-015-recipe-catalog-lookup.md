@@ -27,3 +27,17 @@ QS-08 gives commands a p95 of 300 ms.
 
 ## Quality scenarios
 Serves INV-18/22/23 and QS-08; trades off QS-05-style resilience (no fallback for this check).
+
+## Amendment — 2026-10-25 (step 10, unit 10.5, user decisions)
+- **Client:** Node's built-in `fetch` instead of `openapi-fetch` — no new runtime dependency. Types come from
+  `openapi-typescript` 7.13.0 (`tools/codegen`, script `generate:upstream`) into
+  `src/generated/openapi/recipe-catalog.ts`; the adapter types its request and response against the generated
+  `paths`. The pinned copy `contracts/upstream/recipe-catalog.openapi.yaml` is byte-identical to Chapter 13's
+  1.0.0 (sha256 `9e3e695c…f8f3b3cc`); a new upstream version is copied deliberately, never fetched.
+- **Upstream token:** Recipe Catalog requires OAuth2 (`recipe:read`). The cook's token is issued for the
+  `cook-assistance` audience and is **not** forwarded. The adapter asks a `TokenProvider` port for a bearer
+  token; the production provider (Keycloak client-credentials grant, client ID and secret from the
+  environment) is an **open item for steps 13/14** — until then the walking skeleton cannot call a secured
+  Recipe Catalog in production.
+- **Circuit breaker:** hand-written, time from the `Clock` port (ADR-CA-007), so its tests are deterministic.
+- **Header:** every call sends `version: 1.0.0` (required by the upstream spec).

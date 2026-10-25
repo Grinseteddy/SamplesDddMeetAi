@@ -11,8 +11,9 @@
     "yaml": "2.9.1"
   },
   "scripts": {
-    "generate": "npm run generate:openapi && npm run generate:asyncapi",
+    "generate": "npm run generate:openapi && npm run generate:upstream && npm run generate:asyncapi",
     "generate:openapi": "openapi-typescript ../../contracts/openapi/cook-assistance.openapi.yaml --output ../../src/generated/openapi/cook-assistance.ts",
+    "generate:upstream": "openapi-typescript ../../contracts/upstream/recipe-catalog.openapi.yaml --output ../../src/generated/openapi/recipe-catalog.ts",
     "generate:asyncapi": "node generate-asyncapi.mjs"
   }
 }

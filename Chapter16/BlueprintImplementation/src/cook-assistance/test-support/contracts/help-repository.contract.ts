@@ -72,5 +72,10 @@ export function helpRepositoryContract(name: string, setUp: () => Promise<HelpRe
 
       expect(await underTest.savedEventTypes()).toEqual(["HelpProvided"]);
     });
+    it("saving a new help under an id that is already stored fails with ConcurrencyConflict -- B1-S04 contract ADR-CA-005", async () => {
+      await underTest.repository.save(Help.provide(grandmaExplainsWarm));
+
+      await expect(underTest.repository.save(Help.provide(grandmaExplainsWarm))).rejects.toBeInstanceOf(ConcurrencyConflict);
+    });
   });
 }

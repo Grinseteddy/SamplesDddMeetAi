@@ -27,7 +27,15 @@ export async function writeVersioned<DB>(
 ): Promise<void> {
   const versioned = tx as unknown as Transaction<VersionedTables>; // one table, known only by name here
   if (loadedVersion === 0) {
-    await versioned.insertInto(table).values({ ...row, version: 1 }).execute();
+    try {
+      await versioned.insertInto(table).values({ ...row, version: 1 }).execute();
+    } catch (error) {
+      // the id is already stored: a new aggregate cannot claim it (SQLSTATE 23505)
+      if ((error as { code?: string }).code === "23505") {
+        throw new ConcurrencyConflict(aggregateName, row.id);
+      }
+      throw error;
+    }
     return;
   }
   const updated = await versioned

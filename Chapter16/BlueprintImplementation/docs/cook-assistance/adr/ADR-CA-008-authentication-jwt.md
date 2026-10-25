@@ -29,3 +29,9 @@ the token. AP0008 asks for fine-grained access rights.
 
 ## Principles and quality scenarios
 Honors AP0008. Serves the security goal (rank 3), QS-19.
+
+## Amendment — 2026-10-25 (step 9, user decision)
+- **Claims (Keycloak defaults):** `sub` → `cookId`; `realm_access.roles` → roles (`COOK`, `COMMUNITY_COOK`, `CHEF`); `scope` (space-separated) → scopes; `premium` (boolean, custom mapper) → premium flag; `iss` and `aud: cook-assistance` verified with jose `jwtVerify` (30 s skew).
+- **Order:** authentication runs as Express middleware **before** the body parser and the spec validator, so a caller without a valid token gets `401` and learns nothing about the contract (ADR-CA-009, deny by default). Invalid tokens (any jose error except `JWKSTimeout`) → `401 Unauthenticated`; a JWKS that cannot be fetched is not a 401.
+- **Missing scope or role** → `403` with code `NotAuthorized` (`rule` null); the permission table of ADR-CA-009 is data keyed by `operationId` (`adapter/in/http/authorization.ts`).
+

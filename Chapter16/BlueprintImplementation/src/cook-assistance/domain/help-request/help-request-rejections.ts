@@ -36,6 +36,15 @@ export class StepRequired extends DomainRejection {
   }
 }
 
+// INV-18 · the step exists in the recipe (checked against Recipe Catalog, ADR-CA-015)
+export class StepNotInRecipe extends DomainRejection {
+  readonly rule = "INV-18";
+
+  constructor() {
+    super("The recipe has no such step.");
+  }
+}
+
 // INV-17 · a preparation-step request names its recipe
 export class RecipeRequired extends DomainRejection {
   readonly rule = "INV-17";

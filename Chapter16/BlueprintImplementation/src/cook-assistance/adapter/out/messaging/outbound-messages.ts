@@ -1,5 +1,4 @@
-import type { HelpRequestEvent } from "../../../domain/help-request/help-request-events.js";
-import type { HelpEvent } from "../../../domain/help/help-events.js";
+import type { DomainEvent } from "../../../domain/domain-events.js";
 
 /** An outbox row as the relay reads it (step 7's columns plus migration 005's message id). */
 export interface OutboxRecord {
@@ -32,7 +31,7 @@ export const PUBLISH_EXCHANGE = "cook-assistance";
 const SOURCE = "cook-assistance";
 
 /** Every event type the domain raises: a new one fails type checking until it has a publish decision. */
-type DomainEventType = (HelpRequestEvent | HelpEvent)["type"];
+type DomainEventType = DomainEvent["type"];
 
 interface EventMapper {
   readonly operation: string;

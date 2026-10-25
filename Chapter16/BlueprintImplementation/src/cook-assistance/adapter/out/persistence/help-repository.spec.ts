@@ -8,6 +8,7 @@ import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
 import { KyselyHelpRepository } from "./help-repository.js";
 import { KyselyUnitOfWork } from "./unit-of-work.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
+import { resetSchema } from "./test-support/reset-schema.js";
 
 // Persistence — increment 0 (walking skeleton), step 7, unit 3: HelpRepository (Kysely adapter).
 // Real PostgreSQL 16 through Testcontainers (ADR-CA-016). Slice B1-S04 (Preparation step variant).
@@ -43,7 +44,7 @@ describe("KyselyHelpRepository — PostgreSQL 16", () => {
   });
 
   beforeEach(async () => {
-    await sql`truncate cook_assistance.help, cook_assistance.outbox`.execute(database.db);
+    await resetSchema(database.db);
   });
 
   afterAll(async () => {

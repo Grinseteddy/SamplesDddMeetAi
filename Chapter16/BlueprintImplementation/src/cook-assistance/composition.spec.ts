@@ -7,6 +7,7 @@ import type { RequestPreparationStepHelpCommand } from "./application/request-pr
 import { composeCookAssistance } from "./composition.js";
 import { InMemoryRecipeCatalog } from "./test-support/fakes/in-memory-recipe-catalog.js";
 import { grandmaExplainsWarm, sundaySconesStep3 } from "./test-support/fixtures/sunday-scones.js";
+import { resetSchema } from "./adapter/out/persistence/test-support/reset-schema.js";
 
 // Wiring — increment 0 (walking skeleton), step 8, unit 4: composeCookAssistance on PostgreSQL 16 (Testcontainers),
 // the production Clock and IdGenerator, and the in-memory Recipe Catalog (its real adapter comes with the outbound adapters).
@@ -32,9 +33,7 @@ describe("composeCookAssistance — PostgreSQL 16", () => {
   });
 
   beforeEach(async () => {
-    await sql`truncate cook_assistance.help_request, cook_assistance.help, cook_assistance.outbox, cook_assistance.processed_message`.execute(
-      database.db,
-    );
+    await resetSchema(database.db);
   });
 
   afterAll(async () => {

@@ -4,6 +4,7 @@ import { helpRequestRepositoryContract } from "../../../test-support/contracts/h
 import { KyselyHelpRequestRepository } from "./help-request-repository.js";
 import { migrateToLatest } from "./migrations.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
+import { resetSchema } from "./test-support/reset-schema.js";
 
 // The Kysely adapter must pass the same contract as the in-memory fake (step 8, unit 1a), on PostgreSQL 16.
 let database: TestDatabase;
@@ -18,7 +19,7 @@ afterAll(async () => {
 });
 
 helpRequestRepositoryContract("Kysely adapter on PostgreSQL 16", async () => {
-  await sql`truncate cook_assistance.help_request, cook_assistance.outbox`.execute(database.db);
+  await resetSchema(database.db);
   return {
     repository: new KyselyHelpRequestRepository(database.db),
     savedEventTypes: async () =>

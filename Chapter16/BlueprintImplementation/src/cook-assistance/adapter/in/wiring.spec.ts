@@ -12,6 +12,7 @@ import { migrateToLatest } from "../out/persistence/migrations.js";
 import { startPostgres, type TestDatabase } from "../out/persistence/test-support/postgres-container.js";
 import { createHttpApp } from "./http/http-app.js";
 import { createGrandmaAvatarHelpProvidedConsumer } from "./messaging/grandma-avatar-help-provided.consumer.js";
+import { resetSchema } from "../out/persistence/test-support/reset-schema.js";
 
 // Wiring — increment 0, step 9, unit 9.4: the inbound adapters through the real persistence adapters (Testcontainers PostgreSQL 16).
 
@@ -28,9 +29,7 @@ describe("inbound wiring — PostgreSQL 16", () => {
   });
 
   beforeEach(async () => {
-    await sql`truncate cook_assistance.help_request, cook_assistance.help, cook_assistance.outbox, cook_assistance.processed_message`.execute(
-      database.db,
-    );
+    await resetSchema(database.db);
     const recipeCatalog = new InMemoryRecipeCatalog();
     recipeCatalog.addHowToStep(sundaySconesStep3.recipeId, sundaySconesStep3.howToStepId);
     cookAssistance = composeCookAssistance({ db: database.db, recipeCatalog });

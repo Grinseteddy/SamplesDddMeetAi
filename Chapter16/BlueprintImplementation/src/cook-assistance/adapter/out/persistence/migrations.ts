@@ -96,6 +96,49 @@ const migrations: Record<string, Migration> = {
         .execute();
     },
   },
+  // ADR-CA-012 · the read models "Help request" and "Help", projected in the save transaction
+  "006_read_models": {
+    async up(db) {
+      await db.schema
+        .withSchema(SCHEMA)
+        .createTable("help_request_view")
+        .addColumn("id", "uuid", (c) => c.primaryKey())
+        .addColumn("requester", "uuid", (c) => c.notNull())
+        .addColumn("title", "text", (c) => c.notNull())
+        .addColumn("topic", "text", (c) => c.notNull())
+        .addColumn("description", "text", (c) => c.notNull())
+        .addColumn("recipe_id", "uuid")
+        .addColumn("how_to_step_id", "uuid")
+        .addColumn("addressees", sql`text[]`, (c) => c.notNull())
+        .addColumn("status", "text", (c) => c.notNull())
+        .addColumn("answer_deadline", "timestamptz", (c) => c.notNull())
+        .addColumn("created_at", "timestamptz", (c) => c.notNull())
+        .addColumn("updated_at", "timestamptz", (c) => c.notNull())
+        .execute();
+      // the spec's filters (status, topic, addressee, requester) and its order (createdAt, id)
+      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_status_idx").on("help_request_view").column("status").execute();
+      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_topic_idx").on("help_request_view").column("topic").execute();
+      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_requester_idx").on("help_request_view").column("requester").execute();
+      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_addressees_idx").on("help_request_view").using("gin").column("addressees").execute();
+      await db.schema.withSchema(SCHEMA).createIndex("help_request_view_created_at_id_idx").on("help_request_view").columns(["created_at", "id"]).execute();
+      await db.schema
+        .withSchema(SCHEMA)
+        .createTable("help_view")
+        .addColumn("id", "uuid", (c) => c.primaryKey())
+        .addColumn("help_request_id", "uuid", (c) => c.notNull())
+        .addColumn("help_requester", "uuid", (c) => c.notNull())
+        .addColumn("answer_title", "text", (c) => c.notNull())
+        .addColumn("provider_type", "text", (c) => c.notNull())
+        .addColumn("provider_id", "uuid")
+        .addColumn("answer", "jsonb", (c) => c.notNull())
+        .addColumn("status", "text", (c) => c.notNull())
+        .addColumn("created_at", "timestamptz", (c) => c.notNull())
+        .addColumn("updated_at", "timestamptz", (c) => c.notNull())
+        .execute();
+      // the helps of one request, in the spec's order
+      await db.schema.withSchema(SCHEMA).createIndex("help_view_help_request_id_created_at_idx").on("help_view").columns(["help_request_id", "created_at"]).execute();
+    },
+  },
 };
 
 export async function migrateToLatest(db: Kysely<unknown>): Promise<void> {

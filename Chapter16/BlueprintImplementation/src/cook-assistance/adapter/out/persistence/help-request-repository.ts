@@ -8,7 +8,8 @@ import {
 import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-request/help-request-events.js";
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
-import { appendToOutbox, type NewOutboxRow, type OutboxTables } from "./outbox.js";
+import { recordEvents } from "./events.js";
+import type { NewOutboxRow, OutboxTables } from "./outbox.js";
 import { withinTransaction } from "./unit-of-work.js";
 import { writeVersioned } from "./versioned-state.js";
 
@@ -111,7 +112,7 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
   }
 
   // ADR-CA-005 · versioned write (writeVersioned).
-  // ADR-CA-004 · state and outbox rows in one transaction.
+  // ADR-CA-004 · state, outbox rows and read models (ADR-CA-012) in one transaction.
   async save(helpRequest: HelpRequest): Promise<void> {
     await withinTransaction(this.db, async (tx) => {
       await writeVersioned(tx, {
@@ -120,7 +121,7 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
         row: toHelpRequestRow(helpRequest),
         loadedVersion: helpRequest.version,
       });
-      await appendToOutbox(tx, helpRequest.pullEvents().map(toOutboxRow));
+      await recordEvents(tx, helpRequest.pullEvents().map(toOutboxRow));
     });
   }
 

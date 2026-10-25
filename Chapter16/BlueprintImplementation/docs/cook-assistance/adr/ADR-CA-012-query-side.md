@@ -22,3 +22,15 @@ p95 ≤ 200 ms on about one year of data (QS-16, ~120 000 requests). ADR-CA-009 
 
 ## Quality scenarios
 Serves QS-09, QS-11, QS-16; keeps QS-01 (query port).
+
+## Amendment — 2026-10-25 (step 11, user decisions)
+- **Rebuild source:** the views are rebuilt by **replaying the outbox** in `id` order through the same projection
+  handlers that run in the save transaction — not from the aggregate tables, which carry no `created_at`/`updated_at`.
+  The events carry `occurredAt`, which becomes the views' `createdAt`/`updatedAt`. A rebuild runs in one transaction:
+  it fails as a whole on a row it cannot project, leaving the views as they were.
+- **Retention:** outbox rows are **kept** after publishing (never deleted) until an archive or event-store decision;
+  row growth is an open risk (QS-16: ~120 000 requests a year).
+- **Projection decisions:** one handler or `ignore` per domain event type, checked against the event union at compile
+  time; an event type in the outbox without a decision fails the rebuild (`UnhandledEvent`).
+- **Scope in increment 0:** all four GET operations (`getHelpRequestById`, `listHelpRequests`, `getHelpById`,
+  `listHelpsForHelpRequest`). The read cache of ADR-CA-013 is deferred (open item, steps 13/14 or later).

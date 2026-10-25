@@ -184,6 +184,38 @@ TDD (steps 6–12): inc 0 · step 10 · unit 10.3 RabbitMQ adapters on Testconta
 
 - STEP 10 APPROVED (2026-10-25). Open items (6): help-request link built in both HTTP and messaging adapters (shared module — decide deliberately); Recipe Catalog client-credentials TokenProvider (13/14); dead-letter metric and alert (13/14); main.ts start smoke test and a start/build script (12); Testcontainers setup flake under parallel load (12); one list of served topics for HTTP and messaging (inc 1).
 
+- Step 11 slice check (query side): read models Help request (help_request_view, evt HelpRequested) and Help (help_view, evt HelpProvided) behind getHelpRequestById, listHelpRequests, getHelpById, listHelpsForHelpRequest; visibility ADR-CA-009; projections in the save transaction (ADR-CA-012). User decisions: all four GETs in increment 0; rebuild by replaying the outbox (rows kept); ADR-CA-013 read cache deferred (open item). ADR-CA-012 amended.
+- Step 11 inactive lists: 11.1 projections (7), 11.2 help request queries (11), 11.3 help queries (6).
+
+- Test lists step 11 approved. 11.1 item 1 Red: scaffold "006_read_models" with an empty up. Predicted 1 failed | 29 passed | 2 skipped files, 1 failed | 213 passed | 26 todo (240), "expected [] to deeply equal [ … ]", tsc 0, ESLint 68 — match.
+
+- 11.1 item 1 Green: migration 006 (help_request_view: 12 columns, indexes status/topic/requester, GIN addressees, (created_at, id); help_view: 10 columns, index (help_request_id, created_at)). Predicted 30 passed | 2 skipped, 214 passed | 26 todo (240), tsc 0, ESLint 68 — MISMATCH on ESLint only: 69; the `for` over the three filter columns in 006's up scores +1 (a loop I did not count). Tests and tsc as predicted.
+
+- 11.1 item 1 Refactor trial: the three filter indexes written out (plain DDL like every migration). Predicted 214 | 26, tsc 0, ESLint 68 — match; retained.
+- 11.1 item 2 Red: predicted 1 failed | 214 passed | 25 todo (240), "expected [] to deeply equal [ { … } ]", tsc 0, ESLint 68 — match.
+
+- 11.1 item 2 Green: read-model/projections.ts (`project`, PROJECTIONS: HelpRequested → help_request_view), called by KyselyHelpRequestRepository.save in its transaction; `project<DB>` generic (a first tsc error — Transaction<CookAssistanceTables> not assignable to Transaction<unknown> — fixed before any run). MISMATCH: predicted 215 passed | 25 todo, ESLint 69; revised before the run (a consequence spotted): item 2 passes and specs that save the fixture id again without truncating the view fail with duplicate key help_request_view_pkey, count not predicted. Actual: 17 failed | 198 passed | 25 todo (240), all on help_request_view_pkey, in outbox-relay.spec, help-request-repository.spec and its contract spec (they truncate only help_request and outbox). Item 2 itself passes.
+
+- Test setup (user decision): test-support/reset-schema.ts `resetSchema(db)` truncates every cook_assistance table except Kysely's migration tables (read from pg_tables); the 11 PostgreSQL specs call it instead of hand-written truncate lists. tsc 0. First full run: the 11 specs pass, but rabbitmq.spec.ts failed in setup (5 skipped): `connect ECONNREFUSED 127.0.0.1:55556` / `::1:55556` right after the RabbitMQ container was reported started, then `connection` undefined in afterAll — the step-12 setup flake, now with its cause: under parallel load the mapped AMQP port refuses briefly; fix in step 12 (connect retry or a port wait strategy). Re-run: 30 passed | 2 skipped, 215 passed | 25 todo (240), ESLint 69 (`project` 1) — as predicted.
+
+- 11.1 item 3 Red: predicted 1 failed | 215 passed | 24 todo (240), "expected [] to deeply equal [ { … } ]", tsc 0, ESLint 69 — match.
+
+- 11.1 item 3 Green: PROJECTIONS gains HelpProvided → help_view; KyselyHelpRepository.save projects in its transaction. Predicted 216 passed | 24 todo (240), tsc 0, ESLint 69 — match. Refactor trial: `recordEvents(tx, rows)` (persistence/events.ts: outbox + read models) replaces the repeated append-then-project in both repositories; predicted 216 | 24, tsc 0, ESLint 69 — match; retained. The Help repository's save comment names the read models.
+
+- 11.1 item 4 revised (user decision) to "one transaction": a ConcurrencyConflict save adds no view row; a save whose projection fails (stale view row) leaves neither state nor outbox row. Green on activation as predicted — 217 passed | 23 todo (240), tsc 0, ESLint 69. Boundary trial: project in a second transaction after commit → predicted only item 4 fails with [1, 1] vs [0, 0] — match; restored (no TRIAL left), tsc 0.
+
+- 11.1 item 5 Red (type-level gate, expectTypeOf on PROJECTIONS' keys vs the domain event union): predicted Vitest 218 passed | 22 todo, tsc exit 2 with TS2344 at the gate line, ESLint 69 — match.
+
+- 11.1 item 5 Green: PROJECTIONS satisfies Record<DomainEventType, Projection>; lookup through PROJECTION_OF (string keys). Predicted 218 | 22, tsc 0, ESLint 69 — match. Gate trial (HelpRated added to HelpEvent): predicted TS1360 at projections.ts, TS1360 outbound-messages.ts, TS2339 help-repository.ts — all present; not listed but also present: two more errors in help-repository.ts (TS2345, TS2339 providedAt) and the gate test's own TS2344; restored, tsc 0. Refactor trial: domain/domain-events.ts `DomainEvent` — the event union named once, used by both gates and the gate test (a first script attempt wrote nothing — its run on unchanged code not counted). Predicted 218 | 22, tsc 0, ESLint 69 — match; retained.
+
+- 11.1 item 6 Red: scaffold no-op `rebuildViews(db)`. Predicted 1 failed | 218 passed | 21 todo, failing on help_request_view (title 'damaged'), tsc 0, ESLint 69 — match.
+
+- 11.1 item 6 Green: rebuildViews truncates both views and replays the outbox in id order through `project`, in one transaction. Predicted 219 passed | 21 todo (240), tsc 0, ESLint 69 — match. Refactor review: no change. Open risk (user decision, not tested): a save during a rebuild — the truncate's lock makes a concurrent save's view insert wait until the rebuild commits; no extra lock added.
+
+- 11.1 item 7 Red: scaffold `UnhandledEvent`. Predicted 1 failed | 219 passed | 20 todo, "promise resolved undefined instead of rejecting", tsc 0, ESLint 69 — match.
+
+- 11.1 item 7 Green: `project` throws UnhandledEvent for an event type without a decision (the rebuild rolls back, truncate included). Predicted 220 passed | 20 todo (240), tsc 0, ESLint 69 (`project` 3) — match. Unit 11.1 complete: 7/7; projections.spec.ts run twice more.
+
 Commits (inc 0): b16877b feat(help-request) B2-S01 aggregate; d795038 refactor(help-request); 79f6e06 feat(help) B1-S04 aggregate
 Delivery (step 0): repo SamplesDddMeetAi (book repo), default branch main, work scoped to Chapter16/BlueprintImplementation; branches one per increment — feature/<context>-inc0-walking-skeleton, feature/<context>-inc<k>-<board>, steps 1–5 docs on docs/<context>-design; commits Conventional Commits at each approved unit checkpoint (refactor commits separate); remote GitHub origin github.com/Grinseteddy/SamplesDddMeetAi, PRs one per increment via gh (gh 2.103.2 installed and logged in as Grinseteddy, scopes repo + workflow — verified 2026-10-24), run never merges; CI GitHub Actions in book repo .github/workflows, path filter Chapter16/BlueprintImplementation/**, load tests on PR only; hooks tool chosen with the stack in step 5 (format, lint, types, secret scan, commit-msg), written in the walking skeleton; docs Chapter16/BlueprintImplementation/docs/<context>/, project memory CLAUDE.md in BlueprintImplementation; Definition of Done default unchanged; declined parts: none
 

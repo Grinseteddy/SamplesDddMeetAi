@@ -11,6 +11,7 @@ import { migrateToLatest } from "../persistence/migrations.js";
 import { startPostgres, type TestDatabase } from "../persistence/test-support/postgres-container.js";
 import { type DeadLetteredRow, OutboxRelay } from "./outbox-relay.js";
 import { loadSendCheck, type SendCheck } from "./send-check.js";
+import { resetSchema } from "../persistence/test-support/reset-schema.js";
 
 // Outbound messaging — increment 0, step 10, unit 10.2: the outbox relay (ADR-CA-004). Real PostgreSQL 16, a fake publisher, an injected clock.
 
@@ -29,7 +30,7 @@ describe("outbox relay — PostgreSQL 16", () => {
   });
 
   beforeEach(async () => {
-    await sql`truncate cook_assistance.help_request, cook_assistance.help, cook_assistance.outbox`.execute(database.db);
+    await resetSchema(database.db);
     publisher = new FakePublisher();
     reported = [];
   });

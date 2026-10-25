@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { migrateToLatest } from "./migrations.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
+import { resetSchema } from "./test-support/reset-schema.js";
 
 // Persistence — increment 0, step 10, unit 10.0: the outbox row's stable message id (migration 005, ADR-CA-004 as amended).
 // Real PostgreSQL 16 through Testcontainers.
@@ -22,7 +23,7 @@ describe("outbox message_id — PostgreSQL 16", () => {
   });
 
   beforeEach(async () => {
-    await sql`truncate cook_assistance.outbox`.execute(database.db);
+    await resetSchema(database.db);
   });
 
   afterAll(async () => {

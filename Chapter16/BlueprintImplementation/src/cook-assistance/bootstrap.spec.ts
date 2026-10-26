@@ -206,71 +206,82 @@ describe("bootstrap — end to end (PostgreSQL 16, RabbitMQ 3.13, stub Recipe Ca
     return ((await response.json()) as { helpRequestId: string }).helpRequestId;
   }
 
+  /** settle waits up to 6 s after the service starts: more than Vitest's default 5 s on a CI runner (step 12, unit 12.6). */
+  const E2E_TIMEOUT_MS = 15_000;
+
   /** Waits for the first message, then long enough that a second one would have arrived. */
   async function settle(received: OutgoingMessage[]): Promise<void> {
     await eventually(() => received.length > 0, 5_000);
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
 
-  it("end to end: POST /help-requests, one relay run → exactly the promised message on help.requested, no pending rows left -- B2-S01 wiring", async () => {
-    upstream.respondWith(200, STEP_3);
-    const service = await start();
-    try {
-      const requested = await collect("help.requested");
+  it(
+    "end to end: POST /help-requests, one relay run → exactly the promised message on help.requested, no pending rows left -- B2-S01 wiring",
+    async () => {
+      upstream.respondWith(200, STEP_3);
+      const service = await start();
+      try {
+        const requested = await collect("help.requested");
 
-      const helpRequestId = await requestHelpForStep3(service);
-      await settle(requested);
+        const helpRequestId = await requestHelpForStep3(service);
+        await settle(requested);
 
-      expect(requested).toHaveLength(1);
-      expect(requested[0]).toMatchObject({
-        routingKey: "help.requested",
-        headers: { correlationId: helpRequestId },
-        payload: { helpRequestId },
-      });
-      expect(check(requested[0] as OutgoingMessage)).toBe(true);
-      const pending = await sql<{ count: string }>`select count(*) from cook_assistance.outbox where published_at is null`.execute(
-        database.db,
-      );
-      expect(pending.rows).toEqual([{ count: "0" }]);
-    } finally {
-      await service.stop();
-    }
-  });
-  it("end to end: a Grandma Avatar message on its queue → the help is stored and HelpProvided is published on help.provided -- B1-S04 wiring", async () => {
-    upstream.respondWith(200, STEP_3);
-    const service = await start();
-    try {
-      const provided = await collect("help.provided");
-      const helpRequestId = await requestHelpForStep3(service);
+        expect(requested).toHaveLength(1);
+        expect(requested[0]).toMatchObject({
+          routingKey: "help.requested",
+          headers: { correlationId: helpRequestId },
+          payload: { helpRequestId },
+        });
+        expect(check(requested[0] as OutgoingMessage)).toBe(true);
+        const pending = await sql<{ count: string }>`select count(*) from cook_assistance.outbox where published_at is null`.execute(
+          database.db,
+        );
+        expect(pending.rows).toEqual([{ count: "0" }]);
+      } finally {
+        await service.stop();
+      }
+    },
+    E2E_TIMEOUT_MS,
+  );
+  it(
+    "end to end: a Grandma Avatar message on its queue → the help is stored and HelpProvided is published on help.provided -- B1-S04 wiring",
+    async () => {
+      upstream.respondWith(200, STEP_3);
+      const service = await start();
+      try {
+        const provided = await collect("help.provided");
+        const helpRequestId = await requestHelpForStep3(service);
 
-      const answer = {
-        helpId: grandmaExplainsWarm.id,
-        helpRequest: helpRequestId,
-        helpRequester: sundaySconesStep3.requester,
-        answerTitle: grandmaExplainsWarm.answerTitle,
-        helpProviderType: "GRANDMA_AVATAR",
-        answer: {
-          answerType: "PREPARATION_STEP_EXPLANATION",
-          recipeId: sundaySconesStep3.recipeId,
-          howToStepId: sundaySconesStep3.howToStepId,
-          description: grandmaExplainsWarm.answer.description,
-        },
-      };
-      channel.publish(TOPOLOGY.grandmaAvatarExchange, TOPOLOGY.grandmaAvatarRoutingKey, Buffer.from(JSON.stringify(answer)), {
-        persistent: true,
-        contentType: "application/json",
-        headers: { correlationId: helpRequestId, messageId: "8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d", source: "grandma-avatar" },
-      });
-      await settle(provided);
+        const answer = {
+          helpId: grandmaExplainsWarm.id,
+          helpRequest: helpRequestId,
+          helpRequester: sundaySconesStep3.requester,
+          answerTitle: grandmaExplainsWarm.answerTitle,
+          helpProviderType: "GRANDMA_AVATAR",
+          answer: {
+            answerType: "PREPARATION_STEP_EXPLANATION",
+            recipeId: sundaySconesStep3.recipeId,
+            howToStepId: sundaySconesStep3.howToStepId,
+            description: grandmaExplainsWarm.answer.description,
+          },
+        };
+        channel.publish(TOPOLOGY.grandmaAvatarExchange, TOPOLOGY.grandmaAvatarRoutingKey, Buffer.from(JSON.stringify(answer)), {
+          persistent: true,
+          contentType: "application/json",
+          headers: { correlationId: helpRequestId, messageId: "8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c1d", source: "grandma-avatar" },
+        });
+        await settle(provided);
 
-      expect(provided).toHaveLength(1);
-      expect(provided[0]).toMatchObject({ routingKey: "help.provided", headers: { correlationId: helpRequestId } });
-      expect(check(provided[0] as OutgoingMessage)).toBe(true);
-      const help = await sql<{ help_request_id: string }>`
+        expect(provided).toHaveLength(1);
+        expect(provided[0]).toMatchObject({ routingKey: "help.provided", headers: { correlationId: helpRequestId } });
+        expect(check(provided[0] as OutgoingMessage)).toBe(true);
+        const help = await sql<{ help_request_id: string }>`
         select help_request_id from cook_assistance.help where id = ${grandmaExplainsWarm.id}`.execute(database.db);
-      expect(help.rows).toEqual([{ help_request_id: helpRequestId }]);
-    } finally {
-      await service.stop();
-    }
-  });
+        expect(help.rows).toEqual([{ help_request_id: helpRequestId }]);
+      } finally {
+        await service.stop();
+      }
+    },
+    E2E_TIMEOUT_MS,
+  );
 });

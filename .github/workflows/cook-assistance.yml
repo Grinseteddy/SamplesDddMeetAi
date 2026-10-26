@@ -1,6 +1,6 @@
 # Cook Assistance (Chapter16/BlueprintImplementation) — ADR-CA-018: the one build command on every push and pull
 # request (QS-02: ≤ 10 min); load and OpenAPI contract runs on pull requests; 1000-run property tests nightly.
-# Security tools and the ZAP scan join in step 14.
+# Security baseline in verify; the ZAP API scan on pull requests (ADR-CA-010).
 name: cook-assistance
 
 on:
@@ -38,6 +38,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0 # gitleaks scans every commit of the service (ADR-CA-010)
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22.22"
@@ -105,6 +106,33 @@ jobs:
         with:
           name: contract-openapi-junit
           path: Chapter16/BlueprintImplementation/reports/junit-*.xml
+
+  dast:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.22"
+          cache: npm
+          cache-dependency-path: |
+            Chapter16/BlueprintImplementation/package-lock.json
+            Chapter16/BlueprintImplementation/tools/codegen/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix tools/codegen
+      - run: npm run generate
+      - run: npm run test:dast
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: zap-report
+          path: |
+            Chapter16/BlueprintImplementation/reports/security/zap-report.html
+            Chapter16/BlueprintImplementation/reports/security/zap-report.json
 
   property-nightly:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'

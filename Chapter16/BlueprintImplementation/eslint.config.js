@@ -1,5 +1,6 @@
 import tseslint from "typescript-eslint";
 import sonarjs from "eslint-plugin-sonarjs";
+import security from "eslint-plugin-security";
 
 // Measurements and smells for the end-refactor pass. cognitive-complexity has
 // threshold 0, so every branching function reports its score in the message
@@ -7,6 +8,8 @@ import sonarjs from "eslint-plugin-sonarjs";
 export default [
   { ignores: ["**/*.spec.ts", "src/generated/**"] }, // generated code is never edited, so never linted (ADR-CA-011)
   tseslint.configs.base,
+  // ADR-CA-010 · static security rules (as warnings, triaged in the security review, step 14)
+  { files: ["src/**/*.ts"], ...security.configs.recommended },
   {
     files: ["src/**/*.ts"],
     plugins: { sonarjs },

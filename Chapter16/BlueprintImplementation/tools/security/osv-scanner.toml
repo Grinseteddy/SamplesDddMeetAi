@@ -1,0 +1,78 @@
+# OSV-Scanner (ADR-CA-010): findings triaged in the security review of increment 0 (reviews/increment-0-security.md).
+
+[[IgnoredVulns]]
+id = "GHSA-q7qp-rjg7-q26m"
+ignoreUntil = 2027-01-31
+reason = "ADR-CA-021: multer via @nestjs/platform-express; no multipart in the service (gate test in edge.spec.ts)"
+
+[[IgnoredVulns]]
+id = "PYSEC-2020-173"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2021-437"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2023-228"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2026-1795"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2026-1796"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2026-196"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2026-2875"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2026-2876"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "PYSEC-2026-3721"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-4xh5-x5gv-qwph"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-58qw-9mgm-455v"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-5xp3-jfq3-5q8x"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-6vgw-5pg2-w6jp"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-gpvv-69j7-gwj8"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-jp4c-xjxw-mgf9"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-mq26-g339-26xf"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-qwm4-qh6w-59xr"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"
+
+[[IgnoredVulns]]
+id = "GHSA-wf93-45jw-7689"
+reason = "false positive (security review increment 0): pip 9.0.3 is not in tools/contract/requirements.lock; OSV-Scanner assumes it for pip_api; the venv has pip 26.2.2"

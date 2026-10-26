@@ -1,4 +1,4 @@
-import type { Delivery } from "../../adapter/in/messaging/grandma-avatar-help-provided.consumer.js";
+import type { Delivery } from "../../adapter/messaging/delivery.js";
 
 /** Records how a consumer settled a message (ack, dead letter, redelivery) instead of talking to the broker. */
 export class RecordingDelivery implements Delivery {

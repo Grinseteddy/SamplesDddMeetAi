@@ -27,6 +27,29 @@ module.exports = {
       to: { path: "^src/(cook-assistance/(composition|service)|main)\\.ts$" },
     },
     {
+      name: "inbound-adapters-do-not-depend-on-outbound-adapters",
+      comment:
+        "Adapters depend inward only (ADR-CA-002): what inbound and outbound adapters share lives in adapter/messaging, " +
+        "which imports neither side.",
+      severity: "error",
+      from: { path: "^src/cook-assistance/adapter/in/", pathNot: TESTS },
+      to: { path: "^src/cook-assistance/adapter/out/" },
+    },
+    {
+      name: "outbound-adapters-do-not-depend-on-inbound-adapters",
+      comment: "The other direction of the rule above.",
+      severity: "error",
+      from: { path: "^src/cook-assistance/adapter/out/", pathNot: TESTS },
+      to: { path: "^src/cook-assistance/adapter/in/" },
+    },
+    {
+      name: "not-to-unresolvable",
+      comment: "An import the cruiser cannot resolve is invisible to every rule above — so it is an error itself.",
+      severity: "error",
+      from: {},
+      to: { couldNotResolve: true },
+    },
+    {
       name: "no-circular",
       comment:
         "Runtime cycles only: types that belong together (an aggregate and its event union) may name each other through " +
@@ -37,9 +60,11 @@ module.exports = {
     },
   ],
   options: {
-    doNotFollow: { path: "node_modules" },
-    exclude: { path: "^src/generated" },
+    // generated code stays in the graph as leaves, so a domain or application import of it fails (ADR-CA-011)
+    doNotFollow: { path: ["node_modules", "^src/generated"] },
     tsConfig: { fileName: "tsconfig.json" },
     tsPreCompilationDeps: true,
+    // resolve package subpath exports (kysely/migration) the way Node and TypeScript do
+    enhancedResolveOptions: { exportsFields: ["exports"], conditionNames: ["import", "require", "node", "types", "default"] },
   },
 };

@@ -1,6 +1,6 @@
 import type { ChannelWrapper } from "amqp-connection-manager";
 import type { ConfirmChannel } from "amqplib";
-import type { Delivery, RawMessage } from "../../in/messaging/grandma-avatar-help-provided.consumer.js";
+import type { Delivery, RawMessage } from "../../messaging/delivery.js";
 import { type OutgoingMessage, PUBLISH_EXCHANGE } from "./outbound-messages.js";
 import type { Publisher } from "./outbox-relay.js";
 
@@ -41,13 +41,20 @@ export async function declareTopology(channel: ConfirmChannel): Promise<void> {
   await channel.bindQueue(TOPOLOGY.grandmaAvatarQueue, TOPOLOGY.grandmaAvatarExchange, TOPOLOGY.grandmaAvatarRoutingKey);
 }
 
+/** ADR-CA-004 (amended, inspection m-10) · how long a publish waits for the broker's confirm. */
+const PUBLISH_TIMEOUT_MS = 5_000;
+
 // op: publishHelpRequested, publishHelpProvided · exchange cook-assistance (ADR-CA-004: persistent, publisher confirms)
 export class AmqpPublisher implements Publisher {
   constructor(private readonly channel: ChannelWrapper) {}
 
-  /** Resolves once the broker confirmed the message (amqp-connection-manager opens confirm channels). */
+  /**
+   * Resolves once the broker confirmed the message (amqp-connection-manager opens confirm channels); rejects after
+   * PUBLISH_TIMEOUT_MS, so an unanswering broker becomes a failed attempt with backoff, not a pass that never ends.
+   */
   async publish(message: OutgoingMessage): Promise<void> {
     await this.channel.publish(message.exchange, message.routingKey, Buffer.from(JSON.stringify(message.payload)), {
+      timeout: PUBLISH_TIMEOUT_MS,
       persistent: true,
       contentType: "application/json",
       messageId: message.headers.messageId,

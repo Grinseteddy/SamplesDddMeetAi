@@ -6,20 +6,8 @@ import type {
 } from "../../../application/provide-help-when-grandma-avatar-answers.js";
 import { TopicNotYetSupported } from "../../../application/topic-not-yet-supported.js";
 import { toGrandmaAvatarAnswered } from "./grandma-avatar.acl.js";
-import { loadMessageSchemas, type MessageSchemas } from "./message-schemas.js";
-
-/** A message as the transport hands it over: AMQP headers and the JSON payload, not yet trusted. */
-export interface RawMessage {
-  readonly headers: Readonly<Record<string, unknown>>;
-  readonly payload: unknown;
-}
-
-/** How the transport settles a message (ADR-CA-004): ack, dead letter, or redeliver. */
-export interface Delivery {
-  ack(): void;
-  deadLetter(): void;
-  retry(): void;
-}
+import type { Delivery, RawMessage } from "../../messaging/delivery.js";
+import { loadMessageSchemas, type MessageSchemas } from "../../messaging/message-schemas.js";
 
 /** A structured log event without personal data (ADR-CA-010). */
 export interface ConsumerLogEvent {

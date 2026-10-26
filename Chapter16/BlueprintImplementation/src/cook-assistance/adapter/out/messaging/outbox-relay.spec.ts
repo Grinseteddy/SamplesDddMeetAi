@@ -9,7 +9,9 @@ import { KyselyHelpRepository } from "../persistence/help-repository.js";
 import { KyselyHelpRequestRepository } from "../persistence/help-request-repository.js";
 import { migrateToLatest } from "../persistence/migrations.js";
 import { startPostgres, type TestDatabase } from "../persistence/test-support/postgres-container.js";
-import { type DeadLetteredRow, OutboxRelay } from "./outbox-relay.js";
+import { v7 as uuidv7 } from "uuid";
+import type { OutgoingMessage } from "./outbound-messages.js";
+import { type DeadLetteredRow, OutboxRelay, type Publisher } from "./outbox-relay.js";
 import { loadSendCheck, type SendCheck } from "./send-check.js";
 import { resetSchema } from "../persistence/test-support/reset-schema.js";
 
@@ -39,7 +41,7 @@ describe("outbox relay — PostgreSQL 16", () => {
     await database.stop();
   });
 
-  function relayAt(now: Date, withPublisher: FakePublisher = publisher): OutboxRelay {
+  function relayAt(now: Date, withPublisher: Publisher = publisher): OutboxRelay {
     return new OutboxRelay({
       db: database.db,
       publisher: withPublisher,
@@ -182,6 +184,30 @@ describe("outbox relay — PostgreSQL 16", () => {
 
     const rows = await outboxRows();
     expect(publisher.published.map((message) => message.headers.messageId)).toEqual(rows.map((row) => row.message_id));
+  });
+  it("a claim round takes at most 50 rows: while the 51st of 60 is sent, the first 50 are already committed as published -- ADR-CA-004 (inspection m-10)", async () => {
+    const requests = new KyselyHelpRequestRepository(database.db);
+    for (let n = 0; n < 60; n += 1) {
+      await requests.save(HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, id: HelpRequestId.of(uuidv7()) }));
+    }
+    let committedWhenTheFiftyFirstWasSent: number | undefined;
+    let sent = 0;
+    const observing: Publisher = {
+      async publish(_message: OutgoingMessage) {
+        sent += 1;
+        if (sent === 51) {
+          // outside the relay's transaction: only what earlier rounds committed is visible
+          const { rows } = await sql<{ count: string }>`
+            select count(*) from cook_assistance.outbox where published_at is not null`.execute(database.db);
+          committedWhenTheFiftyFirstWasSent = Number(rows[0]?.count);
+        }
+      },
+    };
+
+    await relayAt(NOW, observing).runOnce();
+
+    expect(sent).toBe(60);
+    expect(committedWhenTheFiftyFirstWasSent).toBe(50);
   });
   it("several relays at once publish every row exactly once -- ADR-CA-004 QS-14", async () => {
     const repository = new KyselyHelpRequestRepository(database.db);

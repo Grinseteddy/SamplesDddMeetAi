@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { Parser } from "@asyncapi/parser";
-import { loadMessageSchemas, type MessageSchemas } from "../../in/messaging/message-schemas.js";
+import { loadMessageSchemas, type MessageSchemas } from "../../messaging/message-schemas.js";
 import type { OutgoingMessage } from "./outbound-messages.js";
 
 const ASYNCAPI_SPEC = fileURLToPath(new URL("../../../../../contracts/asyncapi/cook-assistance.asyncapi.yaml", import.meta.url));

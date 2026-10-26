@@ -15,6 +15,9 @@ const FIRST_BACKOFF_MS = 1_000;
 /** ADR-CA-004 · after the 5th failed attempt the row is dead-lettered and not retried. */
 const MAX_ATTEMPTS = 5;
 
+/** ADR-CA-004 (amended, inspection m-10) · rows per claim round: bounds the transaction, its locks and a rollback. */
+const CLAIM_BATCH = 50;
+
 /** A cap on claim rounds per run, so one run always ends. */
 const MAX_ROUNDS = 100;
 
@@ -87,6 +90,7 @@ export class OutboxRelay {
             where earlier.aggregate_id = o.aggregate_id and earlier.id < o.id
               and earlier.published_at is null and earlier.dead_lettered_at is null)
         order by o.id
+        limit ${CLAIM_BATCH}
         -- several relays at once (QS-14): each locks what it claims, the others skip it instead of waiting
         for update of o skip locked`.execute(tx);
       claimed = rows.rows.length;

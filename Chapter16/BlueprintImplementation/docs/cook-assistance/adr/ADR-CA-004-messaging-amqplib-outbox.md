@@ -54,3 +54,10 @@ Honors ADR0003, AP0002, AP0004 (residuality), AP0007. Serves QS-04, QS-07, QS-12
   Cook Assistance only binds its queue to it (ADR-CA-008: our broker user publishes only on `cook-assistance`).
 - **Client wiring:** one `amqp-connection-manager` confirm channel; topology and the consumer are channel setups,
   so they are restored after every reconnect; `prefetch 1`, manual ack.
+
+## Amendment — 2026-10-26 (step 13, inspection increment 0, defect m-10)
+- **Publish timeout 5 s:** a publish that the broker does not confirm within 5 s rejects; the relay records it as a
+  failed attempt (backoff, dead letter after 5). Without it a broker outage kept one relay pass, its transaction and
+  its row locks open for the whole outage, and shutdown waited for that pass.
+- **Claim batch 50 rows per round:** each claim round is one transaction over at most 50 rows, which bounds the locks
+  held and what one rollback can re-send. A run keeps claiming rounds until nothing is due.

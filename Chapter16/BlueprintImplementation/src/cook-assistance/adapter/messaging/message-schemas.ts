@@ -4,7 +4,7 @@ import { Parser } from "@asyncapi/parser";
 import AjvModule, { type ValidateFunction } from "ajv";
 import addFormatsModule from "ajv-formats";
 
-const ASYNCAPI_SPEC = fileURLToPath(new URL("../../../../../contracts/asyncapi/cook-assistance.asyncapi.yaml", import.meta.url));
+const ASYNCAPI_SPEC = fileURLToPath(new URL("../../../../contracts/asyncapi/cook-assistance.asyncapi.yaml", import.meta.url));
 
 // CommonJS packages: in an ES module the class or function may sit on `.default`.
 const Ajv = (AjvModule as unknown as { default?: typeof AjvModule }).default ?? AjvModule;

@@ -14,8 +14,8 @@ import {
   type ConsumerLogEvent,
   createGrandmaAvatarHelpProvidedConsumer,
   type GrandmaAvatarHelpProvidedConsumer,
-  type RawMessage,
 } from "./grandma-avatar-help-provided.consumer.js";
+import type { RawMessage } from "../../messaging/delivery.js";
 import { CONSUMERS } from "./consumers.js";
 import { RecordingDelivery } from "../../../test-support/messaging/recording-delivery.js";
 

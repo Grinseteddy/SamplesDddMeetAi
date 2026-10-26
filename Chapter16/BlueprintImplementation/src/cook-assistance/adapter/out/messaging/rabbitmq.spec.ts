@@ -72,6 +72,37 @@ describe("RabbitMQ adapters", () => {
     expect(delivered && delivered.properties.messageId).toBe("5d7e9f1a-2b3c-4d5e-8f6a-7b8c9d0e1f2a");
     expect(delivered && delivered.properties.headers).toMatchObject(message.headers);
   });
+  it("publisher: while the broker does not answer, publish rejects after its timeout instead of staying pending -- ADR-CA-004 QS-07 (inspection m-10)", async () => {
+    await declareTopology(channel);
+    const manager = connect([broker.url]);
+    const wrapper = manager.createChannel({ json: false });
+    await wrapper.waitForConnect();
+    const message = {
+      exchange: "cook-assistance",
+      routingKey: "help.requested",
+      headers: {
+        messageId: "6e8f0a2b-3c4d-4e5f-8a6b-7c8d9e0f1a2b",
+        correlationId: "0192f1a0-0000-7000-8000-000000000001",
+        source: "cook-assistance",
+      },
+      payload: { helpRequestId: "0192f1a0-0000-7000-8000-000000000001" },
+    };
+
+    await broker.pause();
+    try {
+      const outcome = await Promise.race([
+        new AmqpPublisher(wrapper).publish(message).then(
+          () => "confirmed",
+          () => "rejected",
+        ),
+        new Promise((resolve) => setTimeout(() => resolve("still pending"), 10_000)),
+      ]);
+      expect(outcome).toBe("rejected");
+    } finally {
+      await broker.resume();
+      await manager.close();
+    }
+  }, 30_000);
   it("consumer binding: a message on the queue reaches the consumer and an ack removes it -- op receiveGrandmaAvatarHelpProvided ADR-CA-004", async () => {
     await declareTopology(channel);
     await channel.purgeQueue(TOPOLOGY.grandmaAvatarQueue);

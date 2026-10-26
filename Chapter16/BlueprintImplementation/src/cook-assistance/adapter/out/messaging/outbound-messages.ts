@@ -51,6 +51,8 @@ const PLANNED_EVENTS = {
   HelpRequestCancelled: "planned: increment 1, step 10 (B1-S06, B1-S07)",
   HelpRequestClosed: "planned: increment 1, step 10 (B1-S08)",
   AnswerDeadlineRestarted: "planned: increment 1, step 10 (B1-S10; internal, no AsyncAPI message)",
+  HelpAccepted: "planned: increment 1, step 10 (B1-S05)",
+  HelpRejected: "planned: increment 1, step 10 (B1-S09)",
 } as const satisfies Partial<Record<DomainEventType, string>>;
 
 // G5 · one publish decision per domain event type, or a planned entry above

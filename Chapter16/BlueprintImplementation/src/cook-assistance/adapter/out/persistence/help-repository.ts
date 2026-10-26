@@ -5,7 +5,7 @@ import { Help, HelpId, type HelpStatus, type PreparationStepExplanation } from "
 import type { HelpEvent, HelpProvided } from "../../../domain/help/help-events.js";
 import type { HelpRepository } from "../../../domain/help/help-repository.js";
 import { CookId } from "../../../domain/shared/ids.js";
-import { recordEvents } from "./events.js";
+import { EventNotStoredYet, recordEvents } from "./events.js";
 import type { NewOutboxRow, OutboxTables } from "./outbox.js";
 import { withinTransaction } from "./unit-of-work.js";
 import { writeVersioned } from "./versioned-state.js";
@@ -77,6 +77,9 @@ function toHelpProvidedMessage(event: HelpProvided): Record<string, unknown> {
 
 // mapping: Help event → outbox row (ADR-CA-004)
 function toOutboxRow(event: HelpEvent): NewOutboxRow {
+  if (event.type !== "HelpProvided") {
+    throw new EventNotStoredYet(event.type);
+  }
   return {
     aggregate_type: "Help",
     aggregate_id: event.helpId,
@@ -101,6 +104,8 @@ export class KyselyHelpRepository implements HelpRepository {
   // ADR-CA-005 · versioned write (writeVersioned).
   // ADR-CA-004 · state, outbox rows and read models (ADR-CA-012) in one transaction, joining a unit of work when there is one.
   async save(help: Help): Promise<void> {
+    // mapped before anything is written: an event that cannot be stored yet leaves the database untouched
+    const outboxRows = help.pullEvents().map(toOutboxRow);
     await withinTransaction(this.db, async (tx) => {
       await writeVersioned(tx, {
         table: HELP_TABLE,
@@ -108,7 +113,7 @@ export class KyselyHelpRepository implements HelpRepository {
         row: toHelpRow(help),
         loadedVersion: help.version,
       });
-      await recordEvents(tx, help.pullEvents().map(toOutboxRow));
+      await recordEvents(tx, outboxRows);
     });
   }
 }

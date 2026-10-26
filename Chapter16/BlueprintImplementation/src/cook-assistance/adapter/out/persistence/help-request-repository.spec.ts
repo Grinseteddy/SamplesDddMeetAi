@@ -5,7 +5,8 @@ import { HelpRequest, HelpRequestId } from "../../../domain/help-request/help-re
 import { HelpId } from "../../../domain/help/help.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
-import { EventNotStoredYet, KyselyHelpRequestRepository } from "./help-request-repository.js";
+import { EventNotStoredYet } from "./events.js";
+import { KyselyHelpRequestRepository } from "./help-request-repository.js";
 import { KyselyUnitOfWork } from "./unit-of-work.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
 import { resetSchema } from "./test-support/reset-schema.js";

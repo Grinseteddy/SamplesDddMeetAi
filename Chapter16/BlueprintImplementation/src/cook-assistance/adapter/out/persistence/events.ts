@@ -7,3 +7,11 @@ export async function recordEvents<DB extends OutboxTables>(tx: Transaction<DB>,
   await appendToOutbox(tx, rows);
   await project(tx, rows);
 }
+
+/** An event whose outbox mapping step 7 of this increment adds: refused, so nothing is stored half. */
+export class EventNotStoredYet extends Error {
+  constructor(readonly eventType: string) {
+    super(`${eventType} is not stored yet (planned: increment 1, step 7)`);
+    this.name = "EventNotStoredYet";
+  }
+}

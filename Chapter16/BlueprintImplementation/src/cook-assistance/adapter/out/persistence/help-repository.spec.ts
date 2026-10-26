@@ -5,6 +5,7 @@ import { HelpRequestId } from "../../../domain/help-request/help-request.js";
 import { Help, HelpId } from "../../../domain/help/help.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
+import { EventNotStoredYet } from "./events.js";
 import { KyselyHelpRepository } from "./help-repository.js";
 import { KyselyUnitOfWork } from "./unit-of-work.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
@@ -101,6 +102,16 @@ describe("KyselyHelpRepository — PostgreSQL 16", () => {
       await repository.save(Help.provide({ ...grandmaExplainsWarm, provider: communityCook }));
 
       expect((await repository.findById(grandmaExplainsWarm.id))?.provider).toEqual(communityCook);
+    });
+    it("an event whose outbox mapping is planned for step 7 is refused with EventNotStoredYet, and nothing is stored -- B1-S05 ADR-CA-004 (planned: increment 1, step 7)", async () => {
+      const help = Help.provide(grandmaExplainsWarm);
+      help.accept(new Date("2026-10-24T13:00:00Z"));
+
+      await expect(new KyselyHelpRepository(database.db).save(help)).rejects.toThrow(EventNotStoredYet);
+
+      const stored = await sql<{ count: string }>`
+        select (select count(*) from cook_assistance.help) + (select count(*) from cook_assistance.outbox) as count`.execute(database.db);
+      expect(stored.rows).toEqual([{ count: "0" }]);
     });
     it("a loaded help has no pending events -- B1-S04 ADR-CA-003", async () => {
       const repository = new KyselyHelpRepository(database.db);

@@ -94,11 +94,13 @@
   },
   "R9 ex.1": {
     "increment": "increment 2 — Board: Preparation step",
-    "reason": "Preparation-step variant: accept closes the request (B1-S05, B1-S08)"
+    "reason": "accept in the domain (B1-S05); \"the request is closed\" needs the policy (B1-S08, step 8) and the Preparation-step scenario",
+    "partial": true
   },
   "R10 ex.1": {
     "increment": "increment 2 — Board: Preparation step",
-    "reason": "Preparation-step variant: reject (B1-S09)"
+    "reason": "reject in the domain (B1-S09); \"the deadline moves to 18:00\" needs the restart policy (B1-S10, step 8) and the Preparation-step scenario",
+    "partial": true
   },
   "INV-02": {
     "increment": "increment 1 — Board: Meal plan",
@@ -121,7 +123,8 @@
   },
   "INV-13": {
     "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S05 (slice plan)"
+    "reason": "accept once, while PROVIDED, in the domain (B1-S05); \"only the requester\" is the application's check (step 8)",
+    "partial": true
   },
   "INV-14": {
     "increment": "increment 1 — Board: Meal plan",
@@ -130,7 +133,8 @@
   },
   "INV-15": {
     "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S09 (slice plan)"
+    "reason": "reject once, rejected stays rejected, in the domain (B1-S09); \"only the requester\" is the application's check (step 8)",
+    "partial": true
   },
   "INV-21": {
     "increment": "increment 4 — Board: Ingredients",

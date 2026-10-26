@@ -105,6 +105,8 @@ export const PLANNED_PROJECTIONS = {
   HelpRequestCancelled: "planned: increment 1, step 11 (B1-S06, B1-S07)",
   HelpRequestClosed: "planned: increment 1, step 11 (B1-S08)",
   AnswerDeadlineRestarted: "planned: increment 1, step 11 (B1-S10)",
+  HelpAccepted: "planned: increment 1, step 11 (B1-S05)",
+  HelpRejected: "planned: increment 1, step 11 (B1-S09)",
 } as const satisfies Partial<Record<DomainEventType, string>>;
 
 // ADR-CA-012 (amended) · one projection decision per domain event type, or a planned entry above

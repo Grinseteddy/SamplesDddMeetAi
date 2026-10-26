@@ -1,13 +1,14 @@
 import type { CookId, HowToStepId, RecipeId } from "../shared/ids.js";
 import type { HelpProviderType, HelpRequestId, HelpRequestTopic } from "../help-request/help-request.js";
 import type { HelpEvent } from "./help-events.js";
-import { RecipeNotAsInRequest, StepNotAsInRequest } from "./help-rejections.js";
+import { HelpNotProvided, OwnRequestNotAnswerable, RecipeNotAsInRequest, StepNotAsInRequest } from "./help-rejections.js";
 
 /** Identity of a help. */
 export type HelpId = string & { readonly __brand: "HelpId" };
 export const HelpId = { of: (value: string) => value as HelpId };
 
-export type HelpStatus = "PROVIDED";
+/** PROVIDED until the requester decides: ACCEPTED or REJECTED, both terminal (INV-13, INV-15). */
+export type HelpStatus = "PROVIDED" | "ACCEPTED" | "REJECTED";
 
 /** The immutable facts of the help request a help answers, handed over by the application. */
 export interface AnsweredHelpRequest {
@@ -33,12 +34,34 @@ export interface PreparationStepExplanation {
   readonly images: readonly string[];
 }
 
+/** The meal a menu proposal is meant for. */
+export type Meal = "BREAKFAST" | "LUNCH" | "DINNER" | "SUPPER";
+
+/** One course of a menu: the serving step it belongs to and the recipe to cook. */
+export interface Course {
+  readonly dish: number;
+  readonly recipeId: RecipeId;
+}
+
+/** The answer to a Menu request: a sequence of courses for a meal. */
+export interface MenuProposal {
+  readonly topic: "MENU";
+  readonly note: string;
+  readonly servings: number;
+  readonly meal: Meal;
+  readonly howToServe: string | null;
+  readonly courses: readonly Course[];
+}
+
+/** What a help answers with, by topic. */
+export type Answer = PreparationStepExplanation | MenuProposal;
+
 export interface ProvideHelp {
   readonly id: HelpId;
   readonly helpRequest: AnsweredHelpRequest;
   readonly answerTitle: string;
   readonly provider: HelpProvider;
-  readonly answer: PreparationStepExplanation;
+  readonly answer: Answer;
   readonly providedAt: Date;
 }
 
@@ -49,7 +72,7 @@ export interface HelpState {
   readonly helpRequester: CookId;
   readonly answerTitle: string;
   readonly provider: HelpProvider;
-  readonly answer: PreparationStepExplanation;
+  readonly answer: Answer;
   readonly status: HelpStatus;
   readonly version: number;
 }
@@ -67,11 +90,18 @@ function ensureAnswersTheRequest(helpRequest: AnsweredHelpRequest, answer: Prepa
 export class Help {
   private readonly pending: HelpEvent[] = [];
 
-  private constructor(private readonly state: HelpState) {}
+  private constructor(private state: HelpState) {}
 
   // cmd: Provide Help · slices B1-S03, B1-S04
   static provide(command: ProvideHelp): Help {
-    ensureAnswersTheRequest(command.helpRequest, command.answer);
+    // INV-25 · Q3-1: a cook cannot answer their own request
+    if (command.provider.id === command.helpRequest.requester) {
+      throw new OwnRequestNotAnswerable();
+    }
+    // INV-10 · an explanation of a step answers the request's recipe and step
+    if (command.answer.topic === "PREPARATION_STEP") {
+      ensureAnswersTheRequest(command.helpRequest, command.answer);
+    }
     const help = new Help({
       id: command.id,
       helpRequestId: command.helpRequest.id,
@@ -84,6 +114,39 @@ export class Help {
     });
     help.announceHelpProvided(command.providedAt);
     return help;
+  }
+
+  // cmd: Accept help · slice B1-S05 · evt: Help accepted — the requester check is the application's (INV-13, ADR-CA-009)
+  accept(decidedAt: Date): void {
+    this.decide("ACCEPTED", "HelpAccepted", decidedAt);
+  }
+
+  // cmd: Reject help · slice B1-S09 · evt: Help rejected — the requester check is the application's (INV-15, ADR-CA-009)
+  reject(decidedAt: Date): void {
+    this.decide("REJECTED", "HelpRejected", decidedAt);
+  }
+
+  // INV-13, INV-15 · the requester's one decision on a PROVIDED help · AsyncAPI HelpDecidedPayload
+  private decide(status: "ACCEPTED" | "REJECTED", type: "HelpAccepted" | "HelpRejected", decidedAt: Date): void {
+    this.ensureProvided();
+    this.state = { ...this.state, status };
+    this.pending.push({
+      type,
+      helpId: this.id,
+      helpRequestId: this.helpRequestId,
+      helpRequester: this.helpRequester,
+      helpProviderType: this.provider.type,
+      helpProvider: this.provider.id,
+      status: this.status,
+      decidedAt,
+    });
+  }
+
+  // INV-13, INV-15 · a help is decided once: only a PROVIDED help can be accepted or rejected
+  private ensureProvided(): void {
+    if (this.status !== "PROVIDED") {
+      throw new HelpNotProvided();
+    }
   }
 
   /** Rebuilds a stored help: no guards, no events (ADR-CA-003). */
@@ -111,7 +174,7 @@ export class Help {
     return this.state.provider;
   }
 
-  get answer(): PreparationStepExplanation {
+  get answer(): Answer {
     return this.state.answer;
   }
 

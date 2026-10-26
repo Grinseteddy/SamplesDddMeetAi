@@ -9,7 +9,7 @@ import {
 import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-request/help-request-events.js";
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
-import { recordEvents } from "./events.js";
+import { EventNotStoredYet, recordEvents } from "./events.js";
 import type { NewOutboxRow, OutboxTables } from "./outbox.js";
 import { withinTransaction } from "./unit-of-work.js";
 import { writeVersioned } from "./versioned-state.js";
@@ -69,14 +69,6 @@ function toHelpRequestRow(helpRequest: HelpRequest): HelpRequestRow {
     answer_deadline: helpRequest.answerDeadline,
     version: helpRequest.version,
   };
-}
-
-/** An event whose outbox mapping step 7 of this increment adds: refused, so nothing is stored half. */
-export class EventNotStoredYet extends Error {
-  constructor(readonly eventType: string) {
-    super(`${eventType} is not stored yet (planned: increment 1, step 7)`);
-    this.name = "EventNotStoredYet";
-  }
 }
 
 // mapping: Help request event → outbox row, payload under the AsyncAPI message's field names (ADR-CA-004)

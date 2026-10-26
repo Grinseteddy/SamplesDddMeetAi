@@ -108,6 +108,11 @@ function answerDeadline(topic: HelpRequestTopic, from: Date): Date {
   return new Date(from.getTime() + ANSWER_TIME_MS[topic]);
 }
 
+// INV-07 · EM-M R6: the deadline has passed from its very instant on (48 h after 10:00 is 10:00, not 10:01)
+function answerDeadlinePassed(deadline: Date, now: Date): boolean {
+  return now.getTime() >= deadline.getTime();
+}
+
 /** The stored state of a help request (persistence maps rows to this and back). */
 export interface HelpRequestState {
   readonly id: HelpRequestId;
@@ -125,6 +130,9 @@ export interface HelpRequestState {
   readonly version: number;
 }
 
+/** What the cook asked for, once the topic's guards ran — the state before the lifecycle and the deadline are set. */
+type RequestedHelp = Omit<HelpRequestState, "status" | "answerDeadline" | "version">;
+
 /** A preparation-step request: its INV-17 guard ran, so recipe and step are present. */
 export type PreparationStepHelpRequestState = HelpRequest & { readonly recipeId: RecipeId; readonly howToStepId: HowToStepId };
 
@@ -138,22 +146,21 @@ export class HelpRequest {
     ensureQuestion(command.question);
     ensureAddressees(command.addressees);
     const { recipeId, howToStepId } = ensureRecipeAndStep(command.recipeId, command.howToStepId);
-    const helpRequest = new HelpRequest({
-      id: command.id,
-      topic: "PREPARATION_STEP",
-      requester: command.requester,
-      title: command.title,
-      question: command.question,
-      recipeId,
-      howToStepId,
-      addressees: command.addressees,
-      chefId: null,
-      plannedMealDate: null,
-      status: "REQUESTED",
-      answerDeadline: answerDeadline("PREPARATION_STEP", command.requestedAt),
-      version: 0,
-    });
-    helpRequest.announceHelpRequested(command.requestedAt);
+    const helpRequest = HelpRequest.requestHelp(
+      {
+        id: command.id,
+        topic: "PREPARATION_STEP",
+        requester: command.requester,
+        title: command.title,
+        question: command.question,
+        recipeId,
+        howToStepId,
+        addressees: command.addressees,
+        chefId: null,
+        plannedMealDate: null,
+      },
+      command.requestedAt,
+    );
     return helpRequest as PreparationStepHelpRequestState;
   }
 
@@ -161,22 +168,33 @@ export class HelpRequest {
   static requestMealPlanHelp(command: MealPlanHelpRequest): HelpRequest {
     ensureQuestion(command.question);
     ensureMenuAddressees(command);
+    return HelpRequest.requestHelp(
+      {
+        id: command.id,
+        topic: "MENU",
+        requester: command.requester,
+        title: command.title,
+        question: command.question,
+        recipeId: null,
+        howToStepId: null,
+        addressees: command.addressees,
+        chefId: command.chefId,
+        plannedMealDate: command.plannedMealDate,
+      },
+      command.requestedAt,
+    );
+  }
+
+  // Request help <topic> → Help requested: every new request starts REQUESTED (INV-05), version 0 (ADR-CA-005),
+  // with its answer deadline counted from the request time (INV-07)
+  private static requestHelp(asked: RequestedHelp, requestedAt: Date): HelpRequest {
     const helpRequest = new HelpRequest({
-      id: command.id,
-      topic: "MENU",
-      requester: command.requester,
-      title: command.title,
-      question: command.question,
-      recipeId: null,
-      howToStepId: null,
-      addressees: command.addressees,
-      chefId: command.chefId,
-      plannedMealDate: command.plannedMealDate,
+      ...asked,
       status: "REQUESTED",
-      answerDeadline: answerDeadline("MENU", command.requestedAt),
+      answerDeadline: answerDeadline(asked.topic, requestedAt),
       version: 0,
     });
-    helpRequest.announceHelpRequested(command.requestedAt);
+    helpRequest.announceHelpRequested(requestedAt);
     return helpRequest;
   }
 
@@ -227,7 +245,7 @@ export class HelpRequest {
   // cmd: Cancel help request (time) · slice B1-S07 · INV-07: the system's check of the answer deadline
   cancelIfDeadlinePassed(now: Date): void {
     // a closed or cancelled request, or one still within its deadline, is left as it is (no rejection: the system checks)
-    if (this.status !== "REQUESTED" || now < this.answerDeadline) {
+    if (this.status !== "REQUESTED" || !answerDeadlinePassed(this.answerDeadline, now)) {
       return;
     }
     this.cancelBy("SYSTEM", now);

@@ -2,7 +2,7 @@ import type { HelpId } from "../help/help.js";
 import type { CookId, HowToStepId, RecipeId } from "../shared/ids.js";
 import type { HelpProviderType, HelpRequestId, HelpRequestStatus, HelpRequestTopic } from "./help-request.js";
 
-// evt: Help requested · slices B2-S01 · AsyncAPI message HelpRequested (question → description, mapped in step 10)
+// evt: Help requested · slices B2-S01, B1-S01 · AsyncAPI message HelpRequested (question → description, mapped in step 10)
 export interface HelpRequested {
   readonly type: "HelpRequested";
   readonly helpRequestId: HelpRequestId;

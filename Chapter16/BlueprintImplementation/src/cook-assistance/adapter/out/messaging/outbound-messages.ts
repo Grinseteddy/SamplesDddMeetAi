@@ -45,7 +45,15 @@ function helpRequestLinkOf(payload: Readonly<Record<string, unknown>>, publicBas
   return `${publicBaseUrl}/help-requests/${String(payload.helpRequestId)}`;
 }
 
-// G5 · one publish decision per domain event type
+/** Domain events whose publish decision a later step of this increment makes — each names that step (G5). */
+const PLANNED_EVENTS = {
+  ChefReviewRequested: "planned: increment 1, step 10 (B1-S02)",
+  HelpRequestCancelled: "planned: increment 1, step 10 (B1-S06, B1-S07)",
+  HelpRequestClosed: "planned: increment 1, step 10 (B1-S08)",
+  AnswerDeadlineRestarted: "planned: increment 1, step 10 (B1-S10; internal, no AsyncAPI message)",
+} as const satisfies Partial<Record<DomainEventType, string>>;
+
+// G5 · one publish decision per domain event type, or a planned entry above
 const EVENT_MESSAGES = {
   // op: publishHelpRequested · channel help.requested · evt: HelpRequested
   HelpRequested: {
@@ -63,7 +71,7 @@ const EVENT_MESSAGES = {
       helpRequestLink: helpRequestLinkOf(payload, publicBaseUrl),
     }),
   },
-} satisfies Record<DomainEventType, EventMapper>;
+} satisfies Record<Exclude<DomainEventType, keyof typeof PLANNED_EVENTS>, EventMapper>;
 
 /** G3 · the help request is the cook's journey the correlation id traces — for every message, whatever its event. */
 function journeyOf(payload: Readonly<Record<string, unknown>>): string {

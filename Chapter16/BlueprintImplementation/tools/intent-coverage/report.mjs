@@ -125,7 +125,9 @@ function evidenceFor(intent, tests) {
     if (intent.kind === "event") return new RegExp(`\\b${intent.id}\\b`).test(test.name);
     if (intent.kind === "policy") return test.file.includes(intent.file);
     if (named.some((part) => test.name.includes(part))) return true;
-    return intent.tokens.length > 0 && intent.tokens.every((token) => trace.includes(token));
+    // a Vitest trace names the Example Mapping (EM-P, EM-M, …); scenario tags belong to the board's feature file
+    const tokens = intent.kind === "example" && test.tags.length === 0 ? ["EM-P", ...intent.tokens] : intent.tokens;
+    return tokens.length > 0 && tokens.every((token) => trace.includes(token));
   });
 }
 

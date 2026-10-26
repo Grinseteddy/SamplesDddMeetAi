@@ -53,3 +53,39 @@ export class RecipeRequired extends DomainRejection {
     super("Name the recipe you need help with.");
   }
 }
+
+// INV-03 · a cook asks exactly one Chef, by id, and the Chef is then the only addressee
+export class ExactlyOneChef extends DomainRejection {
+  readonly rule = "INV-03";
+
+  constructor() {
+    super("Ask exactly one Chef, by name, and no one else.");
+  }
+}
+
+// INV-03 · a Chef is asked for a planned meal: its date is needed (the Chef must be free before it)
+export class MealDateRequired extends DomainRejection {
+  readonly rule = "INV-03";
+
+  constructor() {
+    super("Name the date of the planned meal when you ask a Chef.");
+  }
+}
+
+// INV-01 · a Chef can only be asked for meal planning — a Chef review too
+export class ChefReviewOnlyForMenu extends DomainRejection {
+  readonly rule = "INV-01";
+
+  constructor() {
+    super("A Chef can review meal plans only.");
+  }
+}
+
+// INV-05 · cancel, close, restart and Chef review only while REQUESTED; CLOSED and CANCELLED are terminal
+export class HelpRequestNotRequested extends DomainRejection {
+  readonly rule = "INV-05";
+
+  constructor() {
+    super("The help request is already closed or cancelled.");
+  }
+}

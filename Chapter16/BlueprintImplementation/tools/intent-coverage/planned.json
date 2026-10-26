@@ -89,7 +89,8 @@
   },
   "R7 ex.3": {
     "increment": "increment 2 — Board: Preparation step",
-    "reason": "Preparation-step variant: timeout after a rejection (B1-S10)"
+    "reason": "the 18:00 deadline after a 13:00 rejection is covered in the domain (B1-S10); the cancellation at 18:00 needs the timeout runner",
+    "partial": true
   },
   "R9 ex.1": {
     "increment": "increment 2 — Board: Preparation step",
@@ -105,23 +106,18 @@
   },
   "INV-03": {
     "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S01 (slice plan)"
+    "reason": "exactly one Chef with a meal date covered in the domain (B1-S01); Chef availability (city, calendar) waits for its owning context (Q3-4)",
+    "partial": true
   },
   "INV-04": {
     "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S02 (slice plan)"
-  },
-  "INV-05": {
-    "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S05…S08 (slice plan)"
+    "reason": "Chef review in the domain (B1-S02); \"a Grandma Avatar answer to the cook's own request\" is the application's check (step 8)",
+    "partial": true
   },
   "INV-06": {
     "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S06 (slice plan)"
-  },
-  "INV-08": {
-    "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S10 (slice plan)"
+    "reason": "cancel in the domain (B1-S06); \"only the requester\" is the application's check (step 8, NotTheRequester)",
+    "partial": true
   },
   "INV-13": {
     "increment": "increment 1 — Board: Meal plan",
@@ -129,7 +125,8 @@
   },
   "INV-14": {
     "increment": "increment 1 — Board: Meal plan",
-    "reason": "B1-S08 (slice plan)"
+    "reason": "close in the domain (B1-S08); the policy on Help accepted is step 8",
+    "partial": true
   },
   "INV-15": {
     "increment": "increment 1 — Board: Meal plan",

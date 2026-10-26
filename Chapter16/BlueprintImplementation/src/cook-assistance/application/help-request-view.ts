@@ -8,8 +8,8 @@ export interface HelpRequestView {
   readonly title: string;
   readonly topic: HelpRequestTopic;
   readonly question: string;
-  readonly recipeId: RecipeId;
-  readonly howToStepId: HowToStepId;
+  readonly recipeId: RecipeId | null;
+  readonly howToStepId: HowToStepId | null;
   readonly addressees: readonly HelpProviderType[];
   readonly status: HelpRequestStatus;
   readonly requestedAt: Date;

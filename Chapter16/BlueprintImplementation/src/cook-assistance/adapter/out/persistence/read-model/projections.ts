@@ -99,11 +99,19 @@ async function projectHelpProvided(views: Transaction<ViewTables>, { payload, oc
 /** Every event type the domain raises: a new one fails type checking until it has a projection decision. */
 type DomainEventType = DomainEvent["type"];
 
-// ADR-CA-012 (amended) · one projection decision per domain event type
+/** Domain events whose projection decision a later step of this increment makes — each names that step. */
+export const PLANNED_PROJECTIONS = {
+  ChefReviewRequested: "planned: increment 1, step 11 (B1-S02)",
+  HelpRequestCancelled: "planned: increment 1, step 11 (B1-S06, B1-S07)",
+  HelpRequestClosed: "planned: increment 1, step 11 (B1-S08)",
+  AnswerDeadlineRestarted: "planned: increment 1, step 11 (B1-S10)",
+} as const satisfies Partial<Record<DomainEventType, string>>;
+
+// ADR-CA-012 (amended) · one projection decision per domain event type, or a planned entry above
 export const PROJECTIONS = {
   HelpRequested: projectHelpRequested,
   HelpProvided: projectHelpProvided,
-} satisfies Record<DomainEventType, Projection>;
+} satisfies Record<Exclude<DomainEventType, keyof typeof PLANNED_PROJECTIONS>, Projection>;
 
 /** A stored event type is just a string: the table, looked up by it. */
 const PROJECTION_OF: Readonly<Record<string, Projection>> = PROJECTIONS;

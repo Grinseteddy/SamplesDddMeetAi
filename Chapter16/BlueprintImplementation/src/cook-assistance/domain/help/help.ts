@@ -14,8 +14,8 @@ export interface AnsweredHelpRequest {
   readonly id: HelpRequestId;
   readonly requester: CookId;
   readonly topic: HelpRequestTopic;
-  readonly recipeId: RecipeId;
-  readonly howToStepId: HowToStepId;
+  readonly recipeId: RecipeId | null;
+  readonly howToStepId: HowToStepId | null;
 }
 
 /** Who answered: the community, the Grandma Avatar (no cook id) or a Chef. */

@@ -2,9 +2,10 @@ import { sql } from "kysely";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { migrateToLatest } from "./migrations.js";
 import { HelpRequest, HelpRequestId } from "../../../domain/help-request/help-request.js";
+import { HelpId } from "../../../domain/help/help.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
-import { KyselyHelpRequestRepository } from "./help-request-repository.js";
+import { EventNotStoredYet, KyselyHelpRequestRepository } from "./help-request-repository.js";
 import { KyselyUnitOfWork } from "./unit-of-work.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
 import { resetSchema } from "./test-support/reset-schema.js";
@@ -98,6 +99,31 @@ describe("KyselyHelpRequestRepository — PostgreSQL 16", () => {
       await repository.save(loaded as HelpRequest);
 
       expect((await repository.findById(sundaySconesStep3.id))?.version).toBe(2);
+    });
+    it("an event whose outbox mapping is planned for step 7 is refused with EventNotStoredYet, and nothing is stored -- B1-S02 ADR-CA-004 (planned: increment 1, step 7)", async () => {
+      const helpRequest = HelpRequest.requestMealPlanHelp({
+        id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000101"),
+        requester: sundaySconesStep3.requester,
+        title: "Dinner planning",
+        question: "A dinner for six on Friday — what should I cook?",
+        addressees: ["COMMUNITY", "GRANDMA_AVATAR"],
+        chefId: null,
+        plannedMealDate: null,
+        requestedAt: new Date("2026-10-21T10:00:00Z"),
+      });
+      helpRequest.requestChefReview({
+        helpId: HelpId.of("0192f1a0-0000-7000-8000-0000000001a1"),
+        chefId: CookId.of("1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f"),
+        requestedAt: new Date("2026-10-24T11:00:00Z"),
+      });
+
+      await expect(new KyselyHelpRequestRepository(database.db).save(helpRequest)).rejects.toThrow(EventNotStoredYet);
+
+      const stored = await sql<{ count: string }>`
+        select (select count(*) from cook_assistance.help_request) + (select count(*) from cook_assistance.outbox) as count`.execute(
+        database.db,
+      );
+      expect(stored.rows).toEqual([{ count: "0" }]);
     });
     it("a database error other than a duplicate passes through unchanged, not as ConcurrencyConflict -- B2-S01 ADR-CA-005 (AP0005 coverage)", async () => {
       const broken = HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, requester: CookId.of("not-a-uuid") });

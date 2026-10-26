@@ -52,7 +52,7 @@ recipe + ingredient (Ingredients) · selected Chef (Menu, when asked).
 | Request help ingredients (B3-S01) | recipe and ingredient in recipe must be provided; Chef not allowed **(on board)** | Help requested | rejection, not drawn |
 | Request Chef review (B1-S02) | discriminator Menu; Grandma Avatar has provided help *(inferred)*; cook premium *(inferred from the Chef rules)* | Chef review requested | rejection, not drawn |
 | Cancel help request — Cook (B1-S06) | requester only *(inferred; API canvas: "Only requester is allowed to")*; answer takes too long **(on board — threshold: open)**; status REQUESTED *(API canvas: "Only in status open")* | Help request cancelled | rejection, not drawn |
-| Cancel help request — time (B1-S07) | status REQUESTED, **no Help provided for it yet (user, 2026-10-24)**, and requested-at + timeout passed: Menu 48 h, Ingredients 24 h, Catastrophe 10 min, Preparation step 5 h **(F6)** | Help request cancelled | — (no-op otherwise, inferred) |
+| Cancel help request — time (B1-S07) | status REQUESTED and the answer deadline passed — **a provided but not accepted help does not protect it** (revision r2, 2026-10-26, increment 1: user decision, as INV-07 and EM-P R7 ex.2; the earlier "no Help provided for it yet" is withdrawn); deadline = requested-at or last rejection + timeout: Menu 48 h, Ingredients 24 h, Catastrophe 10 min, Preparation step 5 h **(F6)** | Help request cancelled | — (no-op otherwise, inferred) |
 | Close help request (B1-S08) | status REQUESTED; triggered by *Help accepted* for one of its helps **(user, 2026-10-24)** | Help request closed | — |
 
 ### Help

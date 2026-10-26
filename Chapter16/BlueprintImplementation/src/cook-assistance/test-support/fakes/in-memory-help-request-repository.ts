@@ -19,6 +19,9 @@ export class InMemoryHelpRequestRepository implements HelpRequestRepository {
   async save(helpRequest: HelpRequest): Promise<void> {
     this.stored.write({
       id: helpRequest.id,
+      topic: helpRequest.topic,
+      chefId: helpRequest.chefId,
+      plannedMealDate: helpRequest.plannedMealDate,
       requester: helpRequest.requester,
       title: helpRequest.title,
       question: helpRequest.question,

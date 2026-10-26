@@ -112,9 +112,9 @@ INV-09 Chef answering a Menu request that selected another Chef · INV-01–INV-
 | # | Question | Rule | Blocks |
 |---|---|---|---|
 | Q3-1 | May a cook answer their own request? Boards: never; Help model: yes, except Chef requests. | (dropped until answered; was B-13) | step 6 Help, increment 1 |
-| Q3-2 | Menu timeout: F6 says 48 h for Menu; US-CA-01 says 48 h for a Chef request and slices out "community 2 days", "Grandma Avatar 2 hours". Per topic or per provider? | INV-07 | increment 1 |
-| Q3-3 | Do reject and deadline restart (INV-08, INV-15) apply to Menu requests too? | INV-08, INV-15 | increment 1 |
-| Q3-4 | Who owns a Chef's city and calendar? | INV-03 | increment 1 |
+| Q3-2 | Menu timeout: F6 says 48 h for Menu; US-CA-01 says 48 h for a Chef request and slices out "community 2 days", "Grandma Avatar 2 hours". Per topic or per provider? | INV-07 | increment 1  **answered 2026-10-26: per topic — every Menu request 48 h; the per-provider timeouts stay sliced-out stories** |
+| Q3-3 | Do reject and deadline restart (INV-08, INV-15) apply to Menu requests too? | INV-08, INV-15 | increment 1  **answered 2026-10-26: yes, for every topic; a Menu rejection restarts the 48 h** |
+| Q3-4 | Who owns a Chef's city and calendar? | INV-03 | increment 1  **partly decided 2026-10-26: increment 1 builds "exactly one Chef, by id, with a meal date"; availability (city, calendar) stays open until its owner is settled — its three rejections deferred** |
 | Q3-5 | Where does the premium fact come from, and what happens to an open Chef request after a downgrade? | INV-02 | step 5, increment 1 |
 | Q3-6 | Can a help be accepted after its request was closed by accepting another help (several helps per request)? | INV-13, INV-14 | increment 1 |
 | Q3-7 | Help arriving for a request cancelled in the same second — keep or discard? | INV-11 | step 8 |

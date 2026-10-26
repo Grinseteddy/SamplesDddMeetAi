@@ -7,7 +7,7 @@ import { grandmaExplainsWarm, sundaySconesStep3 } from "../../../../test-support
 import { ConcurrencyConflict } from "../../../../domain/shared/concurrency-conflict.js";
 import { KyselyHelpRepository } from "../help-repository.js";
 import { KyselyHelpRequestRepository } from "../help-request-repository.js";
-import { PROJECTIONS, rebuildViews, UnhandledEvent } from "./projections.js";
+import { PROJECTIONS, rebuildViews, UnhandledEvent, PLANNED_PROJECTIONS } from "./projections.js";
 import { migrateToLatest } from "../migrations.js";
 import { startPostgres, type TestDatabase } from "../test-support/postgres-container.js";
 import { resetSchema } from "../test-support/reset-schema.js";
@@ -155,8 +155,8 @@ describe("projections — help_request_view, help_view (PostgreSQL 16)", () => {
     expect([await countOf("help_request"), await countOf("outbox")]).toEqual([0, 0]);
   });
   it("gate: every domain event type has a projection decision, checked at compile time -- ADR-CA-012", () => {
-    // checked by tsc: a new domain event fails the build until it is projected or ignored
-    expectTypeOf<keyof typeof PROJECTIONS>().toEqualTypeOf<DomainEvent["type"]>();
+    // checked by tsc: a new domain event fails the build until it is projected, ignored or planned for a later step
+    expectTypeOf<keyof typeof PROJECTIONS | keyof typeof PLANNED_PROJECTIONS>().toEqualTypeOf<DomainEvent["type"]>();
   });
   it("rebuild: damaged views are rebuilt from the outbox to the original rows (a rebuild that does nothing fails) -- ADR-CA-012", async () => {
     await new KyselyHelpRequestRepository(database.db).save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));

@@ -1,4 +1,9 @@
-import { HelpRequest, type HelpProviderType, HelpRequestId } from "../domain/help-request/help-request.js";
+import {
+  HelpRequest,
+  type HelpProviderType,
+  HelpRequestId,
+  type PreparationStepHelpRequestState,
+} from "../domain/help-request/help-request.js";
 import { StepNotInRecipe } from "../domain/help-request/help-request-rejections.js";
 import type { CookId, HowToStepId, RecipeId } from "../domain/shared/ids.js";
 import type { HelpRequestView } from "./help-request-view.js";
@@ -59,7 +64,7 @@ export class RequestPreparationStepHelp {
 
   // INV-18 · the step exists in the recipe — Recipe Catalog owns recipes (ADR-CA-015), so the lookup
   // runs here, after the domain's own guards and outside the transaction
-  private async ensureStepInRecipe(helpRequest: HelpRequest): Promise<void> {
+  private async ensureStepInRecipe(helpRequest: PreparationStepHelpRequestState): Promise<void> {
     const step = await this.ports.recipeCatalog.findHowToStep(helpRequest.recipeId, helpRequest.howToStepId);
     if (step === undefined) {
       throw new StepNotInRecipe();

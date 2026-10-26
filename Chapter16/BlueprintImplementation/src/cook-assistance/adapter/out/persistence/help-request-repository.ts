@@ -1,5 +1,11 @@
 import type { Kysely } from "kysely";
-import { HelpRequest, HelpRequestId, type HelpProviderType, type HelpRequestStatus } from "../../../domain/help-request/help-request.js";
+import {
+  HelpRequest,
+  HelpRequestId,
+  type HelpProviderType,
+  type HelpRequestStatus,
+  type HelpRequestTopic,
+} from "../../../domain/help-request/help-request.js";
 import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-request/help-request-events.js";
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
@@ -14,8 +20,8 @@ interface HelpRequestRow {
   title: string;
   topic: string;
   question: string;
-  recipe_id: string;
-  how_to_step_id: string;
+  recipe_id: string | null;
+  how_to_step_id: string | null;
   addressees: string[];
   status: string;
   answer_deadline: Date;
@@ -32,12 +38,16 @@ interface CookAssistanceTables extends OutboxTables {
 function toHelpRequest(row: HelpRequestRow): HelpRequest {
   return HelpRequest.reconstitute({
     id: HelpRequestId.of(row.id),
+    topic: row.topic as HelpRequestTopic,
     requester: CookId.of(row.requester),
     title: row.title,
     question: row.question,
-    recipeId: RecipeId.of(row.recipe_id),
-    howToStepId: HowToStepId.of(row.how_to_step_id),
+    recipeId: row.recipe_id as RecipeId | null,
+    howToStepId: row.how_to_step_id as HowToStepId | null,
     addressees: row.addressees as HelpProviderType[],
+    // the Chef and the meal date get their columns in step 7 of increment 1 (Menu requests are not stored yet)
+    chefId: null,
+    plannedMealDate: null,
     status: row.status as HelpRequestStatus,
     answerDeadline: row.answer_deadline,
     version: row.version,
@@ -61,8 +71,19 @@ function toHelpRequestRow(helpRequest: HelpRequest): HelpRequestRow {
   };
 }
 
+/** An event whose outbox mapping step 7 of this increment adds: refused, so nothing is stored half. */
+export class EventNotStoredYet extends Error {
+  constructor(readonly eventType: string) {
+    super(`${eventType} is not stored yet (planned: increment 1, step 7)`);
+    this.name = "EventNotStoredYet";
+  }
+}
+
 // mapping: Help request event → outbox row, payload under the AsyncAPI message's field names (ADR-CA-004)
 function toOutboxRow(event: HelpRequestEvent): NewOutboxRow {
+  if (event.type !== "HelpRequested") {
+    throw new EventNotStoredYet(event.type);
+  }
   return {
     aggregate_type: "HelpRequest",
     aggregate_id: event.helpRequestId,
@@ -109,6 +130,8 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
   // ADR-CA-005 · versioned write (writeVersioned).
   // ADR-CA-004 · state, outbox rows and read models (ADR-CA-012) in one transaction.
   async save(helpRequest: HelpRequest): Promise<void> {
+    // mapped before anything is written: an event that cannot be stored yet leaves the database untouched
+    const outboxRows = helpRequest.pullEvents().map(toOutboxRow);
     await withinTransaction(this.db, async (tx) => {
       await writeVersioned(tx, {
         table: HELP_REQUEST_TABLE,
@@ -116,7 +139,7 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
         row: toHelpRequestRow(helpRequest),
         loadedVersion: helpRequest.version,
       });
-      await recordEvents(tx, helpRequest.pullEvents().map(toOutboxRow));
+      await recordEvents(tx, outboxRows);
     });
   }
 }

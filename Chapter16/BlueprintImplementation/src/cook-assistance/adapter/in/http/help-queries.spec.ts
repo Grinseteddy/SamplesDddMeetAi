@@ -36,7 +36,7 @@ describe("ops getHelpById, listHelpsForHelpRequest — read model Help", () => {
   beforeEach(async () => {
     await resetSchema(database.db);
     const cookAssistance = composeCookAssistance({ db: database.db, recipeCatalog: new InMemoryRecipeCatalog() });
-    app = await createHttpApp({ cookAssistance, tokenVerifier: issuer.verifier, publicBaseUrl: PUBLIC_BASE_URL });
+    app = await createHttpApp({ cookAssistance, tokenVerifier: issuer.verifier, publicBaseUrl: PUBLIC_BASE_URL, log: () => {} });
   });
 
   afterEach(async () => {

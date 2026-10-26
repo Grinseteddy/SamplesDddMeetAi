@@ -10,7 +10,8 @@ import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict
 import { DomainRejection } from "../../../domain/shared/domain-rejection.js";
 import { Unauthenticated } from "./authentication.js";
 import { NotAuthorized } from "./authorization.js";
-import { MAX_BODY_MEGABYTES, REQUESTS_PER_MINUTE } from "./edge-limits.js";
+import { MAX_BODY_MEGABYTES, TooManyRequests } from "./edge-limits.js";
+import type { HttpLogEvent } from "./http-settings.js";
 
 export type Problem = components["schemas"]["Problem"];
 
@@ -37,8 +38,7 @@ export function toProblem(error: unknown): Problem {
   if (error instanceof HttpException && error.getStatus() === 400) return problemOf(400, "InvalidRequest", "the body is not valid JSON");
   if (bodyParserErrorTypeOf(error) === "entity.too.large")
     return problemOf(413, "PayloadTooLarge", `the body is larger than ${MAX_BODY_MEGABYTES} MB`);
-  if (error instanceof HttpException && error.getStatus() === 429)
-    return problemOf(429, "TooManyRequests", `more than ${REQUESTS_PER_MINUTE} requests per minute`);
+  if (error instanceof TooManyRequests) return problemOf(429, "TooManyRequests", error.message);
   if (error instanceof validatorErrors.NotFound) return problemOf(404, "NotFound", error.message);
   if (error instanceof HelpRequestNotFound) return problemOf(404, "NotFound", error.message);
   if (error instanceof HelpNotFound) return problemOf(404, "NotFound", error.message);
@@ -50,15 +50,41 @@ export function toProblem(error: unknown): Problem {
   if (error instanceof TopicNotYetSupported) return { ...problemOf(422, error.name, error.message), rule: null };
   if (error instanceof ConcurrencyConflict) return { ...problemOf(409, "ConcurrencyConflict", error.message), rule: null };
   if (error instanceof RecipeCatalogUnavailable) return problemOf(503, "ServiceUnavailable", error.message);
-  return problemOf(500, "InternalError");
+  return problemOf(500, "InternalError", "an unexpected error occurred");
 }
 
 /** ADR-CA-015 · the Recipe Catalog circuit breaker tries again after 30 s — no sooner is worth a retry. */
 const RETRY_AFTER_SECONDS = 30;
 
-function send(response: Response, problem: Problem, error: unknown): void {
+type Log = (event: HttpLogEvent) => void;
+
+/** The request's path without its query: what the Problem's `instance` names (ADR-CA-006, inspection m-7). */
+function pathOf(request: Request): string {
+  return request.originalUrl.split("?")[0] ?? request.originalUrl;
+}
+
+/**
+ * ADR-CA-010 · refused accesses are security events, unexpected errors are reported — structured, without personal
+ * data: no token, no cook id, no request body (QS-19, AP0007; inspection M-3, m-6).
+ */
+function report(log: Log, { request, problem, error }: { request: Request; problem: Problem; error: unknown }): void {
+  const where = { method: request.method, path: pathOf(request) };
+  if (problem.status === 401 || problem.status === 403) {
+    log({ event: "access-refused", status: problem.status, code: problem.code, ...where, reason: (error as Error).message });
+  } else if (problem.status === 500) {
+    log({ event: "internal-error", ...where, error: error instanceof Error ? error.name : typeof error });
+  }
+}
+
+// eslint-disable-next-line max-params -- the request, its answer, what went wrong and where it is reported
+function send(request: Request, response: Response, error: unknown, log: Log): void {
+  const problem = { ...toProblem(error), instance: pathOf(request) };
+  report(log, { request, problem, error });
   if (problem.status === 503) {
     response.setHeader("Retry-After", String(RETRY_AFTER_SECONDS));
+  }
+  if (error instanceof TooManyRequests) {
+    response.setHeader("Retry-After", String(error.retryAfterSeconds));
   }
   // RFC 9110 · a 405 names the methods the spec declares for the path
   if (error instanceof validatorErrors.MethodNotAllowed) {
@@ -70,13 +96,16 @@ function send(response: Response, problem: Problem, error: unknown): void {
 /** Errors thrown in controllers (Nest). */
 @Catch()
 export class ProblemFilter implements ExceptionFilter {
+  constructor(private readonly log: Log) {}
+
   catch(error: unknown, host: ArgumentsHost): void {
-    send(host.switchToHttp().getResponse<Response>(), toProblem(error), error);
+    const http = host.switchToHttp();
+    send(http.getRequest<Request>(), http.getResponse<Response>(), error, this.log);
   }
 }
 
-/** Errors passed on by Express middleware — the spec validator — which never reach a Nest filter. */
-// eslint-disable-next-line max-params -- Express recognizes error handlers by their four parameters
-export function problemErrorHandler(error: unknown, _request: Request, response: Response, _next: NextFunction): void {
-  send(response, toProblem(error), error);
+/** Errors passed on by Express middleware — identification, the rate limit, the spec validator — which never reach a Nest filter. */
+export function problemErrorHandlerFor(log: Log) {
+  // eslint-disable-next-line max-params -- Express recognizes error handlers by their four parameters
+  return (error: unknown, request: Request, response: Response, _next: NextFunction): void => send(request, response, error, log);
 }

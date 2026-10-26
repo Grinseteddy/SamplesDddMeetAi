@@ -27,3 +27,13 @@ with a reason.
 
 ## Principles and quality scenarios
 Honors AP0008, AP0007. Serves the security goal, QS-19.
+
+## Amendment — 2026-10-26 (step 13, inspection increment 0, defects M-3, m-6, m-8, m-9)
+- **Rate limit before authentication and validation:** `@nestjs/throttler` is replaced by the adapter's own
+  per-instance limiter (`edge-limits.ts`, fixed one-minute window, 60 requests, `Retry-After`). The order is
+  identify (valid token → cook, otherwise the reason) → count (by cook, otherwise by address) → refuse with 401 →
+  parse and validate. A Nest guard ran after the Express middleware, so 401 and 400 floods were never counted.
+- **Security events:** every 401 and 403 is logged as `access-refused` with status, code, method, path and reason
+  (the token error or the missing scope or role) — no token, no cook id, no body (QS-19). Every 500 is logged as
+  `internal-error` with method, path and the error's name (AP0007).
+- **No subject, no actor:** a validly signed token without `sub` is answered with 401 (ADR-CA-008's `sub` → cookId).

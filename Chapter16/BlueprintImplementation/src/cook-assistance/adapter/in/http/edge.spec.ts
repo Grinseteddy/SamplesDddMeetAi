@@ -2,18 +2,31 @@ import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type HttpTestApp, startHttpTestApp } from "../../../test-support/http/start-http-test-app.js";
+import { sundaySconesStep3 } from "../../../test-support/fixtures/sunday-scones.js";
 import { SERVED_OPERATIONS } from "./served-operations.js";
+
+/** Sunday scones step 3, as the cook sends it (op requestHelp). */
+const sundaySconesBody = {
+  title: sundaySconesStep3.title,
+  topic: "PREPARATION_STEP",
+  description: sundaySconesStep3.question,
+  recipeId: sundaySconesStep3.recipeId,
+  howToStepId: sundaySconesStep3.howToStepId,
+  addressees: [...sundaySconesStep3.addressees],
+};
 
 // Inbound HTTP — increment 0, step 9, unit 9.2: what the whole API shares (ADR-CA-006, ADR-CA-010, ADR-CA-011).
 
 describe("HTTP edge", () => {
   let app: INestApplication;
   let asCook: HttpTestApp["asCook"];
+  let testApp: HttpTestApp;
 
   beforeEach(async () => {
-    ({ app, asCook } = await startHttpTestApp());
+    testApp = await startHttpTestApp();
+    ({ app, asCook } = testApp);
   });
 
   afterEach(async () => {
@@ -84,6 +97,97 @@ describe("HTTP edge", () => {
     expect(response.headers["content-type"]).toMatch(/^application\/problem\+json/);
     expect(response.body).toMatchObject({ status: 429, code: "TooManyRequests" });
     expect(Number(response.headers["retry-after"])).toBeGreaterThanOrEqual(1);
+  });
+  it("a request without a token: 401, and a security event access-refused with status, code, method, path and reason — no token, no cook id -- ADR-CA-010 QS-19 (inspection M-3)", async () => {
+    const response = await request(app.getHttpServer()).get("/cooking-assistance/help-requests").set({ version: "2.0.0" });
+
+    expect(response.status).toBe(401);
+    expect(testApp.logged).toEqual([
+      {
+        event: "access-refused",
+        status: 401,
+        code: "Unauthenticated",
+        method: "GET",
+        path: "/cooking-assistance/help-requests",
+        reason: "a bearer token is required",
+      },
+    ]);
+  });
+  it("a cook without the write scope on POST /help-requests: 403, and a security event access-refused naming the missing scope — no cook id -- ADR-CA-010 ADR-CA-009 QS-19 (inspection M-3)", async () => {
+    const token = await testApp.issuer.tokenFor({ sub: sundaySconesStep3.requester, scope: "cooking-assistance:read" });
+
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set({ Authorization: `Bearer ${token}`, version: "2.0.0" })
+      .send(sundaySconesBody);
+
+    expect(response.status).toBe(403);
+    expect(testApp.logged).toEqual([
+      {
+        event: "access-refused",
+        status: 403,
+        code: "NotAuthorized",
+        method: "POST",
+        path: "/cooking-assistance/help-requests",
+        reason: "requestHelp needs the scope cooking-assistance:write",
+      },
+    ]);
+    expect(JSON.stringify(testApp.logged)).not.toContain(sundaySconesStep3.requester);
+  });
+  it("an unexpected error: 500 Problem InternalError with a detail, and an internal-error event with method, path and the error's name -- ADR-CA-006 AP0007 (inspection m-6)", async () => {
+    vi.spyOn(testApp.unitOfWork, "transactionally").mockRejectedValueOnce(new TypeError("the disk is on fire"));
+
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(sundaySconesBody);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toMatchObject({ status: 500, code: "InternalError", detail: "an unexpected error occurred" });
+    expect(testApp.logged).toEqual([
+      { event: "internal-error", method: "POST", path: "/cooking-assistance/help-requests", error: "TypeError" },
+    ]);
+  });
+  it("every Problem names the request it is about: instance is the request's path -- ADR-CA-006 (inspection m-7)", async () => {
+    const notFound = await request(app.getHttpServer())
+      .get("/cooking-assistance/recipes")
+      .set(await asCook());
+    const unauthenticated = await request(app.getHttpServer()).get("/cooking-assistance/help-requests?status=REQUESTED");
+
+    expect(notFound.body.instance).toBe("/cooking-assistance/recipes");
+    expect(unauthenticated.body.instance).toBe("/cooking-assistance/help-requests");
+  });
+  it("a validly signed token without sub: 401 Unauthenticated, not an actor with an empty cook id -- ADR-CA-008 (inspection m-8)", async () => {
+    const token = await testApp.issuer.tokenFor({ sub: undefined, scope: "cooking-assistance:read" });
+
+    const response = await request(app.getHttpServer())
+      .get("/cooking-assistance/help-requests")
+      .set({ Authorization: `Bearer ${token}`, version: "2.0.0" });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toMatchObject({ status: 401, code: "Unauthenticated" });
+  });
+  it("the 61st request within a minute from one address without a token: 429, not 401 — the limit counts before authentication -- ADR-CA-010 (inspection m-9)", async () => {
+    for (let sent = 0; sent < 60; sent += 1) {
+      const refused = await request(app.getHttpServer()).get("/cooking-assistance/help-requests");
+      expect(refused.status).toBe(401);
+    }
+
+    const response = await request(app.getHttpServer()).get("/cooking-assistance/help-requests");
+
+    expect(response.status).toBe(429);
+    expect(Number(response.headers["retry-after"])).toBeGreaterThanOrEqual(1);
+  });
+  it("the 61st request within a minute from one cook with a body the spec refuses: 429, not 400 — the limit counts before validation -- ADR-CA-010 (inspection m-9)", async () => {
+    const headers = await asCook();
+    for (let sent = 0; sent < 60; sent += 1) {
+      const invalid = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(headers).send({ title: 7 });
+      expect(invalid.status).toBe(400);
+    }
+
+    const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(headers).send({ title: 7 });
+
+    expect(response.status).toBe(429);
   });
   it("security headers: no X-Powered-By, Content-Security-Policy default-src 'none', Strict-Transport-Security -- ADR-CA-010", async () => {
     const response = await request(app.getHttpServer())

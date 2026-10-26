@@ -25,8 +25,12 @@ export class JoseTokenVerifier {
 
   async verify(token: string): Promise<Actor> {
     const payload = await this.verifiedClaimsOf(token);
+    // ADR-CA-008 · `sub` is the cook: a token that names nobody authenticates nobody (inspection m-8)
+    if (payload.sub === undefined || payload.sub === "") {
+      throw new Unauthenticated("the token names no subject");
+    }
     return {
-      cookId: CookId.of(payload.sub ?? ""),
+      cookId: CookId.of(payload.sub),
       roles: (payload.realm_access?.roles ?? []) as ActorRole[],
       premium: payload.premium === true,
       scopes: (payload.scope ?? "").split(" ").filter((scope) => scope !== ""),

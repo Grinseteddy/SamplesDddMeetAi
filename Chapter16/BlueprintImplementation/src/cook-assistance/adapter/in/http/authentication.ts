@@ -22,17 +22,32 @@ export function bearerTokenOf(authorization: string | undefined): string {
 }
 
 /**
- * ADR-CA-008, ADR-CA-009 · deny by default: the caller is authenticated before the body is parsed or the
- * request is validated, so a caller without a valid token learns nothing about the contract but "401".
+ * ADR-CA-008 · first, who is calling: the actor of a valid token, or the reason there is none. The refusal itself
+ * waits for `requireAuthenticated`, so the rate limit counts the request first (ADR-CA-010, inspection m-9).
  */
-export function authenticate(verifier: JoseTokenVerifier): RequestHandler {
+export function identify(verifier: JoseTokenVerifier): RequestHandler {
   return async (request: Request, response: Response, next: NextFunction) => {
     try {
       response.locals.actor = await verifier.verify(bearerTokenOf(request.headers.authorization));
       next();
     } catch (error) {
-      next(error);
+      if (!(error instanceof Unauthenticated)) {
+        next(error); // keys that cannot be fetched are ours, not the caller's
+        return;
+      }
+      response.locals.unauthenticated = error;
+      next();
     }
+  };
+}
+
+/**
+ * ADR-CA-008, ADR-CA-009 · deny by default: an unidentified caller gets 401 before the body is parsed or the
+ * request is validated, so it learns nothing about the contract but "401".
+ */
+export function requireAuthenticated(): RequestHandler {
+  return (_request: Request, response: Response, next: NextFunction) => {
+    next(response.locals.unauthenticated);
   };
 }
 

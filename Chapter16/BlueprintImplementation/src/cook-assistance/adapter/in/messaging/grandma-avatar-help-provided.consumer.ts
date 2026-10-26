@@ -15,6 +15,8 @@ export interface ConsumerLogEvent {
   readonly messageId: string | null;
   readonly outcome: GrandmaAvatarAnswerOutcome["outcome"];
   readonly rule: string | null;
+  /** Why a message was refused before the policy ran (F5: TopicNotYetSupported). */
+  readonly reason?: string;
 }
 
 export interface GrandmaAvatarConsumerPorts {
@@ -23,17 +25,6 @@ export interface GrandmaAvatarConsumerPorts {
 }
 
 const EXPECTED_SOURCE = "grandma-avatar";
-
-/** How a trusted message that could not be handled is settled. */
-function settleFailure(error: unknown, delivery: Delivery): void {
-  // F5 · a topic not served yet is refused for good: acknowledged, never redelivered
-  if (error instanceof TopicNotYetSupported) {
-    delivery.ack();
-    return;
-  }
-  // ADR-CA-004 · anything else is redelivered; the quorum queue dead-letters it after 5 deliveries
-  delivery.retry();
-}
 
 // op: receiveGrandmaAvatarHelpProvided (channel cook-assistance.grandma-avatar-help-provided) · policy: P2
 export class GrandmaAvatarHelpProvidedConsumer {
@@ -52,8 +43,27 @@ export class GrandmaAvatarHelpProvidedConsumer {
       this.logOutcome(input, await this.ports.handler.handle(input));
       delivery.ack();
     } catch (error) {
-      settleFailure(error, delivery);
+      this.settleFailure(message, error, delivery);
     }
+  }
+
+  /** How a trusted message that could not be handled is settled. */
+  private settleFailure(message: RawMessage, error: unknown, delivery: Delivery): void {
+    // F5 · a topic not served yet is refused for good: acknowledged, never redelivered — and logged, so the refusal
+    // is visible (ADR-CA-004, inspection m-11)
+    if (error instanceof TopicNotYetSupported) {
+      this.ports.log({
+        event: "grandma-avatar-help-provided",
+        messageId: String(message.headers.messageId),
+        outcome: "REFUSED",
+        rule: null,
+        reason: error.name,
+      });
+      delivery.ack();
+      return;
+    }
+    // ADR-CA-004 · anything else is redelivered; the quorum queue dead-letters it after 5 deliveries
+    delivery.retry();
   }
 
   /** ADR-CA-011 · valid per the spec; ADR-CA-008 · published by the Grandma Avatar AI. Anything else is never retried. */

@@ -1,5 +1,6 @@
 import type { INestApplication } from "@nestjs/common";
 import { createHttpApp } from "../../adapter/in/http/http-app.js";
+import type { HttpLogEvent } from "../../adapter/in/http/http-settings.js";
 import type { HelpQueries } from "../../application/queries/help-queries.js";
 import type { HelpRequestQueries } from "../../application/queries/help-request-queries.js";
 import { RequestPreparationStepHelp } from "../../application/request-preparation-step-help.js";
@@ -24,6 +25,8 @@ export interface HttpTestApp {
   readonly issuer: LocalIssuer;
   readonly unitOfWork: InMemoryUnitOfWork;
   readonly recipeCatalog: InMemoryRecipeCatalog;
+  /** What the adapter logged (ADR-CA-010). */
+  readonly logged: HttpLogEvent[];
   /** Headers of the Sunday scones cook: a COOK token with write scope, and the contract version. */
   asCook(): Promise<Record<string, string>>;
 }
@@ -40,16 +43,19 @@ export async function startHttpTestApp(): Promise<HttpTestApp> {
     idGenerator: new SequentialIdGenerator([sundaySconesStep3.id]),
     clock: new FixedClock(sundaySconesStep3.requestedAt),
   });
+  const logged: HttpLogEvent[] = [];
   const app = await createHttpApp({
     cookAssistance: { requestPreparationStepHelp, helpRequestQueries: NO_QUERIES, helpQueries: NO_HELP_QUERIES },
     tokenVerifier: issuer.verifier,
     publicBaseUrl: PUBLIC_BASE_URL,
+    log: (event) => logged.push(event),
   });
   return {
     app,
     issuer,
     unitOfWork,
     recipeCatalog,
+    logged,
     asCook: async () => ({ Authorization: `Bearer ${await issuer.tokenFor({ sub: sundaySconesStep3.requester })}`, version: "2.0.0" }),
   };
 }

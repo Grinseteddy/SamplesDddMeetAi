@@ -5,7 +5,8 @@ export const ISSUER = "https://keycloak.test/realms/larder";
 export const AUDIENCE = "cook-assistance";
 
 export interface TokenClaims {
-  readonly sub: string;
+  /** Left out only to test a token without a subject (inspection m-8). */
+  readonly sub: string | undefined;
   readonly roles?: readonly string[];
   readonly scope?: string;
   readonly premium?: boolean;
@@ -35,9 +36,8 @@ export class LocalIssuer {
     expiresIn = 300,
   }: TokenClaims): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
-    return new SignJWT({ realm_access: { roles: [...roles] }, scope, premium })
-      .setProtectedHeader({ alg: "ES256", kid: "test-key" })
-      .setSubject(sub)
+    const jwt = new SignJWT({ realm_access: { roles: [...roles] }, scope, premium }).setProtectedHeader({ alg: "ES256", kid: "test-key" });
+    return (sub === undefined ? jwt : jwt.setSubject(sub))
       .setIssuer(ISSUER)
       .setAudience(AUDIENCE)
       .setIssuedAt(now)

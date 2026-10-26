@@ -1,4 +1,4 @@
-import type { Request } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 
 // ADR-CA-010 · the limits the API's edge enforces before any use case runs; the 413 and 429 Problems cite them.
 
@@ -7,8 +7,41 @@ export const MAX_BODY_MEGABYTES = 1;
 /** 60 requests per minute and cook (the authenticated actor), by address otherwise. Counted per instance. */
 export const REQUESTS_PER_MINUTE = 60;
 
-export const RATE_LIMIT = { ttl: 60_000, limit: REQUESTS_PER_MINUTE };
+const WINDOW_MS = 60_000;
 
-export function rateLimitKeyOf(request: Request): string {
-  return request.res?.locals.actor?.cookId ?? request.ip ?? "unknown";
+/** More requests than the limit allows: answered with 429 and Retry-After (ADR-CA-010). */
+export class TooManyRequests extends Error {
+  constructor(readonly retryAfterSeconds: number) {
+    super(`more than ${REQUESTS_PER_MINUTE} requests per minute`);
+    this.name = "TooManyRequests";
+  }
+}
+
+/** The cook of a valid token; the caller's address otherwise. */
+function rateLimitKeyOf(request: Request, response: Response): string {
+  return response.locals.actor?.cookId ?? request.ip ?? "unknown";
+}
+
+/**
+ * ADR-CA-010 · a fixed one-minute window per key, counted before authentication and validation refuse anything
+ * (inspection m-9), so floods of 401s and 400s are limited too.
+ */
+export function rateLimit(now: () => number = Date.now): RequestHandler {
+  const windows = new Map<string, { startedAt: number; count: number }>();
+  return (request: Request, response: Response, next: NextFunction) => {
+    const key = rateLimitKeyOf(request, response);
+    const at = now();
+    const window = windows.get(key);
+    if (window === undefined || at - window.startedAt >= WINDOW_MS) {
+      windows.set(key, { startedAt: at, count: 1 });
+      next();
+      return;
+    }
+    window.count += 1;
+    if (window.count > REQUESTS_PER_MINUTE) {
+      next(new TooManyRequests(Math.ceil((window.startedAt + WINDOW_MS - at) / 1000)));
+      return;
+    }
+    next();
+  };
 }

@@ -138,6 +138,22 @@ describe("op receiveGrandmaAvatarHelpProvided", () => {
     expect(received).toEqual([]);
     expect(delivery.settled).toEqual(["ack"]);
   });
+  it("answerType MENU_PROPOSAL: the refusal is logged — outcome REFUSED, reason TopicNotYetSupported, the message id, no text -- op receiveGrandmaAvatarHelpProvided F5 ADR-CA-004 (inspection m-11)", async () => {
+    await consumer.consume(
+      { ...warmExplainedByAvatar, payload: { ...(warmExplainedByAvatar.payload as object), answer: { answerType: "MENU_PROPOSAL" } } },
+      new RecordingDelivery(),
+    );
+
+    expect(logged).toEqual([
+      {
+        event: "grandma-avatar-help-provided",
+        messageId: warmExplainedByAvatar.headers.messageId,
+        outcome: "REFUSED",
+        rule: null,
+        reason: "TopicNotYetSupported",
+      },
+    ]);
+  });
   it("the same message twice: the second outcome is ALREADY_PROCESSED, both acked -- op receiveGrandmaAvatarHelpProvided ADR-CA-004", async () => {
     const first = new RecordingDelivery();
     const second = new RecordingDelivery();

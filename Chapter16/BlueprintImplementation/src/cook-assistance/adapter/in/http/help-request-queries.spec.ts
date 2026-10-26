@@ -43,7 +43,7 @@ describe("ops getHelpRequestById, listHelpRequests — read model Help request",
     const recipeCatalog = new InMemoryRecipeCatalog();
     recipeCatalog.addHowToStep(sundaySconesStep3.recipeId, sundaySconesStep3.howToStepId);
     const cookAssistance = composeCookAssistance({ db: database.db, recipeCatalog });
-    app = await createHttpApp({ cookAssistance, tokenVerifier: issuer.verifier, publicBaseUrl: PUBLIC_BASE_URL });
+    app = await createHttpApp({ cookAssistance, tokenVerifier: issuer.verifier, publicBaseUrl: PUBLIC_BASE_URL, log: () => {} });
   });
 
   afterEach(async () => {

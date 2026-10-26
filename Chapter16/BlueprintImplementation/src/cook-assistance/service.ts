@@ -1,4 +1,5 @@
 import type { AddressInfo } from "node:net";
+import type { INestApplication } from "@nestjs/common";
 import { connect } from "amqp-connection-manager";
 import { Kysely, PostgresDialect } from "kysely";
 import pg from "pg";
@@ -15,6 +16,7 @@ import { HttpRecipeCatalog } from "./adapter/out/recipe-catalog/http-recipe-cata
 import { SystemClock } from "./adapter/out/system/system-clock.js";
 import { composeCookAssistance } from "./composition.js";
 import type { TokenProvider } from "./adapter/out/recipe-catalog/token-provider.js";
+import type { CookAssistance } from "./application/cook-assistance.js";
 import type { Configuration } from "./configuration.js";
 
 /** A structured event the running service reports — names and IDs, never question or answer text (ADR-CA-010). */
@@ -40,6 +42,18 @@ export interface RunningService {
 /** ADR-CA-004 · the relay polls the outbox every 500 ms. */
 const RELAY_INTERVAL_MS = 500;
 
+/** ADR-CA-008, ADR-CA-010 · the HTTP adapter on the configured port, logging through the platform. */
+async function startHttp(configuration: Configuration, platform: Platform, cookAssistance: CookAssistance): Promise<INestApplication> {
+  const app = await createHttpApp({
+    cookAssistance,
+    tokenVerifier: platform.tokenVerifier,
+    publicBaseUrl: configuration.publicBaseUrl,
+    log: platform.log,
+  });
+  await app.listen(configuration.port);
+  return app;
+}
+
 // The walking skeleton as one process (step 10, unit 10.4): database, HTTP, broker, relay.
 export async function startService(configuration: Configuration, platform: Platform): Promise<RunningService> {
   // ADR-CA-003 · PostgreSQL through Kysely; forward-only migrations applied at startup
@@ -55,8 +69,7 @@ export async function startService(configuration: Configuration, platform: Platf
   });
   const cookAssistance = composeCookAssistance({ db, recipeCatalog, clock });
 
-  const app = await createHttpApp({ cookAssistance, tokenVerifier: platform.tokenVerifier, publicBaseUrl: configuration.publicBaseUrl });
-  await app.listen(configuration.port);
+  const app = await startHttp(configuration, platform, cookAssistance);
 
   // ADR-CA-004 · RabbitMQ: our topology, the Grandma Avatar consumer, a confirm channel for the relay
   const broker = connect([configuration.amqpUrl]);

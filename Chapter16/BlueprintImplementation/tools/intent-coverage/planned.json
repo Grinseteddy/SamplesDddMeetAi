@@ -1,0 +1,184 @@
+{
+  "cancelHelpRequest": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S06 (slice plan)"
+  },
+  "requestChefReview": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S02 (slice plan)"
+  },
+  "provideHelp": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S03 (slice plan)"
+  },
+  "acceptHelp": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S05 (slice plan)"
+  },
+  "rejectHelp": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S09 (slice plan)"
+  },
+  "publishHelpRequestCancelled": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S06, B1-S07"
+  },
+  "publishHelpRequestClosed": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S08"
+  },
+  "publishChefReviewRequested": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S02"
+  },
+  "publishHelpAccepted": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S05"
+  },
+  "publishHelpRejected": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S09"
+  },
+  "INV-11": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "needs cancel/close (B1-S06…S08)"
+  },
+  "QS-13": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "timeout runner, B1-S07"
+  },
+  "QS-05": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "ADR-CA-013 read cache decided and tested there"
+  },
+  "QS-20": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "operability before the domain grows (user decision 12.7); QS-22 metrics here, routing not here"
+  },
+  "QS-21": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "operability before the domain grows (user decision 12.7); QS-22 metrics here, routing not here"
+  },
+  "QS-22": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "operability before the domain grows (user decision 12.7); QS-22 metrics here, routing not here"
+  },
+  "INV-12": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "Ingredients variant of B1-S03/S04"
+  },
+  "QS-17": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "once every board's data exists"
+  },
+  "QS-18": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "once every board's data exists; erasure trigger from Cook Profile → steps 4, 5"
+  },
+  "R4 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: community cook answers (B1-S03)"
+  },
+  "R6 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: answer to a cancelled/closed request"
+  },
+  "R7 ex.2": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: timeout after an unanswered help"
+  },
+  "R7 ex.3": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: timeout after a rejection (B1-S10)"
+  },
+  "R9 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: accept closes the request (B1-S05, B1-S08)"
+  },
+  "R10 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: reject (B1-S09)"
+  },
+  "INV-02": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S01 (slice plan)"
+  },
+  "INV-03": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S01 (slice plan)"
+  },
+  "INV-04": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S02 (slice plan)"
+  },
+  "INV-05": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S05…S08 (slice plan)"
+  },
+  "INV-06": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S06 (slice plan)"
+  },
+  "INV-08": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S10 (slice plan)"
+  },
+  "INV-13": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S05 (slice plan)"
+  },
+  "INV-14": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S08 (slice plan)"
+  },
+  "INV-15": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S09 (slice plan)"
+  },
+  "INV-21": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "B3-S01 (slice plan)"
+  },
+  "INV-22": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "B3-S01 (slice plan)"
+  },
+  "INV-23": {
+    "increment": "increment 3 — Board: Catastrophe",
+    "reason": "B4-S01 (slice plan)"
+  },
+  "INV-24": {
+    "increment": "increment 3 — Board: Catastrophe",
+    "reason": "B4-S01 (slice plan)"
+  },
+  "INV-07": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "deadline at request time covered (B2-S01); the cancellation needs the timeout runner, B1-S07",
+    "partial": true
+  },
+  "INV-01": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "the refusal of a Chef outside Menu covered (B2-S01); a Chef asked for Menu is B1-S01",
+    "partial": true
+  },
+  "R7 ex.1": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "15:00 deadline computed (domain test); open at 14:59 / cancelled at 15:00 need the timeout runner, B1-S07 (inspection m-1)",
+    "partial": true
+  },
+  "QS-04": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "commands accepted and events published after the outage (20 s, indicative); order per aggregate end to end needs an aggregate with two events (inspection m-13)",
+    "partial": true
+  },
+  "QS-07": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "bounded retries and dead letter tested; the dead-letter alert (≤ 5 min) comes with QS-20/QS-22 (inspection m-12)",
+    "partial": true
+  },
+  "QS-14": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "two instances publish once (indicative, timing-dependent); the deterministic proof is the relay's DB test; no duplicate cancellation needs the timeout runner, QS-13 (inspection m-13)",
+    "partial": true
+  }
+}

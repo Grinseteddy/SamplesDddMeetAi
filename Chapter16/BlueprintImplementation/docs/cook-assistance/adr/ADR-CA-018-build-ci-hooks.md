@@ -1,0 +1,51 @@
+# ADR-CA-018 — One build command, GitHub Actions, Husky hooks
+
+Status: accepted (2026-10-24) · Context: Cook Assistance · Step 5, question 18
+
+## Context
+Step 0 chose GitHub Actions and Conventional Commits, with the hook tool decided with the stack. QS-02
+gives the build ≤ 10 min in CI (load tests excluded). The service lives in the book repository under
+`Chapter16/BlueprintImplementation`.
+
+## Decision
+- **One build command** `npm run verify`, in this order: `generate` (OpenAPI/AsyncAPI types and models,
+  upstream client) → `tsc --noEmit` → `eslint` (incl. `eslint-plugin-security`) → `prettier --check` →
+  `depcruise` (module rules) → `vitest run` (unit + integration with Testcontainers) → acceptance
+  (Cucumber-JS) → contract runs (Schemathesis, AsyncAPI validation) → spec diffs (oasdiff,
+  `@asyncapi/diff`) → `npm audit` / OSV-Scanner / gitleaks / Semgrep.
+- **GitHub Actions** workflow in the book repo's `.github/workflows/cook-assistance.yml`, filtered to
+  `Chapter16/BlueprintImplementation/**`: job `verify` on every push and pull request; jobs `load` (k6)
+  and `dast` (OWASP ZAP API scan) on pull requests; nightly job for 1000-run property tests.
+- **Hooks**: Husky + lint-staged, installed at the book-repo root and scoped to
+  `Chapter16/BlueprintImplementation`: pre-commit — prettier, eslint and type check on changed files,
+  gitleaks on staged changes; commit-msg — commitlint (Conventional Commits). Hooks never run the
+  whole suite.
+- **Formatter / linter / type checker**: Prettier, ESLint (typescript-eslint, sonarjs as in the EXACT
+  profile), `tsc` strict.
+
+## Consequences
+The walking skeleton writes the workflow, the hooks and the scripts and proves the pipeline green on
+its pull request.
+
+## Quality scenarios
+Serves QS-02, QS-03, QS-01; supports the Definition of Done.
+
+## Amendment — 2026-10-25 (step 12, user decisions)
+- **Prettier 3.9.10** adopted at `printWidth: 140` (the hand-wrapped width of the code so far); one style-only commit
+  reformatted the source. Scope: `src/**/*.ts`, `tools/**/*.mjs` and the root config files; generated code,
+  approved specs (`contracts/`) and `docs/` keep their reviewed form.
+- **Repository root:** exactly two root paths are created for this service — `.github/workflows/cook-assistance.yml`
+  (path filter `Chapter16/BlueprintImplementation/**`) and `.husky/`, whose hooks act only on staged files under
+  `Chapter16/BlueprintImplementation`. No root `package.json`; nothing else at the root.
+- **OpenAPI contract run on the pull request** (user decision, step 12): at the API's rate limit (60 requests/min per
+  cook, ADR-CA-010) a Schemathesis run over the served operations takes about 11 minutes, which would break QS-02
+  (build ≤ 10 min). `npm run verify` keeps the AsyncAPI contract (Vitest, fast); the Schemathesis run
+  (`npm run test:contract:openapi`) is its own pull-request job, like the load tests.
+
+## Amendment — 2026-10-26 (step 13, reverse check after the inspection rework of increment 0)
+`npm run verify` as it runs: `generate` → `tsc --noEmit` → `eslint` → `prettier --check` → `depcruise` →
+`vitest run --coverage` (unit and integration on Testcontainers, the AsyncAPI contract run and both spec diffs
+inside the suite; line and branch coverage ≥ 95 %, ADR-CA-020) → acceptance (Cucumber-JS) → intent coverage
+(`tools/intent-coverage`). The OpenAPI contract run (Schemathesis) and the load tests (k6) are pull-request jobs;
+the security tools (dependency audit, OSV-Scanner, Semgrep, gitleaks in the build, ZAP) join with the security review
+of increment 0 (step 14). gitleaks already runs in the pre-commit hook.

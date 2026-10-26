@@ -1,0 +1,8 @@
+node_modules/
+dist/
+src/generated/
+.env
+coverage/
+reports/
+tools/contract/.venv/
+.schemathesis/

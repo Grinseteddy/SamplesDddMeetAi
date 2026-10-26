@@ -33,3 +33,21 @@ monolith (ADR0001, AP0001). QS-01 asks for module boundaries that a rule test ca
 
 ## Quality scenarios
 Serves QS-01 (maintainability); trades off the single-deployable simplicity of ADR0001.
+
+## Amendment — 2026-10-26 (step 13, reverse check after the inspection rework of increment 0)
+The layout as the code has it (dependency-cruiser enforces the arrows, `.dependency-cruiser.cjs`):
+```
+src/cook-assistance/domain                     aggregates, value objects, events — imports the domain only
+src/cook-assistance/application                use cases, policy handlers, ports, query ports — domain and application only
+src/cook-assistance/adapter/in/http            wiring to the generated OpenAPI contract
+src/cook-assistance/adapter/in/messaging       consumer of Grandma Avatar AI messages (ACL)
+src/cook-assistance/adapter/messaging          what inbound and outbound messaging share: delivery types, message schemas
+src/cook-assistance/adapter/out/persistence    repositories, outbox, migrations, read models
+src/cook-assistance/adapter/out/messaging      outbox relay, publisher, broker binding
+src/cook-assistance/adapter/out/recipe-catalog client of the Recipe Catalog
+src/cook-assistance/adapter/out/system         clock, id generator
+src/cook-assistance/composition.ts, service.ts composition root (with src/main.ts and src/rebuild-views.ts)
+src/generated                                  code generated from the approved specs (never edited)
+```
+Inbound and outbound adapters do not import each other (inspection M-1); adapters do not import the composition root.
+There is no `app.module.ts`: the HTTP adapter builds its Nest module itself (`http-app.ts`).

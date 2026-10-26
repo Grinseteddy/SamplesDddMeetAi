@@ -41,3 +41,11 @@ Serves QS-02, QS-03, QS-01; supports the Definition of Done.
   cook, ADR-CA-010) a Schemathesis run over the served operations takes about 11 minutes, which would break QS-02
   (build ≤ 10 min). `npm run verify` keeps the AsyncAPI contract (Vitest, fast); the Schemathesis run
   (`npm run test:contract:openapi`) is its own pull-request job, like the load tests.
+
+## Amendment — 2026-10-26 (step 13, reverse check after the inspection rework of increment 0)
+`npm run verify` as it runs: `generate` → `tsc --noEmit` → `eslint` → `prettier --check` → `depcruise` →
+`vitest run --coverage` (unit and integration on Testcontainers, the AsyncAPI contract run and both spec diffs
+inside the suite; line and branch coverage ≥ 95 %, ADR-CA-020) → acceptance (Cucumber-JS) → intent coverage
+(`tools/intent-coverage`). The OpenAPI contract run (Schemathesis) and the load tests (k6) are pull-request jobs;
+the security tools (dependency audit, OSV-Scanner, Semgrep, gitleaks in the build, ZAP) join with the security review
+of increment 0 (step 14). gitleaks already runs in the pre-commit hook.

@@ -2,7 +2,7 @@
 # Dynamic scan (ADR-CA-010, step 14): OWASP ZAP's API scan of the running test service against the approved OpenAPI
 # spec, with a COOK token and the version header on every request. The active scan waits 1.1 s per request, so the
 # API's 60 requests per minute and cook (ADR-CA-010) are not what the scan measures (one thread); the active scan stops
-# after 20 minutes. Results in reports/security/.
+# after ZAP_MAX_MINUTES (default 20). Results in reports/security/.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 ZAP=zaproxy/zap-stable:20261008
@@ -30,4 +30,4 @@ REPLACER="$REPLACER -config replacer.full_list(0).regex=false -config replacer.f
 docker run --rm --add-host=host.docker.internal:host-gateway -v "$PWD/$OUT:/zap/wrk:rw" \
   -e ZAP_AUTH_HEADER=Authorization -e ZAP_AUTH_HEADER_VALUE="Bearer $(cat reports/contract-token.txt)" \
   "$ZAP" zap-api-scan.py -t /zap/wrk/openapi-for-zap.yaml -f openapi \
-  -r zap-report.html -J zap-report.json -z "$REPLACER -config scanner.delayInMs=1100 -config scanner.threadPerHost=1 -config scanner.maxScanDurationInMins=20" -I
+  -r zap-report.html -J zap-report.json -z "$REPLACER -config scanner.delayInMs=1100 -config scanner.threadPerHost=1 -config scanner.maxScanDurationInMins=${ZAP_MAX_MINUTES:-20}" -I

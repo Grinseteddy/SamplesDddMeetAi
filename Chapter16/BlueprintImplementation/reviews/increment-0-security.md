@@ -13,7 +13,7 @@ Package: `reviews/increment-0-security-package/overview.md`. Test target: the lo
 | gitleaks v8.30.1 (81 commits of the service) | 0 | — |
 | Semgrep 1.180.0 (p/typescript, p/owasp-top-ten) | 0 | — |
 | eslint-plugin-security 4.2.0 | 7 warnings | false positives (typed keys, constant paths); hardening note on visibility.ts:14 (roles index a plain object) |
-| ZAP 2.17.0 API scan | pending | — |
+| ZAP 2.17.0 API scan (COOK token, 1 thread, 1.1 s delay, active scan capped at 20 min; 13 URLs) | FAIL 0, WARN 2, PASS 119 | 100000 server error ×6 (planned operations cancellation/acceptance/rejection, paths outside the API) → confirmed, S-1; 90022 application error disclosure ×3 → false positive as a disclosure (generic Problem body, no internals), same cause as S-1; informational 10049 non-storable content fits S-2. Coverage: the run reached the cap (20:36); the report does not show whether every URL and rule finished — the 119 passes may be incomplete |
 
 ## Verdicts (20/20)
 | Category | Verdict |

@@ -40,3 +40,8 @@ sunset date **2027-04-30**. The service implements 2.0.0 only.
 ### 2.0.0 revision r5 — 2026-10-25 (step 9, item "addressees [CHEF]" mismatch, back to step 4; before release)
 - OpenAPI: r3's split of `requestHelp` errors missed the schema's Chef rule (INV-01, INV-03, SADR0001: a Chef only for Menu, as the only addressee, with `chefId` and `plannedMealDate`). Those cases answer `400`, so `ChefOnlyForMenu`, `ChefMustBeExclusive` and `ChefRequired` move from the `422` list into the `400` sentence, and the unreachable `ChefOnlyForMenu` 422 example is removed. All seven conditional rules of `HelpRequestCreate` are now reflected. Lint clean.
 
+
+### 2.0.0 released — 2026-10-25 (step 12, unit 12.5b)
+- The approved r5 specs are the released 2.0.0: byte copies in `released/2.0.0/`, local tag
+  `cook-assistance-contracts-2.0.0`. From now on every change within major 2 is diffed against them in the build
+  (oasdiff `--fail-on WARN`, `@asyncapi/diff`, QS-03); no spec change since.

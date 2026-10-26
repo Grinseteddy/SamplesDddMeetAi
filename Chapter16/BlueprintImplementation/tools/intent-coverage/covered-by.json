@@ -1,0 +1,23 @@
+{
+  "QS-07": {
+    "tests": [
+      "the first example with its first required payload field removed is dead-lettered",
+      "backoff 1 s, 2 s, 4 s, 8 s, and the 5th failure dead-letters the row",
+      "consumer binding: retry redelivers; after 5 deliveries the quorum queue dead-letters it"
+    ],
+    "reason": "bounded retries then dead letter, relay and consumer (12.3, step 10); the alert is QS-20/QS-22"
+  },
+  "QS-15": {
+    "tests": [
+      "the second save fails with ConcurrencyConflict and the stored version is the first save's",
+      "a generated id that is already taken: 409 Problem code ConcurrencyConflict"
+    ],
+    "reason": "optimistic locking: one save wins, the other gets ConcurrencyConflict / 409 (steps 7, 9)"
+  },
+  "QS-01": {
+    "gate": "npm run depcruise in verify: 0 violations (12.5a); a domain import of kysely fails it"
+  },
+  "QS-02": {
+    "gate": "CI run 40290552613: verify 2 min 43 s on ubuntu-24.04 (12.6)"
+  }
+}

@@ -27,6 +27,19 @@ async function recordMeasure(measure: { scenario: string; measure: string; value
   await appendFile("reports/quality-results.ndjson", `${JSON.stringify({ ...measure, environment, at: new Date().toISOString() })}\n`);
 }
 
+/** Diagnosis (12.7): a wait that never ends fails with its name instead of the test's timeout. */
+async function within<T>(ms: number, what: string, promise: Promise<T>): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`hung: ${what} (${ms} ms)`)), ms);
+  });
+  try {
+    return await Promise.race([promise, deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 let database: TestDatabase;
 let broker: TestBroker;
 let upstream: StubRecipeCatalog;
@@ -116,12 +129,12 @@ describe("reliability", () => {
     }
   }, 120_000);
   it("from commit to publication: p95 ≤ 2 s over 20 commands -- QS-12", async () => {
-    const { service, driver } = await startInstance();
+    const { service, driver } = await within(30_000, "service start", startInstance());
     try {
-      const requested = await driver.listenTo("help.requested");
+      const requested = await within(10_000, "listenTo help.requested", driver.listenTo("help.requested"));
       const latencies: number[] = [];
       for (let command = 0; command < 20; command += 1) {
-        const { id } = await askAboutStep3(driver);
+        const { id } = await within(10_000, `POST /help-requests #${command}`, askAboutStep3(driver));
         const committed = Date.now(); // the 201 arrives after the commit
         const arrived = await eventually(() => requested.messages.some((message) => message.headers.correlationId === id), 5_000);
         expect(arrived).toBe(true);

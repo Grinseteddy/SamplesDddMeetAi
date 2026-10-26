@@ -1,0 +1,102 @@
+{
+  "cancelHelpRequest": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S06 (slice plan)"
+  },
+  "requestChefReview": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S02 (slice plan)"
+  },
+  "provideHelp": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S03 (slice plan)"
+  },
+  "acceptHelp": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S05 (slice plan)"
+  },
+  "rejectHelp": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "B1-S09 (slice plan)"
+  },
+  "publishHelpRequestCancelled": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S06, B1-S07"
+  },
+  "publishHelpRequestClosed": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S08"
+  },
+  "publishChefReviewRequested": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S02"
+  },
+  "publishHelpAccepted": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S05"
+  },
+  "publishHelpRejected": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "event of B1-S09"
+  },
+  "INV-11": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "needs cancel/close (B1-S06…S08)"
+  },
+  "QS-13": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "timeout runner, B1-S07"
+  },
+  "QS-05": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "ADR-CA-013 read cache decided and tested there"
+  },
+  "QS-20": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "operability before the domain grows (user decision 12.7); QS-22 metrics here, routing not here"
+  },
+  "QS-21": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "operability before the domain grows (user decision 12.7); QS-22 metrics here, routing not here"
+  },
+  "QS-22": {
+    "increment": "increment 1 — Board: Meal plan",
+    "reason": "operability before the domain grows (user decision 12.7); QS-22 metrics here, routing not here"
+  },
+  "INV-12": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "Ingredients variant of B1-S03/S04"
+  },
+  "QS-17": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "once every board's data exists"
+  },
+  "QS-18": {
+    "increment": "increment 4 — Board: Ingredients",
+    "reason": "once every board's data exists; erasure trigger from Cook Profile → steps 4, 5"
+  },
+  "R4 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: community cook answers (B1-S03)"
+  },
+  "R6 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: answer to a cancelled/closed request"
+  },
+  "R7 ex.2": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: timeout after an unanswered help"
+  },
+  "R7 ex.3": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: timeout after a rejection (B1-S10)"
+  },
+  "R9 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: accept closes the request (B1-S05, B1-S08)"
+  },
+  "R10 ex.1": {
+    "increment": "increment 2 — Board: Preparation step",
+    "reason": "Preparation-step variant: reject (B1-S09)"
+  }
+}

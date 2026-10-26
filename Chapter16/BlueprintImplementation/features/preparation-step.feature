@@ -1,6 +1,7 @@
 # Board B2 — Preparation step (Example Mapping "Help for a preparation step", 2026-10-24).
-# Increment 0: slices B2-S01 (request help) and B1-S04 (Grandma Avatar answers). Rules 4, 6, 7, 9, 10 are planned
-# for increment 1 (they need operations not built yet). @todo marks a scenario that is not active yet.
+# Increment 0: slices B2-S01 (request help) and B1-S04 (Grandma Avatar answers). Rules 4, 6, 9, 10 and rule 7's
+# examples 2–3 are planned for increment 2 — Board: Preparation step (they need operations of increment 1).
+# @todo marks a scenario that is not active yet.
 Feature: Help for a preparation step
   As a Cook, I want to ask the community and/or Grandma Avatar for help with one preparation step of a recipe,
   and receive Grandma Avatar's answer, so that I get help in preparing my meal.

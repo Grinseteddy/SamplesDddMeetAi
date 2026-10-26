@@ -19,10 +19,11 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"tools/**/*.{mjs,js}\" \"*.{js,ts,json}\"",
     "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js",
     "test:contract:openapi": "tools/contract/run-openapi.sh",
-    "test:load": "vitest run --config vitest.load.config.ts",
+    "test:load": "vitest run --config vitest.load.config.ts --reporter=default --reporter=json --outputFile.json=reports/vitest-load-results.json",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs",
-    "verify": "npm run generate && tsc --noEmit && eslint src/ && npm run format:check && npm run depcruise && vitest run && npm run test:acceptance",
-    "prepare": "cd ../.. && husky"
+    "verify": "npm run generate && tsc --noEmit && eslint src/ && npm run format:check && npm run depcruise && vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest-results.json && npm run test:acceptance && npm run intent-coverage",
+    "prepare": "cd ../.. && husky",
+    "intent-coverage": "node tools/intent-coverage/report.mjs"
   },
   "devDependencies": {
     "@asyncapi/diff": "0.5.0",

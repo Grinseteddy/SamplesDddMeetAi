@@ -5,7 +5,6 @@ import { HelpRequest, HelpRequestId } from "../../../domain/help-request/help-re
 import { HelpId } from "../../../domain/help/help.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
-import { EventNotStoredYet } from "./events.js";
 import { KyselyHelpRequestRepository } from "./help-request-repository.js";
 import { KyselyUnitOfWork } from "./unit-of-work.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
@@ -101,31 +100,6 @@ describe("KyselyHelpRequestRepository — PostgreSQL 16", () => {
 
       expect((await repository.findById(sundaySconesStep3.id))?.version).toBe(2);
     });
-    it("an event whose outbox mapping is planned for step 7 is refused with EventNotStoredYet, and nothing is stored -- B1-S02 ADR-CA-004 (planned: increment 1, step 7)", async () => {
-      const helpRequest = HelpRequest.requestMealPlanHelp({
-        id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000101"),
-        requester: sundaySconesStep3.requester,
-        title: "Dinner planning",
-        question: "A dinner for six on Friday — what should I cook?",
-        addressees: ["COMMUNITY", "GRANDMA_AVATAR"],
-        chefId: null,
-        plannedMealDate: null,
-        requestedAt: new Date("2026-10-21T10:00:00Z"),
-      });
-      helpRequest.requestChefReview({
-        helpId: HelpId.of("0192f1a0-0000-7000-8000-0000000001a1"),
-        chefId: CookId.of("1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f"),
-        requestedAt: new Date("2026-10-24T11:00:00Z"),
-      });
-
-      await expect(new KyselyHelpRequestRepository(database.db).save(helpRequest)).rejects.toThrow(EventNotStoredYet);
-
-      const stored = await sql<{ count: string }>`
-        select (select count(*) from cook_assistance.help_request) + (select count(*) from cook_assistance.outbox) as count`.execute(
-        database.db,
-      );
-      expect(stored.rows).toEqual([{ count: "0" }]);
-    });
     it("a database error other than a duplicate passes through unchanged, not as ConcurrencyConflict -- B2-S01 ADR-CA-005 (AP0005 coverage)", async () => {
       const broken = HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, requester: CookId.of("not-a-uuid") });
 
@@ -169,6 +143,8 @@ describe("KyselyHelpRequestRepository — PostgreSQL 16", () => {
             recipeId: "c4d5e6f7-8a9b-4c0d-9e1f-2a3b4c5d6e7f",
             howToStepId: "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
             addressees: ["COMMUNITY", "GRANDMA_AVATAR"],
+            chefId: null,
+            plannedMealDate: null,
             pictures: [],
             status: "REQUESTED",
             answerDeadline: "2026-10-24T15:00:00.000Z",
@@ -186,9 +162,25 @@ describe("KyselyHelpRequestRepository — PostgreSQL 16", () => {
     // Planned for increment 1 (Board: Meal plan): only then do loaded help requests carry pending events
     // (cancel, close), so a conflicting save could append outbox rows. In increment 0 this test cannot fail;
     // atomicity of state and outbox is proven by the unit-of-work test below.
-    it.todo(
-      "a save that fails with ConcurrencyConflict leaves neither changed state nor outbox rows -- B2-S01 ADR-CA-004 ADR-CA-005 (planned: increment 1)",
-    );
+    it("a save that fails with ConcurrencyConflict leaves neither changed state nor outbox rows -- B2-S01 ADR-CA-004 ADR-CA-005 (planned: increment 1)", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));
+      const first = (await repository.findById(sundaySconesStep3.id)) as HelpRequest;
+      const second = (await repository.findById(sundaySconesStep3.id)) as HelpRequest;
+      first.cancel(new Date("2026-10-24T11:00:00Z"));
+      second.cancel(new Date("2026-10-24T11:05:00Z"));
+      await repository.save(first);
+
+      await expect(repository.save(second)).rejects.toThrow(ConcurrencyConflict);
+
+      const outbox = await sql<{ event_type: string; occurred_at: Date }>`
+        select event_type, occurred_at from cook_assistance.outbox order by id`.execute(database.db);
+      expect(outbox.rows).toEqual([
+        { event_type: "HelpRequested", occurred_at: new Date("2026-10-24T10:00:00Z") },
+        { event_type: "HelpRequestCancelled", occurred_at: new Date("2026-10-24T11:00:00Z") },
+      ]);
+      expect((await repository.findById(sundaySconesStep3.id))?.version).toBe(2);
+    });
   });
 
   describe("unit of work", () => {
@@ -205,6 +197,221 @@ describe("KyselyHelpRequestRepository — PostgreSQL 16", () => {
         select (select count(*) from cook_assistance.help_request)::int as requests,
                (select count(*) from cook_assistance.outbox)::int as outbox_rows`.execute(database.db);
       expect(stored.rows).toEqual([{ requests: 0, outbox_rows: 0 }]);
+    });
+  });
+});
+
+// Increment 1 — Board: Meal plan. Menu requests and the lifecycle events of the help request, stored with their
+// outbox rows (ADR-CA-003, ADR-CA-004, ADR-CA-005). Migration 007 is additive.
+const chefAnna = CookId.of("1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f");
+/** The Menu Example Mapping's lunch for Chef Anna (EM-M R1 ex.1). */
+const lunchWithChefAnna = () =>
+  HelpRequest.requestMealPlanHelp({
+    id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"),
+    requester: CookId.of("8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d"),
+    title: "Lunch planning",
+    question: "A light lunch for two — what fits a warm day?",
+    addressees: ["CHEF"],
+    chefId: chefAnna,
+    plannedMealDate: "2026-10-30",
+    requestedAt: new Date("2026-10-21T10:00:00Z"),
+  });
+
+describe("KyselyHelpRequestRepository — increment 1, Board: Meal plan", () => {
+  let database: TestDatabase;
+
+  beforeAll(async () => {
+    database = await startPostgres();
+    await migrateToLatest(database.db);
+  });
+
+  beforeEach(async () => {
+    await resetSchema(database.db);
+  });
+
+  afterAll(async () => {
+    await database.stop();
+  });
+
+  describe("schema", () => {
+    it("migration 007 lets help_request hold a Menu request: recipe_id and how_to_step_id nullable, new nullable columns chef_id (uuid) and planned_meal_date (date) -- B1-S01 ADR-CA-003", async () => {
+      const columns = await sql<{ column_name: string; data_type: string; is_nullable: string }>`
+        select column_name, data_type, is_nullable from information_schema.columns
+        where table_schema = 'cook_assistance' and table_name = 'help_request'
+          and column_name in ('recipe_id', 'how_to_step_id', 'chef_id', 'planned_meal_date')
+        order by column_name`.execute(database.db);
+
+      expect(columns.rows).toEqual([
+        { column_name: "chef_id", data_type: "uuid", is_nullable: "YES" },
+        { column_name: "how_to_step_id", data_type: "uuid", is_nullable: "YES" },
+        { column_name: "planned_meal_date", data_type: "date", is_nullable: "YES" },
+        { column_name: "recipe_id", data_type: "uuid", is_nullable: "YES" },
+      ]);
+    });
+  });
+
+  describe("round trip", () => {
+    it("a saved Menu request for Chef Anna on 2026-10-30 is found again with topic MENU, no recipe and step, the Chef, the meal date and the 48 h deadline -- B1-S01", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+
+      const found = await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"));
+
+      expect([found?.topic, found?.recipeId, found?.howToStepId, found?.chefId, found?.plannedMealDate, found?.answerDeadline]).toEqual([
+        "MENU",
+        null,
+        null,
+        chefAnna,
+        "2026-10-30",
+        new Date("2026-10-23T10:00:00Z"),
+      ]);
+    });
+    it("a loaded request cancelled and saved again is found CANCELLED with version 2 -- B1-S06 ADR-CA-005", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+      const loaded = (await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"))) as HelpRequest;
+
+      loaded.cancel(new Date("2026-10-22T08:00:00Z"));
+      await repository.save(loaded);
+
+      const found = await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"));
+      expect([found?.status, found?.version]).toEqual(["CANCELLED", 2]);
+    });
+    it("a loaded request whose deadline was restarted and saved again is found with the new deadline -- B1-S10", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+      const loaded = (await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"))) as HelpRequest;
+
+      loaded.restartAnswerDeadline(new Date("2026-10-22T09:00:00Z"));
+      await repository.save(loaded);
+
+      const found = await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"));
+      expect(found?.answerDeadline).toEqual(new Date("2026-10-24T09:00:00Z"));
+    });
+  });
+
+  describe("outbox", () => {
+    it("the HelpRequested row of a Menu request carries chefId and plannedMealDate, recipe and step null -- B1-S01 AsyncAPI HelpRequested", async () => {
+      await new KyselyHelpRequestRepository(database.db).save(lunchWithChefAnna());
+
+      const rows = await sql<{ payload: Record<string, unknown> }>`select payload from cook_assistance.outbox`.execute(database.db);
+
+      expect(rows.rows[0]?.payload).toMatchObject({
+        topic: "MENU",
+        recipeId: null,
+        howToStepId: null,
+        chefId: chefAnna,
+        plannedMealDate: "2026-10-30",
+      });
+    });
+    it("a Chef review appends a ChefReviewRequested row: helpRequestId, requester, helpId, chefId, requestedAt as ISO string -- B1-S02 AsyncAPI ChefReviewRequested", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+      const loaded = (await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"))) as HelpRequest;
+      loaded.requestChefReview({
+        helpId: HelpId.of("0192f1a0-0000-7000-8000-0000000001a1"),
+        chefId: chefAnna,
+        requestedAt: new Date("2026-10-22T09:00:00Z"),
+      });
+
+      await repository.save(loaded);
+
+      const rows = await sql<{ event_type: string; payload: unknown; occurred_at: Date }>`
+        select event_type, payload, occurred_at from cook_assistance.outbox where event_type = 'ChefReviewRequested'`.execute(database.db);
+      expect(rows.rows).toEqual([
+        {
+          event_type: "ChefReviewRequested",
+          payload: {
+            helpRequestId: "0192f1a0-0000-7000-8000-000000000102",
+            requester: "8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d",
+            helpId: "0192f1a0-0000-7000-8000-0000000001a1",
+            chefId: chefAnna,
+            requestedAt: "2026-10-22T09:00:00.000Z",
+          },
+          occurred_at: new Date("2026-10-22T09:00:00Z"),
+        },
+      ]);
+    });
+    it("a cancellation appends a HelpRequestCancelled row: helpRequestId, requester, cancelledBy, status CANCELLED, cancelledAt -- B1-S06 B1-S07 AsyncAPI HelpRequestCancelled", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+      const loaded = (await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"))) as HelpRequest;
+      loaded.cancel(new Date("2026-10-22T08:00:00Z"));
+
+      await repository.save(loaded);
+
+      const rows = await sql<{ payload: unknown; occurred_at: Date }>`
+        select payload, occurred_at from cook_assistance.outbox where event_type = 'HelpRequestCancelled'`.execute(database.db);
+      expect(rows.rows).toEqual([
+        {
+          payload: {
+            helpRequestId: "0192f1a0-0000-7000-8000-000000000102",
+            requester: "8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d",
+            cancelledBy: "REQUESTER",
+            status: "CANCELLED",
+            cancelledAt: "2026-10-22T08:00:00.000Z",
+          },
+          occurred_at: new Date("2026-10-22T08:00:00Z"),
+        },
+      ]);
+    });
+    it("a closing appends a HelpRequestClosed row: helpRequestId, requester, acceptedHelpId, status CLOSED, closedAt -- B1-S08 AsyncAPI HelpRequestClosed", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+      const loaded = (await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"))) as HelpRequest;
+      loaded.close(HelpId.of("0192f1a0-0000-7000-8000-0000000001b1"), new Date("2026-10-22T12:00:00Z"));
+
+      await repository.save(loaded);
+
+      const rows = await sql<{ payload: unknown; occurred_at: Date }>`
+        select payload, occurred_at from cook_assistance.outbox where event_type = 'HelpRequestClosed'`.execute(database.db);
+      expect(rows.rows).toEqual([
+        {
+          payload: {
+            helpRequestId: "0192f1a0-0000-7000-8000-000000000102",
+            requester: "8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d",
+            acceptedHelpId: "0192f1a0-0000-7000-8000-0000000001b1",
+            status: "CLOSED",
+            closedAt: "2026-10-22T12:00:00.000Z",
+          },
+          occurred_at: new Date("2026-10-22T12:00:00Z"),
+        },
+      ]);
+    });
+    it("a restart appends an AnswerDeadlineRestarted row: helpRequestId, answerDeadline, restartedAt -- B1-S10 (internal event)", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+      const loaded = (await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"))) as HelpRequest;
+      loaded.restartAnswerDeadline(new Date("2026-10-22T09:00:00Z"));
+
+      await repository.save(loaded);
+
+      const rows = await sql<{ payload: unknown }>`
+        select payload from cook_assistance.outbox where event_type = 'AnswerDeadlineRestarted'`.execute(database.db);
+      expect(rows.rows).toEqual([
+        {
+          payload: {
+            helpRequestId: "0192f1a0-0000-7000-8000-000000000102",
+            answerDeadline: "2026-10-24T09:00:00.000Z",
+            restartedAt: "2026-10-22T09:00:00.000Z",
+          },
+        },
+      ]);
+    });
+    it("created, then cancelled after loading: the outbox holds HelpRequested and HelpRequestCancelled for the request, in that order -- B1-S06 ADR-CA-004", async () => {
+      const repository = new KyselyHelpRequestRepository(database.db);
+      await repository.save(lunchWithChefAnna());
+      const loaded = (await repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"))) as HelpRequest;
+      loaded.cancel(new Date("2026-10-22T08:00:00Z"));
+
+      await repository.save(loaded);
+
+      const rows = await sql<{ event_type: string; aggregate_id: string }>`
+        select event_type, aggregate_id from cook_assistance.outbox order by id`.execute(database.db);
+      expect(rows.rows).toEqual([
+        { event_type: "HelpRequested", aggregate_id: "0192f1a0-0000-7000-8000-000000000102" },
+        { event_type: "HelpRequestCancelled", aggregate_id: "0192f1a0-0000-7000-8000-000000000102" },
+      ]);
     });
   });
 });

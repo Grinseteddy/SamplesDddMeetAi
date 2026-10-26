@@ -9,7 +9,7 @@ import {
 import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-request/help-request-events.js";
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
-import { EventNotStoredYet, recordEvents } from "./events.js";
+import { recordEvents } from "./events.js";
 import type { NewOutboxRow, OutboxTables } from "./outbox.js";
 import { withinTransaction } from "./unit-of-work.js";
 import { writeVersioned } from "./versioned-state.js";
@@ -23,6 +23,9 @@ interface HelpRequestRow {
   recipe_id: string | null;
   how_to_step_id: string | null;
   addressees: string[];
+  chef_id: string | null;
+  /** pg reads a SQL date as a Date at local midnight; it is written as the calendar date "YYYY-MM-DD" */
+  planned_meal_date: Date | string | null;
   status: string;
   answer_deadline: Date;
   version: number;
@@ -32,6 +35,15 @@ const HELP_REQUEST_TABLE = "cook_assistance.help_request";
 
 interface CookAssistanceTables extends OutboxTables {
   [HELP_REQUEST_TABLE]: HelpRequestRow;
+}
+
+/** The calendar date of a SQL date as pg reads it (a Date at local midnight), in the domain's "YYYY-MM-DD". */
+function calendarDateOf(stored: Date | string | null): string | null {
+  if (!(stored instanceof Date)) {
+    return stored;
+  }
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${stored.getFullYear()}-${pad(stored.getMonth() + 1)}-${pad(stored.getDate())}`;
 }
 
 // mapping: stored row → Help request (always through reconstitute, ADR-CA-003)
@@ -45,9 +57,8 @@ function toHelpRequest(row: HelpRequestRow): HelpRequest {
     recipeId: row.recipe_id as RecipeId | null,
     howToStepId: row.how_to_step_id as HowToStepId | null,
     addressees: row.addressees as HelpProviderType[],
-    // the Chef and the meal date get their columns in step 7 of increment 1 (Menu requests are not stored yet)
-    chefId: null,
-    plannedMealDate: null,
+    chefId: row.chef_id as CookId | null,
+    plannedMealDate: calendarDateOf(row.planned_meal_date),
     status: row.status as HelpRequestStatus,
     answerDeadline: row.answer_deadline,
     version: row.version,
@@ -65,23 +76,83 @@ function toHelpRequestRow(helpRequest: HelpRequest): HelpRequestRow {
     recipe_id: helpRequest.recipeId,
     how_to_step_id: helpRequest.howToStepId,
     addressees: [...helpRequest.addressees],
+    chef_id: helpRequest.chefId,
+    planned_meal_date: helpRequest.plannedMealDate,
     status: helpRequest.status,
     answer_deadline: helpRequest.answerDeadline,
     version: helpRequest.version,
   };
 }
 
+/** An event's payload under the AsyncAPI message's field names, and when it happened. */
+interface StoredMessage {
+  readonly payload: Record<string, unknown>;
+  readonly occurredAt: Date;
+}
+
+// one mapping per event type of the Help request (the switch is exhaustive: a new event fails type checking)
+function messageOf(event: HelpRequestEvent): StoredMessage {
+  switch (event.type) {
+    case "HelpRequested":
+      return { payload: toHelpRequestedMessage(event), occurredAt: event.requestedAt };
+    // AsyncAPI message HelpRequestCancelled · B1-S06 (cook), B1-S07 (time)
+    case "HelpRequestCancelled":
+      return {
+        payload: {
+          helpRequestId: event.helpRequestId,
+          requester: event.requester,
+          cancelledBy: event.cancelledBy,
+          status: event.status,
+          cancelledAt: event.cancelledAt.toISOString(),
+        },
+        occurredAt: event.cancelledAt,
+      };
+    // AsyncAPI message ChefReviewRequested · B1-S02
+    case "ChefReviewRequested":
+      return {
+        payload: {
+          helpRequestId: event.helpRequestId,
+          requester: event.requester,
+          helpId: event.helpId,
+          chefId: event.chefId,
+          requestedAt: event.requestedAt.toISOString(),
+        },
+        occurredAt: event.requestedAt,
+      };
+    // internal event (no AsyncAPI message) · B1-S10: the read model and a rebuild need the new deadline
+    case "AnswerDeadlineRestarted":
+      return {
+        payload: {
+          helpRequestId: event.helpRequestId,
+          answerDeadline: event.answerDeadline.toISOString(),
+          restartedAt: event.restartedAt.toISOString(),
+        },
+        occurredAt: event.restartedAt,
+      };
+    // AsyncAPI message HelpRequestClosed · B1-S08 (acceptedHelpLink and helpRequestLink are added by the relay)
+    case "HelpRequestClosed":
+      return {
+        payload: {
+          helpRequestId: event.helpRequestId,
+          requester: event.requester,
+          acceptedHelpId: event.acceptedHelpId,
+          status: event.status,
+          closedAt: event.closedAt.toISOString(),
+        },
+        occurredAt: event.closedAt,
+      };
+  }
+}
+
 // mapping: Help request event → outbox row, payload under the AsyncAPI message's field names (ADR-CA-004)
 function toOutboxRow(event: HelpRequestEvent): NewOutboxRow {
-  if (event.type !== "HelpRequested") {
-    throw new EventNotStoredYet(event.type);
-  }
+  const { payload, occurredAt } = messageOf(event);
   return {
     aggregate_type: "HelpRequest",
     aggregate_id: event.helpRequestId,
     event_type: event.type,
-    payload: toHelpRequestedMessage(event),
-    occurred_at: event.requestedAt,
+    payload,
+    occurred_at: occurredAt,
   };
 }
 
@@ -97,6 +168,8 @@ function toHelpRequestedMessage(event: HelpRequested): Record<string, unknown> {
     recipeId: event.recipeId,
     howToStepId: event.howToStepId,
     addressees: event.addressees,
+    chefId: event.chefId,
+    plannedMealDate: event.plannedMealDate,
     pictures: [],
     status: event.status,
     answerDeadline: event.answerDeadline.toISOString(),

@@ -1,13 +1,13 @@
 import { sql } from "kysely";
 import { afterAll, beforeAll, beforeEach, describe, expect, expectTypeOf, it } from "vitest";
-import { HelpRequest } from "../../../../domain/help-request/help-request.js";
+import { HelpRequest, HelpRequestId } from "../../../../domain/help-request/help-request.js";
 import type { DomainEvent } from "../../../../domain/domain-events.js";
 import { Help } from "../../../../domain/help/help.js";
 import { grandmaExplainsWarm, sundaySconesStep3 } from "../../../../test-support/fixtures/sunday-scones.js";
 import { ConcurrencyConflict } from "../../../../domain/shared/concurrency-conflict.js";
 import { KyselyHelpRepository } from "../help-repository.js";
 import { KyselyHelpRequestRepository } from "../help-request-repository.js";
-import { PROJECTIONS, rebuildViews, UnhandledEvent, PLANNED_PROJECTIONS } from "./projections.js";
+import { PLANNED_PROJECTIONS, project, PROJECTIONS, rebuildViews, UnhandledEvent } from "./projections.js";
 import { migrateToLatest } from "../migrations.js";
 import { startPostgres, type TestDatabase } from "../test-support/postgres-container.js";
 import { resetSchema } from "../test-support/reset-schema.js";
@@ -113,6 +113,24 @@ describe("projections — help_request_view, help_view (PostgreSQL 16)", () => {
       },
     ]);
   });
+  it('saving a Menu request writes its help_request_view row with recipe and step NULL, not the text "null" -- RM Help request, evt HelpRequested, B1-S01 (step 11 r1, increment 1)', async () => {
+    await new KyselyHelpRequestRepository(database.db).save(
+      HelpRequest.requestMealPlanHelp({
+        id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000101"),
+        requester: sundaySconesStep3.requester,
+        title: "Dinner planning",
+        question: "A dinner for six on Friday — what should I cook?",
+        addressees: ["COMMUNITY", "GRANDMA_AVATAR"],
+        chefId: null,
+        plannedMealDate: null,
+        requestedAt: new Date("2026-10-21T10:00:00Z"),
+      }),
+    );
+
+    const rows = await sql<{ topic: string; recipe_id: string | null; how_to_step_id: string | null }>`
+      select topic, recipe_id, how_to_step_id from cook_assistance.help_request_view`.execute(database.db);
+    expect(rows.rows).toEqual([{ topic: "MENU", recipe_id: null, how_to_step_id: null }]);
+  });
   it("saving Grandma's help writes its help_view row: every field, provider GRANDMA_AVATAR without provider id, status PROVIDED, createdAt = updatedAt = providedAt -- RM Help, evt HelpProvided", async () => {
     await new KyselyHelpRepository(database.db).save(Help.provide(grandmaExplainsWarm));
 
@@ -153,6 +171,15 @@ describe("projections — help_request_view, help_view (PostgreSQL 16)", () => {
     );
     await expect(repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3))).rejects.toThrow(/help_request_view_pkey/);
     expect([await countOf("help_request"), await countOf("outbox")]).toEqual([0, 0]);
+  });
+  it("an event whose projection is planned for a later step is skipped without a view change; an undecided type still fails with UnhandledEvent -- ADR-CA-012 (planned: increment 1, step 11)", async () => {
+    const planned = { event_type: "HelpRequestCancelled", payload: {}, occurred_at: new Date("2026-10-22T08:00:00Z") };
+    const undecided = { event_type: "HelpRequestArchived", payload: {}, occurred_at: new Date("2026-10-22T08:00:00Z") };
+
+    await database.db.transaction().execute((tx) => project(tx, [planned]));
+
+    expect(await views()).toEqual({ helpRequests: [], helps: [] });
+    await expect(database.db.transaction().execute((tx) => project(tx, [undecided]))).rejects.toThrow(UnhandledEvent);
   });
   it("gate: every domain event type has a projection decision, checked at compile time -- ADR-CA-012", () => {
     // checked by tsc: a new domain event fails the build until it is projected, ignored or planned for a later step

@@ -163,6 +163,19 @@ const migrations: Record<string, Migration> = {
       await createHelpView(db);
     },
   },
+  // increment 1 · B1-S01: a Menu request has no recipe or step, and may name one Chef with the date of the meal (INV-03)
+  "007_menu_requests": {
+    async up(db) {
+      await db.schema
+        .withSchema(SCHEMA)
+        .alterTable("help_request")
+        .alterColumn("recipe_id", (c) => c.dropNotNull())
+        .alterColumn("how_to_step_id", (c) => c.dropNotNull())
+        .addColumn("chef_id", "uuid")
+        .addColumn("planned_meal_date", "date")
+        .execute();
+    },
+  },
 };
 
 export async function migrateToLatest(db: Kysely<unknown>): Promise<void> {

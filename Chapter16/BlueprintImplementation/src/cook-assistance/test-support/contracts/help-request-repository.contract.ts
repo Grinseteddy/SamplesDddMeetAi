@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { HelpRequest, HelpRequestId } from "../../domain/help-request/help-request.js";
+import { CookId } from "../../domain/shared/ids.js";
 import { ConcurrencyConflict } from "../../domain/shared/concurrency-conflict.js";
 import type { HelpRequestRepository } from "../../domain/help-request/help-request-repository.js";
 import { sundaySconesStep3 } from "../fixtures/sunday-scones.js";
@@ -28,6 +29,8 @@ function snapshotOf(helpRequest: HelpRequest | undefined) {
         recipeId: helpRequest.recipeId,
         howToStepId: helpRequest.howToStepId,
         addressees: [...helpRequest.addressees],
+        chefId: helpRequest.chefId,
+        plannedMealDate: helpRequest.plannedMealDate,
         status: helpRequest.status,
         answerDeadline: helpRequest.answerDeadline,
       };
@@ -50,6 +53,27 @@ function lookupAndRoundTrip(current: Current): void {
 
     expect(snapshotOf(found)).toEqual(expected);
     expect(found?.pullEvents()).toEqual([]);
+  });
+}
+
+function menuRequests(current: Current): void {
+  it("a saved Menu request for Chef Anna is found again equal — topic, Chef and meal date included -- B1-S01 contract ADR-CA-003 (increment 1)", async () => {
+    const lunchWithChefAnna = HelpRequest.requestMealPlanHelp({
+      id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"),
+      requester: sundaySconesStep3.requester,
+      title: "Lunch planning",
+      question: "A light lunch for two — what fits a warm day?",
+      addressees: ["CHEF"],
+      chefId: CookId.of("1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f"),
+      plannedMealDate: "2026-10-30",
+      requestedAt: new Date("2026-10-21T10:00:00Z"),
+    });
+    const expected = snapshotOf(lunchWithChefAnna);
+    await current().repository.save(lunchWithChefAnna);
+
+    const found = await current().repository.findById(HelpRequestId.of("0192f1a0-0000-7000-8000-000000000102"));
+
+    expect(snapshotOf(found)).toEqual(expected);
   });
 }
 
@@ -96,6 +120,7 @@ export function helpRequestRepositoryContract(name: string, setUp: () => Promise
 
     const current: Current = () => underTest;
     lookupAndRoundTrip(current);
+    menuRequests(current);
     versionAndOptimisticLocking(current);
     savingANewHelpRequest(current);
   });

@@ -54,6 +54,11 @@ export type ProjectedRecord = Pick<NewOutboxRow, "event_type" | "payload" | "occ
 
 type Projection = (views: Transaction<ViewTables>, record: ProjectedRecord) => Promise<void>;
 
+/** An id a message may leave empty (a Menu request has no recipe or step): null stays null, never the text "null". */
+function idOrNull(value: unknown): string | null {
+  return value === null || value === undefined ? null : String(value);
+}
+
 // RM: Help request · evt: HelpRequested (AsyncAPI message HelpRequested)
 async function projectHelpRequested(views: Transaction<ViewTables>, { payload, occurred_at }: ProjectedRecord): Promise<void> {
   const message = payload as Record<string, unknown>;
@@ -65,8 +70,8 @@ async function projectHelpRequested(views: Transaction<ViewTables>, { payload, o
       title: String(message.title),
       topic: String(message.topic),
       description: String(message.description),
-      recipe_id: String(message.recipeId),
-      how_to_step_id: String(message.howToStepId),
+      recipe_id: idOrNull(message.recipeId),
+      how_to_step_id: idOrNull(message.howToStepId),
       addressees: message.addressees as string[],
       status: String(message.status),
       answer_deadline: new Date(String(message.answerDeadline)),
@@ -122,6 +127,10 @@ const PROJECTION_OF: Readonly<Record<string, Projection>> = PROJECTIONS;
 export async function project<DB>(tx: Transaction<DB>, records: readonly ProjectedRecord[]): Promise<void> {
   const views = tx as unknown as Transaction<ViewTables>;
   for (const record of records) {
+    // a planned projection is skipped on purpose until its step builds it; a rebuild then brings the views up to date
+    if (Object.hasOwn(PLANNED_PROJECTIONS, record.event_type)) {
+      continue;
+    }
     const projection = PROJECTION_OF[record.event_type];
     if (projection === undefined) {
       throw new UnhandledEvent(record.event_type); // never a silent skip

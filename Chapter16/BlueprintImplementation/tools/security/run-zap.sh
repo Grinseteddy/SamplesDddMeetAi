@@ -9,6 +9,9 @@ ZAP=zaproxy/zap-stable:20261008
 PORT="${CONTRACT_PORT:-8099}"
 OUT=reports/security
 mkdir -p "$OUT"
+# ZAP runs as its own non-root user: on a Linux runner the checkout belongs to another user, so the report folder
+# must be writable for it (Docker Desktop on macOS does not enforce this)
+chmod a+rwx "$OUT"
 rm -f reports/contract-token.txt
 CONTRACT_PORT="$PORT" node --import tsx src/cook-assistance/contract/serve-for-contract.ts > "$OUT/zap-service.log" 2>&1 &
 SERVICE_PID=$!

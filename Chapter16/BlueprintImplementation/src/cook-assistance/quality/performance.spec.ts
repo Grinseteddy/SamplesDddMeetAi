@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import amqp, { type Channel, type ChannelModel } from "amqplib";
@@ -81,6 +81,9 @@ beforeAll(async () => {
     }),
   );
   await mkdir(OUT, { recursive: true });
+  // k6 runs as its own non-root user: on a Linux runner the checkout belongs to another user, so k6 could not write
+  // its summaries here (the first load job on GitHub failed with ENOENT on every summary)
+  await chmod(OUT, 0o777);
   await writeFile(`${OUT}/cooks.json`, JSON.stringify(cooks));
   // QS-09's other source: helpers (COMMUNITY_COOK) who read the open requests addressed to the community (ADR-CA-009)
   const helpers = await Promise.all(

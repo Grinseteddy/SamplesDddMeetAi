@@ -25,22 +25,23 @@ const sundaySconesStep3 = {
   requestedAt: new Date("2026-10-24T10:00:00Z"),
 } as const;
 
+// one PostgreSQL container for the whole file (fewer parallel container starts in the full suite)
+let database: TestDatabase;
+
+beforeAll(async () => {
+  database = await startPostgres();
+  await migrateToLatest(database.db);
+});
+
+beforeEach(async () => {
+  await resetSchema(database.db);
+});
+
+afterAll(async () => {
+  await database.stop();
+});
+
 describe("KyselyHelpRequestRepository — PostgreSQL 16", () => {
-  let database: TestDatabase;
-
-  beforeAll(async () => {
-    database = await startPostgres();
-    await migrateToLatest(database.db);
-  });
-
-  beforeEach(async () => {
-    await resetSchema(database.db);
-  });
-
-  afterAll(async () => {
-    await database.stop();
-  });
-
   describe("schema", () => {
     it("the migrations create the table cook_assistance.help_request -- B2-S01 ADR-CA-003", async () => {
       const tables = await sql<{ table_name: string }>`
@@ -218,21 +219,6 @@ const lunchWithChefAnna = () =>
   });
 
 describe("KyselyHelpRequestRepository — increment 1, Board: Meal plan", () => {
-  let database: TestDatabase;
-
-  beforeAll(async () => {
-    database = await startPostgres();
-    await migrateToLatest(database.db);
-  });
-
-  beforeEach(async () => {
-    await resetSchema(database.db);
-  });
-
-  afterAll(async () => {
-    await database.stop();
-  });
-
   describe("schema", () => {
     it("migration 007 lets help_request hold a Menu request: recipe_id and how_to_step_id nullable, new nullable columns chef_id (uuid) and planned_meal_date (date) -- B1-S01 ADR-CA-003", async () => {
       const columns = await sql<{ column_name: string; data_type: string; is_nullable: string }>`

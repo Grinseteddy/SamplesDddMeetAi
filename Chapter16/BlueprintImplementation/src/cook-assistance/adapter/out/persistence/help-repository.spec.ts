@@ -35,22 +35,23 @@ const grandmaExplainsWarm = {
   providedAt: new Date("2026-10-24T12:00:00Z"),
 } as const;
 
+// one PostgreSQL container for the whole file (fewer parallel container starts in the full suite)
+let database: TestDatabase;
+
+beforeAll(async () => {
+  database = await startPostgres();
+  await migrateToLatest(database.db);
+});
+
+beforeEach(async () => {
+  await resetSchema(database.db);
+});
+
+afterAll(async () => {
+  await database.stop();
+});
+
 describe("KyselyHelpRepository — PostgreSQL 16", () => {
-  let database: TestDatabase;
-
-  beforeAll(async () => {
-    database = await startPostgres();
-    await migrateToLatest(database.db);
-  });
-
-  beforeEach(async () => {
-    await resetSchema(database.db);
-  });
-
-  afterAll(async () => {
-    await database.stop();
-  });
-
   describe("schema", () => {
     it("the migrations create the table cook_assistance.help -- B1-S04 ADR-CA-003", async () => {
       const tables = await sql<{ table_name: string }>`
@@ -244,21 +245,6 @@ const communityMenu = () =>
   });
 
 describe("KyselyHelpRepository — increment 1, Board: Meal plan", () => {
-  let database: TestDatabase;
-
-  beforeAll(async () => {
-    database = await startPostgres();
-    await migrateToLatest(database.db);
-  });
-
-  beforeEach(async () => {
-    await resetSchema(database.db);
-  });
-
-  afterAll(async () => {
-    await database.stop();
-  });
-
   describe("round trip", () => {
     it("a saved menu proposal by a community cook is found again with the provider and the whole proposal -- B1-S03", async () => {
       const repository = new KyselyHelpRepository(database.db);

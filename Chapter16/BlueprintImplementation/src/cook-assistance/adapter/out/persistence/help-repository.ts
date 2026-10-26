@@ -60,7 +60,8 @@ function toHelpRow(help: Help): HelpRow {
   };
 }
 
-// AsyncAPI message HelpProvided: timestamps are ISO strings; helpLink and helpRequestLink are added by the relay.
+// AsyncAPI message HelpProvided · B1-S03 (menu proposal), B1-S04 (preparation step): timestamps are ISO strings;
+// helpLink and helpRequestLink are added by the relay.
 function toHelpProvidedMessage(event: HelpProvided): Record<string, unknown> {
   return {
     helpId: event.helpId,
@@ -75,8 +76,8 @@ function toHelpProvidedMessage(event: HelpProvided): Record<string, unknown> {
   };
 }
 
-// mapping: Help event → outbox row (ADR-CA-004)
-// AsyncAPI HelpDecidedPayload (messages HelpAccepted, HelpRejected): the requester's decision; links added by the relay
+// AsyncAPI HelpDecidedPayload (messages HelpAccepted, HelpRejected) · B1-S05, B1-S09: the requester's decision;
+// links added by the relay
 function toHelpDecidedMessage(event: HelpAccepted | HelpRejected): Record<string, unknown> {
   return {
     helpId: event.helpId,
@@ -106,6 +107,7 @@ function messageOf(event: HelpEvent): StoredMessage {
   }
 }
 
+// mapping: Help event → outbox row (ADR-CA-004)
 function toOutboxRow(event: HelpEvent): NewOutboxRow {
   const { payload, occurredAt } = messageOf(event);
   return {

@@ -370,6 +370,15 @@ describe("Help — increment 1, Board: Meal plan", () => {
     });
   });
 
+  describe("the rule a refused decision names (ADR-CA-006)", () => {
+    it("a decision on a REJECTED help names INV-15, on an ACCEPTED help INV-13 -- B1-S05 B1-S09 INV-13 INV-15 ADR-CA-006 (refactor proposal, unit 6.2)", () => {
+      const onRejected = rejectionOf(() => storedCommunityMenu("REJECTED").accept(new Date("2026-10-21T20:00:00Z"))) as HelpNotProvided;
+      const onAccepted = rejectionOf(() => storedCommunityMenu("ACCEPTED").reject(new Date("2026-10-21T20:00:00Z"))) as HelpNotProvided;
+
+      expect([onRejected.rule, onAccepted.rule]).toEqual(["INV-15", "INV-13"]);
+    });
+  });
+
   describe("reconstitution", () => {
     it("reconstituting a stored ACCEPTED help with a menu proposal by Chef Anna restores it as stored -- B1-S05 ADR-CA-003", () => {
       const stored = Help.reconstitute({

@@ -36,9 +36,9 @@ export type HelpRejection = StepNotAsInRequest | RecipeNotAsInRequest | OwnReque
 // INV-13, INV-15 · the requester decides once, while the help is PROVIDED; ACCEPTED and REJECTED are terminal
 export class HelpNotProvided extends DomainRejection {
   declare readonly name: "HelpNotProvided";
-  readonly rule = "INV-13";
 
-  constructor() {
+  /** INV-15 when the help was rejected (it cannot be accepted later), INV-13 when it was accepted (ADR-CA-006). */
+  constructor(readonly rule: "INV-13" | "INV-15") {
     super("This help has already been accepted or rejected.");
   }
 }

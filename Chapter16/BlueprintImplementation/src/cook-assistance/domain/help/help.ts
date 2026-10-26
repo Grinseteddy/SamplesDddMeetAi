@@ -146,7 +146,7 @@ export class Help {
   // INV-13, INV-15 · a help is decided once: only a PROVIDED help can be accepted or rejected
   private ensureProvided(): void {
     if (this.status !== "PROVIDED") {
-      throw new HelpNotProvided();
+      throw new HelpNotProvided(this.status === "REJECTED" ? "INV-15" : "INV-13");
     }
   }
 

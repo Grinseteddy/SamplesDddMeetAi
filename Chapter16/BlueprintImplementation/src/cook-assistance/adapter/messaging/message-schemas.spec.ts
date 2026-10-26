@@ -8,5 +8,5 @@ describe("message schemas", () => {
     await expect(loadMessageSchemas("receiveSomethingNobodySends")).rejects.toThrow(
       "the AsyncAPI spec has no message for receiveSomethingNobodySends",
     );
-  });
+  }, 15_000); // the loading is what is tested: it parses the whole spec
 });

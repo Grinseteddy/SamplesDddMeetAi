@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { Parser } from "@asyncapi/parser";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { coveredSendOperations, type OutboxRecord, toOutgoingMessage, UnmappedEvent } from "./outbound-messages.js";
-import { loadSendCheck } from "./send-check.js";
+import { loadSendCheck, type SendCheck } from "./send-check.js";
 
 // Outbound messaging — increment 0, step 10, unit 10.1: outbox record → message of the AsyncAPI send operation (pure).
 
@@ -59,6 +59,13 @@ const helpProvidedRecord: OutboxRecord = {
 };
 
 describe("outbound messages", () => {
+  // parsing the spec and compiling its validators is setup, not the behavior under test (CI timeout, step 10 r3)
+  let check: SendCheck;
+
+  beforeAll(async () => {
+    check = await loadSendCheck();
+  });
+
   it("a HelpRequested record: exchange cook-assistance, routing key help.requested, headers messageId (the row's), correlationId (the help request id), source cook-assistance, the stored payload plus helpRequestLink -- op publishHelpRequested B2-S01 G1 G3", () => {
     expect(toOutgoingMessage(helpRequestedRecord, BASE_URL)).toEqual({
       exchange: "cook-assistance",
@@ -91,7 +98,6 @@ describe("outbound messages", () => {
     });
   });
   it("the message validates against the spec's send schema; without helpRequestLink it does not, nor with requestedAt 'yesterday' (formats are checked) -- ADR-CA-011", async () => {
-    const check = await loadSendCheck();
     const message = toOutgoingMessage(helpRequestedRecord, BASE_URL);
     const { helpRequestLink: _omitted, ...withoutLink } = message.payload;
 

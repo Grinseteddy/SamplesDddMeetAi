@@ -5,7 +5,6 @@ import { HelpRequestId } from "../../../domain/help-request/help-request.js";
 import { Help, HelpId } from "../../../domain/help/help.js";
 import { ConcurrencyConflict } from "../../../domain/shared/concurrency-conflict.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
-import { EventNotStoredYet } from "./events.js";
 import { KyselyHelpRepository } from "./help-repository.js";
 import { KyselyUnitOfWork } from "./unit-of-work.js";
 import { startPostgres, type TestDatabase } from "./test-support/postgres-container.js";
@@ -103,16 +102,6 @@ describe("KyselyHelpRepository — PostgreSQL 16", () => {
 
       expect((await repository.findById(grandmaExplainsWarm.id))?.provider).toEqual(communityCook);
     });
-    it("an event whose outbox mapping is planned for step 7 is refused with EventNotStoredYet, and nothing is stored -- B1-S05 ADR-CA-004 (planned: increment 1, step 7)", async () => {
-      const help = Help.provide(grandmaExplainsWarm);
-      help.accept(new Date("2026-10-24T13:00:00Z"));
-
-      await expect(new KyselyHelpRepository(database.db).save(help)).rejects.toThrow(EventNotStoredYet);
-
-      const stored = await sql<{ count: string }>`
-        select (select count(*) from cook_assistance.help) + (select count(*) from cook_assistance.outbox) as count`.execute(database.db);
-      expect(stored.rows).toEqual([{ count: "0" }]);
-    });
     it("a loaded help has no pending events -- B1-S04 ADR-CA-003", async () => {
       const repository = new KyselyHelpRepository(database.db);
       await repository.save(Help.provide(grandmaExplainsWarm));
@@ -187,9 +176,21 @@ describe("KyselyHelpRepository — PostgreSQL 16", () => {
       ]);
     });
     // Planned for increment 1 (Board: Meal plan): only accept/reject give a loaded help pending events.
-    it.todo(
-      "a save that fails with ConcurrencyConflict leaves neither changed state nor outbox rows -- B1-S04 ADR-CA-004 ADR-CA-005 (planned: increment 1)",
-    );
+    it("a save that fails with ConcurrencyConflict leaves neither changed state nor outbox rows -- B1-S04 ADR-CA-004 ADR-CA-005 (planned: increment 1)", async () => {
+      const repository = new KyselyHelpRepository(database.db);
+      await repository.save(Help.provide(grandmaExplainsWarm));
+      const first = (await repository.findById(grandmaExplainsWarm.id)) as Help;
+      const second = (await repository.findById(grandmaExplainsWarm.id)) as Help;
+      first.accept(new Date("2026-10-24T13:00:00Z"));
+      second.reject(new Date("2026-10-24T13:05:00Z"));
+      await repository.save(first);
+
+      await expect(repository.save(second)).rejects.toThrow(ConcurrencyConflict);
+
+      const outbox = await sql<{ event_type: string }>`select event_type from cook_assistance.outbox order by id`.execute(database.db);
+      expect(outbox.rows).toEqual([{ event_type: "HelpProvided" }, { event_type: "HelpAccepted" }]);
+      expect((await repository.findById(grandmaExplainsWarm.id))?.status).toBe("ACCEPTED");
+    });
   });
 
   describe("unit of work", () => {
@@ -206,6 +207,152 @@ describe("KyselyHelpRepository — PostgreSQL 16", () => {
         select (select count(*) from cook_assistance.help)::int as helps,
                (select count(*) from cook_assistance.outbox)::int as outbox_rows`.execute(database.db);
       expect(stored.rows).toEqual([{ helps: 0, outbox_rows: 0 }]);
+    });
+  });
+});
+
+// Increment 1 — Board: Meal plan. Menu proposals and the requester's decision, stored with their outbox rows
+// (ADR-CA-003, ADR-CA-004, ADR-CA-005). The answer column (jsonb) holds every answer kind: no migration.
+const communityCook = CookId.of("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a");
+const twoCourseDinner = {
+  topic: "MENU",
+  note: "A light start, then something warm.",
+  servings: 6,
+  meal: "DINNER",
+  howToServe: null,
+  courses: [
+    { dish: 1, recipeId: RecipeId.of("3e4f5a6b-7c8d-4e9f-8a0b-1c2d3e4f5a6b") },
+    { dish: 2, recipeId: RecipeId.of("4f5a6b7c-8d9e-4f0a-9b1c-2d3e4f5a6b7c") },
+  ],
+} as const;
+const communityMenuId = HelpId.of("0192f1a0-0000-7000-8000-0000000001b1");
+/** A community cook's menu for the dinner for six (Menu Example Mapping). */
+const communityMenu = () =>
+  Help.provide({
+    id: communityMenuId,
+    helpRequest: {
+      id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000101"),
+      requester: CookId.of("8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d"),
+      topic: "MENU",
+      recipeId: null,
+      howToStepId: null,
+    },
+    answerTitle: "Soup, then lasagna",
+    provider: { type: "COMMUNITY", id: communityCook },
+    answer: twoCourseDinner,
+    providedAt: new Date("2026-10-21T18:00:00Z"),
+  });
+
+describe("KyselyHelpRepository — increment 1, Board: Meal plan", () => {
+  let database: TestDatabase;
+
+  beforeAll(async () => {
+    database = await startPostgres();
+    await migrateToLatest(database.db);
+  });
+
+  beforeEach(async () => {
+    await resetSchema(database.db);
+  });
+
+  afterAll(async () => {
+    await database.stop();
+  });
+
+  describe("round trip", () => {
+    it("a saved menu proposal by a community cook is found again with the provider and the whole proposal -- B1-S03", async () => {
+      const repository = new KyselyHelpRepository(database.db);
+      await repository.save(communityMenu());
+
+      const found = await repository.findById(communityMenuId);
+
+      expect([found?.provider, found?.answer, found?.status]).toEqual([
+        { type: "COMMUNITY", id: communityCook },
+        twoCourseDinner,
+        "PROVIDED",
+      ]);
+    });
+    it("a loaded help accepted and saved again is found ACCEPTED with version 2 -- B1-S05 ADR-CA-005", async () => {
+      const repository = new KyselyHelpRepository(database.db);
+      await repository.save(communityMenu());
+      const loaded = (await repository.findById(communityMenuId)) as Help;
+
+      loaded.accept(new Date("2026-10-21T19:00:00Z"));
+      await repository.save(loaded);
+
+      const found = await repository.findById(communityMenuId);
+      expect([found?.status, found?.version]).toEqual(["ACCEPTED", 2]);
+    });
+    it("a loaded help rejected and saved again is found REJECTED -- B1-S09", async () => {
+      const repository = new KyselyHelpRepository(database.db);
+      await repository.save(communityMenu());
+      const loaded = (await repository.findById(communityMenuId)) as Help;
+
+      loaded.reject(new Date("2026-10-21T19:00:00Z"));
+      await repository.save(loaded);
+
+      expect((await repository.findById(communityMenuId))?.status).toBe("REJECTED");
+    });
+  });
+
+  describe("outbox", () => {
+    it("the HelpProvided row of a menu proposal carries the proposal under the AsyncAPI field names -- B1-S03 AsyncAPI HelpProvided", async () => {
+      await new KyselyHelpRepository(database.db).save(communityMenu());
+
+      const rows = await sql<{ payload: Record<string, unknown> }>`
+        select payload from cook_assistance.outbox where event_type = 'HelpProvided'`.execute(database.db);
+
+      expect(rows.rows[0]?.payload).toMatchObject({ helpProviderType: "COMMUNITY", helpProvider: communityCook, answer: twoCourseDinner });
+    });
+    it("accepting appends a HelpAccepted row: helpId, helpRequestId, helpRequester, helpProviderType, helpProvider, status ACCEPTED, decidedAt -- B1-S05 AsyncAPI HelpAccepted", async () => {
+      const repository = new KyselyHelpRepository(database.db);
+      await repository.save(communityMenu());
+      const loaded = (await repository.findById(communityMenuId)) as Help;
+      loaded.accept(new Date("2026-10-21T19:00:00Z"));
+
+      await repository.save(loaded);
+
+      const rows = await sql<{ payload: unknown; occurred_at: Date }>`
+        select payload, occurred_at from cook_assistance.outbox where event_type = 'HelpAccepted'`.execute(database.db);
+      expect(rows.rows).toEqual([
+        {
+          payload: {
+            helpId: communityMenuId,
+            helpRequestId: "0192f1a0-0000-7000-8000-000000000101",
+            helpRequester: "8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d",
+            helpProviderType: "COMMUNITY",
+            helpProvider: communityCook,
+            status: "ACCEPTED",
+            decidedAt: "2026-10-21T19:00:00.000Z",
+          },
+          occurred_at: new Date("2026-10-21T19:00:00Z"),
+        },
+      ]);
+    });
+    it("rejecting appends a HelpRejected row with the same fields and status REJECTED -- B1-S09 AsyncAPI HelpRejected", async () => {
+      const repository = new KyselyHelpRepository(database.db);
+      await repository.save(communityMenu());
+      const loaded = (await repository.findById(communityMenuId)) as Help;
+      loaded.reject(new Date("2026-10-21T19:00:00Z"));
+
+      await repository.save(loaded);
+
+      const rows = await sql<{ payload: unknown; occurred_at: Date }>`
+        select payload, occurred_at from cook_assistance.outbox where event_type = 'HelpRejected'`.execute(database.db);
+      expect(rows.rows).toEqual([
+        {
+          payload: {
+            helpId: communityMenuId,
+            helpRequestId: "0192f1a0-0000-7000-8000-000000000101",
+            helpRequester: "8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d",
+            helpProviderType: "COMMUNITY",
+            helpProvider: communityCook,
+            status: "REJECTED",
+            decidedAt: "2026-10-21T19:00:00.000Z",
+          },
+          occurred_at: new Date("2026-10-21T19:00:00Z"),
+        },
+      ]);
     });
   });
 });

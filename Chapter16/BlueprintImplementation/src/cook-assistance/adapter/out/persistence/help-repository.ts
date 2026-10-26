@@ -1,11 +1,11 @@
 import type { Kysely } from "kysely";
 import type { HelpProviderType } from "../../../domain/help-request/help-request.js";
 import { HelpRequestId } from "../../../domain/help-request/help-request.js";
-import { Help, HelpId, type HelpStatus, type PreparationStepExplanation } from "../../../domain/help/help.js";
-import type { HelpEvent, HelpProvided } from "../../../domain/help/help-events.js";
+import { type Answer, Help, HelpId, type HelpStatus } from "../../../domain/help/help.js";
+import type { HelpAccepted, HelpEvent, HelpProvided, HelpRejected } from "../../../domain/help/help-events.js";
 import type { HelpRepository } from "../../../domain/help/help-repository.js";
 import { CookId } from "../../../domain/shared/ids.js";
-import { EventNotStoredYet, recordEvents } from "./events.js";
+import { recordEvents } from "./events.js";
 import type { NewOutboxRow, OutboxTables } from "./outbox.js";
 import { withinTransaction } from "./unit-of-work.js";
 import { writeVersioned } from "./versioned-state.js";
@@ -39,7 +39,7 @@ function toHelp(row: HelpRow): Help {
       type: row.provider_type as HelpProviderType,
       id: row.provider_id === null ? null : CookId.of(row.provider_id),
     },
-    answer: row.answer as PreparationStepExplanation,
+    answer: row.answer as Answer,
     status: row.status as HelpStatus,
     version: row.version,
   });
@@ -76,16 +76,44 @@ function toHelpProvidedMessage(event: HelpProvided): Record<string, unknown> {
 }
 
 // mapping: Help event → outbox row (ADR-CA-004)
-function toOutboxRow(event: HelpEvent): NewOutboxRow {
-  if (event.type !== "HelpProvided") {
-    throw new EventNotStoredYet(event.type);
+// AsyncAPI HelpDecidedPayload (messages HelpAccepted, HelpRejected): the requester's decision; links added by the relay
+function toHelpDecidedMessage(event: HelpAccepted | HelpRejected): Record<string, unknown> {
+  return {
+    helpId: event.helpId,
+    helpRequestId: event.helpRequestId,
+    helpRequester: event.helpRequester,
+    helpProviderType: event.helpProviderType,
+    helpProvider: event.helpProvider,
+    status: event.status,
+    decidedAt: event.decidedAt.toISOString(),
+  };
+}
+
+/** An event's payload under the AsyncAPI message's field names, and when it happened. */
+interface StoredMessage {
+  readonly payload: Record<string, unknown>;
+  readonly occurredAt: Date;
+}
+
+// one mapping per event type of the Help (the switch is exhaustive: a new event fails type checking)
+function messageOf(event: HelpEvent): StoredMessage {
+  switch (event.type) {
+    case "HelpProvided":
+      return { payload: toHelpProvidedMessage(event), occurredAt: event.providedAt };
+    case "HelpAccepted":
+    case "HelpRejected":
+      return { payload: toHelpDecidedMessage(event), occurredAt: event.decidedAt };
   }
+}
+
+function toOutboxRow(event: HelpEvent): NewOutboxRow {
+  const { payload, occurredAt } = messageOf(event);
   return {
     aggregate_type: "Help",
     aggregate_id: event.helpId,
     event_type: event.type,
-    payload: toHelpProvidedMessage(event),
-    occurred_at: event.providedAt,
+    payload,
+    occurred_at: occurredAt,
   };
 }
 

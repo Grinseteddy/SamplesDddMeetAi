@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { HelpRequestId } from "../../domain/help-request/help-request.js";
 import { Help, HelpId } from "../../domain/help/help.js";
+import { CookId, RecipeId } from "../../domain/shared/ids.js";
 import { ConcurrencyConflict } from "../../domain/shared/concurrency-conflict.js";
 import type { HelpRepository } from "../../domain/help/help-repository.js";
 import { grandmaExplainsWarm } from "../fixtures/sunday-scones.js";
@@ -50,6 +52,38 @@ function lookupAndRoundTrip(current: Current): void {
   });
 }
 
+function menuProposals(current: Current): void {
+  it("a saved menu proposal is found again equal — provider and the whole proposal included -- B1-S03 contract ADR-CA-003 (increment 1)", async () => {
+    const menu = Help.provide({
+      id: HelpId.of("0192f1a0-0000-7000-8000-0000000001b1"),
+      helpRequest: {
+        id: HelpRequestId.of("0192f1a0-0000-7000-8000-000000000101"),
+        requester: CookId.of("8a2b4c6d-1e3f-4a5b-8c7d-9e0f1a2b3c4d"),
+        topic: "MENU",
+        recipeId: null,
+        howToStepId: null,
+      },
+      answerTitle: "Soup, then lasagna",
+      provider: { type: "COMMUNITY", id: CookId.of("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a") },
+      answer: {
+        topic: "MENU",
+        note: "A light start, then something warm.",
+        servings: 6,
+        meal: "DINNER",
+        howToServe: null,
+        courses: [{ dish: 1, recipeId: RecipeId.of("3e4f5a6b-7c8d-4e9f-8a0b-1c2d3e4f5a6b") }],
+      },
+      providedAt: new Date("2026-10-21T18:00:00Z"),
+    });
+    const expected = snapshotOf(menu);
+    await current().repository.save(menu);
+
+    const found = await current().repository.findById(HelpId.of("0192f1a0-0000-7000-8000-0000000001b1"));
+
+    expect(snapshotOf(found)).toEqual(expected);
+  });
+}
+
 function versionAndOptimisticLocking(current: Current): void {
   it("saving a new help stores version 1; saving the loaded one stores version 2 -- B1-S04 contract ADR-CA-005", async () => {
     await current().repository.save(newGrandmaHelp());
@@ -93,6 +127,7 @@ export function helpRepositoryContract(name: string, setUp: () => Promise<HelpRe
 
     const current: Current = () => underTest;
     lookupAndRoundTrip(current);
+    menuProposals(current);
     versionAndOptimisticLocking(current);
     savingANewHelp(current);
   });

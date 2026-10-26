@@ -26,11 +26,25 @@ function rateLimitKeyOf(request: Request, response: Response): string {
  * ADR-CA-010 · a fixed one-minute window per key, counted before authentication and validation refuse anything
  * (inspection m-9), so floods of 401s and 400s are limited too.
  */
-export function rateLimit(now: () => number = Date.now): RequestHandler {
+export function createRateLimiter(now: () => number = Date.now): { middleware: RequestHandler; trackedKeys: () => number } {
   const windows = new Map<string, { startedAt: number; count: number }>();
-  return (request: Request, response: Response, next: NextFunction) => {
+  let sweptAt = now();
+  /** At most once a window: forget the windows that ended, so the map holds only callers of the last minute (N-1). */
+  const forgetEnded = (at: number) => {
+    if (at - sweptAt < WINDOW_MS) {
+      return;
+    }
+    windows.forEach((window, key) => {
+      if (at - window.startedAt >= WINDOW_MS) {
+        windows.delete(key);
+      }
+    });
+    sweptAt = at;
+  };
+  const middleware = (request: Request, response: Response, next: NextFunction) => {
     const key = rateLimitKeyOf(request, response);
     const at = now();
+    forgetEnded(at);
     const window = windows.get(key);
     if (window === undefined || at - window.startedAt >= WINDOW_MS) {
       windows.set(key, { startedAt: at, count: 1 });
@@ -44,4 +58,5 @@ export function rateLimit(now: () => number = Date.now): RequestHandler {
     }
     next();
   };
+  return { middleware, trackedKeys: () => windows.size };
 }

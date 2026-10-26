@@ -102,6 +102,24 @@ describe("outbox relay — PostgreSQL 16", () => {
     expect(publisher.published.map((message) => message.headers.messageId)).toEqual([row?.message_id]);
     expect(row?.published_at).toEqual(new Date(NOW.getTime() + 1_000));
   });
+  it("two failed publishes in a row end the run: with the broker down, two attempts per run, the third aggregate's row waits untouched -- ADR-CA-004 QS-07 (inspection N-2)", async () => {
+    const requests = new KyselyHelpRequestRepository(database.db);
+    for (let n = 0; n < 3; n += 1) {
+      await requests.save(HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, id: HelpRequestId.of(uuidv7()) }));
+    }
+    let attempts = 0;
+    const brokerDown: Publisher = {
+      async publish() {
+        attempts += 1;
+        throw new Error("broker unreachable");
+      },
+    };
+
+    await relayAt(NOW, brokerDown).runOnce();
+
+    expect(attempts).toBe(2);
+    expect((await outboxRows()).map((row) => row.attempts)).toEqual([1, 1, 0]);
+  });
   it("backoff 1 s, 2 s, 4 s, 8 s, and the 5th failure dead-letters the row -- ADR-CA-004", async () => {
     await new KyselyHelpRequestRepository(database.db).save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));
     publisher.failNext(5);

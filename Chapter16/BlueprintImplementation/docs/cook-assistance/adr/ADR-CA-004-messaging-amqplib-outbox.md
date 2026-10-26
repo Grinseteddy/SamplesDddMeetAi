@@ -61,3 +61,7 @@ Honors ADR0003, AP0002, AP0004 (residuality), AP0007. Serves QS-04, QS-07, QS-12
   its row locks open for the whole outage, and shutdown waited for that pass.
 - **Claim batch 50 rows per round:** each claim round is one transaction over at most 50 rows, which bounds the locks
   held and what one rollback can re-send. A run keeps claiming rounds until nothing is due.
+- **Two failed publishes in a row end the run** (follow-up inspection, N-2): one transient failure lets the other
+  aggregates' rows go on in the same run; a second failure in a row means the broker is down, so the round commits
+  what it recorded and the run ends. The rows not reached stay pending, untouched, for the next run (500 ms later).
+  A broker outage therefore holds a transaction and its locks for at most two publish timeouts (≈ 10 s), not 50.

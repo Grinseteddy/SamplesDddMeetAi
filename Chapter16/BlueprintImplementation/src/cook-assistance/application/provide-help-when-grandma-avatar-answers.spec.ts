@@ -9,6 +9,7 @@ import { grandmaExplainsWarm, sundaySconesStep3 } from "../test-support/fixtures
 import { MessageId } from "./ports/processed-messages.js";
 import type { UnitOfWork } from "./ports/unit-of-work.js";
 import { type GrandmaAvatarAnswered, ProvideHelpWhenGrandmaAvatarAnswers } from "./provide-help-when-grandma-avatar-answers.js";
+import type { RefusalReason } from "./provide-help-when-grandma-avatar-answers.js";
 
 // Application — increment 0 (walking skeleton), step 8, unit 3: policy handler ProvideHelpWhenGrandmaAvatarAnswers.
 // policy: P2 · on: Grandma Avatar AI HelpProvided (translated by the ACL, step 9) · agg: Help · slice B1-S04.
@@ -100,6 +101,12 @@ describe("ProvideHelpWhenGrandmaAvatarAnswers", () => {
 
     expect(await handler.handle(grandmaAnswersWarm)).toEqual({ outcome: "ALREADY_PROCESSED" });
     expect(unitOfWork.helps.savedEvents.map((event) => event.type)).toEqual(["HelpProvided"]);
+  });
+  it("a refusal names one of the policy's known reasons; any other text does not compile -- ADR-CA-009 ADR-CA-006 (inspection N-4)", () => {
+    // @ts-expect-error — a reason the policy does not know is a type error
+    const typo: RefusalReason = "not an adressee";
+
+    expect(typo).toBe("not an adressee");
   });
   it("an unknown help request: outcome REFUSED 'help request not found', no help, the message recorded -- B1-S04 step 8 decision", async () => {
     const { handler, unitOfWork } = await setUp();

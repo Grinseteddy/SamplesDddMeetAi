@@ -8,7 +8,7 @@ import {
   type ProvideHelp,
 } from "../domain/help/help.js";
 import { ConcurrencyConflict } from "../domain/shared/concurrency-conflict.js";
-import { DomainRejection } from "../domain/shared/domain-rejection.js";
+import { type HelpRejection, RecipeNotAsInRequest, StepNotAsInRequest } from "../domain/help/help-rejections.js";
 import type { Clock } from "./ports/clock.js";
 import { MessageAlreadyProcessed, type MessageId } from "./ports/processed-messages.js";
 import type { TransactionScope, UnitOfWork } from "./ports/unit-of-work.js";
@@ -22,11 +22,14 @@ export interface GrandmaAvatarAnswered {
   readonly answer: PreparationStepExplanation;
 }
 
+/** Why a message was refused (ADR-CA-009, ADR-CA-006): the policy's own checks, or the rejection Provide Help raised. */
+export type RefusalReason = "help request not found" | "NotAnAddressee" | HelpRejection["name"];
+
 /** The named outcome of one message; the inbound adapter logs it and acknowledges the message. */
 export type GrandmaAvatarAnswerOutcome =
   | { readonly outcome: "HELP_PROVIDED"; readonly helpId: HelpId }
   | { readonly outcome: "ALREADY_PROCESSED" }
-  | { readonly outcome: "REFUSED"; readonly because: string; readonly rule: string | null };
+  | { readonly outcome: "REFUSED"; readonly because: RefusalReason; readonly rule: string | null };
 
 export interface ProvideHelpWhenGrandmaAvatarAnswersPorts {
   readonly unitOfWork: UnitOfWork;
@@ -49,11 +52,11 @@ const grandmaAvatar: HelpProvider = { type: "GRANDMA_AVATAR", id: null };
 const MAX_ATTEMPTS = 3;
 
 /** Provide Help, with a domain rejection (INV-10) handed back as a value; every other error is thrown. */
-function provideOrRejection(command: ProvideHelp): Help | DomainRejection {
+function provideOrRejection(command: ProvideHelp): Help | HelpRejection {
   try {
     return Help.provide(command);
   } catch (error) {
-    if (error instanceof DomainRejection) {
+    if (error instanceof StepNotAsInRequest || error instanceof RecipeNotAsInRequest) {
       return error;
     }
     throw error;
@@ -108,7 +111,7 @@ export class ProvideHelpWhenGrandmaAvatarAnswers {
         answer: message.answer,
         providedAt: this.ports.clock.now(),
       });
-      if (help instanceof DomainRejection) {
+      if (!(help instanceof Help)) {
         return refuse(scope, message, { because: help.name, rule: help.rule });
       }
       await scope.helps.save(help);

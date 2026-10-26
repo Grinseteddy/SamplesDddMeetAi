@@ -56,3 +56,23 @@ No duplicates between the two reports. Defect IDs below are the merged ones (A-n
 | m-16 | 5 | ADR-CA-020; coverage gate lines/branches ≥ 95 % (95.16 % branches) | (this round) |
 
 Extras found on the way (logged, user decisions): depcruise `not-to-unresolvable` and package-exports resolution.
+
+### Follow-up (2026-10-26)
+New inspector C (Sonnet 5.5, fresh context, read-only, did not take part in the first inspection) on the changed units
+(765f1ad..eb24826): original defects 17 fixed, 2 partly fixed (m-3, m-13), 0 not fixed; new defects 0 major, 4 minor:
+N-1 rate-limit windows never expire (edge-limits.ts); N-2 a claim round keeps publishing after a failure, up to
+50 × 5 s inside one transaction (outbox-relay.ts); N-3 no rule keeps adapter/messaging from importing either side;
+N-4 (rest of m-3) `because` still typed `string`. Exit criterion met: no accepted major defect open.
+Decisions (user): N-1…N-4 accepted; m-13 remainder deferred to increment 1 (QS-04 order per aggregate end to end,
+a deterministic QS-14 service test; already planned as partial).
+
+### Rework of the follow-up defects (2026-10-26), red first
+| Defect | Owning step | Test (red → green) or change |
+|---|---|---|
+| N-1 | 9 | limiter forgets ended windows (red: 4 keys tracked after a quiet minute, expected 1) |
+| N-2 | 10 | two failed publishes in a row end the run (red: 3 attempts, expected 2); conflict with the approved test "other aggregates go on" resolved by the user's rule; ADR-CA-004 amended |
+| N-3 | 12 | depcruise rule shared-messaging-imports-neither-side; trial import caught |
+| N-4 | 8 | RefusalReason union; Help rejections declare their literal names (red: unused @ts-expect-error) |
+
+Minor defects only: no re-inspection required. Exit criteria met: every accepted defect reworked with its test, no
+major open; m-13's remainder deferred to increment 1.

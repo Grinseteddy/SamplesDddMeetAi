@@ -43,6 +43,13 @@ module.exports = {
       to: { path: "^src/cook-assistance/adapter/in/" },
     },
     {
+      name: "shared-messaging-imports-neither-side",
+      comment: "adapter/messaging is what both sides share; importing either side would open an in→out path (ADR-CA-002, N-3).",
+      severity: "error",
+      from: { path: "^src/cook-assistance/adapter/messaging/", pathNot: TESTS },
+      to: { path: "^src/cook-assistance/adapter/(in|out)/" },
+    },
+    {
       name: "not-to-unresolvable",
       comment: "An import the cruiser cannot resolve is invisible to every rule above — so it is an error itself.",
       severity: "error",

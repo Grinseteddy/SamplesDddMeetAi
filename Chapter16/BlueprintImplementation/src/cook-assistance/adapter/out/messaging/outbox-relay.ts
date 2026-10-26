@@ -18,6 +18,9 @@ const MAX_ATTEMPTS = 5;
 /** ADR-CA-004 (amended, inspection m-10) · rows per claim round: bounds the transaction, its locks and a rollback. */
 const CLAIM_BATCH = 50;
 
+/** ADR-CA-004 (amended, inspection N-2) · this many failed publishes in a row mean the broker is down: the run ends. */
+const FAILURES_THAT_END_A_RUN = 2;
+
 /** A cap on claim rounds per run, so one run always ends. */
 const MAX_ROUNDS = 100;
 
@@ -67,17 +70,23 @@ export class OutboxRelay {
   /** Claim rounds until nothing is due (an aggregate's next row goes out once its earlier one is done). */
   async runOnce(): Promise<void> {
     for (let round = 0; round < MAX_ROUNDS; round += 1) {
-      if ((await this.claimRound()) === 0) {
+      const { claimed, brokerDown } = await this.claimRound();
+      if (claimed === 0 || brokerDown) {
         return;
       }
     }
   }
 
-  /** One transaction: claim the oldest due row of each aggregate, publish, record; returns how many were claimed. */
-  private async claimRound(): Promise<number> {
+  /**
+   * One transaction: claim the oldest due row of each aggregate, publish, record. Ends early when publishes keep
+   * failing, so a broker outage holds the transaction and its locks for at most two publish timeouts; the rows not
+   * reached stay pending, untouched, for the next run.
+   */
+  private async claimRound(): Promise<{ claimed: number; brokerDown: boolean }> {
     const now = this.ports.clock.now();
     const deadLettered: DeadLetteredRow[] = [];
     let claimed = 0;
+    let failuresInARow = 0;
     await this.ports.db.transaction().execute(async (tx) => {
       const rows = await sql<OutboxRow>`
         select id::text, message_id::text as "messageId", aggregate_type as "aggregateType", aggregate_id::text as "aggregateId",
@@ -100,11 +109,15 @@ export class OutboxRelay {
         if (outcome.kind === DEAD_LETTER) {
           deadLettered.push({ messageId: row.messageId, eventType: row.eventType, lastError: outcome.reason });
         }
+        failuresInARow = publishFailed(outcome) ? failuresInARow + 1 : 0;
+        if (failuresInARow >= FAILURES_THAT_END_A_RUN) {
+          break;
+        }
       }
     });
     // reported only once the dead letters are committed
     deadLettered.forEach((row) => this.ports.reportDeadLetter(row));
-    return claimed;
+    return { claimed, brokerDown: failuresInARow >= FAILURES_THAT_END_A_RUN };
   }
 
   /** Map, check and publish one row — and say what happened, without touching the outbox. */
@@ -131,6 +144,11 @@ export class OutboxRelay {
       return row.attempts + 1 >= MAX_ATTEMPTS ? deadLetter(reason, true) : { kind: "retry", reason };
     }
   }
+}
+
+/** The broker refused or did not confirm: a retry, or a dead letter after the last attempt. */
+function publishFailed(outcome: Outcome): boolean {
+  return outcome.kind === "retry" || (outcome.kind === DEAD_LETTER && outcome.attempted);
 }
 
 /** A dead letter after a failed publish counts as an attempt; one the relay refused before sending does not. */

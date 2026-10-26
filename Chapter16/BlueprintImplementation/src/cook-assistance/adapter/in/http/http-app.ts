@@ -6,7 +6,7 @@ import express from "express";
 import helmet from "helmet";
 import * as OpenApiValidator from "express-openapi-validator";
 import { identify, requireAuthenticated } from "./authentication.js";
-import { MAX_BODY_MEGABYTES, rateLimit } from "./edge-limits.js";
+import { createRateLimiter, MAX_BODY_MEGABYTES } from "./edge-limits.js";
 import { HelpRequestsController } from "./help-requests.controller.js";
 import { HelpsController } from "./helps.controller.js";
 import { HTTP_SETTINGS, type HttpSettings } from "./http-settings.js";
@@ -36,7 +36,7 @@ export async function createHttpApp(settings: HttpSettings): Promise<INestApplic
   app.use(helmet({ contentSecurityPolicy: { useDefaults: false, directives: { defaultSrc: ["'none'"] } } }));
   // ADR-CA-008, ADR-CA-010 · identify, count, then refuse: every request counts against the limit (inspection m-9)
   app.use(identify(settings.tokenVerifier));
-  app.use(rateLimit());
+  app.use(createRateLimiter().middleware);
   app.use(requireAuthenticated());
   app.use(express.json({ type: ["application/json", "application/*+json"], limit: `${MAX_BODY_MEGABYTES}mb` }));
   // ADR-CA-011 · the spec is enforced at the edge: requests before any mapping, responses before they leave

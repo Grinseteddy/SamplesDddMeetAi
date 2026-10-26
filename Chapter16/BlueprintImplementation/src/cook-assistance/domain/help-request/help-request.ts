@@ -6,7 +6,7 @@ import { AddresseeRequired, ChefOnlyForMenu, QuestionRequired, RecipeRequired, S
 export type HelpRequestId = string & { readonly __brand: "HelpRequestId" };
 export const HelpRequestId = { of: (value: string) => value as HelpRequestId };
 
-export interface RequestPreparationStepHelp {
+export interface PreparationStepHelpRequest {
   readonly id: HelpRequestId;
   readonly requester: CookId;
   readonly title: string;
@@ -88,7 +88,7 @@ export class HelpRequest {
   private constructor(private readonly state: HelpRequestState) {}
 
   // cmd: Request help preparation step · slice B2-S01
-  static requestPreparationStepHelp(command: RequestPreparationStepHelp): HelpRequest {
+  static requestPreparationStepHelp(command: PreparationStepHelpRequest): HelpRequest {
     ensureQuestion(command.question);
     ensureAddressees(command.addressees);
     const { recipeId, howToStepId } = ensureRecipeAndStep(command.recipeId, command.howToStepId);

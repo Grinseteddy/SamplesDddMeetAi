@@ -96,9 +96,9 @@ export class ProvideHelpWhenGrandmaAvatarAnswers {
       if (helpRequest === undefined) {
         return refuse(scope, message, { because: "help request not found", rule: null });
       }
-      // INV-09 · only an addressee may answer (resource check in the application, ADR-CA-009)
+      // INV-09 · only an addressee may answer (resource check in the application, ADR-CA-009: NotAnAddressee)
       if (!helpRequest.addressees.includes(grandmaAvatar.type)) {
-        return refuse(scope, message, { because: "not an addressee", rule: "INV-09" });
+        return refuse(scope, message, { because: "NotAnAddressee", rule: "INV-09" });
       }
       const help = provideOrRejection({
         id: message.helpId,

@@ -209,7 +209,7 @@ describe("Help request — B2-S01 Request help preparation step", () => {
       expect(helpRequest.pullEvents().map((event) => event.type)).toEqual(["HelpRequested"]);
       expect(helpRequest.pullEvents()).toEqual([]);
     });
-    it("a rejected request records no event and creates no help request -- B2-S01 INV-17 INV-19 INV-20", () => {
+    it("a rejected request throws: no help request is returned, so there is none to record an event -- B2-S01 INV-17 INV-19 INV-20 (inspection m-5)", () => {
       const rejectedCommands = [
         { ...sundaySconesStep3, howToStepId: null },
         { ...sundaySconesStep3, question: "" },

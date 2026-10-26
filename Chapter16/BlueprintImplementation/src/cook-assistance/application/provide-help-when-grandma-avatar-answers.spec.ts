@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HelpRequest, HelpRequestId, type RequestPreparationStepHelp } from "../domain/help-request/help-request.js";
+import { HelpRequest, HelpRequestId, type PreparationStepHelpRequest } from "../domain/help-request/help-request.js";
 import { Help } from "../domain/help/help.js";
 import { ConcurrencyConflict } from "../domain/shared/concurrency-conflict.js";
 import { HowToStepId, RecipeId } from "../domain/shared/ids.js";
@@ -24,7 +24,7 @@ const grandmaAnswersWarm: GrandmaAvatarAnswered = {
 };
 
 /** The Cook's Sunday scones request (or a variant of it) is stored and waits for an answer. */
-async function setUp(request: RequestPreparationStepHelp = sundaySconesStep3) {
+async function setUp(request: PreparationStepHelpRequest = sundaySconesStep3) {
   const unitOfWork = new InMemoryUnitOfWork();
   await unitOfWork.helpRequests.save(HelpRequest.requestPreparationStepHelp(request));
   const handler = new ProvideHelpWhenGrandmaAvatarAnswers({ unitOfWork, clock: new FixedClock(grandmaExplainsWarm.providedAt) });
@@ -110,12 +110,12 @@ describe("ProvideHelpWhenGrandmaAvatarAnswers", () => {
     expect(outcome).toEqual({ outcome: "REFUSED", because: "help request not found", rule: null });
     await expectRefusedAndRecorded(unitOfWork);
   });
-  it("a request addressed only to COMMUNITY: outcome REFUSED by INV-09 (not an addressee), no help, the message recorded -- B1-S04 INV-09 ADR-CA-009", async () => {
+  it("a request addressed only to COMMUNITY: outcome REFUSED by INV-09 (NotAnAddressee), no help, the message recorded -- B1-S04 INV-09 ADR-CA-009 (inspection m-3)", async () => {
     const { handler, unitOfWork } = await setUp({ ...sundaySconesStep3, addressees: ["COMMUNITY"] });
 
     const outcome = await handler.handle(grandmaAnswersWarm);
 
-    expect(outcome).toEqual({ outcome: "REFUSED", because: "not an addressee", rule: "INV-09" });
+    expect(outcome).toEqual({ outcome: "REFUSED", because: "NotAnAddressee", rule: "INV-09" });
     await expectRefusedAndRecorded(unitOfWork);
   });
   it("an answer for another step: outcome REFUSED by INV-10 StepNotAsInRequest, no help, the message recorded -- B1-S04 INV-10", async () => {

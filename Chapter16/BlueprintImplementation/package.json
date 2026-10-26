@@ -23,7 +23,8 @@
     "depcruise": "depcruise src --config .dependency-cruiser.cjs",
     "verify": "npm run generate && tsc --noEmit && eslint src/ && npm run format:check && npm run depcruise && vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest-results.json && npm run test:acceptance && npm run intent-coverage",
     "prepare": "cd ../.. && husky",
-    "intent-coverage": "node tools/intent-coverage/report.mjs"
+    "intent-coverage": "node tools/intent-coverage/report.mjs",
+    "rebuild-views": "node --import tsx src/rebuild-views.ts"
   },
   "devDependencies": {
     "@asyncapi/diff": "0.5.0",

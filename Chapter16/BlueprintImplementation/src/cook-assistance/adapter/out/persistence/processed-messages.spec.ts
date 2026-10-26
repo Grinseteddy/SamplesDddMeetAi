@@ -48,6 +48,13 @@ describe("KyselyProcessedMessages — PostgreSQL 16", () => {
 
     await expect(processedMessages.record(messageId)).rejects.toBeInstanceOf(MessageAlreadyProcessed);
   });
+  it("a database error other than a duplicate passes through unchanged, not as MessageAlreadyProcessed -- ADR-CA-004 (AP0005 coverage)", async () => {
+    const outcome = await new KyselyProcessedMessages(database.db).record(MessageId.of("not-a-uuid")).catch((error: unknown) => error);
+
+    expect(outcome).toBeInstanceOf(Error);
+    expect(outcome).not.toBeInstanceOf(MessageAlreadyProcessed);
+    expect((outcome as { code?: string }).code).toBe("22P02"); // invalid_text_representation
+  });
   it("a record inside a unit of work joins its transaction: when the work throws afterwards, the message counts as not processed -- B1-S04 ADR-CA-004", async () => {
     const messageId = MessageId.of("8a9b0c1d-2e3f-4a4b-8c5d-6e7f8a9b0c05");
     const failure = new Error("handling the message failed after recording it");

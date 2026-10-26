@@ -99,6 +99,14 @@ describe("KyselyHelpRequestRepository — PostgreSQL 16", () => {
 
       expect((await repository.findById(sundaySconesStep3.id))?.version).toBe(2);
     });
+    it("a database error other than a duplicate passes through unchanged, not as ConcurrencyConflict -- B2-S01 ADR-CA-005 (AP0005 coverage)", async () => {
+      const broken = HelpRequest.requestPreparationStepHelp({ ...sundaySconesStep3, requester: CookId.of("not-a-uuid") });
+
+      const outcome = await new KyselyHelpRequestRepository(database.db).save(broken).catch((error: unknown) => error);
+
+      expect(outcome).not.toBeInstanceOf(ConcurrencyConflict);
+      expect((outcome as { code?: string }).code).toBe("22P02"); // invalid_text_representation
+    });
     it("two loads of the same help request, both saved: the second save fails with ConcurrencyConflict and the stored version is the first save's -- B2-S01 ADR-CA-005", async () => {
       const repository = new KyselyHelpRequestRepository(database.db);
       await repository.save(HelpRequest.requestPreparationStepHelp(sundaySconesStep3));

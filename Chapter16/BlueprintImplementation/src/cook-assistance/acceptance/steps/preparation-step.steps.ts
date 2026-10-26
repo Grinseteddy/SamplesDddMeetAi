@@ -39,7 +39,8 @@ function helpRequestBody({ addressees, step, question }: { addressees: readonly 
     addressees,
     ...(step === undefined ? {} : { howToStepId: stepOfSundayScones(step) }),
     ...(question === undefined ? {} : { description: question }),
-    ...(addressees.includes("CHEF") ? { chefId: CHEF_A } : {}),
+    // a Chef comes with the selected Chef and the meal date (INV-03), so only "a Chef only for Menu" can refuse it
+    ...(addressees.includes("CHEF") ? { chefId: CHEF_A, plannedMealDate: "2026-10-30" } : {}),
   };
 }
 
@@ -111,8 +112,26 @@ When(
   },
 );
 
-Then("the request is rejected", function (this: CookAssistanceWorld) {
-  assert.equal(this.lastResponse?.status, 400);
+/**
+ * A schema rule refused the request (400 InvalidRequest, the spec's conditional rules): the validator's detail names
+ * the field of the rule, so a different 400 cause cannot pass for this one (inspection m-2).
+ */
+function assertRejectedBySchemaRule(world: CookAssistanceWorld, field: RegExp): void {
+  assert.equal(world.lastResponse?.status, 400);
+  assert.equal(world.lastResponse?.body.code, "InvalidRequest");
+  assert.match(String(world.lastResponse?.body.detail), field);
+}
+
+Then("the request is rejected: name the step", function (this: CookAssistanceWorld) {
+  assertRejectedBySchemaRule(this, /required property 'howToStepId'/); // INV-17
+});
+
+Then("the request is rejected: address the community or Grandma Avatar", function (this: CookAssistanceWorld) {
+  assertRejectedBySchemaRule(this, /addressees must NOT have fewer than 1 items/); // INV-20
+});
+
+Then("the request is rejected: ask a question", function (this: CookAssistanceWorld) {
+  assertRejectedBySchemaRule(this, /required property 'description'/); // INV-19
 });
 
 Then("the cook has no help request", async function (this: CookAssistanceWorld) {
@@ -131,7 +150,7 @@ Then("the help request is created, addressed to {addressees}", function (this: C
 });
 
 Then("the request is refused: Chefs are only allowed for Meal plan", function (this: CookAssistanceWorld) {
-  assert.equal(this.lastResponse?.status, 400); // the spec's Chef rule (r5): a Chef only for a Menu request
+  assertRejectedBySchemaRule(this, /topic must be equal to constant/); // the spec's Chef rule (r5, INV-01/INV-20): Menu only
 });
 
 When(

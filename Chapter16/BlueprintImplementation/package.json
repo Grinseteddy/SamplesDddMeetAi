@@ -21,10 +21,11 @@
     "test:contract:openapi": "tools/contract/run-openapi.sh",
     "test:load": "vitest run --config vitest.load.config.ts --reporter=default --reporter=json --outputFile.json=reports/vitest-load-results.json",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs",
-    "verify": "npm run generate && tsc --noEmit && eslint src/ && npm run format:check && npm run depcruise && vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest-results.json && npm run test:acceptance && npm run intent-coverage",
+    "verify": "npm run generate && tsc --noEmit && eslint src/ && npm run format:check && npm run depcruise && vitest run --coverage --reporter=default --reporter=json --outputFile.json=reports/vitest-results.json && npm run test:acceptance && npm run intent-coverage",
     "prepare": "cd ../.. && husky",
     "intent-coverage": "node tools/intent-coverage/report.mjs",
-    "rebuild-views": "node --import tsx src/rebuild-views.ts"
+    "rebuild-views": "node --import tsx src/rebuild-views.ts",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@asyncapi/diff": "0.5.0",
@@ -38,6 +39,7 @@
     "@types/node": "22.20.5",
     "@types/pg": "8.23.1",
     "@types/supertest": "7.2.1",
+    "@vitest/coverage-v8": "5.0.5",
     "dependency-cruiser": "18.5.0",
     "eslint": "10.13.0",
     "eslint-plugin-sonarjs": "4.2.2",

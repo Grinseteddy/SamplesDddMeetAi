@@ -82,6 +82,17 @@ beforeAll(async () => {
   );
   await mkdir(OUT, { recursive: true });
   await writeFile(`${OUT}/cooks.json`, JSON.stringify(cooks));
+  // QS-09's other source: helpers (COMMUNITY_COOK) who read the open requests addressed to the community (ADR-CA-009)
+  const helpers = await Promise.all(
+    Array.from({ length: COOK_COUNT }, async () => {
+      const cookId = randomUUID();
+      return {
+        cookId,
+        token: await issuer.tokenFor({ sub: cookId, roles: ["COMMUNITY_COOK"], scope: "cooking-assistance:read", expiresIn: 3600 }),
+      };
+    }),
+  );
+  await writeFile(`${OUT}/helpers.json`, JSON.stringify(helpers));
 }, 180_000);
 
 afterAll(async () => {
@@ -110,7 +121,7 @@ async function askAboutStep3(): Promise<string> {
       description: "What means 'warm'?",
       recipeId: SUNDAY_SCONES,
       howToStepId: stepOfSundayScones(3),
-      addressees: ["GRANDMA_AVATAR"],
+      addressees: ["COMMUNITY", "GRANDMA_AVATAR"], // community helpers see the open requests too (QS-09, inspection m-14)
     }),
   });
   return String(((await response.json()) as { helpRequestId?: string }).helpRequestId);
@@ -241,6 +252,13 @@ describe("query latency on one year of data -- QS-09 QS-16", () => {
     await expectUnderLoad("last-page", {
       scenario: "QS-09",
       measure: "listHelpRequests last page p95 (ms) at 10/s on one year of data",
+      budgetMs: 200,
+    });
+  });
+  it("10 requests/s on listHelpRequests by 100 community helpers for 60 s, over the open requests of every cook in the seeded data: every answer 200 and p95 ≤ 200 ms -- B2-S01 QS-09 QS-16 ADR-CA-009 (indicative; inspection m-14)", async () => {
+    await expectUnderLoad("helpers", {
+      scenario: "QS-09",
+      measure: "listHelpRequests by community helpers p95 (ms) at 10/s on one year of data",
       budgetMs: 200,
     });
   });

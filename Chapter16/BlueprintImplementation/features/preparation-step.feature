@@ -18,7 +18,7 @@ Feature: Help for a preparation step
   @B2-S01 @R1 @ex.2
   Scenario: A request without a step is rejected
     When the cook asks Grandma Avatar about "Sunday scones" without naming a step
-    Then the request is rejected
+    Then the request is rejected: name the step
     And the cook has no help request
 
   @B2-S01 @R2 @ex.1
@@ -41,13 +41,13 @@ Feature: Help for a preparation step
   @B2-S01 @R3 @ex.3
   Scenario: A request without an addressee is rejected
     When the cook asks nobody about step 3 of "Sunday scones": "What means 'warm'?"
-    Then the request is rejected
+    Then the request is rejected: address the community or Grandma Avatar
     And the cook has no help request
 
   @B2-S01 @R8 @ex.1
   Scenario: A request without a question is rejected
     When the cook asks Grandma Avatar about step 3 of "Sunday scones" without a question
-    Then the request is rejected
+    Then the request is rejected: ask a question
     And the cook has no help request
 
   @B2-S01 @no-rule

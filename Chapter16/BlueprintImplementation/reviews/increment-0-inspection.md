@@ -39,3 +39,20 @@ No duplicates between the two reports. Defect IDs below are the merged ones (A-n
 ## Decisions, rework, follow-up
 - 2026-10-26: all 19 **accepted** by the user (0 rejected, 0 deferred). Rework in owning-step order: step 12 rules (M-2, M-1 rule) → step 10 (M-1 code, m-10) → step 9 (M-3, m-6–m-9, m-11) → step 8 (m-3) → step 11 (m-15) → step 6 (m-4, m-5) → step 12 (m-1, m-2, m-12–m-14) → step 5 (m-16); then step 12 again, the scoped reverse check, and a re-inspection of the changed units by a new inspector (majors were reworked).
 
+
+### Rework (2026-10-26), each accepted defect back to its owning step, red first where it is behavior
+| Defect | Owning step | Test (red → green) or change | Commit |
+|---|---|---|---|
+| M-1 | 12 (rule), 10 (code) | depcruise rules in↛out / out↛in red on the two edges; adapter/messaging shared module | 02d0fb3 |
+| M-2 | 12 | generated code kept in the graph; trial: a domain import of generated code fails | 02d0fb3 |
+| m-10 | 10 | publish with the broker paused rejects (was pending); claim round ≤ 50 rows; ADR-CA-004 amended | 02d0fb3 |
+| M-3 | 9 | 401 and 403 logged as access-refused without personal data | 532b51a |
+| m-6, m-7, m-8, m-9, m-11 | 9 | 500 logged + detail; instance; no sub → 401; limiter before auth and validation; F5 refusal logged; ADR-CA-010 amended | 532b51a |
+| m-3 | 8 | INV-09 refusal NotAnAddressee (approved expectation changed, accepted defect) | 501421c |
+| m-15 | 11 | npm run rebuild-views (red: missing script) | 501421c |
+| m-4, m-5 | 6 | PreparationStepHelpRequest; test named for what it checks | 501421c |
+| m-2 | 12 | rejection scenarios assert the rule's field; the Chef scenario was red (it had passed on plannedMealDate) | (this round) |
+| m-1, m-12, m-13, m-14 | 12 | every invariant in the coverage report, partial status; QS-04/07/14 partial; helpers' load path (p95 28 ms) | (this round) |
+| m-16 | 5 | ADR-CA-020; coverage gate lines/branches ≥ 95 % (95.16 % branches) | (this round) |
+
+Extras found on the way (logged, user decisions): depcruise `not-to-unresolvable` and package-exports resolution.

@@ -22,8 +22,8 @@ function kebab(code: string): string {
   return code.replace(/(?<!^)([A-Z])/g, "-$1").toLowerCase();
 }
 
-function problemOf(status: number, code: string, detail?: string): Problem {
-  return { type: `${PROBLEM_TYPE_BASE}${kebab(code)}`, title: code, status, code, ...(detail === undefined ? {} : { detail }) };
+function problemOf(status: number, code: string, detail: string): Problem {
+  return { type: `${PROBLEM_TYPE_BASE}${kebab(code)}`, title: code, status, code, detail };
 }
 
 /** body-parser (express.json) marks its own errors with a documented `type`, e.g. `entity.too.large`. */
@@ -60,7 +60,7 @@ type Log = (event: HttpLogEvent) => void;
 
 /** The request's path without its query: what the Problem's `instance` names (ADR-CA-006, inspection m-7). */
 function pathOf(request: Request): string {
-  return request.originalUrl.split("?")[0] ?? request.originalUrl;
+  return request.originalUrl.replace(/\?.*$/, "");
 }
 
 /**

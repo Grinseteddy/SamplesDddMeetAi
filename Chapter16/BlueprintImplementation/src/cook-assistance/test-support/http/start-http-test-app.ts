@@ -1,6 +1,7 @@
 import type { INestApplication } from "@nestjs/common";
 import { createHttpApp } from "../../adapter/in/http/http-app.js";
 import type { HttpLogEvent } from "../../adapter/in/http/http-settings.js";
+import { JoseTokenVerifier } from "../../adapter/in/http/token-verifier.js";
 import type { HelpQueries } from "../../application/queries/help-queries.js";
 import type { HelpRequestQueries } from "../../application/queries/help-request-queries.js";
 import { RequestPreparationStepHelp } from "../../application/request-preparation-step-help.js";
@@ -32,7 +33,7 @@ export interface HttpTestApp {
 }
 
 /** The real HTTP adapter over the step 8 use case and its contract-checked fakes, with a local token issuer. */
-export async function startHttpTestApp(): Promise<HttpTestApp> {
+export async function startHttpTestApp(options: { tokenVerifier?: JoseTokenVerifier } = {}): Promise<HttpTestApp> {
   const issuer = await LocalIssuer.start();
   const unitOfWork = new InMemoryUnitOfWork();
   const recipeCatalog = new InMemoryRecipeCatalog();
@@ -46,7 +47,7 @@ export async function startHttpTestApp(): Promise<HttpTestApp> {
   const logged: HttpLogEvent[] = [];
   const app = await createHttpApp({
     cookAssistance: { requestPreparationStepHelp, helpRequestQueries: NO_QUERIES, helpQueries: NO_HELP_QUERIES },
-    tokenVerifier: issuer.verifier,
+    tokenVerifier: options.tokenVerifier ?? issuer.verifier,
     publicBaseUrl: PUBLIC_BASE_URL,
     log: (event) => logged.push(event),
   });

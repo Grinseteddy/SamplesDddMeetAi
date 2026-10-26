@@ -95,6 +95,13 @@ describe("KyselyHelpRepository — PostgreSQL 16", () => {
       expect(found?.answer).toEqual(grandmaExplainsWarm.answer);
       expect(found?.status).toBe("PROVIDED");
     });
+    it("a help with a provider id (a community cook) is found again with that id -- B1-S04 (AP0005 coverage)", async () => {
+      const repository = new KyselyHelpRepository(database.db);
+      const communityCook = { type: "COMMUNITY", id: CookId.of("1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e") } as const;
+      await repository.save(Help.provide({ ...grandmaExplainsWarm, provider: communityCook }));
+
+      expect((await repository.findById(grandmaExplainsWarm.id))?.provider).toEqual(communityCook);
+    });
     it("a loaded help has no pending events -- B1-S04 ADR-CA-003", async () => {
       const repository = new KyselyHelpRepository(database.db);
       await repository.save(Help.provide(grandmaExplainsWarm));

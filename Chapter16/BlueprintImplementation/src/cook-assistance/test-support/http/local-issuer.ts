@@ -12,6 +12,8 @@ export interface TokenClaims {
   readonly premium?: boolean;
   /** Seconds from now; negative for an expired token. */
   readonly expiresIn?: number;
+  /** Leaves out the role, scope and premium claims (a token Keycloak could issue for another client). */
+  readonly withoutClaims?: boolean;
 }
 
 /** A stand-in for Keycloak in tests: one ES256 key, its JWKS, and signed access tokens (ADR-CA-008). */
@@ -34,9 +36,11 @@ export class LocalIssuer {
     scope = "cooking-assistance:write",
     premium = false,
     expiresIn = 300,
+    withoutClaims = false,
   }: TokenClaims): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
-    const jwt = new SignJWT({ realm_access: { roles: [...roles] }, scope, premium }).setProtectedHeader({ alg: "ES256", kid: "test-key" });
+    const claims = withoutClaims ? {} : { realm_access: { roles: [...roles] }, scope, premium };
+    const jwt = new SignJWT(claims).setProtectedHeader({ alg: "ES256", kid: "test-key" });
     return (sub === undefined ? jwt : jwt.setSubject(sub))
       .setIssuer(ISSUER)
       .setAudience(AUDIENCE)

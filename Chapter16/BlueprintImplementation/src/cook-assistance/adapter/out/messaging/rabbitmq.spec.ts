@@ -136,6 +136,31 @@ describe("RabbitMQ adapters", () => {
       await manager.close();
     }
   });
+  it("consumer binding: a message without AMQP headers reaches the consumer with empty headers (its validation refuses it) -- ADR-CA-004 (AP0005 coverage)", async () => {
+    await declareTopology(channel);
+    await channel.purgeQueue(TOPOLOGY.grandmaAvatarQueue);
+    const received: unknown[] = [];
+    const recording: MessageConsumer = {
+      consume: async (message, delivery) => {
+        received.push(message.headers);
+        delivery.ack();
+      },
+    };
+    const manager = connect([broker.url]);
+    try {
+      const wrapper = manager.createChannel({ json: false });
+      await wrapper.waitForConnect();
+      await subscribeConsumer(wrapper, recording);
+
+      channel.publish(TOPOLOGY.grandmaAvatarExchange, TOPOLOGY.grandmaAvatarRoutingKey, Buffer.from("{}"));
+      await channel.waitForConfirms();
+      await eventually(() => received.length === 1);
+
+      expect(received).toEqual([{}]);
+    } finally {
+      await manager.close();
+    }
+  });
   it("consumer binding: deadLetter moves the message to the dead-letter queue -- ADR-CA-004", async () => {
     await declareTopology(channel);
     await channel.purgeQueue(TOPOLOGY.grandmaAvatarQueue);

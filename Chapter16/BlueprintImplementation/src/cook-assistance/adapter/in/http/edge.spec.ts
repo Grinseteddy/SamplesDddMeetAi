@@ -5,7 +5,10 @@ import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type HttpTestApp, startHttpTestApp } from "../../../test-support/http/start-http-test-app.js";
 import { sundaySconesStep3 } from "../../../test-support/fixtures/sunday-scones.js";
+import { AUDIENCE, ISSUER } from "../../../test-support/http/local-issuer.js";
+import { ensurePermitted, NotAuthorized } from "./authorization.js";
 import { SERVED_OPERATIONS } from "./served-operations.js";
+import { JoseTokenVerifier } from "./token-verifier.js";
 
 /** Sunday scones step 3, as the cook sends it (op requestHelp). */
 const sundaySconesBody = {
@@ -188,6 +191,58 @@ describe("HTTP edge", () => {
     const response = await request(app.getHttpServer()).post("/cooking-assistance/help-requests").set(headers).send({ title: 7 });
 
     expect(response.status).toBe(429);
+  });
+  it("signing keys that cannot be fetched are the service's problem: 500 InternalError and an internal-error event, not 401 -- ADR-CA-008 (AP0005 coverage)", async () => {
+    const unreachable = new JoseTokenVerifier({
+      issuer: ISSUER,
+      audience: AUDIENCE,
+      keys: async () => {
+        throw new Error("JWKS unreachable");
+      },
+    });
+    const withoutKeys = await startHttpTestApp({ tokenVerifier: unreachable });
+    try {
+      const response = await request(withoutKeys.app.getHttpServer())
+        .get("/cooking-assistance/help-requests")
+        .set(await withoutKeys.asCook());
+
+      expect(response.status).toBe(500);
+      expect(withoutKeys.logged).toEqual([
+        { event: "internal-error", method: "GET", path: "/cooking-assistance/help-requests", error: "Error" },
+      ]);
+    } finally {
+      await withoutKeys.app.close();
+    }
+  });
+  it("a valid token without role and scope claims: no roles, no scopes — 403 on a read -- ADR-CA-008 ADR-CA-009 (AP0005 coverage)", async () => {
+    const token = await testApp.issuer.tokenFor({ sub: sundaySconesStep3.requester, withoutClaims: true });
+
+    const response = await request(app.getHttpServer())
+      .get("/cooking-assistance/help-requests")
+      .set({ Authorization: `Bearer ${token}`, version: "2.0.0" });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toMatchObject({ code: "NotAuthorized", detail: "listHelpRequests needs the scope cooking-assistance:read" });
+  });
+  it("something thrown that is no Error: 500, and the event names its type -- ADR-CA-006 AP0007 (AP0005 coverage)", async () => {
+    vi.spyOn(testApp.unitOfWork, "transactionally").mockRejectedValueOnce("a plain string");
+
+    const response = await request(app.getHttpServer())
+      .post("/cooking-assistance/help-requests")
+      .set(await asCook())
+      .send(sundaySconesBody);
+
+    expect(response.status).toBe(500);
+    expect(testApp.logged).toEqual([
+      { event: "internal-error", method: "POST", path: "/cooking-assistance/help-requests", error: "string" },
+    ]);
+  });
+  it("an operation without a declared permission is refused (deny by default): NotAuthorized naming no scope -- ADR-CA-009 (AP0005 coverage)", () => {
+    const anyone = { cookId: sundaySconesStep3.requester, roles: ["COOK" as const], premium: false, scopes: ["cooking-assistance:write"] };
+
+    expect(() => ensurePermitted(anyone, "cancelHelpRequest")).toThrow(
+      new NotAuthorized("cancelHelpRequest needs the scope (none declared)"),
+    );
   });
   it("security headers: no X-Powered-By, Content-Security-Policy default-src 'none', Strict-Transport-Security -- ADR-CA-010", async () => {
     const response = await request(app.getHttpServer())

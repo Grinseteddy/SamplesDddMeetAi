@@ -148,6 +148,16 @@ describe("outbox relay — PostgreSQL 16", () => {
     const [unmapped] = await outboxRows();
     expect(unmapped?.dead_lettered_at).toEqual(NOW);
   });
+  it("a row the mapper cannot read fails the run loudly: rejected, rolled back, nothing sent, the row still pending -- ADR-CA-004 (AP0005 coverage)", async () => {
+    await sql`
+      insert into cook_assistance.outbox (aggregate_type, aggregate_id, event_type, payload, occurred_at)
+      values ('HelpRequest', ${sundaySconesStep3.id}, 'HelpRequested', 'null'::jsonb, ${NOW})`.execute(database.db);
+
+    await expect(relayAt(NOW).runOnce()).rejects.toThrow(TypeError);
+
+    expect(publisher.published).toEqual([]);
+    expect((await outboxRows()).map((row) => [row.published_at, row.attempts, row.dead_lettered_at])).toEqual([[null, 0, null]]);
+  });
   it("a dead-lettered row is reported with message id, event type and last error -- ADR-CA-004", async () => {
     await sql`
       insert into cook_assistance.outbox (aggregate_type, aggregate_id, event_type, payload, occurred_at)

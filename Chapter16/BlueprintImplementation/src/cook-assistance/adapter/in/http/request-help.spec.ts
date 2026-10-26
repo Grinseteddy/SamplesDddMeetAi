@@ -1,3 +1,4 @@
+import { toCommand } from "./request-help.mapper.js";
 import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -22,6 +23,24 @@ const askWhatWarmMeans = {
   howToStepId: sundaySconesStep3.howToStepId,
   addressees: [...sundaySconesStep3.addressees],
 };
+
+describe("toCommand", () => {
+  it("an absent recipe and a null step stay null in the command -- op requestHelp (AP0005 coverage)", () => {
+    const actor = { cookId: sundaySconesStep3.requester, roles: ["COOK" as const], premium: false, scopes: [] };
+    const body = {
+      title: "Dinner planning",
+      topic: "MENU" as const,
+      description: "Dinner for six.",
+      addressees: ["COMMUNITY" as const],
+      howToStepId: null,
+      pictures: [],
+    };
+
+    const command = toCommand(body, actor);
+
+    expect([command.recipeId, command.howToStepId]).toEqual([null, null]);
+  });
+});
 
 describe("op requestHelp", () => {
   let app: INestApplication;

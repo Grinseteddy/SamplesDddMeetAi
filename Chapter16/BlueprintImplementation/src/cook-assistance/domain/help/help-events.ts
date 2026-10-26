@@ -16,9 +16,8 @@ export interface HelpProvided {
   readonly providedAt: Date;
 }
 
-// evt: Help accepted · slice B1-S05 · AsyncAPI message HelpAccepted (HelpDecidedPayload)
-export interface HelpAccepted {
-  readonly type: "HelpAccepted";
+/** The requester's decision on a help, shared by acceptance and rejection (AsyncAPI HelpDecidedPayload). */
+interface HelpDecided {
   readonly helpId: HelpId;
   readonly helpRequestId: HelpRequestId;
   readonly helpRequester: CookId;
@@ -28,8 +27,13 @@ export interface HelpAccepted {
   readonly decidedAt: Date;
 }
 
+// evt: Help accepted · slice B1-S05 · AsyncAPI message HelpAccepted (HelpDecidedPayload)
+export interface HelpAccepted extends HelpDecided {
+  readonly type: "HelpAccepted";
+}
+
 // evt: Help rejected · slice B1-S09 · AsyncAPI message HelpRejected (HelpDecidedPayload)
-export interface HelpRejected extends Omit<HelpAccepted, "type"> {
+export interface HelpRejected extends HelpDecided {
   readonly type: "HelpRejected";
 }
 

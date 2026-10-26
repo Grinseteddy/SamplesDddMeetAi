@@ -78,7 +78,11 @@ export interface HelpState {
 }
 
 // INV-10 · a help is about what was asked: the same recipe and step as its help request
-function ensureAnswersTheRequest(helpRequest: AnsweredHelpRequest, answer: PreparationStepExplanation): void {
+function ensureAnswersTheRequest(helpRequest: AnsweredHelpRequest, answer: Answer): void {
+  // INV-10 · an explanation of a step answers the request's recipe and step
+  if (answer.topic !== "PREPARATION_STEP") {
+    return;
+  }
   if (answer.recipeId !== helpRequest.recipeId) {
     throw new RecipeNotAsInRequest();
   }
@@ -98,10 +102,7 @@ export class Help {
     if (command.provider.id === command.helpRequest.requester) {
       throw new OwnRequestNotAnswerable();
     }
-    // INV-10 · an explanation of a step answers the request's recipe and step
-    if (command.answer.topic === "PREPARATION_STEP") {
-      ensureAnswersTheRequest(command.helpRequest, command.answer);
-    }
+    ensureAnswersTheRequest(command.helpRequest, command.answer);
     const help = new Help({
       id: command.id,
       helpRequestId: command.helpRequest.id,

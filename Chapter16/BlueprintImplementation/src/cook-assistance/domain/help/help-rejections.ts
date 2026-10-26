@@ -20,9 +20,6 @@ export class RecipeNotAsInRequest extends DomainRejection {
   }
 }
 
-/** Every rejection Provide Help can raise. */
-export type HelpRejection = StepNotAsInRequest | RecipeNotAsInRequest | OwnRequestNotAnswerable;
-
 // INV-25 · a cook cannot answer their own help request (Q3-1)
 export class OwnRequestNotAnswerable extends DomainRejection {
   declare readonly name: "OwnRequestNotAnswerable";
@@ -32,6 +29,9 @@ export class OwnRequestNotAnswerable extends DomainRejection {
     super("You cannot answer your own help request.");
   }
 }
+
+/** Every rejection Provide Help can raise. */
+export type HelpRejection = StepNotAsInRequest | RecipeNotAsInRequest | OwnRequestNotAnswerable;
 
 // INV-13, INV-15 · the requester decides once, while the help is PROVIDED; ACCEPTED and REJECTED are terminal
 export class HelpNotProvided extends DomainRejection {

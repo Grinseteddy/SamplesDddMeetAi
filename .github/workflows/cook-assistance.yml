@@ -1,0 +1,129 @@
+# Cook Assistance (Chapter16/BlueprintImplementation) — ADR-CA-018: the one build command on every push and pull
+# request (QS-02: ≤ 10 min); load and OpenAPI contract runs on pull requests; 1000-run property tests nightly.
+# Security tools and the ZAP scan join in step 14.
+name: cook-assistance
+
+on:
+  push:
+    paths: &service-paths
+      - "Chapter16/BlueprintImplementation/**"
+      - ".github/workflows/cook-assistance.yml"
+      - ".husky/**"
+  pull_request:
+    paths: *service-paths
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cook-assistance-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: Chapter16/BlueprintImplementation
+
+env:
+  FC_SEED: "20261026"
+
+jobs:
+  verify:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.22"
+          cache: npm
+          cache-dependency-path: |
+            Chapter16/BlueprintImplementation/package-lock.json
+            Chapter16/BlueprintImplementation/tools/codegen/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix tools/codegen
+      - run: npm run verify
+
+  load:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.22"
+          cache: npm
+          cache-dependency-path: |
+            Chapter16/BlueprintImplementation/package-lock.json
+            Chapter16/BlueprintImplementation/tools/codegen/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix tools/codegen
+      - run: npm run generate
+      - run: npm run test:load
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: load-results
+          # the measures and k6's summaries; never reports/load/cooks.json (tokens)
+          path: |
+            Chapter16/BlueprintImplementation/reports/quality-results.ndjson
+            Chapter16/BlueprintImplementation/reports/load/*.summary.json
+
+  contract-openapi:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.22"
+          cache: npm
+          cache-dependency-path: |
+            Chapter16/BlueprintImplementation/package-lock.json
+            Chapter16/BlueprintImplementation/tools/codegen/package-lock.json
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix tools/codegen
+      - run: npm run generate
+      - run: python -m venv tools/contract/.venv && tools/contract/.venv/bin/pip install -r tools/contract/requirements.lock
+      - run: npm run test:contract:openapi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: contract-openapi-junit
+          path: Chapter16/BlueprintImplementation/reports/junit-*.xml
+
+  property-nightly:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      FC_RUNS: "1000"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.22"
+          cache: npm
+          cache-dependency-path: |
+            Chapter16/BlueprintImplementation/package-lock.json
+            Chapter16/BlueprintImplementation/tools/codegen/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix tools/codegen
+      - run: npm run generate
+      - run: npx vitest run src/cook-assistance/domain

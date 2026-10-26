@@ -1,0 +1,5 @@
+# Cook Assistance (ADR-CA-018): Conventional Commits for a commit that touches Chapter16/BlueprintImplementation.
+SERVICE=Chapter16/BlueprintImplementation
+git diff --cached --quiet -- "$SERVICE" && exit 0
+MESSAGE="$(pwd)/$1"
+cd "$SERVICE" && npx --no -- commitlint --edit "$MESSAGE"

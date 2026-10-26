@@ -1,0 +1,5 @@
+# Cook Assistance (ADR-CA-018): acts only on staged files under Chapter16/BlueprintImplementation.
+SERVICE=Chapter16/BlueprintImplementation
+git diff --cached --quiet -- "$SERVICE" && exit 0
+git diff --cached -U0 -- "$SERVICE" | docker run -i --rm zricethezav/gitleaks:v8.30.1 stdin --no-banner --redact || exit 1
+cd "$SERVICE" && npx --no -- lint-staged

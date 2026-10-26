@@ -35,9 +35,9 @@ const grandmaExplainsWarm = {
   providedAt: new Date("2026-10-24T12:00:00Z"),
 } as const;
 
-// Property runs (ADR-CA-017): 200 runs, seed fixed through FC_SEED in CI.
+// Property runs (ADR-CA-017): 200 runs (1000 in the nightly job through FC_RUNS), seed fixed through FC_SEED in CI.
 const propertyRuns = {
-  numRuns: 200,
+  numRuns: Number(process.env["FC_RUNS"] ?? 200),
   ...(process.env["FC_SEED"] ? { seed: Number(process.env["FC_SEED"]) } : {}),
 };
 

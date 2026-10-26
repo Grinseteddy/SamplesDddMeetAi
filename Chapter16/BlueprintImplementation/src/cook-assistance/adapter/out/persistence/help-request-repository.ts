@@ -6,7 +6,14 @@ import {
   type HelpRequestStatus,
   type HelpRequestTopic,
 } from "../../../domain/help-request/help-request.js";
-import type { HelpRequestEvent, HelpRequested } from "../../../domain/help-request/help-request-events.js";
+import type {
+  AnswerDeadlineRestarted,
+  ChefReviewRequested,
+  HelpRequestCancelled,
+  HelpRequestClosed,
+  HelpRequestEvent,
+  HelpRequested,
+} from "../../../domain/help-request/help-request-events.js";
 import type { HelpRequestRepository } from "../../../domain/help-request/help-request-repository.js";
 import { CookId, HowToStepId, RecipeId } from "../../../domain/shared/ids.js";
 import { recordEvents } from "./events.js";
@@ -84,78 +91,6 @@ function toHelpRequestRow(helpRequest: HelpRequest): HelpRequestRow {
   };
 }
 
-/** An event's payload under the AsyncAPI message's field names, and when it happened. */
-interface StoredMessage {
-  readonly payload: Record<string, unknown>;
-  readonly occurredAt: Date;
-}
-
-// one mapping per event type of the Help request (the switch is exhaustive: a new event fails type checking)
-function messageOf(event: HelpRequestEvent): StoredMessage {
-  switch (event.type) {
-    case "HelpRequested":
-      return { payload: toHelpRequestedMessage(event), occurredAt: event.requestedAt };
-    // AsyncAPI message HelpRequestCancelled · B1-S06 (cook), B1-S07 (time)
-    case "HelpRequestCancelled":
-      return {
-        payload: {
-          helpRequestId: event.helpRequestId,
-          requester: event.requester,
-          cancelledBy: event.cancelledBy,
-          status: event.status,
-          cancelledAt: event.cancelledAt.toISOString(),
-        },
-        occurredAt: event.cancelledAt,
-      };
-    // AsyncAPI message ChefReviewRequested · B1-S02
-    case "ChefReviewRequested":
-      return {
-        payload: {
-          helpRequestId: event.helpRequestId,
-          requester: event.requester,
-          helpId: event.helpId,
-          chefId: event.chefId,
-          requestedAt: event.requestedAt.toISOString(),
-        },
-        occurredAt: event.requestedAt,
-      };
-    // internal event (no AsyncAPI message) · B1-S10: the read model and a rebuild need the new deadline
-    case "AnswerDeadlineRestarted":
-      return {
-        payload: {
-          helpRequestId: event.helpRequestId,
-          answerDeadline: event.answerDeadline.toISOString(),
-          restartedAt: event.restartedAt.toISOString(),
-        },
-        occurredAt: event.restartedAt,
-      };
-    // AsyncAPI message HelpRequestClosed · B1-S08 (acceptedHelpLink and helpRequestLink are added by the relay)
-    case "HelpRequestClosed":
-      return {
-        payload: {
-          helpRequestId: event.helpRequestId,
-          requester: event.requester,
-          acceptedHelpId: event.acceptedHelpId,
-          status: event.status,
-          closedAt: event.closedAt.toISOString(),
-        },
-        occurredAt: event.closedAt,
-      };
-  }
-}
-
-// mapping: Help request event → outbox row, payload under the AsyncAPI message's field names (ADR-CA-004)
-function toOutboxRow(event: HelpRequestEvent): NewOutboxRow {
-  const { payload, occurredAt } = messageOf(event);
-  return {
-    aggregate_type: "HelpRequest",
-    aggregate_id: event.helpRequestId,
-    event_type: event.type,
-    payload,
-    occurred_at: occurredAt,
-  };
-}
-
 // AsyncAPI message HelpRequested: the question is its description, timestamps are ISO strings, a preparation
 // step has no pictures; helpRequestLink is added by the relay.
 function toHelpRequestedMessage(event: HelpRequested): Record<string, unknown> {
@@ -177,6 +112,82 @@ function toHelpRequestedMessage(event: HelpRequested): Record<string, unknown> {
   };
 }
 
+// AsyncAPI message HelpRequestCancelled · B1-S06 (cook), B1-S07 (time)
+function toHelpRequestCancelledMessage(event: HelpRequestCancelled): Record<string, unknown> {
+  return {
+    helpRequestId: event.helpRequestId,
+    requester: event.requester,
+    cancelledBy: event.cancelledBy,
+    status: event.status,
+    cancelledAt: event.cancelledAt.toISOString(),
+  };
+}
+
+// AsyncAPI message ChefReviewRequested · B1-S02
+function toChefReviewRequestedMessage(event: ChefReviewRequested): Record<string, unknown> {
+  return {
+    helpRequestId: event.helpRequestId,
+    requester: event.requester,
+    helpId: event.helpId,
+    chefId: event.chefId,
+    requestedAt: event.requestedAt.toISOString(),
+  };
+}
+
+// internal event (no AsyncAPI message) · B1-S10: the read model and a rebuild need the new deadline
+function toAnswerDeadlineRestartedPayload(event: AnswerDeadlineRestarted): Record<string, unknown> {
+  return {
+    helpRequestId: event.helpRequestId,
+    answerDeadline: event.answerDeadline.toISOString(),
+    restartedAt: event.restartedAt.toISOString(),
+  };
+}
+
+// AsyncAPI message HelpRequestClosed · B1-S08 (acceptedHelpLink and helpRequestLink are added by the relay)
+function toHelpRequestClosedMessage(event: HelpRequestClosed): Record<string, unknown> {
+  return {
+    helpRequestId: event.helpRequestId,
+    requester: event.requester,
+    acceptedHelpId: event.acceptedHelpId,
+    status: event.status,
+    closedAt: event.closedAt.toISOString(),
+  };
+}
+
+/** An event's payload under the AsyncAPI message's field names, and when it happened. */
+interface StoredMessage {
+  readonly payload: Record<string, unknown>;
+  readonly occurredAt: Date;
+}
+
+// one mapping per event type of the Help request (the switch is exhaustive: a new event fails type checking)
+function messageOf(event: HelpRequestEvent): StoredMessage {
+  switch (event.type) {
+    case "HelpRequested":
+      return { payload: toHelpRequestedMessage(event), occurredAt: event.requestedAt };
+    case "HelpRequestCancelled":
+      return { payload: toHelpRequestCancelledMessage(event), occurredAt: event.cancelledAt };
+    case "ChefReviewRequested":
+      return { payload: toChefReviewRequestedMessage(event), occurredAt: event.requestedAt };
+    case "AnswerDeadlineRestarted":
+      return { payload: toAnswerDeadlineRestartedPayload(event), occurredAt: event.restartedAt };
+    case "HelpRequestClosed":
+      return { payload: toHelpRequestClosedMessage(event), occurredAt: event.closedAt };
+  }
+}
+
+// mapping: Help request event → outbox row, payload under the AsyncAPI message's field names (ADR-CA-004)
+function toOutboxRow(event: HelpRequestEvent): NewOutboxRow {
+  const { payload, occurredAt } = messageOf(event);
+  return {
+    aggregate_type: "HelpRequest",
+    aggregate_id: event.helpRequestId,
+    event_type: event.type,
+    payload,
+    occurred_at: occurredAt,
+  };
+}
+
 export class KyselyHelpRequestRepository implements HelpRequestRepository {
   private readonly db: Kysely<CookAssistanceTables>;
 
@@ -195,7 +206,6 @@ export class KyselyHelpRequestRepository implements HelpRequestRepository {
   // ADR-CA-005 · versioned write (writeVersioned).
   // ADR-CA-004 · state, outbox rows and read models (ADR-CA-012) in one transaction.
   async save(helpRequest: HelpRequest): Promise<void> {
-    // mapped before anything is written: an event that cannot be stored yet leaves the database untouched
     const outboxRows = helpRequest.pullEvents().map(toOutboxRow);
     await withinTransaction(this.db, async (tx) => {
       await writeVersioned(tx, {

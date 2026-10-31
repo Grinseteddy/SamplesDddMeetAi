@@ -1,7 +1,6 @@
 ---
 name: "blueprint-service-implementation"
 description: "Guided pipeline that implements ONE bounded context as a tested service (API controllers, application services, domain model, repository, database) from a domain knowledge graph and an architecture decision graph, design-level EventStorming boards, user stories, a ready Example Mapping per board, invariants, OpenAPI/AsyncAPI specs and ADRs. Scopes by boards AND user stories, builds a thin walking skeleton end to end first, then one board per increment, user story by user story, with EXACT Coding and a fast test loop; each increment closes with an independent Fagan review and an OWASP security review by separate agents. Asks at every step which input to use. Use for \"implement this bounded context\", \"run the implementation blueprint\", \"continue the implementation at step N\", \"build the walking skeleton\", \"implement the next board\", \"implement the next user story\"."
-author: Annegret Junker
 ---
 
 # Blueprint Service Implementation — the 15-step pipeline
@@ -64,15 +63,15 @@ sends defects back to the step that owns them.
 - **Always ask for the input source, in the same shape.** Use the interactive
   option picker when the client has one. Offer only the options that apply to
   the step:
-    1. **Graph** — extract the step's input from the domain knowledge graph or
-       the architecture decision graph (queries in each step file). Only offered
-       once step 1 has received a graph that holds content for this step.
-    2. **Upload** — the user provides the artifact (photo, export, file, text).
-    3. **Generate** — derive the artifact with the step's generate skill from
-       earlier steps' results; show it and wait for approval.
-    4. **Reuse** — take the output of an earlier step of this run (when one
-       exists).
-    5. **Skip** — only for optional steps.
+  1. **Graph** — extract the step's input from the domain knowledge graph or
+     the architecture decision graph (queries in each step file). Only offered
+     once step 1 has received a graph that holds content for this step.
+  2. **Upload** — the user provides the artifact (photo, export, file, text).
+  3. **Generate** — derive the artifact with the step's generate skill from
+     earlier steps' results; show it and wait for approval.
+  4. **Reuse** — take the output of an earlier step of this run (when one
+     exists).
+  5. **Skip** — only for optional steps.
 - **State exactly what is expected.** Before asking, name the artifact the step
   needs, its accepted formats, and which earlier result could stand in for it
   (one or two lines, from the step table).
@@ -142,12 +141,12 @@ deferred:
 3. **Ask for approval**, in these words or close to them:
    **"Do you approve step N — <name>, so we can go ahead with step N+1 —
    <name>?"** Offer (option picker when available):
-    - **Approve and continue** — go to step N+1.
-    - **Revise this step** — say what to change; redo the affected part, then
-      show the checkpoint again.
-    - **Go back to an earlier step** — follow *Revisiting*.
-    - **Pause here** — save the ledger; a later "continue" resumes at step
-      N+1 after asking for this approval again.
+   - **Approve and continue** — go to step N+1.
+   - **Revise this step** — say what to change; redo the affected part, then
+     show the checkpoint again.
+   - **Go back to an earlier step** — follow *Revisiting*.
+   - **Pause here** — save the ledger; a later "continue" resumes at step
+     N+1 after asking for this approval again.
 4. **Record** the approval and its date in the ledger before starting step
    N+1. A step without a recorded approval counts as incomplete when
    resuming.

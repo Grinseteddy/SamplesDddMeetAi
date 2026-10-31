@@ -1,6 +1,7 @@
 ---
 name: "blueprint-service-implementation"
 description: "Guided pipeline that implements ONE bounded context as a tested service (API controllers, application services, domain model, repository, database) from a domain knowledge graph and an architecture decision graph, design-level EventStorming boards, user stories, a ready Example Mapping per board, invariants, OpenAPI/AsyncAPI specs and ADRs. Scopes by boards AND user stories, builds a thin walking skeleton end to end first, then one board per increment, user story by user story, with EXACT Coding and a fast test loop; each increment closes with an independent Fagan review and an OWASP security review by separate agents. Asks at every step which input to use. Use for \"implement this bounded context\", \"run the implementation blueprint\", \"continue the implementation at step N\", \"build the walking skeleton\", \"implement the next board\", \"implement the next user story\"."
+author: Annegret Junker
 ---
 
 # Blueprint Service Implementation — the 15-step pipeline
